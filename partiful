@@ -715,6 +715,7 @@ async function getGuests(eventId, options) {
   const summary = {
     eventId,
     eventTitle: event.title,
+    timestamp: new Date().toISOString(),
     counts: {
       going: counts.GOING || 0,
       maybe: counts.MAYBE || 0,
@@ -725,24 +726,29 @@ async function getGuests(eventId, options) {
     total: (counts.GOING || 0) + (counts.MAYBE || 0) + (counts.SENT || 0) + (counts.DECLINED || 0)
   };
   
+  return summary;
+}
+
+async function showGuests(eventId, options) {
+  const summary = await getGuests(eventId, options);
+  
   if (options.json) {
     console.log(JSON.stringify(summary, null, 2));
-    return;
+    return summary;
   }
   
   if (options.csv) {
-    // CSV format - just counts for now
     console.log('status,count');
     console.log(`going,${summary.counts.going}`);
     console.log(`maybe,${summary.counts.maybe}`);
     console.log(`invited,${summary.counts.invited}`);
     console.log(`declined,${summary.counts.declined}`);
     console.log(`waitlist,${summary.counts.waitlist}`);
-    return;
+    return summary;
   }
   
   // Human-readable output
-  console.log(`\n${event.title}`);
+  console.log(`\n${summary.eventTitle}`);
   console.log('─'.repeat(40));
   console.log(`\nGuest Summary:`);
   console.log(`  👍 Going:    ${summary.counts.going}`);
@@ -755,8 +761,64 @@ async function getGuests(eventId, options) {
   console.log(`  ─────────────`);
   console.log(`  Total: ${summary.total}`);
   
-  console.log(`\nNote: Individual guest names require browser access.`);
-  console.log(`View full list: https://partiful.com/e/${eventId}?focus=guests`);
+  if (!options.watch) {
+    console.log(`\nNote: Individual guest names require browser access.`);
+    console.log(`View full list: https://partiful.com/e/${eventId}?focus=guests`);
+  }
+  
+  return summary;
+}
+
+async function watchGuests(eventId, intervalMs = 60000) {
+  console.log(`Watching RSVPs for event ${eventId}...`);
+  console.log(`Polling every ${intervalMs / 1000}s. Press Ctrl+C to stop.\n`);
+  
+  let lastCounts = null;
+  
+  const check = async () => {
+    try {
+      const summary = await getGuests(eventId, {});
+      const counts = summary.counts;
+      const time = new Date().toLocaleTimeString();
+      
+      if (lastCounts) {
+        // Check for changes
+        const changes = [];
+        if (counts.going !== lastCounts.going) {
+          const diff = counts.going - lastCounts.going;
+          changes.push(`👍 Going: ${lastCounts.going} → ${counts.going} (${diff > 0 ? '+' : ''}${diff})`);
+        }
+        if (counts.maybe !== lastCounts.maybe) {
+          const diff = counts.maybe - lastCounts.maybe;
+          changes.push(`🤔 Maybe: ${lastCounts.maybe} → ${counts.maybe} (${diff > 0 ? '+' : ''}${diff})`);
+        }
+        if (counts.invited !== lastCounts.invited) {
+          const diff = counts.invited - lastCounts.invited;
+          changes.push(`💌 Invited: ${lastCounts.invited} → ${counts.invited} (${diff > 0 ? '+' : ''}${diff})`);
+        }
+        if (counts.declined !== lastCounts.declined) {
+          const diff = counts.declined - lastCounts.declined;
+          changes.push(`😢 Declined: ${lastCounts.declined} → ${counts.declined} (${diff > 0 ? '+' : ''}${diff})`);
+        }
+        
+        if (changes.length > 0) {
+          console.log(`\n[${time}] 🔔 RSVP CHANGES:`);
+          changes.forEach(c => console.log(`  ${c}`));
+        } else {
+          process.stdout.write(`[${time}] No changes\r`);
+        }
+      } else {
+        console.log(`[${time}] Initial state: ${counts.going} going, ${counts.maybe} maybe, ${counts.invited} invited`);
+      }
+      
+      lastCounts = { ...counts };
+    } catch (err) {
+      console.error(`[${new Date().toLocaleTimeString()}] Error: ${err.message}`);
+    }
+  };
+  
+  await check();
+  setInterval(check, intervalMs);
 }
 
 async function sendBlast(eventId, options) {
@@ -914,6 +976,7 @@ List Options:
 Guests Options:
   --json                            Output as JSON
   --csv                             Output as CSV
+  --watch                           Watch for RSVP changes (polls every 60s)
 
 Create Options:
   --title "Event Name"              Event title (required)
@@ -1066,10 +1129,14 @@ async function main() {
       const guestsEventId = args._[1];
       if (!guestsEventId) {
         console.error('Error: Event ID required');
-        console.error('Usage: partiful guests <eventId> [--json|--csv]');
+        console.error('Usage: partiful guests <eventId> [--json|--csv|--watch]');
         process.exit(1);
       }
-      await getGuests(guestsEventId, { json: args.json, csv: args.csv });
+      if (args.watch) {
+        await watchGuests(guestsEventId, 60000);
+      } else {
+        await showGuests(guestsEventId, { json: args.json, csv: args.csv });
+      }
       break;
     
     case 'invite':
