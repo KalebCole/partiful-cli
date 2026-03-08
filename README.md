@@ -32,28 +32,40 @@ The CLI needs a Firebase refresh token from an authenticated Partiful session. O
 }
 ```
 
-Or use the browser automation to extract it automatically (see `extract-auth.js`).
-
 ## Usage
 
+### List Events
 ```bash
-# Check auth status
-partiful auth-status
-
-# Create an event
-partiful create --title "Game Night" --date "2026-04-15 7pm" --location "My Place"
-
-# Create with capacity limit
-partiful create --title "Birthday Party" --date "May 20 6:30pm" --capacity 20 --waitlist
-
-# Create private event
-partiful create --title "Secret Meeting" --date "Apr 1 8pm" --private
-
-# Get event details
-partiful get <eventId>
+partiful list                    # Upcoming events
+partiful list --past             # Past events
+partiful list --json             # JSON output
 ```
 
-## Options
+### Get Event Details
+```bash
+partiful get <eventId>           # Human-readable
+partiful get <eventId> --json    # JSON output
+```
+
+### Create Event
+```bash
+partiful create --title "Game Night" --date "2026-04-15 7pm" --location "My Place"
+partiful create --title "Birthday" --date "May 20 6:30pm" --capacity 20 --waitlist
+partiful create --title "Secret" --date "Apr 1 8pm" --private
+```
+
+### Cancel Event
+```bash
+partiful cancel <eventId>        # Prompts for confirmation
+partiful cancel <eventId> -f     # Force (skip confirmation)
+```
+
+### Auth Status
+```bash
+partiful auth-status
+```
+
+## Create Options
 
 | Option | Description |
 |--------|-------------|
@@ -82,12 +94,20 @@ The refresh token survives browser restarts. You only need to re-authenticate if
 - Firebase revokes the token (rare)
 - Token expires after extended inactivity (~months)
 
-## API Notes
+## API Endpoints Used
 
-- Token refresh: `POST https://securetoken.googleapis.com/v1/token?key=<apiKey>`
-  - Requires `Referer: https://partiful.com/` header
-- Create event: `POST https://api.partiful.com/createEvent`
-- All requests wrap body in `{ data: { params: {...}, userId, amplitudeDeviceId, amplitudeSessionId } }`
+- `POST /getMyUpcomingEventsForHomePage` - List upcoming events
+- `POST /getMyPastEventsForHomePage` - List past events
+- `POST /getEvent` - Get event details
+- `POST /createEvent` - Create new event
+- `POST /cancelEvent` - Cancel an event
+
+All requests wrap body in `{ data: { params: {...}, userId, amplitudeDeviceId, amplitudeSessionId } }`
+
+## Known Limitations
+
+- **No update/edit** - Partiful uses Firestore directly for edits, not REST API
+- **Delete = Cancel** - Events are cancelled, not deleted (Partiful's model)
 
 ## License
 
