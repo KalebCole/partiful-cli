@@ -1,0 +1,438 @@
+#!/usr/bin/env node
+/**
+ * Partiful CLI - Create and manage Partiful events from the command line
+ * 
+ * Usage:
+ *   partiful create --title "Party Name" --date "2026-04-01 7pm" --location "My Place"
+ *   partiful list
+ *   partiful auth-status
+ */
+
+const fs = require('fs');
+const path = require('path');
+const https = require('https');
+const crypto = require('crypto');
+
+const CONFIG_PATH = path.join(process.env.HOME, '.config/partiful/auth.json');
+const API_BASE = 'api.partiful.com';
+const GOOGLE_TOKEN_URL = 'securetoken.googleapis.com';
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Auth helpers
+// ─────────────────────────────────────────────────────────────────────────────
+
+function loadConfig() {
+  if (!fs.existsSync(CONFIG_PATH)) {
+    console.error('Error: No auth config found at', CONFIG_PATH);
+    console.error('Run browser auth flow first to extract credentials.');
+    process.exit(1);
+  }
+  return JSON.parse(fs.readFileSync(CONFIG_PATH, 'utf8'));
+}
+
+function saveConfig(config) {
+  fs.writeFileSync(CONFIG_PATH, JSON.stringify(config, null, 2));
+}
+
+async function refreshAccessToken(config) {
+  return new Promise((resolve, reject) => {
+    const postData = `grant_type=refresh_token&refresh_token=${config.refreshToken}`;
+    
+    const options = {
+      hostname: GOOGLE_TOKEN_URL,
+      port: 443,
+      path: `/v1/token?key=${config.apiKey}`,
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'Content-Length': Buffer.byteLength(postData),
+        'Referer': 'https://partiful.com/'
+      }
+    };
+
+    const req = https.request(options, (res) => {
+      let data = '';
+      res.on('data', chunk => data += chunk);
+      res.on('end', () => {
+        try {
+          const result = JSON.parse(data);
+          if (result.error) {
+            reject(new Error(result.error.message));
+          } else {
+            resolve(result);
+          }
+        } catch (e) {
+          reject(e);
+        }
+      });
+    });
+
+    req.on('error', reject);
+    req.write(postData);
+    req.end();
+  });
+}
+
+async function getValidToken(config) {
+  // Check if we have a cached token that's still valid
+  if (config.accessToken && config.tokenExpiry) {
+    const now = Date.now();
+    if (now < config.tokenExpiry - 60000) { // 1 min buffer
+      return config.accessToken;
+    }
+  }
+
+  // Refresh the token
+  console.error('Refreshing access token...');
+  const result = await refreshAccessToken(config);
+  
+  config.accessToken = result.id_token;
+  config.tokenExpiry = Date.now() + (parseInt(result.expires_in) * 1000);
+  
+  // Update refresh token if rotated
+  if (result.refresh_token) {
+    config.refreshToken = result.refresh_token;
+  }
+  
+  saveConfig(config);
+  return config.accessToken;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// API helpers
+// ─────────────────────────────────────────────────────────────────────────────
+
+function generateAmplitudeDeviceId() {
+  return crypto.randomBytes(12).toString('base64').replace(/[+/=]/g, '');
+}
+
+async function apiRequest(method, endpoint, token, body = null, config = null) {
+  return new Promise((resolve, reject) => {
+    const bodyStr = body ? JSON.stringify(body) : null;
+    
+    const options = {
+      hostname: API_BASE,
+      port: 443,
+      path: endpoint,
+      method: method,
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+        'Accept': 'application/json, text/plain, */*',
+        'Origin': 'https://partiful.com',
+        'Referer': 'https://partiful.com/'
+      }
+    };
+    
+    if (bodyStr) {
+      options.headers['Content-Length'] = Buffer.byteLength(bodyStr);
+    }
+
+    const req = https.request(options, (res) => {
+      let data = '';
+      res.on('data', chunk => data += chunk);
+      res.on('end', () => {
+        try {
+          const result = data ? JSON.parse(data) : {};
+          result._statusCode = res.statusCode;
+          resolve(result);
+        } catch (e) {
+          resolve({ _raw: data, _statusCode: res.statusCode });
+        }
+      });
+    });
+
+    req.on('error', reject);
+    if (bodyStr) req.write(bodyStr);
+    req.end();
+  });
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Date parsing
+// ─────────────────────────────────────────────────────────────────────────────
+
+function parseDateTime(dateStr, timezone = 'America/Los_Angeles') {
+  // Parse human-friendly dates like "2026-04-01 7pm" or "April 1, 2026 7:00 PM"
+  const cleanStr = dateStr
+    .replace(/(\d{1,2})(am|pm)/i, '$1:00 $2');
+  
+  const date = new Date(cleanStr);
+  if (isNaN(date.getTime())) {
+    throw new Error(`Could not parse date: ${dateStr}`);
+  }
+  return date;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Commands
+// ─────────────────────────────────────────────────────────────────────────────
+
+async function authStatus() {
+  const config = loadConfig();
+  console.log('Auth Status:');
+  console.log('  User:', config.displayName);
+  console.log('  Phone:', config.phoneNumber);
+  console.log('  User ID:', config.userId);
+  
+  try {
+    await getValidToken(config);
+    console.log('  Token: ✓ Valid');
+  } catch (e) {
+    console.log('  Token: ✗ Invalid -', e.message);
+  }
+}
+
+async function createEvent(options) {
+  const config = loadConfig();
+  const token = await getValidToken(config);
+  const timezone = options.timezone || 'America/Los_Angeles';
+
+  // Parse start date
+  const startDate = parseDateTime(options.date, timezone);
+  
+  // Default end time: 3 hours after start
+  const endDate = options.endDate 
+    ? parseDateTime(options.endDate, timezone) 
+    : null;
+
+  // Build event payload matching Partiful's exact format
+  const eventPayload = {
+    data: {
+      params: {
+        event: {
+          title: options.title,
+          startDate: startDate.toISOString(),
+          endDate: endDate ? endDate.toISOString() : null,
+          timezone: timezone,
+          location: options.location || null,
+          address: options.address || null,
+          description: options.description || null,
+          guestStatusCounts: {
+            READY_TO_SEND: 0, SENDING: 0, SENT: 0, SEND_ERROR: 0,
+            DELIVERY_ERROR: 0, INTERESTED: 0, MAYBE: 0, GOING: 0,
+            DECLINED: 0, WAITLIST: 0, PENDING_APPROVAL: 0, APPROVED: 0,
+            WITHDRAWN: 0, RESPONDED_TO_FIND_A_TIME: 0,
+            WAITLISTED_FOR_APPROVAL: 0, REJECTED: 0
+          },
+          displaySettings: {
+            theme: options.theme || 'oxblood',
+            effect: options.effect || 'sunbeams',
+            titleFont: 'display'
+          },
+          showHostList: true,
+          showGuestCount: true,
+          showGuestList: true,
+          showActivityTimestamps: true,
+          displayInviteButton: true,
+          visibility: options.private ? 'private' : 'public',
+          allowGuestPhotoUpload: true,
+          enableGuestReminders: true,
+          rsvpsEnabled: true,
+          allowGuestsToInviteMutuals: true,
+          rsvpButtonGlyphType: 'emojis',
+          status: 'UNSAVED'
+        },
+        cohostIds: []
+      },
+      amplitudeDeviceId: config.amplitudeDeviceId || generateAmplitudeDeviceId(),
+      amplitudeSessionId: Date.now(),
+      userId: config.userId
+    }
+  };
+
+  // Add capacity if specified
+  if (options.capacity) {
+    eventPayload.data.params.event.guestLimit = parseInt(options.capacity);
+    eventPayload.data.params.event.enableWaitlist = options.waitlist !== false;
+  }
+
+  // Remove null values from event
+  Object.keys(eventPayload.data.params.event).forEach(k => {
+    if (eventPayload.data.params.event[k] === null) {
+      delete eventPayload.data.params.event[k];
+    }
+  });
+
+  console.error('Creating event:', options.title);
+  const result = await apiRequest('POST', '/createEvent', token, eventPayload, config);
+  
+  if (result._statusCode === 200 || result.result?.data) {
+    const eventId = result.result?.data || result.result?.eventId || result.eventId;
+    console.log('✓ Event created!');
+    console.log(`  URL: https://partiful.com/e/${eventId}`);
+    if (options.json) {
+      console.log(JSON.stringify(result, null, 2));
+    }
+  } else {
+    console.error('✗ Failed to create event');
+    console.error(JSON.stringify(result, null, 2));
+    process.exit(1);
+  }
+}
+
+async function deleteEvent(eventId) {
+  const config = loadConfig();
+  const token = await getValidToken(config);
+  
+  const payload = {
+    data: {
+      params: { eventId },
+      amplitudeDeviceId: config.amplitudeDeviceId || generateAmplitudeDeviceId(),
+      amplitudeSessionId: Date.now(),
+      userId: config.userId
+    }
+  };
+  
+  console.error('Deleting event:', eventId);
+  const result = await apiRequest('POST', '/deleteEvent', token, payload, config);
+  
+  if (result._statusCode === 200) {
+    console.log('✓ Event deleted');
+  } else {
+    console.error('✗ Failed to delete event');
+    console.error(JSON.stringify(result, null, 2));
+  }
+}
+
+async function getEvent(eventId) {
+  const config = loadConfig();
+  const token = await getValidToken(config);
+  
+  const payload = {
+    data: {
+      params: { eventId },
+      amplitudeDeviceId: config.amplitudeDeviceId || generateAmplitudeDeviceId(),
+      amplitudeSessionId: Date.now(),
+      userId: config.userId
+    }
+  };
+  
+  const result = await apiRequest('POST', '/getEvent', token, payload, config);
+  console.log(JSON.stringify(result, null, 2));
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// CLI parsing
+// ─────────────────────────────────────────────────────────────────────────────
+
+function parseArgs(args) {
+  const result = { _: [] };
+  for (let i = 0; i < args.length; i++) {
+    const arg = args[i];
+    if (arg.startsWith('--')) {
+      const key = arg.slice(2);
+      const next = args[i + 1];
+      if (next && !next.startsWith('--')) {
+        result[key] = next;
+        i++;
+      } else {
+        result[key] = true;
+      }
+    } else {
+      result._.push(arg);
+    }
+  }
+  return result;
+}
+
+function printHelp() {
+  console.log(`
+Partiful CLI - Create and manage Partiful events
+
+Commands:
+  partiful auth-status              Check authentication status
+  partiful create [options]         Create a new event
+  partiful delete <eventId>         Delete an event
+  partiful get <eventId>            Get event details
+
+Create Options:
+  --title "Event Name"              Event title (required)
+  --date "2026-04-01 7pm"           Start date/time (required)
+  --end-date "2026-04-01 10pm"      End date/time (optional)
+  --location "Venue Name"           Location name
+  --address "123 Main St"           Street address
+  --description "Details"           Event description  
+  --capacity 10                     Guest limit
+  --waitlist                        Enable waitlist (default: true)
+  --private                         Make event private
+  --timezone "America/Los_Angeles"  Timezone (default: PT)
+  --theme "oxblood"                 Color theme
+  --json                            Output full JSON response
+
+Examples:
+  partiful create --title "Game Night" --date "Apr 1 7pm" --location "My Place"
+  partiful create --title "Birthday" --date "2026-05-15 6:30pm" --capacity 20
+  partiful delete S6xcKjcCQtVV0waYQ4dc
+`);
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Main
+// ─────────────────────────────────────────────────────────────────────────────
+
+async function main() {
+  const args = parseArgs(process.argv.slice(2));
+  const command = args._[0];
+
+  switch (command) {
+    case 'auth-status':
+    case 'status':
+      await authStatus();
+      break;
+    
+    case 'create':
+      if (!args.title || !args.date) {
+        console.error('Error: --title and --date are required');
+        console.error('Usage: partiful create --title "Party" --date "2026-04-01 7pm"');
+        process.exit(1);
+      }
+      await createEvent({
+        title: args.title,
+        date: args.date,
+        endDate: args['end-date'],
+        location: args.location,
+        address: args.address,
+        description: args.description,
+        capacity: args.capacity,
+        waitlist: args.waitlist,
+        private: args.private,
+        timezone: args.timezone,
+        theme: args.theme,
+        json: args.json
+      });
+      break;
+    
+    case 'delete':
+      const deleteId = args._[1];
+      if (!deleteId) {
+        console.error('Error: Event ID required');
+        console.error('Usage: partiful delete <eventId>');
+        process.exit(1);
+      }
+      await deleteEvent(deleteId);
+      break;
+    
+    case 'get':
+      const eventId = args._[1];
+      if (!eventId) {
+        console.error('Error: Event ID required');
+        console.error('Usage: partiful get <eventId>');
+        process.exit(1);
+      }
+      await getEvent(eventId);
+      break;
+    
+    case 'help':
+    case '--help':
+    case '-h':
+    default:
+      printHelp();
+      break;
+  }
+}
+
+main().catch(err => {
+  console.error('Error:', err.message);
+  process.exit(1);
+});
