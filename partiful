@@ -759,6 +759,26 @@ async function getGuests(eventId, options) {
   console.log(`View full list: https://partiful.com/e/${eventId}?focus=guests`);
 }
 
+async function sendBlast(eventId, options) {
+  // Blasts are stored in Firestore subcollections, not via REST API
+  // This would require Firestore SDK integration
+  
+  console.log(`\n⚠️  Text blasts require browser automation.`);
+  console.log(`\nPartiful stores blasts in Firestore subcollections which`);
+  console.log(`require authenticated Firestore SDK access.`);
+  console.log(`\nFor now, use the web interface:`);
+  console.log(`  1. Open: https://partiful.com/e/${eventId}`);
+  console.log(`  2. Click "Blast" button`);
+  console.log(`  3. Select recipients and compose message`);
+  
+  if (options.message) {
+    console.log(`\nYour message draft:`);
+    console.log(`  "${options.message}"`);
+  }
+  
+  process.exit(0);
+}
+
 async function inviteToEvent(eventId, options) {
   const config = loadConfig();
   const token = await getValidToken(config);
@@ -882,6 +902,7 @@ Commands:
   partiful create [options]         Create a new event
   partiful update <eventId> [opts]  Update an existing event
   partiful invite <eventId> [opts]  Send invites to an event
+  partiful blast <eventId> [opts]   Send message blast (opens web UI)
   partiful share <eventId>          Get shareable link
   partiful cancel <eventId> [-f]    Cancel an event
 
@@ -1086,6 +1107,17 @@ async function main() {
         process.exit(1);
       }
       await getShareLink(shareEventId);
+      break;
+    
+    case 'blast':
+    case 'message':
+      const blastEventId = args._[1];
+      if (!blastEventId) {
+        console.error('Error: Event ID required');
+        console.error('Usage: partiful blast <eventId> --message "Your message"');
+        process.exit(1);
+      }
+      await sendBlast(blastEventId, { message: args.message });
       break;
     
     case 'help':
