@@ -687,6 +687,78 @@ async function updateEvent(eventId, options) {
   }
 }
 
+async function getGuests(eventId, options) {
+  const config = loadConfig();
+  const token = await getValidToken(config);
+  
+  // Get event data which includes guest counts
+  const payload = {
+    data: {
+      params: { eventId },
+      amplitudeDeviceId: config.amplitudeDeviceId || generateAmplitudeDeviceId(),
+      amplitudeSessionId: Date.now(),
+      userId: config.userId
+    }
+  };
+  
+  const result = await apiRequest('POST', '/getEvent', token, payload);
+  
+  if (result._statusCode !== 200 || !result.result?.data?.event) {
+    console.error('✗ Event not found');
+    process.exit(1);
+  }
+  
+  const event = result.result.data.event;
+  const counts = event.guestStatusCounts || {};
+  
+  // Build guest summary
+  const summary = {
+    eventId,
+    eventTitle: event.title,
+    counts: {
+      going: counts.GOING || 0,
+      maybe: counts.MAYBE || 0,
+      invited: counts.SENT || 0,
+      declined: counts.DECLINED || 0,
+      waitlist: counts.WAITLIST || 0
+    },
+    total: (counts.GOING || 0) + (counts.MAYBE || 0) + (counts.SENT || 0) + (counts.DECLINED || 0)
+  };
+  
+  if (options.json) {
+    console.log(JSON.stringify(summary, null, 2));
+    return;
+  }
+  
+  if (options.csv) {
+    // CSV format - just counts for now
+    console.log('status,count');
+    console.log(`going,${summary.counts.going}`);
+    console.log(`maybe,${summary.counts.maybe}`);
+    console.log(`invited,${summary.counts.invited}`);
+    console.log(`declined,${summary.counts.declined}`);
+    console.log(`waitlist,${summary.counts.waitlist}`);
+    return;
+  }
+  
+  // Human-readable output
+  console.log(`\n${event.title}`);
+  console.log('─'.repeat(40));
+  console.log(`\nGuest Summary:`);
+  console.log(`  👍 Going:    ${summary.counts.going}`);
+  console.log(`  🤔 Maybe:    ${summary.counts.maybe}`);
+  console.log(`  💌 Invited:  ${summary.counts.invited}`);
+  console.log(`  😢 Declined: ${summary.counts.declined}`);
+  if (summary.counts.waitlist > 0) {
+    console.log(`  ⏳ Waitlist: ${summary.counts.waitlist}`);
+  }
+  console.log(`  ─────────────`);
+  console.log(`  Total: ${summary.total}`);
+  
+  console.log(`\nNote: Individual guest names require browser access.`);
+  console.log(`View full list: https://partiful.com/e/${eventId}?focus=guests`);
+}
+
 async function inviteToEvent(eventId, options) {
   const config = loadConfig();
   const token = await getValidToken(config);
@@ -806,6 +878,7 @@ Commands:
   partiful auth status              Check authentication status
   partiful list [--past] [--json]   List your events
   partiful get <eventId> [--json]   Get event details
+  partiful guests <eventId> [opts]  Get guest list / RSVP counts
   partiful create [options]         Create a new event
   partiful update <eventId> [opts]  Update an existing event
   partiful invite <eventId> [opts]  Send invites to an event
@@ -816,6 +889,10 @@ List Options:
   --past                            Show past events instead of upcoming
   --include-cancelled               Include cancelled events (hidden by default)
   --json                            Output raw JSON
+
+Guests Options:
+  --json                            Output as JSON
+  --csv                             Output as CSV
 
 Create Options:
   --title "Event Name"              Event title (required)
@@ -960,6 +1037,18 @@ async function main() {
         process.exit(1);
       }
       await getEvent(eventId, { json: args.json });
+      break;
+    
+    case 'guests':
+    case 'attendees':
+    case 'rsvps':
+      const guestsEventId = args._[1];
+      if (!guestsEventId) {
+        console.error('Error: Event ID required');
+        console.error('Usage: partiful guests <eventId> [--json|--csv]');
+        process.exit(1);
+      }
+      await getGuests(guestsEventId, { json: args.json, csv: args.csv });
       break;
     
     case 'invite':
