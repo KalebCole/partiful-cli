@@ -13,6 +13,7 @@
 const fs = require('fs');
 const path = require('path');
 const https = require('https');
+const http = require('http');
 const crypto = require('crypto');
 const readline = require('readline');
 
@@ -213,6 +214,129 @@ function formatDate(isoStr) {
     weekday: 'short', month: 'short', day: 'numeric', 
     hour: 'numeric', minute: '2-digit'
   });
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Auth login/logout
+// ─────────────────────────────────────────────────────────────────────────────
+
+async function authLogin() {
+  const configDir = path.dirname(CONFIG_PATH);
+  if (!fs.existsSync(configDir)) {
+    fs.mkdirSync(configDir, { recursive: true });
+  }
+
+  const PORT = 9876;
+  
+  // Bookmarklet that extracts Firebase auth from IndexedDB
+  const extractorCode = `(async function(){try{const dbReq=indexedDB.open('firebaseLocalStorageDb');dbReq.onsuccess=function(e){const db=e.target.result;const tx=db.transaction('firebaseLocalStorage','readonly');const store=tx.objectStore('firebaseLocalStorage');const getReq=store.getAll();getReq.onsuccess=function(){const items=getReq.result;const authItem=items.find(i=>i.fbase_key&&i.fbase_key.includes('firebase:authUser'));if(!authItem||!authItem.value){alert('No auth found. Make sure you are logged into Partiful.');return;}const v=authItem.value;const data={apiKey:v.apiKey,refreshToken:v.stsTokenManager?.refreshToken,userId:v.uid,displayName:v.displayName,phoneNumber:v.phoneNumber};if(!data.refreshToken){alert('No refresh token found. Try logging out and back in.');return;}fetch('http://localhost:${PORT}/auth',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)}).then(r=>r.ok?alert('✓ Auth saved! You can close this tab.'):alert('Failed to save auth')).catch(()=>alert('Could not connect to CLI. Is it running?'));};};dbReq.onerror=()=>alert('Could not open IndexedDB');}catch(e){alert('Error: '+e.message);}})();`;
+
+  const bookmarklet = 'javascript:' + encodeURIComponent(extractorCode);
+
+  console.log(`
+╔══════════════════════════════════════════════════════════════════╗
+║                    Partiful CLI Auth Setup                       ║
+╚══════════════════════════════════════════════════════════════════╝
+
+Step 1: Open https://partiful.com and log in (if not already)
+
+Step 2: Create a bookmarklet with this code:
+        - Create a new bookmark in your browser
+        - Set the URL to the code below
+        - Name it "Partiful Auth"
+
+Step 3: While on partiful.com, click the bookmarklet
+
+─────────────────────────────────────────────────────────────────────
+BOOKMARKLET CODE (copy everything below):
+─────────────────────────────────────────────────────────────────────
+${bookmarklet}
+─────────────────────────────────────────────────────────────────────
+
+Waiting for auth data on http://localhost:${PORT}...
+(Press Ctrl+C to cancel)
+`);
+
+  return new Promise((resolve, reject) => {
+    const server = http.createServer((req, res) => {
+      res.setHeader('Access-Control-Allow-Origin', '*');
+      res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+      res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+      
+      if (req.method === 'OPTIONS') {
+        res.writeHead(204);
+        res.end();
+        return;
+      }
+      
+      if (req.method === 'POST' && req.url === '/auth') {
+        let body = '';
+        req.on('data', chunk => body += chunk);
+        req.on('end', () => {
+          try {
+            const data = JSON.parse(body);
+            if (!data.refreshToken || !data.userId) {
+              res.writeHead(400);
+              res.end('Missing required fields');
+              return;
+            }
+            
+            const config = {
+              apiKey: data.apiKey || 'AIzaSyCky6PJ7cHRdBKk5X7gjuWERWaKWBHr4_k',
+              refreshToken: data.refreshToken,
+              userId: data.userId,
+              displayName: data.displayName || 'Unknown',
+              phoneNumber: data.phoneNumber || 'Unknown'
+            };
+            
+            fs.writeFileSync(CONFIG_PATH, JSON.stringify(config, null, 2));
+            
+            res.writeHead(200);
+            res.end('OK');
+            
+            console.log(`
+✓ Auth saved successfully!
+  User: ${config.displayName}
+  Phone: ${config.phoneNumber}
+  Config: ${CONFIG_PATH}
+
+You can now use all partiful commands.
+`);
+            
+            server.close();
+            resolve();
+          } catch (e) {
+            res.writeHead(400);
+            res.end('Invalid JSON');
+          }
+        });
+      } else {
+        res.writeHead(404);
+        res.end('Not found');
+      }
+    });
+    
+    server.on('error', (e) => {
+      if (e.code === 'EADDRINUSE') {
+        console.error(`Error: Port ${PORT} is already in use.`);
+        console.error('Kill the process using it or try again later.');
+      } else {
+        console.error('Server error:', e.message);
+      }
+      reject(e);
+    });
+    
+    server.listen(PORT);
+  });
+}
+
+async function authLogout() {
+  if (fs.existsSync(CONFIG_PATH)) {
+    fs.unlinkSync(CONFIG_PATH);
+    console.log('✓ Logged out. Auth config removed.');
+  } else {
+    console.log('Already logged out (no config found).');
+  }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -580,12 +704,14 @@ function printHelp() {
 Partiful CLI - Create and manage Partiful events
 
 Commands:
+  partiful auth login               Set up authentication (first time)
+  partiful auth logout              Remove stored credentials
+  partiful auth status              Check authentication status
   partiful list [--past] [--json]   List your events
   partiful get <eventId> [--json]   Get event details
   partiful create [options]         Create a new event
   partiful update <eventId> [opts]  Update an existing event
   partiful cancel <eventId> [-f]    Cancel an event
-  partiful auth-status              Check authentication status
 
 List Options:
   --past                            Show past events instead of upcoming
@@ -618,11 +744,10 @@ Cancel Options:
   -f, --force                       Skip confirmation prompt
 
 Examples:
+  partiful auth login
   partiful list
-  partiful list --past --json
-  partiful get FDwyIXK42phoWEZgFin5
   partiful create --title "Game Night" --date "Apr 15 7pm" --capacity 10
-  partiful update FDwyIXK42phoWEZgFin5 --title "Game Night v2" --capacity 15
+  partiful update FDwyIXK42phoWEZgFin5 --title "Game Night v2"
   partiful cancel FDwyIXK42phoWEZgFin5 -f
 `);
 }
@@ -634,8 +759,24 @@ Examples:
 async function main() {
   const args = parseArgs(process.argv.slice(2));
   const command = args._[0];
+  const subcommand = args._[1];
 
   switch (command) {
+    case 'auth':
+      switch (subcommand) {
+        case 'login':
+          await authLogin();
+          break;
+        case 'logout':
+          await authLogout();
+          break;
+        case 'status':
+        default:
+          await authStatus();
+          break;
+      }
+      break;
+    
     case 'auth-status':
     case 'status':
       await authStatus();
