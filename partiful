@@ -4,7 +4,9 @@
  * 
  * Usage:
  *   partiful create --title "Party Name" --date "2026-04-01 7pm" --location "My Place"
- *   partiful list
+ *   partiful list [--past] [--json]
+ *   partiful get <eventId>
+ *   partiful cancel <eventId>
  *   partiful auth-status
  */
 
@@ -12,6 +14,7 @@ const fs = require('fs');
 const path = require('path');
 const https = require('https');
 const crypto = require('crypto');
+const readline = require('readline');
 
 const CONFIG_PATH = path.join(process.env.HOME, '.config/partiful/auth.json');
 const API_BASE = 'api.partiful.com';
@@ -106,7 +109,7 @@ function generateAmplitudeDeviceId() {
   return crypto.randomBytes(12).toString('base64').replace(/[+/=]/g, '');
 }
 
-async function apiRequest(method, endpoint, token, body = null, config = null) {
+async function apiRequest(method, endpoint, token, body = null) {
   return new Promise((resolve, reject) => {
     const bodyStr = body ? JSON.stringify(body) : null;
     
@@ -149,19 +152,43 @@ async function apiRequest(method, endpoint, token, body = null, config = null) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Date parsing
+// Date helpers
 // ─────────────────────────────────────────────────────────────────────────────
 
 function parseDateTime(dateStr, timezone = 'America/Los_Angeles') {
   // Parse human-friendly dates like "2026-04-01 7pm" or "April 1, 2026 7:00 PM"
-  const cleanStr = dateStr
-    .replace(/(\d{1,2})(am|pm)/i, '$1:00 $2');
-  
+  const cleanStr = dateStr.replace(/(\d{1,2})(am|pm)/i, '$1:00 $2');
   const date = new Date(cleanStr);
   if (isNaN(date.getTime())) {
     throw new Error(`Could not parse date: ${dateStr}`);
   }
   return date;
+}
+
+function formatDate(isoStr) {
+  const d = new Date(isoStr);
+  return d.toLocaleDateString('en-US', { 
+    weekday: 'short', month: 'short', day: 'numeric', 
+    hour: 'numeric', minute: '2-digit'
+  });
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// User prompt
+// ─────────────────────────────────────────────────────────────────────────────
+
+async function confirm(question) {
+  const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stderr
+  });
+  
+  return new Promise(resolve => {
+    rl.question(question + ' [y/N]: ', answer => {
+      rl.close();
+      resolve(answer.toLowerCase() === 'y' || answer.toLowerCase() === 'yes');
+    });
+  });
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -183,20 +210,73 @@ async function authStatus() {
   }
 }
 
+async function listEvents(options) {
+  const config = loadConfig();
+  const token = await getValidToken(config);
+  
+  const endpoint = options.past 
+    ? '/getMyPastEventsForHomePage' 
+    : '/getMyUpcomingEventsForHomePage';
+  
+  const payload = {
+    data: {
+      params: {},
+      amplitudeDeviceId: config.amplitudeDeviceId || generateAmplitudeDeviceId(),
+      amplitudeSessionId: Date.now(),
+      userId: config.userId
+    }
+  };
+  
+  const result = await apiRequest('POST', endpoint, token, payload);
+  
+  if (result._statusCode !== 200) {
+    console.error('✗ Failed to list events');
+    console.error(JSON.stringify(result, null, 2));
+    process.exit(1);
+  }
+  
+  const events = options.past 
+    ? result.result?.data?.pastEvents 
+    : result.result?.data?.upcomingEvents;
+  
+  if (options.json) {
+    console.log(JSON.stringify(events, null, 2));
+    return;
+  }
+  
+  if (!events || events.length === 0) {
+    console.log(options.past ? 'No past events.' : 'No upcoming events.');
+    return;
+  }
+  
+  console.log(options.past ? 'Past Events:' : 'Upcoming Events:');
+  console.log('─'.repeat(60));
+  
+  for (const event of events) {
+    const isHosted = event.ownerIds?.includes(config.userId);
+    const role = isHosted ? '(hosting)' : '(invited)';
+    const going = event.guestStatusCounts?.GOING || 0;
+    const maybe = event.guestStatusCounts?.MAYBE || 0;
+    
+    console.log(`\n${event.title} ${role}`);
+    console.log(`  ID: ${event.id}`);
+    console.log(`  When: ${formatDate(event.startDate)}`);
+    if (event.location) console.log(`  Where: ${event.location}`);
+    console.log(`  RSVPs: ${going} going, ${maybe} maybe`);
+    console.log(`  URL: https://partiful.com/e/${event.id}`);
+  }
+}
+
 async function createEvent(options) {
   const config = loadConfig();
   const token = await getValidToken(config);
   const timezone = options.timezone || 'America/Los_Angeles';
 
-  // Parse start date
+  // Parse dates
   const startDate = parseDateTime(options.date, timezone);
-  
-  // Default end time: 3 hours after start
-  const endDate = options.endDate 
-    ? parseDateTime(options.endDate, timezone) 
-    : null;
+  const endDate = options.endDate ? parseDateTime(options.endDate, timezone) : null;
 
-  // Build event payload matching Partiful's exact format
+  // Build event payload
   const eventPayload = {
     data: {
       params: {
@@ -247,7 +327,7 @@ async function createEvent(options) {
     eventPayload.data.params.event.enableWaitlist = options.waitlist !== false;
   }
 
-  // Remove null values from event
+  // Remove null values
   Object.keys(eventPayload.data.params.event).forEach(k => {
     if (eventPayload.data.params.event[k] === null) {
       delete eventPayload.data.params.event[k];
@@ -255,10 +335,10 @@ async function createEvent(options) {
   });
 
   console.error('Creating event:', options.title);
-  const result = await apiRequest('POST', '/createEvent', token, eventPayload, config);
+  const result = await apiRequest('POST', '/createEvent', token, eventPayload);
   
   if (result._statusCode === 200 || result.result?.data) {
-    const eventId = result.result?.data || result.result?.eventId || result.eventId;
+    const eventId = result.result?.data || result.result?.eventId;
     console.log('✓ Event created!');
     console.log(`  URL: https://partiful.com/e/${eventId}`);
     if (options.json) {
@@ -271,9 +351,42 @@ async function createEvent(options) {
   }
 }
 
-async function deleteEvent(eventId) {
+async function cancelEvent(eventId, options) {
   const config = loadConfig();
   const token = await getValidToken(config);
+  
+  // First, get event details for confirmation
+  if (!options.force) {
+    const getPayload = {
+      data: {
+        params: { eventId },
+        amplitudeDeviceId: config.amplitudeDeviceId || generateAmplitudeDeviceId(),
+        amplitudeSessionId: Date.now(),
+        userId: config.userId
+      }
+    };
+    
+    const eventResult = await apiRequest('POST', '/getEvent', token, getPayload);
+    
+    if (eventResult._statusCode === 200 && eventResult.result?.data?.event) {
+      const event = eventResult.result.data.event;
+      console.error('\n⚠️  About to cancel event:');
+      console.error(`    Title: ${event.title}`);
+      console.error(`    Date: ${formatDate(event.startDate)}`);
+      if (event.guestStatusCounts) {
+        const going = event.guestStatusCounts.GOING || 0;
+        const maybe = event.guestStatusCounts.MAYBE || 0;
+        console.error(`    Guests: ${going} going, ${maybe} maybe`);
+      }
+      console.error('');
+      
+      const confirmed = await confirm('Are you sure? This cannot be undone.');
+      if (!confirmed) {
+        console.log('Cancelled.');
+        return;
+      }
+    }
+  }
   
   const payload = {
     data: {
@@ -284,18 +397,19 @@ async function deleteEvent(eventId) {
     }
   };
   
-  console.error('Deleting event:', eventId);
-  const result = await apiRequest('POST', '/deleteEvent', token, payload, config);
+  console.error('Cancelling event:', eventId);
+  const result = await apiRequest('POST', '/cancelEvent', token, payload);
   
   if (result._statusCode === 200) {
-    console.log('✓ Event deleted');
+    console.log('✓ Event cancelled');
   } else {
-    console.error('✗ Failed to delete event');
+    console.error('✗ Failed to cancel event');
     console.error(JSON.stringify(result, null, 2));
+    process.exit(1);
   }
 }
 
-async function getEvent(eventId) {
+async function getEvent(eventId, options) {
   const config = loadConfig();
   const token = await getValidToken(config);
   
@@ -308,8 +422,26 @@ async function getEvent(eventId) {
     }
   };
   
-  const result = await apiRequest('POST', '/getEvent', token, payload, config);
-  console.log(JSON.stringify(result, null, 2));
+  const result = await apiRequest('POST', '/getEvent', token, payload);
+  
+  if (options.json || !result.result?.data?.event) {
+    console.log(JSON.stringify(result, null, 2));
+    return;
+  }
+  
+  const event = result.result.data.event;
+  console.log(`\n${event.title}`);
+  console.log('─'.repeat(40));
+  console.log(`ID: ${eventId}`);
+  console.log(`When: ${formatDate(event.startDate)}`);
+  if (event.endDate) console.log(`Until: ${formatDate(event.endDate)}`);
+  if (event.location) console.log(`Where: ${event.location}`);
+  if (event.description) console.log(`\n${event.description}`);
+  if (event.guestStatusCounts) {
+    const counts = event.guestStatusCounts;
+    console.log(`\nRSVPs: ${counts.GOING || 0} going, ${counts.MAYBE || 0} maybe, ${counts.DECLINED || 0} declined`);
+  }
+  console.log(`\nURL: https://partiful.com/e/${eventId}`);
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -329,6 +461,8 @@ function parseArgs(args) {
       } else {
         result[key] = true;
       }
+    } else if (arg.startsWith('-') && arg.length === 2) {
+      result[arg.slice(1)] = true;
     } else {
       result._.push(arg);
     }
@@ -341,10 +475,15 @@ function printHelp() {
 Partiful CLI - Create and manage Partiful events
 
 Commands:
-  partiful auth-status              Check authentication status
+  partiful list [--past] [--json]   List your events
+  partiful get <eventId> [--json]   Get event details
   partiful create [options]         Create a new event
-  partiful delete <eventId>         Delete an event
-  partiful get <eventId>            Get event details
+  partiful cancel <eventId> [-f]    Cancel an event
+  partiful auth-status              Check authentication status
+
+List Options:
+  --past                            Show past events instead of upcoming
+  --json                            Output raw JSON
 
 Create Options:
   --title "Event Name"              Event title (required)
@@ -360,10 +499,15 @@ Create Options:
   --theme "oxblood"                 Color theme
   --json                            Output full JSON response
 
+Cancel Options:
+  -f, --force                       Skip confirmation prompt
+
 Examples:
-  partiful create --title "Game Night" --date "Apr 1 7pm" --location "My Place"
-  partiful create --title "Birthday" --date "2026-05-15 6:30pm" --capacity 20
-  partiful delete S6xcKjcCQtVV0waYQ4dc
+  partiful list
+  partiful list --past --json
+  partiful get FDwyIXK42phoWEZgFin5
+  partiful create --title "Game Night" --date "Apr 15 7pm" --capacity 10
+  partiful cancel FDwyIXK42phoWEZgFin5 -f
 `);
 }
 
@@ -379,6 +523,14 @@ async function main() {
     case 'auth-status':
     case 'status':
       await authStatus();
+      break;
+    
+    case 'list':
+    case 'ls':
+      await listEvents({
+        past: args.past,
+        json: args.json
+      });
       break;
     
     case 'create':
@@ -403,32 +555,39 @@ async function main() {
       });
       break;
     
+    case 'cancel':
     case 'delete':
-      const deleteId = args._[1];
-      if (!deleteId) {
+      const cancelId = args._[1];
+      if (!cancelId) {
         console.error('Error: Event ID required');
-        console.error('Usage: partiful delete <eventId>');
+        console.error('Usage: partiful cancel <eventId>');
         process.exit(1);
       }
-      await deleteEvent(deleteId);
+      await cancelEvent(cancelId, { force: args.force || args.f });
       break;
     
     case 'get':
+    case 'show':
       const eventId = args._[1];
       if (!eventId) {
         console.error('Error: Event ID required');
         console.error('Usage: partiful get <eventId>');
         process.exit(1);
       }
-      await getEvent(eventId);
+      await getEvent(eventId, { json: args.json });
       break;
     
     case 'help':
     case '--help':
     case '-h':
-    default:
+    case undefined:
       printHelp();
       break;
+    
+    default:
+      console.error(`Unknown command: ${command}`);
+      printHelp();
+      process.exit(1);
   }
 }
 
