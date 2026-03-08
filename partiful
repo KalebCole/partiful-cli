@@ -687,6 +687,89 @@ async function updateEvent(eventId, options) {
   }
 }
 
+async function inviteToEvent(eventId, options) {
+  const config = loadConfig();
+  const token = await getValidToken(config);
+  
+  // Build invite payload
+  const payload = {
+    data: {
+      params: {
+        eventId,
+        userIdsToInvite: options.userIds || [],
+        phoneContactsToInvite: [],
+        invitationMessage: options.message || '',
+        otherMutualsCount: 0
+      },
+      amplitudeDeviceId: config.amplitudeDeviceId || generateAmplitudeDeviceId(),
+      amplitudeSessionId: Date.now(),
+      userId: config.userId
+    }
+  };
+  
+  // Handle phone numbers - convert to phoneContactsToInvite format
+  if (options.phones && options.phones.length > 0) {
+    payload.data.params.phoneContactsToInvite = options.phones.map(phone => ({
+      phoneNumber: phone.replace(/[^+\d]/g, ''), // Clean phone number
+      firstName: '',
+      lastName: ''
+    }));
+  }
+  
+  if (payload.data.params.userIdsToInvite.length === 0 && 
+      payload.data.params.phoneContactsToInvite.length === 0) {
+    console.error('Error: Provide --user-id or --phone to invite');
+    console.error('Usage: partiful invite <eventId> --phone "+12065551234"');
+    process.exit(1);
+  }
+  
+  console.error(`Sending invites to event ${eventId}...`);
+  const result = await apiRequest('POST', '/addInvitedGuestsAsHost', token, payload);
+  
+  if (result._statusCode === 200) {
+    const invited = (options.userIds?.length || 0) + (options.phones?.length || 0);
+    console.log(`✓ Invited ${invited} guest(s)!`);
+    console.log(`  View event: https://partiful.com/e/${eventId}`);
+    if (options.json) {
+      console.log(JSON.stringify(result, null, 2));
+    }
+  } else {
+    console.error('✗ Failed to send invites');
+    console.error(JSON.stringify(result, null, 2));
+    process.exit(1);
+  }
+}
+
+async function getShareLink(eventId) {
+  // The share link is just the event URL with a tracking param
+  // We can generate a simple one or get from the event
+  const config = loadConfig();
+  const token = await getValidToken(config);
+  
+  // Get event to verify it exists
+  const payload = {
+    data: {
+      params: { eventId },
+      amplitudeDeviceId: config.amplitudeDeviceId || generateAmplitudeDeviceId(),
+      amplitudeSessionId: Date.now(),
+      userId: config.userId
+    }
+  };
+  
+  const result = await apiRequest('POST', '/getEvent', token, payload);
+  
+  if (result._statusCode !== 200 || !result.result?.data?.event) {
+    console.error('✗ Event not found');
+    process.exit(1);
+  }
+  
+  const event = result.result.data.event;
+  console.log(`\n${event.title}`);
+  console.log('─'.repeat(40));
+  console.log(`Share link: https://partiful.com/e/${eventId}`);
+  console.log(`\nAnyone with this link can view the event and RSVP.`);
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // CLI parsing
 // ─────────────────────────────────────────────────────────────────────────────
@@ -725,6 +808,8 @@ Commands:
   partiful get <eventId> [--json]   Get event details
   partiful create [options]         Create a new event
   partiful update <eventId> [opts]  Update an existing event
+  partiful invite <eventId> [opts]  Send invites to an event
+  partiful share <eventId>          Get shareable link
   partiful cancel <eventId> [-f]    Cancel an event
 
 List Options:
@@ -755,6 +840,12 @@ Update Options:
   --capacity 15                     Update guest limit
   --json                            Output full JSON response
 
+Invite Options:
+  --phone "+12065551234"            Invite by phone number (repeatable)
+  --user-id "abc123"                Invite by Partiful user ID (repeatable)
+  --message "Custom note"           Optional invitation message
+  --json                            Output full JSON response
+
 Cancel Options:
   -f, --force                       Skip confirmation prompt
 
@@ -763,6 +854,8 @@ Examples:
   partiful list
   partiful create --title "Game Night" --date "Apr 15 7pm" --capacity 10
   partiful update FDwyIXK42phoWEZgFin5 --title "Game Night v2"
+  partiful invite FDwyIXK42phoWEZgFin5 --phone "+12065551234"
+  partiful share FDwyIXK42phoWEZgFin5
   partiful cancel FDwyIXK42phoWEZgFin5 -f
 `);
 }
@@ -867,6 +960,43 @@ async function main() {
         process.exit(1);
       }
       await getEvent(eventId, { json: args.json });
+      break;
+    
+    case 'invite':
+      const inviteEventId = args._[1];
+      if (!inviteEventId) {
+        console.error('Error: Event ID required');
+        console.error('Usage: partiful invite <eventId> --phone "+12065551234"');
+        process.exit(1);
+      }
+      // Collect all --phone and --user-id args (support multiple)
+      const phones = [];
+      const userIds = [];
+      for (let i = 0; i < process.argv.length; i++) {
+        if (process.argv[i] === '--phone' && process.argv[i + 1]) {
+          phones.push(process.argv[i + 1]);
+        }
+        if (process.argv[i] === '--user-id' && process.argv[i + 1]) {
+          userIds.push(process.argv[i + 1]);
+        }
+      }
+      await inviteToEvent(inviteEventId, {
+        phones: phones.length > 0 ? phones : null,
+        userIds: userIds.length > 0 ? userIds : null,
+        message: args.message,
+        json: args.json
+      });
+      break;
+    
+    case 'share':
+    case 'link':
+      const shareEventId = args._[1];
+      if (!shareEventId) {
+        console.error('Error: Event ID required');
+        console.error('Usage: partiful share <eventId>');
+        process.exit(1);
+      }
+      await getShareLink(shareEventId);
       break;
     
     case 'help':
