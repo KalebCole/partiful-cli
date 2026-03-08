@@ -821,6 +821,59 @@ async function watchGuests(eventId, intervalMs = 60000) {
   setInterval(check, intervalMs);
 }
 
+async function searchContacts(query, options) {
+  const config = loadConfig();
+  const token = await getValidToken(config);
+  
+  const payload = {
+    data: {
+      params: {},
+      amplitudeDeviceId: config.amplitudeDeviceId || generateAmplitudeDeviceId(),
+      amplitudeSessionId: Date.now(),
+      userId: config.userId
+    }
+  };
+  
+  const result = await apiRequest('POST', '/getContacts', token, payload);
+  
+  if (result._statusCode !== 200) {
+    console.error('✗ Failed to fetch contacts');
+    process.exit(1);
+  }
+  
+  let contacts = result.result?.data || [];
+  
+  // Filter by query if provided
+  if (query) {
+    const q = query.toLowerCase();
+    contacts = contacts.filter(c => (c.name || '').toLowerCase().includes(q));
+  }
+  
+  if (options.json) {
+    console.log(JSON.stringify(contacts, null, 2));
+    return;
+  }
+  
+  if (contacts.length === 0) {
+    console.log(query ? `No contacts matching "${query}"` : 'No contacts found');
+    return;
+  }
+  
+  console.log(`\nContacts${query ? ` matching "${query}"` : ''} (${contacts.length}):\n`);
+  contacts.slice(0, options.limit || 20).forEach(c => {
+    console.log(`  ${c.name}`);
+    console.log(`    ID: ${c.id}`);
+    if (c.sharedEventCount) {
+      console.log(`    ${c.sharedEventCount} shared events`);
+    }
+    console.log();
+  });
+  
+  if (contacts.length > (options.limit || 20)) {
+    console.log(`  ... and ${contacts.length - (options.limit || 20)} more`);
+  }
+}
+
 async function sendBlast(eventId, options) {
   // Blasts are stored in Firestore subcollections, not via REST API
   // This would require Firestore SDK integration
@@ -966,6 +1019,7 @@ Commands:
   partiful invite <eventId> [opts]  Send invites to an event
   partiful blast <eventId> [opts]   Send message blast (opens web UI)
   partiful share <eventId>          Get shareable link
+  partiful contacts [query]         Search contacts by name
   partiful cancel <eventId> [-f]    Cancel an event
 
 List Options:
@@ -1185,6 +1239,13 @@ async function main() {
         process.exit(1);
       }
       await sendBlast(blastEventId, { message: args.message });
+      break;
+    
+    case 'contacts':
+    case 'contact':
+    case 'search':
+      const contactQuery = args._[1];
+      await searchContacts(contactQuery, { json: args.json, limit: args.limit || 20 });
       break;
     
     case 'help':
