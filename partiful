@@ -18,6 +18,8 @@ const readline = require('readline');
 
 const CONFIG_PATH = path.join(process.env.HOME, '.config/partiful/auth.json');
 const API_BASE = 'api.partiful.com';
+const FIRESTORE_BASE = 'firestore.googleapis.com';
+const FIRESTORE_PROJECT = 'getpartiful';
 const GOOGLE_TOKEN_URL = 'securetoken.googleapis.com';
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -130,6 +132,46 @@ async function apiRequest(method, endpoint, token, body = null) {
     if (bodyStr) {
       options.headers['Content-Length'] = Buffer.byteLength(bodyStr);
     }
+
+    const req = https.request(options, (res) => {
+      let data = '';
+      res.on('data', chunk => data += chunk);
+      res.on('end', () => {
+        try {
+          const result = data ? JSON.parse(data) : {};
+          result._statusCode = res.statusCode;
+          resolve(result);
+        } catch (e) {
+          resolve({ _raw: data, _statusCode: res.statusCode });
+        }
+      });
+    });
+
+    req.on('error', reject);
+    if (bodyStr) req.write(bodyStr);
+    req.end();
+  });
+}
+
+async function firestoreRequest(method, eventId, body, token, updateFields = []) {
+  return new Promise((resolve, reject) => {
+    let path = `/v1/projects/${FIRESTORE_PROJECT}/databases/(default)/documents/events/${eventId}`;
+    if (method === 'PATCH' && updateFields.length > 0) {
+      path += '?' + updateFields.map(f => `updateMask.fieldPaths=${f}`).join('&');
+    }
+    
+    const bodyStr = body ? JSON.stringify(body) : null;
+    const options = {
+      hostname: FIRESTORE_BASE,
+      port: 443,
+      path: path,
+      method: method,
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    };
+    if (bodyStr) options.headers['Content-Length'] = Buffer.byteLength(bodyStr);
 
     const req = https.request(options, (res) => {
       let data = '';
@@ -444,6 +486,69 @@ async function getEvent(eventId, options) {
   console.log(`\nURL: https://partiful.com/e/${eventId}`);
 }
 
+async function updateEvent(eventId, options) {
+  const config = loadConfig();
+  const token = await getValidToken(config);
+  
+  // Build Firestore fields object
+  const fields = {};
+  const updateFields = [];
+  
+  if (options.title) {
+    fields.title = { stringValue: options.title };
+    updateFields.push('title');
+  }
+  
+  if (options.location) {
+    fields.location = { stringValue: options.location };
+    updateFields.push('location');
+  }
+  
+  if (options.description) {
+    fields.description = { stringValue: options.description };
+    updateFields.push('description');
+  }
+  
+  if (options.date) {
+    const startDate = parseDateTime(options.date);
+    fields.startDate = { timestampValue: startDate.toISOString() };
+    updateFields.push('startDate');
+  }
+  
+  if (options.endDate) {
+    const endDate = parseDateTime(options.endDate);
+    fields.endDate = { timestampValue: endDate.toISOString() };
+    updateFields.push('endDate');
+  }
+  
+  if (options.capacity) {
+    fields.guestLimit = { integerValue: parseInt(options.capacity).toString() };
+    updateFields.push('guestLimit');
+  }
+  
+  if (updateFields.length === 0) {
+    console.error('Error: No fields to update. Use --title, --location, --description, --date, --end-date, or --capacity');
+    process.exit(1);
+  }
+  
+  console.error(`Updating event ${eventId}...`);
+  console.error(`  Fields: ${updateFields.join(', ')}`);
+  
+  const result = await firestoreRequest('PATCH', eventId, { fields }, token, updateFields);
+  
+  if (result._statusCode === 200) {
+    console.log('✓ Event updated!');
+    console.log(`  URL: https://partiful.com/e/${eventId}`);
+    if (options.json) {
+      console.log(JSON.stringify(result, null, 2));
+    }
+  } else {
+    console.error('✗ Failed to update event');
+    console.error(JSON.stringify(result, null, 2));
+    process.exit(1);
+  }
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // CLI parsing
 // ─────────────────────────────────────────────────────────────────────────────
@@ -478,6 +583,7 @@ Commands:
   partiful list [--past] [--json]   List your events
   partiful get <eventId> [--json]   Get event details
   partiful create [options]         Create a new event
+  partiful update <eventId> [opts]  Update an existing event
   partiful cancel <eventId> [-f]    Cancel an event
   partiful auth-status              Check authentication status
 
@@ -499,6 +605,15 @@ Create Options:
   --theme "oxblood"                 Color theme
   --json                            Output full JSON response
 
+Update Options:
+  --title "New Title"               Update event title
+  --date "2026-04-01 8pm"           Update start date/time
+  --end-date "2026-04-01 11pm"      Update end date/time
+  --location "New Venue"            Update location
+  --description "New details"       Update description
+  --capacity 15                     Update guest limit
+  --json                            Output full JSON response
+
 Cancel Options:
   -f, --force                       Skip confirmation prompt
 
@@ -507,6 +622,7 @@ Examples:
   partiful list --past --json
   partiful get FDwyIXK42phoWEZgFin5
   partiful create --title "Game Night" --date "Apr 15 7pm" --capacity 10
+  partiful update FDwyIXK42phoWEZgFin5 --title "Game Night v2" --capacity 15
   partiful cancel FDwyIXK42phoWEZgFin5 -f
 `);
 }
@@ -564,6 +680,25 @@ async function main() {
         process.exit(1);
       }
       await cancelEvent(cancelId, { force: args.force || args.f });
+      break;
+    
+    case 'update':
+    case 'edit':
+      const updateId = args._[1];
+      if (!updateId) {
+        console.error('Error: Event ID required');
+        console.error('Usage: partiful update <eventId> --title "New Title"');
+        process.exit(1);
+      }
+      await updateEvent(updateId, {
+        title: args.title,
+        date: args.date,
+        endDate: args['end-date'],
+        location: args.location,
+        description: args.description,
+        capacity: args.capacity,
+        json: args.json
+      });
       break;
     
     case 'get':
