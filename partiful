@@ -234,13 +234,112 @@ async function firestoreListDocuments(collectionPath, token, pageSize = 100, pag
 // ─────────────────────────────────────────────────────────────────────────────
 
 function parseDateTime(dateStr, timezone = 'America/Los_Angeles') {
-  // Parse human-friendly dates like "2026-04-01 7pm" or "April 1, 2026 7:00 PM"
+  // Handle relative dates first
+  const lower = dateStr.trim().toLowerCase();
+  const now = new Date();
+
+  if (lower === 'tomorrow') {
+    const d = new Date(now);
+    d.setDate(d.getDate() + 1);
+    d.setHours(19, 0, 0, 0); // default 7pm
+    return d;
+  }
+
+  const nextDayMatch = lower.match(/^next\s+(sunday|monday|tuesday|wednesday|thursday|friday|saturday)(?:\s+(.+))?$/i);
+  if (nextDayMatch) {
+    const dayNames = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+    const targetDay = dayNames.indexOf(nextDayMatch[1].toLowerCase());
+    const d = new Date(now);
+    let daysAhead = targetDay - d.getDay();
+    if (daysAhead <= 0) daysAhead += 7;
+    d.setDate(d.getDate() + daysAhead);
+
+    // Parse optional time portion like "7pm" or "3:30 PM"
+    if (nextDayMatch[2]) {
+      const timeParsed = parseTimeString(nextDayMatch[2].trim());
+      if (timeParsed) {
+        d.setHours(timeParsed.hours, timeParsed.minutes, 0, 0);
+      } else {
+        d.setHours(19, 0, 0, 0);
+      }
+    } else {
+      d.setHours(19, 0, 0, 0);
+    }
+    return d;
+  }
+
+  // Parse human-friendly dates like "2026-04-01 7pm", "April 1, 2026 7:00 PM", "Mar 15 8am"
   const cleanStr = dateStr.replace(/(\d{1,2})(am|pm)/i, '$1:00 $2');
-  const date = new Date(cleanStr);
+  let date = new Date(cleanStr);
+
+  // If year is missing, Date may default to 2001 or similar — detect and fix
+  if (isNaN(date.getTime()) || needsYearFix(dateStr, date)) {
+    // Try prepending/appending current year
+    const withYear = tryAddYear(dateStr, now);
+    if (withYear) {
+      const cleanWithYear = withYear.replace(/(\d{1,2})(am|pm)/i, '$1:00 $2');
+      date = new Date(cleanWithYear);
+    }
+  }
+
   if (isNaN(date.getTime())) {
     throw new Error(`Could not parse date: ${dateStr}`);
   }
+
+  // If date ended up in the past and no explicit year was given, bump to next year
+  if (!hasExplicitYear(dateStr) && date < now) {
+    date.setFullYear(date.getFullYear() + 1);
+  }
+
   return date;
+}
+
+function parseTimeString(str) {
+  // Parse "7pm", "7:30pm", "7:30 PM", "19:00"
+  const match = str.match(/^(\d{1,2})(?::(\d{2}))?\s*(am|pm)?$/i);
+  if (!match) return null;
+  let hours = parseInt(match[1]);
+  const minutes = parseInt(match[2] || '0');
+  const ampm = match[3]?.toLowerCase();
+  if (ampm === 'pm' && hours < 12) hours += 12;
+  if (ampm === 'am' && hours === 12) hours = 0;
+  return { hours, minutes };
+}
+
+function hasExplicitYear(dateStr) {
+  // Check if the string contains a 4-digit year
+  return /\b20\d{2}\b/.test(dateStr);
+}
+
+function needsYearFix(dateStr, date) {
+  // If no explicit year and parsed year is not current/next year, needs fix
+  if (hasExplicitYear(dateStr)) return false;
+  const currentYear = new Date().getFullYear();
+  return date.getFullYear() < currentYear || date.getFullYear() > currentYear + 1;
+}
+
+function tryAddYear(dateStr, now) {
+  const year = now.getFullYear();
+  // Try "Mar 15 8am" -> "Mar 15 2026 8am"
+  // Insert year before time portion
+  const timeMatch = dateStr.match(/^(.+?)(\d{1,2}(?::\d{2})?\s*(?:am|pm).*)$/i);
+  if (timeMatch) {
+    return `${timeMatch[1].trim()} ${year} ${timeMatch[2].trim()}`;
+  }
+  // Just append year
+  return `${dateStr} ${year}`;
+}
+
+function stripMarkdown(text) {
+  if (!text) return text;
+  return text
+    .replace(/\*\*(.*?)\*\*/g, '$1')     // bold
+    .replace(/\*(.*?)\*/g, '$1')          // italic
+    .replace(/\[(.*?)\]\(.*?\)/g, '$1')   // links
+    .replace(/#{1,6}\s+/g, '')            // headings
+    .replace(/`(.*?)`/g, '$1')            // inline code
+    .replace(/~~(.*?)~~/g, '$1')          // strikethrough
+    .replace(/>\s+/g, '');                // blockquotes
 }
 
 function formatDate(isoStr) {
@@ -494,7 +593,7 @@ async function createEvent(options) {
           timezone: timezone,
           location: options.location || null,
           address: options.address || null,
-          description: options.description || null,
+          description: stripMarkdown(options.description) || null,
           guestStatusCounts: {
             READY_TO_SEND: 0, SENDING: 0, SENT: 0, SEND_ERROR: 0,
             DELIVERY_ERROR: 0, INTERESTED: 0, MAYBE: 0, GOING: 0,
@@ -678,7 +777,7 @@ async function updateEvent(eventId, options) {
   }
   
   if (options.description) {
-    fields.description = { stringValue: options.description };
+    fields.description = { stringValue: stripMarkdown(options.description) };
     updateFields.push('description');
   }
   
