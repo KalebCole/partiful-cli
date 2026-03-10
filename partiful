@@ -796,7 +796,10 @@ async function showGuests(eventId, options) {
     console.log('name,status,invite_date,plus_ones');
     for (const g of summary.guests) {
       const date = g.inviteDate ? new Date(g.inviteDate).toISOString().split('T')[0] : '';
-      const name = g.name.includes(',') ? `"${g.name}"` : g.name;
+      let name = g.name;
+      if (name.includes('"') || name.includes(',') || name.includes('\n')) {
+        name = `"${name.replace(/"/g, '""')}"`;
+      }
       console.log(`${name},${g.status},${date},${g.count}`);
     }
     return summary;
