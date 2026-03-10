@@ -194,6 +194,41 @@ async function firestoreRequest(method, eventId, body, token, updateFields = [])
   });
 }
 
+async function firestoreListDocuments(collectionPath, token, pageSize = 100, pageToken = null) {
+  return new Promise((resolve, reject) => {
+    let path = `/v1/projects/${FIRESTORE_PROJECT}/databases/(default)/documents/${collectionPath}?pageSize=${pageSize}`;
+    if (pageToken) path += `&pageToken=${encodeURIComponent(pageToken)}`;
+
+    const options = {
+      hostname: FIRESTORE_BASE,
+      port: 443,
+      path: path,
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Referer': 'https://partiful.com/'
+      }
+    };
+
+    const req = https.request(options, (res) => {
+      let data = '';
+      res.on('data', chunk => data += chunk);
+      res.on('end', () => {
+        try {
+          const result = data ? JSON.parse(data) : {};
+          result._statusCode = res.statusCode;
+          resolve(result);
+        } catch (e) {
+          resolve({ _raw: data, _statusCode: res.statusCode });
+        }
+      });
+    });
+
+    req.on('error', reject);
+    req.end();
+  });
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Date helpers
 // ─────────────────────────────────────────────────────────────────────────────
@@ -690,8 +725,8 @@ async function updateEvent(eventId, options) {
 async function getGuests(eventId, options) {
   const config = loadConfig();
   const token = await getValidToken(config);
-  
-  // Get event data which includes guest counts
+
+  // Get event title and counts from API
   const payload = {
     data: {
       params: { eventId },
@@ -700,19 +735,40 @@ async function getGuests(eventId, options) {
       userId: config.userId
     }
   };
-  
-  const result = await apiRequest('POST', '/getEvent', token, payload);
-  
-  if (result._statusCode !== 200 || !result.result?.data?.event) {
+  const eventResult = await apiRequest('POST', '/getEvent', token, payload);
+  if (eventResult._statusCode !== 200 || !eventResult.result?.data?.event) {
     console.error('✗ Event not found');
     process.exit(1);
   }
-  
-  const event = result.result.data.event;
+  const event = eventResult.result.data.event;
   const counts = event.guestStatusCounts || {};
-  
-  // Build guest summary
-  const summary = {
+
+  // Fetch individual guests from Firestore
+  const guests = [];
+  let pageToken = null;
+  do {
+    const result = await firestoreListDocuments(`events/${eventId}/guests`, token, 100, pageToken);
+    if (result._statusCode !== 200) {
+      console.error('⚠ Could not fetch guest details (status ' + result._statusCode + ')');
+      break;
+    }
+    if (result.documents) {
+      for (const doc of result.documents) {
+        const f = doc.fields || {};
+        guests.push({
+          name: f.name?.stringValue || 'Unknown',
+          status: f.status?.stringValue || 'UNKNOWN',
+          createdAt: f.createdAt?.timestampValue || null,
+          inviteDate: f.inviteDate?.timestampValue || null,
+          count: parseInt(f.count?.integerValue || '1'),
+          channel: f.inviteMetadata?.mapValue?.fields?.channel?.stringValue || null
+        });
+      }
+    }
+    pageToken = result.nextPageToken || null;
+  } while (pageToken);
+
+  return {
     eventId,
     eventTitle: event.title,
     timestamp: new Date().toISOString(),
@@ -723,33 +779,32 @@ async function getGuests(eventId, options) {
       declined: counts.DECLINED || 0,
       waitlist: counts.WAITLIST || 0
     },
-    total: (counts.GOING || 0) + (counts.MAYBE || 0) + (counts.SENT || 0) + (counts.DECLINED || 0)
+    total: (counts.GOING || 0) + (counts.MAYBE || 0) + (counts.SENT || 0) + (counts.DECLINED || 0),
+    guests
   };
-  
-  return summary;
 }
 
 async function showGuests(eventId, options) {
   const summary = await getGuests(eventId, options);
-  
+
   if (options.json) {
     console.log(JSON.stringify(summary, null, 2));
     return summary;
   }
-  
+
   if (options.csv) {
-    console.log('status,count');
-    console.log(`going,${summary.counts.going}`);
-    console.log(`maybe,${summary.counts.maybe}`);
-    console.log(`invited,${summary.counts.invited}`);
-    console.log(`declined,${summary.counts.declined}`);
-    console.log(`waitlist,${summary.counts.waitlist}`);
+    console.log('name,status,invite_date,plus_ones');
+    for (const g of summary.guests) {
+      const date = g.inviteDate ? new Date(g.inviteDate).toISOString().split('T')[0] : '';
+      const name = g.name.includes(',') ? `"${g.name}"` : g.name;
+      console.log(`${name},${g.status},${date},${g.count}`);
+    }
     return summary;
   }
-  
+
   // Human-readable output
   console.log(`\n${summary.eventTitle}`);
-  console.log('─'.repeat(40));
+  console.log('\u2500'.repeat(40));
   console.log(`\nGuest Summary:`);
   console.log(`  👍 Going:    ${summary.counts.going}`);
   console.log(`  🤔 Maybe:    ${summary.counts.maybe}`);
@@ -760,12 +815,29 @@ async function showGuests(eventId, options) {
   }
   console.log(`  ─────────────`);
   console.log(`  Total: ${summary.total}`);
-  
-  if (!options.watch) {
-    console.log(`\nNote: Individual guest names require browser access.`);
-    console.log(`View full list: https://partiful.com/e/${eventId}?focus=guests`);
+
+  if (summary.guests.length > 0) {
+    const byStatus = {};
+    for (const g of summary.guests) {
+      const s = g.status;
+      if (!byStatus[s]) byStatus[s] = [];
+      byStatus[s].push(g);
+    }
+
+    const statusOrder = ['GOING', 'MAYBE', 'SENT', 'DECLINED', 'WAITLIST'];
+    const statusEmoji = { GOING: '👍', MAYBE: '🤔', SENT: '💌', DECLINED: '😢', WAITLIST: '⏳' };
+
+    for (const status of statusOrder) {
+      if (byStatus[status] && byStatus[status].length > 0) {
+        console.log(`\n${statusEmoji[status] || ''} ${status} (${byStatus[status].length}):`);
+        for (const g of byStatus[status]) {
+          const extra = g.count > 1 ? ` (+${g.count - 1})` : '';
+          console.log(`  ${g.name}${extra}`);
+        }
+      }
+    }
   }
-  
+
   return summary;
 }
 
