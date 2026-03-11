@@ -1090,6 +1090,41 @@ async function sendBlast(eventId, options) {
   process.exit(0);
 }
 
+async function sendDM(eventId, options) {
+  // If --to is provided, try to show the matching guest from the guest list
+  if (options.to) {
+    try {
+      const summary = await getGuests(eventId, {});
+      const match = summary.guests.find(g =>
+        g.name.toLowerCase().includes(options.to.toLowerCase())
+      );
+      if (match) {
+        console.log(`\nFound guest: ${match.name} (${match.status})`);
+      } else {
+        console.log(`\n⚠ No guest matching "${options.to}" found`);
+        console.log('Available guests:');
+        for (const g of summary.guests) {
+          console.log(`  ${g.name} (${g.status})`);
+        }
+      }
+    } catch (e) {
+      // Guest lookup failed, continue anyway
+    }
+  }
+
+  console.log('\n⚠️  Direct messages require the Partiful web interface.');
+  console.log('\nPartiful does not expose a DM API.');
+  console.log('\nTo message a guest:');
+  console.log(`  1. Open: https://partiful.com/e/${eventId}?focus=guests`);
+  console.log('  2. Click on the guest\'s name');
+  console.log('  3. Send your message');
+
+  if (options.message) {
+    console.log('\nYour message (ready to paste):');
+    console.log(`  ${options.message}`);
+  }
+}
+
 async function inviteToEvent(eventId, options) {
   const config = loadConfig();
   const token = await getValidToken(config);
@@ -1214,6 +1249,7 @@ Commands:
   partiful update <eventId> [opts]  Update an existing event
   partiful invite <eventId> [opts]  Send invites to an event
   partiful blast <eventId> [opts]   Send message blast (opens web UI)
+  partiful dm <eventId> [opts]      Direct message a guest (opens web UI)
   partiful share <eventId>          Get shareable link
   partiful contacts [query]         Search contacts by name
   partiful cancel <eventId> [-f]    Cancel an event
@@ -1259,6 +1295,10 @@ Invite Options:
 
 Cancel Options:
   -f, --force                       Skip confirmation prompt
+
+DM Options:
+  --to "Guest Name"                 Guest to message (fuzzy match)
+  --message "Your message"          Message to send (copied to clipboard)
 
 Examples:
   partiful auth login
@@ -1437,6 +1477,16 @@ async function main() {
       await sendBlast(blastEventId, { message: args.message });
       break;
     
+    case 'dm':
+      const dmEventId = args._[1];
+      if (!dmEventId) {
+        console.error('Error: Event ID required');
+        console.error('Usage: partiful dm <eventId> [--to "name"] [--message "text"]');
+        process.exit(1);
+      }
+      await sendDM(dmEventId, { to: args.to, message: args.message });
+      break;
+
     case 'contacts':
     case 'contact':
     case 'search':
