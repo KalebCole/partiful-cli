@@ -336,7 +336,7 @@ function stripMarkdown(text) {
   return text
     .replace(/\*\*(.*?)\*\*/g, '$1')     // bold
     .replace(/\*(.*?)\*/g, '$1')          // italic
-    .replace(/\[(.*?)\]\(.*?\)/g, '$1')   // links
+    .replace(/\[(.*?)\]\((.*?)\)/g, '$1 ($2)')   // links — keep URL
     .replace(/#{1,6}\s+/g, '')            // headings
     .replace(/`(.*?)`/g, '$1')            // inline code
     .replace(/~~(.*?)~~/g, '$1')          // strikethrough
@@ -594,7 +594,14 @@ async function createEvent(options) {
           timezone: timezone,
           location: options.location || null,
           address: options.address || null,
-          description: stripMarkdown(options.description) || null,
+          description: (() => {
+            let desc = stripMarkdown(options.description) || '';
+            if (options.link) {
+              const linkLabel = options.linkText || 'Link';
+              desc += (desc ? '\n\n' : '') + linkLabel + ': ' + options.link;
+            }
+            return desc || null;
+          })(),
           guestStatusCounts: {
             READY_TO_SEND: 0, SENDING: 0, SENT: 0, SEND_ERROR: 0,
             DELIVERY_ERROR: 0, INTERESTED: 0, MAYBE: 0, GOING: 0,
@@ -777,9 +784,16 @@ async function updateEvent(eventId, options) {
     updateFields.push('location');
   }
   
-  if (options.description) {
-    fields.description = { stringValue: stripMarkdown(options.description) };
-    updateFields.push('description');
+  if (options.description || options.link) {
+    let desc = stripMarkdown(options.description) || '';
+    if (options.link) {
+      const linkLabel = options.linkText || 'Link';
+      desc += (desc ? '\n\n' : '') + linkLabel + ': ' + options.link;
+    }
+    if (desc) {
+      fields.description = { stringValue: desc };
+      updateFields.push('description');
+    }
   }
   
   if (options.date) {
@@ -800,7 +814,7 @@ async function updateEvent(eventId, options) {
   }
   
   if (updateFields.length === 0) {
-    console.error('Error: No fields to update. Use --title, --location, --description, --date, --end-date, or --capacity');
+    console.error('Error: No fields to update. Use --title, --location, --description, --link, --date, --end-date, or --capacity');
     process.exit(1);
   }
   
@@ -1234,7 +1248,9 @@ Create Options:
   --end-date "2026-04-01 10pm"      End date/time (optional)
   --location "Venue Name"           Location name
   --address "123 Main St"           Street address
-  --description "Details"           Event description  
+  --description "Details"           Event description
+  --link "https://..."              Link to include in description
+  --link-text "Zoom Link"           Label for the link (default: "Link")
   --capacity 10                     Guest limit
   --waitlist                        Enable waitlist (default: true)
   --private                         Make event private
@@ -1248,6 +1264,8 @@ Update Options:
   --end-date "2026-04-01 11pm"      Update end date/time
   --location "New Venue"            Update location
   --description "New details"       Update description
+  --link "https://..."              Link to include in description
+  --link-text "Zoom Link"           Label for the link (default: "Link")
   --capacity 15                     Update guest limit
   --json                            Output full JSON response
 
@@ -1323,6 +1341,8 @@ async function main() {
         location: args.location,
         address: args.address,
         description: args.description,
+        link: args.link,
+        linkText: args['link-text'],
         capacity: args.capacity,
         waitlist: args.waitlist,
         private: args.private,
@@ -1357,6 +1377,8 @@ async function main() {
         endDate: args['end-date'],
         location: args.location,
         description: args.description,
+        link: args.link,
+        linkText: args['link-text'],
         capacity: args.capacity,
         json: args.json
       });
