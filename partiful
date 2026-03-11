@@ -169,7 +169,8 @@ async function firestoreRequest(method, eventId, body, token, updateFields = [])
       method: method,
       headers: {
         'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'Referer': 'https://partiful.com/'
       }
     };
     if (bodyStr) options.headers['Content-Length'] = Buffer.byteLength(bodyStr);
@@ -835,12 +836,21 @@ async function getGuests(eventId, options) {
     }
   };
   const eventResult = await apiRequest('POST', '/getEvent', token, payload);
-  if (eventResult._statusCode !== 200 || !eventResult.result?.data?.event) {
-    console.error('✗ Event not found');
-    process.exit(1);
+  let event = eventResult.result?.data?.event;
+  let counts = {};
+
+  if (event) {
+    counts = event.guestStatusCounts || {};
+  } else {
+    // API down — try to get event title from Firestore directly
+    console.error('⚠ Partiful API unavailable, falling back to Firestore');
+    const fsEvent = await firestoreRequest('GET', eventId, null, token);
+    if (fsEvent._statusCode === 200 && fsEvent.fields) {
+      event = { title: fsEvent.fields.title?.stringValue || 'Unknown Event' };
+    } else {
+      event = { title: 'Unknown Event' };
+    }
   }
-  const event = eventResult.result.data.event;
-  const counts = event.guestStatusCounts || {};
 
   // Fetch individual guests from Firestore
   const guests = [];
@@ -866,6 +876,18 @@ async function getGuests(eventId, options) {
     }
     pageToken = result.nextPageToken || null;
   } while (pageToken);
+
+  // If API was down, compute counts from guest list
+  if (Object.keys(counts).length === 0 && guests.length > 0) {
+    for (const g of guests) {
+      const s = g.status;
+      if (s === 'GOING') counts.GOING = (counts.GOING || 0) + 1;
+      else if (s === 'MAYBE') counts.MAYBE = (counts.MAYBE || 0) + 1;
+      else if (s === 'SENT') counts.SENT = (counts.SENT || 0) + 1;
+      else if (s === 'DECLINED') counts.DECLINED = (counts.DECLINED || 0) + 1;
+      else if (s === 'WAITLIST') counts.WAITLIST = (counts.WAITLIST || 0) + 1;
+    }
+  }
 
   return {
     eventId,
