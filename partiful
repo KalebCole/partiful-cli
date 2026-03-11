@@ -511,6 +511,181 @@ async function authStatus() {
   }
 }
 
+async function doctor() {
+  const ok = '\u2713';
+  const fail = '\u2717';
+  const warn = '!';
+  let failures = 0;
+  let warnings = 0;
+
+  function pass(msg) { console.log(`  ${ok} ${msg}`); }
+  function error(msg) { failures++; console.log(`  ${fail} ${msg}`); }
+  function warning(msg) { warnings++; console.log(`  ${warn} ${msg}`); }
+
+  console.log('\nPartiful CLI Doctor');
+  console.log('====================\n');
+
+  // ── Auth Configuration ──────────────────────────────────────────────────
+  console.log('Auth Configuration');
+
+  // 1. Config file exists and is valid JSON
+  let config;
+  if (!fs.existsSync(CONFIG_PATH)) {
+    error(`Config file not found at ${CONFIG_PATH}`);
+    console.log(`    Fix: run \`partiful auth login\` to set up credentials\n`);
+    // Can't continue without config
+    console.log('Environment');
+    pass(`Node.js: ${process.version}`);
+    console.log(`\n${failures} check(s) failed.`);
+    process.exit(1);
+  }
+
+  try {
+    config = JSON.parse(fs.readFileSync(CONFIG_PATH, 'utf8'));
+    pass('Config file exists');
+  } catch (e) {
+    error(`Config file is not valid JSON: ${e.message}`);
+    console.log(`    Fix: delete ${CONFIG_PATH} and run \`partiful auth login\`\n`);
+    console.log('Environment');
+    pass(`Node.js: ${process.version}`);
+    console.log(`\n${failures} check(s) failed.`);
+    process.exit(1);
+  }
+
+  // 2. Required fields
+  const displayName = config.displayName || 'Unknown';
+  const phone = config.phoneNumber || '';
+  const maskedPhone = phone.length >= 4 ? '***' + phone.slice(-4) : phone || 'not set';
+  pass(`User: ${displayName} (${maskedPhone})`);
+
+  if (config.userId) {
+    pass(`User ID: ${config.userId}`);
+  } else {
+    error('User ID: missing');
+    console.log('    Fix: run `partiful auth login` to re-authenticate');
+  }
+
+  if (config.apiKey) {
+    pass('API key: present');
+  } else {
+    error('API key: missing');
+    console.log('    Fix: run `partiful auth login` to re-authenticate');
+  }
+
+  if (config.refreshToken) {
+    pass('Refresh token: present');
+  } else {
+    error('Refresh token: missing');
+    console.log('    Fix: run `partiful auth login` to re-authenticate');
+  }
+
+  // Check cached access token
+  if (config.accessToken && config.tokenExpiry) {
+    const remaining = config.tokenExpiry - Date.now();
+    if (remaining > 0) {
+      const mins = Math.round(remaining / 60000);
+      pass(`Access token: cached (expires in ${mins} min)`);
+    } else {
+      pass('Access token: cached (expired, will refresh)');
+    }
+  }
+
+  // ── API Connectivity ────────────────────────────────────────────────────
+  console.log('\nAPI Connectivity');
+
+  // 3. Token refresh
+  let token = null;
+  if (config.apiKey && config.refreshToken) {
+    try {
+      const result = await refreshAccessToken(config);
+      token = result.id_token;
+      // Save refreshed token
+      config.accessToken = result.id_token;
+      config.tokenExpiry = Date.now() + (parseInt(result.expires_in) * 1000);
+      if (result.refresh_token) config.refreshToken = result.refresh_token;
+      saveConfig(config);
+      pass('Token refresh: working');
+    } catch (e) {
+      error(`Token refresh: failed - ${e.message}`);
+      console.log('    Fix: run `partiful auth login` to get new credentials');
+    }
+  } else {
+    error('Token refresh: skipped (missing apiKey or refreshToken)');
+  }
+
+  // 4. Partiful API — use the same POST /getMyUpcomingEventsForHomePage pattern
+  if (token) {
+    try {
+      const payload = {
+        data: {
+          params: {},
+          amplitudeDeviceId: config.amplitudeDeviceId || generateAmplitudeDeviceId(),
+          amplitudeSessionId: Date.now(),
+          userId: config.userId
+        }
+      };
+      const result = await apiRequest('POST', '/getMyUpcomingEventsForHomePage', token, payload);
+      const status = result._statusCode;
+      if (status >= 200 && status < 300) {
+        pass('Partiful API: reachable');
+      } else if (status === 401) {
+        error('Partiful API: authentication rejected (401)');
+        console.log('    Fix: run `partiful auth login` to re-authenticate');
+      } else if (status >= 500) {
+        warning('Partiful API: having issues (server returned ' + status + ')');
+      } else {
+        error(`Partiful API: unexpected response (${status})`);
+      }
+    } catch (e) {
+      error(`Partiful API: unreachable - ${e.message}`);
+      console.log('    Check your network connection');
+    }
+  } else {
+    error('Partiful API: skipped (no valid token)');
+  }
+
+  // 5. Firestore API — try to read a nonexistent doc; 404 = reachable
+  if (token) {
+    try {
+      const result = await firestoreRequest('GET', 'doctor-health-check', null, token);
+      const status = result._statusCode;
+      if (status >= 200 && status < 300) {
+        pass('Firestore API: reachable');
+      } else if (status === 401) {
+        error('Firestore API: authentication rejected (401)');
+        console.log('    Fix: run `partiful auth login` to re-authenticate');
+      } else if (status >= 500) {
+        warning('Firestore API: having issues (server returned ' + status + ')');
+      } else if (status === 404) {
+        // 404 still means Firestore is reachable, just no doc at that path
+        pass('Firestore API: reachable');
+      } else {
+        error(`Firestore API: unexpected response (${status})`);
+      }
+    } catch (e) {
+      error(`Firestore API: unreachable - ${e.message}`);
+      console.log('    Check your network connection');
+    }
+  } else {
+    error('Firestore API: skipped (no valid token)');
+  }
+
+  // ── Environment ─────────────────────────────────────────────────────────
+  console.log('\nEnvironment');
+  pass(`Node.js: ${process.version}`);
+
+  // ── Summary ─────────────────────────────────────────────────────────────
+  console.log();
+  if (failures === 0 && warnings === 0) {
+    console.log(`All checks passed! ${ok}`);
+  } else if (failures === 0) {
+    console.log(`All critical checks passed with ${warnings} warning(s). ${ok}`);
+  } else {
+    console.log(`${failures} check(s) failed, ${warnings} warning(s).`);
+    process.exit(1);
+  }
+}
+
 async function listEvents(options) {
   const config = loadConfig();
   const token = await getValidToken(config);
@@ -1217,6 +1392,7 @@ Commands:
   partiful share <eventId>          Get shareable link
   partiful contacts [query]         Search contacts by name
   partiful cancel <eventId> [-f]    Cancel an event
+  partiful doctor                    Run diagnostic checks
 
 List Options:
   --past                            Show past events instead of upcoming
@@ -1444,6 +1620,10 @@ async function main() {
       await searchContacts(contactQuery, { json: args.json, limit: args.limit || 20 });
       break;
     
+    case 'doctor':
+      await doctor();
+      break;
+
     case 'help':
     case '--help':
     case '-h':
