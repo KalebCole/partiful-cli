@@ -759,6 +759,100 @@ async function getEvent(eventId, options) {
   console.log(`\nURL: https://partiful.com/e/${eventId}`);
 }
 
+async function cloneEvent(sourceEventId, options) {
+  const config = loadConfig();
+  const token = await getValidToken(config);
+
+  // Fetch source event
+  console.error(`Fetching source event ${sourceEventId}...`);
+  const payload = {
+    data: {
+      params: { eventId: sourceEventId },
+      amplitudeDeviceId: config.amplitudeDeviceId || generateAmplitudeDeviceId(),
+      amplitudeSessionId: Date.now(),
+      userId: config.userId
+    }
+  };
+  const result = await apiRequest('POST', '/getEvent', token, payload);
+
+  if (result._statusCode !== 200 || !result.result?.data?.event) {
+    console.error('✗ Could not fetch source event');
+    if (result._statusCode) console.error(`  Status: ${result._statusCode}`);
+    process.exit(1);
+  }
+
+  const source = result.result.data.event;
+
+  // Build create options from source, with overrides
+  const createOptions = {
+    title: options.title || source.title,
+    date: options.date, // required — must be provided
+    endDate: options.endDate || null,
+    location: options.location || source.location || null,
+    address: options.address || source.address || null,
+    description: options.description || source.description || null,
+    capacity: options.capacity || (source.guestLimit ? String(source.guestLimit) : null),
+    waitlist: source.enableWaitlist !== false,
+    private: options.private || source.visibility === 'private',
+    timezone: options.timezone || source.timezone || 'America/Los_Angeles',
+    theme: options.theme || source.displaySettings?.theme || null,
+    effect: options.effect || source.displaySettings?.effect || null,
+    json: options.json
+  };
+
+  // If source has endDate and new date was provided, try to preserve duration
+  if (source.endDate && source.startDate && options.date && !options.endDate) {
+    try {
+      const srcStart = new Date(source.startDate);
+      const srcEnd = new Date(source.endDate);
+      const durationMs = srcEnd - srcStart;
+      if (durationMs > 0) {
+        const newStart = parseDateTime(options.date, createOptions.timezone);
+        const newEnd = new Date(newStart.getTime() + durationMs);
+        createOptions.endDate = newEnd.toISOString();
+      }
+    } catch (e) {
+      // Ignore duration preservation errors
+    }
+  }
+
+  // Show what's being cloned
+  console.error(`\nCloning: ${source.title}`);
+  console.error(`─`.repeat(40));
+  const copied = [];
+  if (createOptions.title) copied.push(`Title: ${createOptions.title}`);
+  if (createOptions.location) copied.push(`Location: ${createOptions.location}`);
+  if (createOptions.description) copied.push(`Description: ${createOptions.description.substring(0, 60)}${createOptions.description.length > 60 ? '...' : ''}`);
+  if (createOptions.capacity) copied.push(`Capacity: ${createOptions.capacity}`);
+  if (createOptions.theme) copied.push(`Theme: ${createOptions.theme}`);
+  copied.forEach(f => console.error(`  ✓ ${f}`));
+  console.error('');
+
+  // Create the new event
+  await createEvent(createOptions);
+
+  // Handle reinvite if requested
+  if (options.reinvite) {
+    console.error('\nFetching guest list for reinvites...');
+    const guestData = await getGuests(sourceEventId, {});
+    const statusFilter = options.reinvite === true ? null : options.reinvite.toUpperCase();
+
+    const guestsToInvite = guestData.guests.filter(g => {
+      if (!statusFilter) return true;
+      return g.status === statusFilter;
+    });
+
+    if (guestsToInvite.length === 0) {
+      console.error('  No guests matched the filter for reinvite.');
+    } else {
+      console.error(`  Found ${guestsToInvite.length} guest(s) to reinvite`);
+      console.error('  ⚠️  Reinvite requires guest phone numbers or user IDs');
+      console.error('  Guest names found but IDs not available from Firestore guest docs.');
+      console.error('  Use "partiful invite <newEventId> --phone ..." to invite manually.');
+    }
+  }
+}
+
 async function updateEvent(eventId, options) {
   const config = loadConfig();
   const token = await getValidToken(config);
@@ -1217,6 +1311,7 @@ Commands:
   partiful share <eventId>          Get shareable link
   partiful contacts [query]         Search contacts by name
   partiful cancel <eventId> [-f]    Cancel an event
+  partiful clone <eventId> [opts]  Clone an event with a new date
 
 List Options:
   --past                            Show past events instead of upcoming
@@ -1260,6 +1355,16 @@ Invite Options:
 Cancel Options:
   -f, --force                       Skip confirmation prompt
 
+Clone Options:
+  --date "Apr 22 7pm"              New date for cloned event (required)
+  --end-date "Apr 22 10pm"         New end date (auto-calculated if omitted)
+  --title "New Title"              Override title
+  --location "New Venue"           Override location
+  --description "New desc"         Override description
+  --reinvite                       List guests to reinvite (all statuses)
+  --reinvite going                 List only guests with GOING status
+  --json                           Output full JSON response
+
 Examples:
   partiful auth login
   partiful list
@@ -1268,6 +1373,7 @@ Examples:
   partiful invite FDwyIXK42phoWEZgFin5 --phone "+12065551234"
   partiful share FDwyIXK42phoWEZgFin5
   partiful cancel FDwyIXK42phoWEZgFin5 -f
+  partiful clone FDwyIXK42phoWEZgFin5 --date "Apr 22 7pm"
 `);
 }
 
@@ -1442,6 +1548,36 @@ async function main() {
     case 'search':
       const contactQuery = args._[1];
       await searchContacts(contactQuery, { json: args.json, limit: args.limit || 20 });
+      break;
+    
+    case 'clone':
+    case 'duplicate':
+    case 'copy':
+      const cloneSourceId = args._[1];
+      if (!cloneSourceId) {
+        console.error('Error: Source event ID required');
+        console.error('Usage: partiful clone <eventId> --date "Apr 22 7pm"');
+        process.exit(1);
+      }
+      if (!args.date) {
+        console.error('Error: --date is required for clone');
+        console.error('Usage: partiful clone <eventId> --date "Apr 22 7pm" [--title "New Title"]');
+        process.exit(1);
+      }
+      await cloneEvent(cloneSourceId, {
+        date: args.date,
+        endDate: args['end-date'],
+        title: args.title,
+        location: args.location,
+        address: args.address,
+        description: args.description,
+        capacity: args.capacity,
+        private: args.private,
+        timezone: args.timezone,
+        theme: args.theme,
+        reinvite: args.reinvite,
+        json: args.json
+      });
       break;
     
     case 'help':
