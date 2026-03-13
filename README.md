@@ -54,6 +54,13 @@ partiful create --title "Birthday" --date "May 20 6:30pm" --capacity 20 --waitli
 partiful create --title "Secret" --date "Apr 1 8pm" --private
 ```
 
+### Clone Event
+```bash
+partiful clone <eventId> --date "Apr 22 7pm"                    # Clone with new date
+partiful clone <eventId> --date "Apr 22 7pm" --title "Vol 2"    # Override title
+partiful clone <eventId> --date "Apr 22 7pm" --reinvite going   # List guests to reinvite
+```
+
 ### Cancel Event
 ```bash
 partiful cancel <eventId>        # Prompts for confirmation
