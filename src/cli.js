@@ -8,6 +8,8 @@ import { registerCloneHelper } from './helpers/clone.js';
 import { registerWatchHelper } from './helpers/watch.js';
 import { registerExportHelper } from './helpers/export.js';
 import { registerShareHelper } from './helpers/share.js';
+import { registerSchemaCommand } from './commands/schema.js';
+import { jsonOutput } from './lib/output.js';
 
 export function run() {
   const program = new Command();
@@ -33,6 +35,15 @@ export function run() {
   registerWatchHelper(program);
   registerExportHelper(program);
   registerShareHelper(program);
+  registerSchemaCommand(program);
+
+  program
+    .command('version')
+    .description('Show CLI version and info')
+    .action((opts, cmd) => {
+      const globalOpts = cmd.optsWithGlobals();
+      jsonOutput({ version: program.version(), cli: 'partiful', node: process.version }, {}, globalOpts);
+    });
 
   program.parse();
 }
