@@ -89,11 +89,12 @@ export function registerSchemaCommand(program) {
         jsonOutput({ commands: Object.keys(SCHEMAS) }, { count: Object.keys(SCHEMAS).length }, globalOpts);
         return;
       }
-      const schema = SCHEMAS[path];
-      if (!schema) {
+      if (!Object.hasOwn(SCHEMAS, path)) {
         const available = Object.keys(SCHEMAS).join(', ');
         jsonError(`Unknown schema path: ${path}. Available: ${available}`, 4, 'not_found');
+        return;
       }
+      const schema = SCHEMAS[path];
       jsonOutput(schema, {}, globalOpts);
     });
 }

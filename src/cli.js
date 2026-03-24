@@ -40,8 +40,9 @@ export function run() {
   program
     .command('version')
     .description('Show CLI version and info')
-    .action(() => {
-      jsonOutput({ version: program.version(), cli: 'partiful', node: process.version });
+    .action((opts, cmd) => {
+      const globalOpts = cmd.optsWithGlobals();
+      jsonOutput({ version: program.version(), cli: 'partiful', node: process.version }, {}, globalOpts);
     });
 
   program.parse();

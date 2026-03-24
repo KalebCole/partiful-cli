@@ -1,32 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { execFileSync } from 'child_process';
-import path from 'path';
-
-const CLI = path.resolve('bin/partiful');
-const env = { ...process.env, PARTIFUL_TOKEN: 'fake-token', NODE_NO_WARNINGS: '1' };
-
-function run(args) {
-  const result = execFileSync('node', [CLI, ...args], {
-    env,
-    encoding: 'utf8',
-    timeout: 10000,
-  });
-  return JSON.parse(result.trim());
-}
-
-function runRaw(args, opts = {}) {
-  try {
-    const stdout = execFileSync('node', [CLI, ...args], {
-      env,
-      encoding: 'utf8',
-      timeout: 10000,
-      ...opts,
-    });
-    return { stdout, exitCode: 0 };
-  } catch (e) {
-    return { stdout: e.stdout || '', stderr: e.stderr || '', exitCode: e.status };
-  }
-}
+import { run, runRaw } from './helpers.js';
 
 describe('events integration', () => {
   describe('--dry-run returns payload without API calls', () => {
@@ -110,7 +83,12 @@ describe('events integration', () => {
 
 describe('version command', () => {
   it('returns version info', () => {
-    const { stdout } = runRaw(['version']);
-    expect(stdout).toBeTruthy();
+    const { stdout, exitCode } = runRaw(['version']);
+    expect(exitCode).toBe(0);
+    const out = JSON.parse(stdout.trim());
+    expect(out.status).toBe('success');
+    expect(out.data.cli).toBe('partiful');
+    expect(out.data.version).toBeTruthy();
+    expect(out.data.node).toMatch(/^v/);
   });
 });

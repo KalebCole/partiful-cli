@@ -1,31 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { execFileSync } from 'child_process';
-import path from 'path';
-
-const CLI = path.resolve('bin/partiful');
-const env = { ...process.env, PARTIFUL_TOKEN: 'fake-token', NODE_NO_WARNINGS: '1' };
-
-function run(args) {
-  const result = execFileSync('node', [CLI, ...args], {
-    env,
-    encoding: 'utf8',
-    timeout: 10000,
-  });
-  return JSON.parse(result.trim());
-}
-
-function runRaw(args) {
-  try {
-    const stdout = execFileSync('node', [CLI, ...args], {
-      env,
-      encoding: 'utf8',
-      timeout: 10000,
-    });
-    return { stdout, exitCode: 0 };
-  } catch (e) {
-    return { stdout: e.stdout || '', stderr: e.stderr || '', exitCode: e.status };
-  }
-}
+import { run, runRaw } from './helpers.js';
 
 describe('guests integration', () => {
   describe('--dry-run', () => {
