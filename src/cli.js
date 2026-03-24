@@ -1,4 +1,9 @@
 import { Command } from 'commander';
+import { registerAuthCommands } from './commands/auth.js';
+import { registerEventsCommands } from './commands/events.js';
+import { registerGuestsCommands } from './commands/guests.js';
+import { registerContactsCommands } from './commands/contacts.js';
+import { registerBlastsCommands } from './commands/blasts.js';
 
 export function run() {
   const program = new Command();
@@ -14,6 +19,12 @@ export function run() {
     .option('-v, --verbose', 'Show request details on stderr')
     .option('-o, --output <path>', 'Write output to file')
     .option('--no-color', 'Disable colored output');
+
+  registerAuthCommands(program);
+  registerEventsCommands(program);
+  registerGuestsCommands(program);
+  registerContactsCommands(program);
+  registerBlastsCommands(program);
 
   program.parse();
 }
