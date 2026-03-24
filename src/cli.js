@@ -51,12 +51,27 @@ export function run() {
     'list': ['events', 'list'],
     'get': ['events', 'get'],
     'cancel': ['events', 'cancel'],
-    'clone': ['+clone'],
+    'clone': ['events', '+clone'],
   };
-  if (args.length > 0 && aliasMap[args[0]]) {
-    const newArgs = [...aliasMap[args[0]], ...args.slice(1)];
-    process.stderr.write(`[deprecated] "partiful ${args[0]}" → use "partiful ${newArgs.slice(0, 2).join(' ')}" instead\n`);
-    process.argv = [...process.argv.slice(0, 2), ...newArgs];
+
+  // Find first non-option token (skip --format <val>, -o <val>, etc.)
+  const optsWithValue = new Set(['--format', '-o', '--output']);
+  let cmdIndex = 0;
+  while (cmdIndex < args.length && args[cmdIndex].startsWith('-')) {
+    cmdIndex += optsWithValue.has(args[cmdIndex]) ? 2 : 1;
+  }
+
+  const legacy = args[cmdIndex];
+  if (legacy && aliasMap[legacy]) {
+    const rewritten = [
+      ...args.slice(0, cmdIndex),
+      ...aliasMap[legacy],
+      ...args.slice(cmdIndex + 1),
+    ];
+    process.stderr.write(
+      `[deprecated] "partiful ${legacy}" → use "partiful ${aliasMap[legacy].join(' ')}" instead\n`
+    );
+    process.argv = [...process.argv.slice(0, 2), ...rewritten];
   }
 
   // Special case: `partiful guests <id>` → `partiful guests list <id>`
