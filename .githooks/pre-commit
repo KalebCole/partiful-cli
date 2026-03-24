@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+# Pre-commit hook: PII guard
+exec "$(git rev-parse --show-toplevel)/scripts/pii-guard.sh"

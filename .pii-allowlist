@@ -1,0 +1,7 @@
+# PII Allowlist
+# One pattern per line. Lines containing these strings are skipped.
+# Comments start with #
+#
+# Example:
+# support@partiful.com
+# +15551234567
