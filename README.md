@@ -1,120 +1,207 @@
 # Partiful CLI
 
-Create and manage [Partiful](https://partiful.com) events from the command line — no browser needed after initial auth.
+JSON-first, agent-friendly CLI for managing [Partiful](https://partiful.com) events from the command line.
 
 ## Installation
 
 ```bash
-# Clone the repo
-git clone git@github.com:KalebCole/partiful-cli.git
-cd partiful-cli
-
-# Make executable and link
-chmod +x partiful
-ln -s $(pwd)/partiful ~/.local/bin/partiful
+npm install -g .
+# or link for development
+npm link
 ```
 
-## Initial Setup
+Requires **Node.js 18+**.
 
-The CLI needs a Firebase refresh token from an authenticated Partiful session. One-time setup:
+## Auth Setup
 
-1. Log into Partiful in your browser (Chrome)
-2. Open DevTools → Application → IndexedDB → `firebaseLocalStorageDb` → `firebaseLocalStorage`
-3. Copy the auth data and create `~/.config/partiful/auth.json`:
+Partiful doesn't offer a public API. This CLI uses the same internal API that the web app uses, authenticated via Firebase tokens.
 
-```json
-{
-  "apiKey": "AIzaSyCky6PJ7cHRdBKk5X7gjuWERWaKWBHr4_k",
-  "refreshToken": "<your-refresh-token>",
-  "userId": "<your-user-id>",
-  "displayName": "Your Name",
-  "phoneNumber": "+1234567890"
-}
-```
+### Bookmarklet Flow
 
-## Usage
+1. Log into [partiful.com](https://partiful.com) in your browser
+2. Run the bookmarklet extractor or use browser DevTools to capture your auth tokens
+3. Save credentials:
 
-### List Events
 ```bash
-partiful list                    # Upcoming events
-partiful list --past             # Past events
-partiful list --json             # JSON output
+partiful auth save --token <accessToken> --refresh <refreshToken> --user-id <userId>
 ```
 
-### Get Event Details
+4. Verify:
+
 ```bash
-partiful get <eventId>           # Human-readable
-partiful get <eventId> --json    # JSON output
+partiful auth status
 ```
 
-### Create Event
+Tokens auto-refresh when expired.
+
+## Quick Start
+
 ```bash
-partiful create --title "Game Night" --date "2026-04-15 7pm" --location "My Place"
-partiful create --title "Birthday" --date "May 20 6:30pm" --capacity 20 --waitlist
-partiful create --title "Secret" --date "Apr 1 8pm" --private
+# List upcoming events
+partiful events list
+
+# Get event details
+partiful events get <eventId>
+
+# Create an event
+partiful events create --title "Game Night" --date "Apr 15 7pm" --location "My Place"
+
+# List guests
+partiful guests list <eventId>
+
+# Clone an event to next week
+partiful +clone <eventId>
+
+# Export event + guests
+partiful +export <eventId> --format json --output event.json
+
+# Share link
+partiful +share <eventId>
 ```
 
-### Clone Event
-```bash
-partiful clone <eventId> --date "Apr 22 7pm"                    # Clone with new date
-partiful clone <eventId> --date "Apr 22 7pm" --title "Vol 2"    # Override title
-partiful clone <eventId> --date "Apr 22 7pm" --reinvite going   # List guests to reinvite
-```
+## Command Reference
 
-### Cancel Event
-```bash
-partiful cancel <eventId>        # Prompts for confirmation
-partiful cancel <eventId> -f     # Force (skip confirmation)
-```
-
-### Auth Status
-```bash
-partiful auth-status
-```
-
-## Create Options
+### Global Options
 
 | Option | Description |
 |--------|-------------|
-| `--title` | Event name (required) |
-| `--date` | Start date/time (required) |
-| `--end-date` | End date/time |
-| `--location` | Venue name |
-| `--address` | Street address |
-| `--description` | Event description |
-| `--capacity` | Guest limit |
-| `--waitlist` | Enable waitlist (default: true) |
-| `--private` | Make event private |
-| `--timezone` | Timezone (default: America/Los_Angeles) |
-| `--theme` | Color theme |
-| `--json` | Output full JSON response |
+| `--format <fmt>` | Output format: `json` (default), `table`, `csv`, `ndjson` |
+| `--dry-run` | Preview request without executing |
+| `-y, --yes` | Skip confirmation prompts |
+| `--force` | Skip confirmation and overwrite protection |
+| `-v, --verbose` | Show request details on stderr |
+| `-o, --output <path>` | Write output to file |
+| `--no-color` | Disable colored output |
 
-## How It Works
+### Commands
 
-1. Partiful uses Firebase Auth with phone/SMS verification
-2. Firebase stores a **refresh token** in IndexedDB that lasts months
-3. This CLI uses that refresh token to get fresh access tokens (~1hr life)
-4. Access tokens are used to call `api.partiful.com` directly
+#### `auth` — Manage authentication
 
-The refresh token survives browser restarts. You only need to re-authenticate if:
-- You explicitly log out of Partiful
-- Firebase revokes the token (rare)
-- Token expires after extended inactivity (~months)
+| Subcommand | Description |
+|------------|-------------|
+| `auth save` | Save auth credentials (`--token`, `--refresh`, `--user-id`) |
+| `auth status` | Check current auth status |
+| `auth refresh` | Force token refresh |
+| `auth clear` | Remove saved credentials |
 
-## API Endpoints Used
+#### `events` — Manage events
 
-- `POST /getMyUpcomingEventsForHomePage` - List upcoming events
-- `POST /getMyPastEventsForHomePage` - List past events
-- `POST /getEvent` - Get event details
-- `POST /createEvent` - Create new event
-- `POST /cancelEvent` - Cancel an event
+| Subcommand | Description |
+|------------|-------------|
+| `events list` | List upcoming events (`--past` for past events) |
+| `events get <id>` | Get event details |
+| `events create` | Create a new event (`--title`, `--date`, `--location`, etc.) |
+| `events update <id>` | Update event via Firestore (`--title`, `--date`, etc.) |
+| `events cancel <id>` | Cancel an event |
 
-All requests wrap body in `{ data: { params: {...}, userId, amplitudeDeviceId, amplitudeSessionId } }`
+#### `guests` — Manage event guests
 
-## Known Limitations
+| Subcommand | Description |
+|------------|-------------|
+| `guests list <eventId>` | List guests with RSVP status |
+| `guests summary <eventId>` | Guest count summary by status |
 
-- **No update/edit** - Partiful uses Firestore directly for edits, not REST API
-- **Delete = Cancel** - Events are cancelled, not deleted (Partiful's model)
+#### `contacts` — Manage contacts
+
+| Subcommand | Description |
+|------------|-------------|
+| `contacts list` | List your Partiful contacts |
+
+#### `blasts` — Text blasts to event guests
+
+| Subcommand | Description |
+|------------|-------------|
+| `blasts send <eventId>` | Send a text blast (`--message`, `--filter`) |
+| `blasts history <eventId>` | View blast history |
+
+### Helper Commands
+
+Helpers use the `+` prefix to distinguish from core CRUD commands.
+
+| Command | Description |
+|---------|-------------|
+| `+clone <eventId>` | Clone an event with shifted date (`--title`, `--date`, `--shift <days>`) |
+| `+watch <eventId>` | Poll for guest RSVP changes as NDJSON (`--interval <s>`, `--duration <m>`) |
+| `+export <eventId>` | Export event + guests to file (`--format json\|csv`, `--output <path>`) |
+| `+share <eventId>` | Generate shareable event link |
+
+#### `+clone` Examples
+
+```bash
+# Clone to next week (default: +7 days)
+partiful +clone FDwyIXK42phoWEZgFin5
+
+# Clone with specific date
+partiful +clone FDwyIXK42phoWEZgFin5 --date "May 1 8pm"
+
+# Clone with new title
+partiful +clone FDwyIXK42phoWEZgFin5 --title "Game Night v2" --shift 14
+```
+
+#### `+watch` Example
+
+```bash
+# Watch for 30 minutes, polling every 15 seconds
+partiful +watch FDwyIXK42phoWEZgFin5 --interval 15 --duration 30
+```
+
+Output (NDJSON):
+```json
+{"type":"rsvp_change","guest":{"name":"Alex","count":1},"from":"SENT","to":"GOING","timestamp":"..."}
+{"type":"new_guest","guest":{"name":"Jordan","count":2},"from":null,"to":"GOING","timestamp":"..."}
+```
+
+#### `+export` Example
+
+```bash
+# Export as JSON
+partiful +export FDwyIXK42phoWEZgFin5 --output party.json
+
+# Export guest list as CSV
+partiful +export FDwyIXK42phoWEZgFin5 --format csv
+```
+
+## JSON Envelope Format
+
+All JSON output follows a consistent envelope:
+
+### Success
+
+```json
+{
+  "status": "success",
+  "data": { ... },
+  "metadata": {}
+}
+```
+
+### Error
+
+```json
+{
+  "status": "error",
+  "error": {
+    "code": 1,
+    "type": "api_error",
+    "message": "Description of what went wrong"
+  }
+}
+```
+
+## Exit Codes
+
+| Code | Meaning |
+|------|---------|
+| `0` | Success |
+| `1` | API error |
+| `2` | Authentication error |
+| `3` | Validation error |
+| `4` | Not found |
+| `5` | Internal error |
+
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for development setup, testing, and contribution guidelines.
 
 ## License
 
