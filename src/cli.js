@@ -4,6 +4,10 @@ import { registerEventsCommands } from './commands/events.js';
 import { registerGuestsCommands } from './commands/guests.js';
 import { registerContactsCommands } from './commands/contacts.js';
 import { registerBlastsCommands } from './commands/blasts.js';
+import { registerCloneHelper } from './helpers/clone.js';
+import { registerWatchHelper } from './helpers/watch.js';
+import { registerExportHelper } from './helpers/export.js';
+import { registerShareHelper } from './helpers/share.js';
 
 export function run() {
   const program = new Command();
@@ -25,6 +29,10 @@ export function run() {
   registerGuestsCommands(program);
   registerContactsCommands(program);
   registerBlastsCommands(program);
+  registerCloneHelper(program);
+  registerWatchHelper(program);
+  registerExportHelper(program);
+  registerShareHelper(program);
 
   program.parse();
 }
