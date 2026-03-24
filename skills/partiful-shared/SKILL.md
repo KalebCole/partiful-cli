@@ -9,9 +9,19 @@ description: Shared auth, global flags, and security rules for the Partiful CLI
 
 ### Login
 ```bash
-partiful auth login
+partiful auth login <phone>
+partiful auth login +15551234567
 ```
-Opens a bookmarklet-based flow to capture your Partiful session token.
+Phone-based authentication. Phone number must be in **E.164 format** (e.g. `+15551234567`).
+
+1. Sends an SMS verification code to the provided number.
+2. **On macOS:** Automatically retrieves the code from iMessage (via `imsg`). No manual input needed.
+3. **Fallback:** If auto-retrieval fails, prompts you to enter the code manually.
+
+| Flag | Description |
+|------|-------------|
+| `--code <code>` | Provide the verification code directly (skip SMS wait) |
+| `--no-auto` | Disable automatic SMS retrieval; always prompt manually |
 
 ### Check Status
 ```bash
