@@ -73,12 +73,12 @@ export function registerBlastsCommands(program) {
               },
             },
             amplitudeSessionId: Date.now(),
-            userId: config.userId,
+            userId: config.userId || null,
           }),
         };
 
         if (globalOpts.dryRun) {
-          jsonOutput({ dryRun: true, endpoint: '/createTextBlast', payload });
+          jsonOutput({ dryRun: true, endpoint: '/createTextBlast', payload }, {}, globalOpts);
           return;
         }
 
@@ -92,7 +92,7 @@ export function registerBlastsCommands(program) {
           console.error('');
           const ok = await confirm('Send this text blast? This will SMS real people');
           if (!ok) {
-            jsonOutput({ cancelled: true, message: 'Blast not sent' });
+            jsonOutput({ cancelled: true, message: 'Blast not sent' }, {}, globalOpts);
             return;
           }
         }
@@ -106,10 +106,10 @@ export function registerBlastsCommands(program) {
           messageLength: opts.message.length,
           showOnEventPage,
           response: result?.result?.data || result?.result || result,
-        });
+        }, {}, globalOpts);
       } catch (err) {
         if (err instanceof PartifulError) {
-          jsonError(err.message, err.exitCode, err.code, err.details);
+          jsonError(err.message, err.exitCode, err.type, err.details);
         } else {
           jsonError(err.message, 1, 'blast_error');
         }
