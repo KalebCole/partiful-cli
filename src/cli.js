@@ -45,5 +45,40 @@ export function run() {
       jsonOutput({ version: program.version(), cli: 'partiful', node: process.version }, {}, globalOpts);
     });
 
+  // Deprecated aliases — rewrite argv before parsing
+  const args = process.argv.slice(2);
+  const aliasMap = {
+    'list': ['events', 'list'],
+    'get': ['events', 'get'],
+    'cancel': ['events', 'cancel'],
+    'clone': ['events', '+clone'],
+  };
+
+  // Find first non-option token (skip --format <val>, -o <val>, etc.)
+  const optsWithValue = new Set(['--format', '-o', '--output']);
+  let cmdIndex = 0;
+  while (cmdIndex < args.length && args[cmdIndex].startsWith('-')) {
+    cmdIndex += optsWithValue.has(args[cmdIndex]) ? 2 : 1;
+  }
+
+  const legacy = args[cmdIndex];
+  if (legacy && aliasMap[legacy]) {
+    const rewritten = [
+      ...args.slice(0, cmdIndex),
+      ...aliasMap[legacy],
+      ...args.slice(cmdIndex + 1),
+    ];
+    process.stderr.write(
+      `[deprecated] "partiful ${legacy}" → use "partiful ${aliasMap[legacy].join(' ')}" instead\n`
+    );
+    process.argv = [...process.argv.slice(0, 2), ...rewritten];
+  }
+
+  // Special case: `partiful guests <id>` → `partiful guests list <id>`
+  if (args[0] === 'guests' && args[1] && !['list', 'invite', '--help', '-h'].includes(args[1])) {
+    process.stderr.write(`[deprecated] "partiful guests <id>" → use "partiful guests list <id>" instead\n`);
+    process.argv = [...process.argv.slice(0, 2), 'guests', 'list', ...args.slice(1)];
+  }
+
   program.parse();
 }
