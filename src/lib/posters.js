@@ -6,6 +6,15 @@ let _catalogCache = null;
 
 export async function fetchCatalog() {
   if (_catalogCache) return _catalogCache;
+
+  // Support local fixture for testing
+  const localFile = process.env.PARTIFUL_POSTER_CATALOG_FILE;
+  if (localFile) {
+    const { readFileSync } = await import('fs');
+    _catalogCache = JSON.parse(readFileSync(localFile, 'utf-8'));
+    return _catalogCache;
+  }
+
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 10000);
   try {

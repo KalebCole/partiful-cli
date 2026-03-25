@@ -1,0 +1,50 @@
+[
+  {
+    "id": "piscesairbrush.png",
+    "url": "https://assets.getpartiful.com/posters/piscesairbrush.png",
+    "name": "Pisces Airbrush",
+    "tags": ["zodiac", "pisces", "airbrush"],
+    "categories": ["astrology"],
+    "bgColor": "#2a1f4e",
+    "blurHash": "LEHV6nWB2yk8pyo0adR*.7kCMdnj",
+    "contentType": "image/png",
+    "height": 1200,
+    "width": 800
+  },
+  {
+    "id": "birthdaycake.png",
+    "url": "https://assets.getpartiful.com/posters/birthdaycake.png",
+    "name": "Birthday Cake",
+    "tags": ["birthday", "cake", "celebration"],
+    "categories": ["birthday"],
+    "bgColor": "#f5a3b5",
+    "blurHash": "LKO2?U%2Tw=w]~RBVZRi};RPxuwH",
+    "contentType": "image/png",
+    "height": 1200,
+    "width": 800
+  },
+  {
+    "id": "summersunset.png",
+    "url": "https://assets.getpartiful.com/posters/summersunset.png",
+    "name": "Summer Sunset",
+    "tags": ["summer", "sunset", "outdoor"],
+    "categories": ["seasonal"],
+    "bgColor": "#ff7b2e",
+    "blurHash": "L6Pj0^jE.AyE_3t7t7R**0o#DgR4",
+    "contentType": "image/png",
+    "height": 1200,
+    "width": 800
+  },
+  {
+    "id": "disconight.png",
+    "url": "https://assets.getpartiful.com/posters/disconight.png",
+    "name": "Disco Night",
+    "tags": ["party", "disco", "nightlife"],
+    "categories": ["party"],
+    "bgColor": "#1a0a2e",
+    "blurHash": "LGF5]+Yk^6#M@-5c,1J5@.%MV]WB",
+    "contentType": "image/png",
+    "height": 1200,
+    "width": 800
+  }
+]

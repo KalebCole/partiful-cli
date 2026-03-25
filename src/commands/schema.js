@@ -29,7 +29,7 @@ const SCHEMAS = {
       '--theme': { type: 'string', required: false, default: 'oxblood', description: 'Color theme' },
       '--poster': { type: 'string', required: false, description: 'Built-in poster ID' },
       '--poster-search': { type: 'string', required: false, description: 'Search poster library, use best match' },
-      '--image': { type: 'string', required: false, description: 'Custom image file path to upload' },
+      '--image': { type: 'string', required: false, description: 'Custom image file path or URL to upload' },
     },
   },
   'events.update': {
@@ -44,7 +44,7 @@ const SCHEMAS = {
       '--capacity': { type: 'integer', required: false },
       '--poster': { type: 'string', required: false, description: 'Built-in poster ID' },
       '--poster-search': { type: 'string', required: false, description: 'Search poster library, use best match' },
-      '--image': { type: 'string', required: false, description: 'Custom image file path to upload' },
+      '--image': { type: 'string', required: false, description: 'Custom image file path or URL to upload' },
     },
   },
   'events.cancel': {

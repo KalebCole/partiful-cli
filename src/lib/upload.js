@@ -2,8 +2,9 @@
  * Custom image upload helper for event posters.
  */
 
-import { readFileSync, existsSync, statSync } from 'fs';
+import { readFileSync, existsSync, statSync, writeFileSync, unlinkSync } from 'fs';
 import { basename, extname } from 'path';
+import { randomBytes } from 'crypto';
 
 const ALLOWED_EXTENSIONS = ['.png', '.jpg', '.jpeg', '.gif', '.webp', '.avif'];
 const MAX_SIZE = 10 * 1024 * 1024; // 10MB
@@ -55,6 +56,54 @@ export async function uploadEventImage(filePath, token, config, verbose) {
 
   const result = await response.json();
   return result.uploadData || result.result?.uploadData || result;
+}
+
+const CONTENT_TYPE_TO_EXT = {
+  'image/png': '.png',
+  'image/jpeg': '.jpg',
+  'image/gif': '.gif',
+  'image/webp': '.webp',
+  'image/avif': '.avif',
+};
+
+export async function downloadToTemp(url) {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 15000);
+
+  let response;
+  try {
+    response = await fetch(url, { signal: controller.signal });
+  } catch (err) {
+    clearTimeout(timeout);
+    if (err.name === 'AbortError') {
+      throw new Error(`Download timed out after 15s: ${url}`);
+    }
+    throw new Error(`Download failed: ${err.message}`);
+  } finally {
+    clearTimeout(timeout);
+  }
+
+  if (!response.ok) {
+    throw new Error(`Download failed: ${response.status} ${response.statusText} from ${url}`);
+  }
+
+  const contentType = (response.headers.get('content-type') || '').split(';')[0].trim();
+  const ext = CONTENT_TYPE_TO_EXT[contentType];
+  if (!ext) {
+    throw new Error(`Unsupported content type "${contentType}" from ${url}. Expected an image type.`);
+  }
+
+  const buffer = Buffer.from(await response.arrayBuffer());
+  const rand = randomBytes(8).toString('hex');
+  const tempPath = `/tmp/partiful-upload-${rand}${ext}`;
+  writeFileSync(tempPath, buffer);
+
+  return {
+    tempPath,
+    cleanup() {
+      try { unlinkSync(tempPath); } catch {}
+    },
+  };
 }
 
 export function buildUploadImage(uploadData, filename) {

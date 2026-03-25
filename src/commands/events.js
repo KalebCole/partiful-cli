@@ -191,8 +191,9 @@ export function registerEventsCommands(program) {
           return;
         }
 
-        // Validate image extension early (before dry-run check)
-        if (opts.image) {
+        // Validate image extension early (before dry-run check) — skip for URLs
+        const isImageUrl = opts.image && (opts.image.startsWith('http://') || opts.image.startsWith('https://'));
+        if (opts.image && !isImageUrl) {
           const { extname } = await import('path');
           const ext = extname(opts.image).toLowerCase();
           const allowed = ['.png', '.jpg', '.jpeg', '.gif', '.webp', '.avif'];
@@ -263,7 +264,21 @@ export function registerEventsCommands(program) {
           event.image = buildPosterImage(results[0]);
         } else if (opts.image) {
           if (globalOpts.dryRun) {
-            event.image = { source: 'upload', file: opts.image, note: 'File will be uploaded on real run' };
+            if (isImageUrl) {
+              event.image = { source: 'upload', url: opts.image, note: 'URL will be downloaded and uploaded on real run' };
+            } else {
+              event.image = { source: 'upload', file: opts.image, note: 'File will be uploaded on real run' };
+            }
+          } else if (isImageUrl) {
+            const { downloadToTemp, uploadEventImage, buildUploadImage } = await import('../lib/upload.js');
+            const { basename } = await import('path');
+            const { tempPath, cleanup } = await downloadToTemp(opts.image);
+            try {
+              const uploadData = await uploadEventImage(tempPath, token, config, globalOpts.verbose);
+              event.image = buildUploadImage(uploadData, basename(tempPath));
+            } finally {
+              cleanup();
+            }
           } else {
             const { uploadEventImage, buildUploadImage } = await import('../lib/upload.js');
             const { basename } = await import('path');
@@ -362,16 +377,34 @@ export function registerEventsCommands(program) {
         }
 
         if (opts.image) {
-          const ext = pathExtname(opts.image).toLowerCase();
-          const allowed = ['.png', '.jpg', '.jpeg', '.gif', '.webp', '.avif'];
-          if (!allowed.includes(ext)) {
-            jsonError(`Unsupported image type: "${ext}". Allowed: ${allowed.join(', ')}`, 3, 'validation_error');
-            return;
+          const isImageUrl = opts.image.startsWith('http://') || opts.image.startsWith('https://');
+          if (!isImageUrl) {
+            const ext = pathExtname(opts.image).toLowerCase();
+            const allowed = ['.png', '.jpg', '.jpeg', '.gif', '.webp', '.avif'];
+            if (!allowed.includes(ext)) {
+              jsonError(`Unsupported image type: "${ext}". Allowed: ${allowed.join(', ')}`, 3, 'validation_error');
+              return;
+            }
           }
 
           if (globalOpts.dryRun) {
-            fields.image = { mapValue: { fields: {} } };
+            if (isImageUrl) {
+              fields.image = { mapValue: { fields: toFirestoreMap({ source: 'upload', url: opts.image, note: 'URL will be downloaded and uploaded on real run' }) } };
+            } else {
+              fields.image = { mapValue: { fields: {} } };
+            }
             updateFields.push('image');
+          } else if (isImageUrl) {
+            const { downloadToTemp, uploadEventImage, buildUploadImage } = await import('../lib/upload.js');
+            const { tempPath, cleanup } = await downloadToTemp(opts.image);
+            try {
+              const uploadData = await uploadEventImage(tempPath, token, config, globalOpts.verbose);
+              const imageObj = buildUploadImage(uploadData, pathBasename(tempPath));
+              fields.image = { mapValue: { fields: toFirestoreMap(imageObj) } };
+              updateFields.push('image');
+            } finally {
+              cleanup();
+            }
           } else {
             const { uploadEventImage, buildUploadImage } = await import('../lib/upload.js');
             const uploadData = await uploadEventImage(opts.image, token, config, globalOpts.verbose);

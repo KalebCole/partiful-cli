@@ -124,6 +124,20 @@ describe('events integration', () => {
       const out = JSON.parse(stdout);
       expect(out.status).toBe('error');
     });
+
+    it('events create --image with URL shows download note in dry-run', () => {
+      const out = run([
+        'events', 'create',
+        '--title', 'URL Image Test',
+        '--date', '2026-06-01 7pm',
+        '--image', 'https://example.com/test.png',
+        '--dry-run',
+      ]);
+      expect(out.status).toBe('success');
+      const image = out.data.payload.data.params.event.image;
+      expect(image.url).toBe('https://example.com/test.png');
+      expect(image.note).toBe('URL will be downloaded and uploaded on real run');
+    });
   });
 
   describe('JSON envelope shape - events update', () => {
@@ -147,6 +161,17 @@ describe('events integration', () => {
       const out = JSON.parse(stdout);
       expect(out.status).toBe('error');
       expect(out.error.message).toContain('Unsupported');
+    });
+
+    it('events update --image with URL in dry-run', () => {
+      const out = run([
+        'events', 'update', 'test-event-123',
+        '--image', 'https://example.com/test.png',
+        '--dry-run',
+      ]);
+      expect(out.status).toBe('success');
+      expect(out.data.dryRun).toBe(true);
+      expect(out.data.fields).toContain('image');
     });
   });
 
