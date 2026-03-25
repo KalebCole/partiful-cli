@@ -6,10 +6,19 @@ let _catalogCache = null;
 
 export async function fetchCatalog() {
   if (_catalogCache) return _catalogCache;
-  const res = await fetch('https://assets.getpartiful.com/posters.json');
-  if (!res.ok) throw new Error(`Failed to fetch poster catalog: ${res.status}`);
-  _catalogCache = await res.json();
-  return _catalogCache;
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 10000);
+  try {
+    const res = await fetch('https://assets.getpartiful.com/posters.json', { signal: controller.signal });
+    if (!res.ok) throw new Error(`Failed to fetch poster catalog: ${res.status}`);
+    _catalogCache = await res.json();
+    return _catalogCache;
+  } catch (err) {
+    if (err.name === 'AbortError') throw new Error('Poster catalog fetch timed out (10s)');
+    throw err;
+  } finally {
+    clearTimeout(timeout);
+  }
 }
 
 export function posterThumbnail(posterId) {

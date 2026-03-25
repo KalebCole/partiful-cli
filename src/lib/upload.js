@@ -7,6 +7,14 @@ import { basename, extname } from 'path';
 
 const ALLOWED_EXTENSIONS = ['.png', '.jpg', '.jpeg', '.gif', '.webp', '.avif'];
 const MAX_SIZE = 10 * 1024 * 1024; // 10MB
+const MIME_TYPES = {
+  '.png': 'image/png',
+  '.jpg': 'image/jpeg',
+  '.jpeg': 'image/jpeg',
+  '.gif': 'image/gif',
+  '.webp': 'image/webp',
+  '.avif': 'image/avif',
+};
 
 export async function uploadEventImage(filePath, token, config, verbose) {
   if (!existsSync(filePath)) {
@@ -24,7 +32,8 @@ export async function uploadEventImage(filePath, token, config, verbose) {
   }
 
   const fileData = readFileSync(filePath);
-  const blob = new Blob([fileData]);
+  const contentType = MIME_TYPES[ext] || 'application/octet-stream';
+  const blob = new Blob([fileData], { type: contentType });
   const formData = new FormData();
   formData.append('file', blob, basename(filePath));
 

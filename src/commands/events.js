@@ -8,6 +8,7 @@ import { apiRequest, firestoreRequest } from '../lib/http.js';
 import { parseDateTime, stripMarkdown, formatDate } from '../lib/dates.js';
 import { jsonOutput, jsonError } from '../lib/output.js';
 import { PartifulError, ValidationError } from '../lib/errors.js';
+import { extname as pathExtname, basename as pathBasename } from 'path';
 import readline from 'readline';
 
 async function confirm(question) {
@@ -358,10 +359,10 @@ export function registerEventsCommands(program) {
         }
 
         if (opts.image) {
-          const ext = opts.image.split('.').pop().toLowerCase();
-          const allowed = ['png', 'jpg', 'jpeg', 'gif', 'webp', 'avif'];
+          const ext = pathExtname(opts.image).toLowerCase();
+          const allowed = ['.png', '.jpg', '.jpeg', '.gif', '.webp', '.avif'];
           if (!allowed.includes(ext)) {
-            jsonError(`Unsupported image type: .${ext}. Allowed: ${allowed.map(e => '.' + e).join(', ')}`, 3, 'validation_error');
+            jsonError(`Unsupported image type: "${ext}". Allowed: ${allowed.join(', ')}`, 3, 'validation_error');
             return;
           }
 
@@ -371,7 +372,7 @@ export function registerEventsCommands(program) {
           } else {
             const { uploadEventImage, buildUploadImage } = await import('../lib/upload.js');
             const uploadData = await uploadEventImage(opts.image, token, config, globalOpts.verbose);
-            const imageObj = buildUploadImage(uploadData, opts.image.split('/').pop());
+            const imageObj = buildUploadImage(uploadData, pathBasename(opts.image));
             fields.image = { mapValue: { fields: toFirestoreMap(imageObj) } };
             updateFields.push('image');
           }
