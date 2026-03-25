@@ -149,15 +149,28 @@ export function registerEventsCommands(program) {
     .option('--effect <effect>', 'Visual effect', 'sunbeams')
     .option('--poster <posterId>', 'Built-in poster ID (use "posters search" to find)')
     .option('--poster-search <query>', 'Search for a poster by keyword')
+    .option('--image <path>', 'Custom image file to upload')
     .action(async (opts, cmd) => {
       const globalOpts = cmd.optsWithGlobals();
       try {
         const config = loadConfig();
         const token = await getValidToken(config);
 
-        if (opts.poster && opts.posterSearch) {
-          jsonError('Cannot use both --poster and --poster-search. Pick one.', 3, 'validation_error');
+        const imageOptCount = [opts.poster, opts.posterSearch, opts.image].filter(Boolean).length;
+        if (imageOptCount > 1) {
+          jsonError('Use only one of --poster, --poster-search, or --image.', 3, 'validation_error');
           return;
+        }
+
+        // Validate image extension early (before dry-run check)
+        if (opts.image) {
+          const { extname } = await import('path');
+          const ext = extname(opts.image).toLowerCase();
+          const allowed = ['.png', '.jpg', '.jpeg', '.gif', '.webp', '.avif'];
+          if (!allowed.includes(ext)) {
+            jsonError(`Unsupported image type "${ext}". Allowed types: ${allowed.join(', ')}`, 3, 'validation_error');
+            return;
+          }
         }
 
         const startDate = parseDateTime(opts.date, opts.timezone);
@@ -219,6 +232,15 @@ export function registerEventsCommands(program) {
             return;
           }
           event.image = buildPosterImage(results[0]);
+        } else if (opts.image) {
+          if (globalOpts.dryRun) {
+            event.image = { source: 'upload', file: opts.image, note: 'File will be uploaded on real run' };
+          } else {
+            const { uploadEventImage, buildUploadImage } = await import('../lib/upload.js');
+            const { basename } = await import('path');
+            const uploadData = await uploadEventImage(opts.image, token, config, globalOpts.verbose);
+            event.image = buildUploadImage(uploadData, basename(opts.image));
+          }
         }
 
         const payload = {

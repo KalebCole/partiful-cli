@@ -98,6 +98,32 @@ describe('events integration', () => {
       const out = JSON.parse(stdout.trim());
       expect(out.status).toBe('error');
     });
+
+    it('events create --image validates file extension', () => {
+      const { stdout } = runRaw([
+        'events', 'create',
+        '--title', 'Upload Test',
+        '--date', '2026-06-01 7pm',
+        '--image', '/tmp/not-an-image.txt',
+        '--dry-run',
+      ]);
+      const out = JSON.parse(stdout);
+      expect(out.status).toBe('error');
+      expect(out.error.message).toContain('Unsupported');
+    });
+
+    it('events create errors when --poster and --image used together', () => {
+      const { stdout } = runRaw([
+        'events', 'create',
+        '--title', 'Conflict',
+        '--date', '2026-06-01 7pm',
+        '--poster', 'piscesairbrush.png',
+        '--image', '/tmp/test.png',
+        '--dry-run',
+      ]);
+      const out = JSON.parse(stdout);
+      expect(out.status).toBe('error');
+    });
   });
 
   describe('JSON envelope shape', () => {
