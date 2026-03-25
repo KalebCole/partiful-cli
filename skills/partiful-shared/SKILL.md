@@ -12,11 +12,11 @@ description: Shared auth, global flags, formatting rules, and security for the P
 partiful auth login <phone>
 partiful auth login +12065551234
 ```
-Phone-based authentication in **E.164 format**.
+Phone-based authentication. Prefer **E.164 format** (e.g., `+12065551234`); US numbers without `+1` are normalized automatically.
 
 1. Sends an SMS verification code.
-2. **On macOS:** Auto-retrieves the code from iMessage (via `imsg`).
-3. **Fallback:** Prompts for manual code entry.
+2. If supported on your platform (macOS via `imsg`, Android via `termux-sms-list`), auto-retrieves the code.
+3. Otherwise (or on timeout), prompts for manual code entry.
 
 | Flag | Description |
 |------|-------------|
