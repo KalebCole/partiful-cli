@@ -60,12 +60,12 @@ partiful events cancel <event-id> --yes          # skip confirmation
 
 ## Posters & Images
 
-Three ways to set event imagery:
+Three ways to set event imagery (all require Partiful auth since they're used on `events create/update`):
 
-| Method | Flag | Auth Required | Notes |
-|--------|------|---------------|-------|
-| Built-in poster (by ID) | `--poster <id>` | No | Use `posters search` to find IDs |
-| Built-in poster (fuzzy) | `--poster-search <query>` | No | Picks best match automatically |
+| Method | Flag | Extra Auth | Notes |
+|--------|------|------------|-------|
+| Built-in poster (by ID) | `--poster <id>` | None | Catalog is public; use `posters search` to find IDs |
+| Built-in poster (fuzzy) | `--poster-search <query>` | None | Picks best match automatically |
 | Custom upload | `--image <path\|url>` | Firebase token | File path or URL, 10MB limit |
 
 ```bash
@@ -92,15 +92,10 @@ partiful events +clone <event-id> --date "2026-06-01T19:00" --title "Game Night 
 ```
 Copies title, description, location, and settings. Guests are NOT copied (use `guests +share`).
 
-### Share Link (+share)
-```bash
-partiful events +share <event-id>
-```
-
 ## ⚠️ Formatting Rules
 
 ### Dates — Always Include Full Year
-```
+```text
 ✅ 2026-04-01T19:00
 ✅ 2026-04-01 7pm
 ❌ Apr 1 7pm
@@ -110,7 +105,7 @@ The CLI defaults to `America/Los_Angeles`. Pass `--timezone` explicitly if the e
 
 ### Descriptions — Plain Text Only
 Partiful renders descriptions as **plain text**. No markdown.
-```
+```text
 ✅ "🎮 Game Night!\n\nBring your favorite board games.\nSnacks provided.\n\n📍 Parking on the left side"
 ❌ "**Game Night!**\n\n- Bring your favorite board games\n- Snacks provided"
 ```

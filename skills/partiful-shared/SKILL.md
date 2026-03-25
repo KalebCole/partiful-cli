@@ -70,7 +70,7 @@ partiful auth status
 ## ⚠️ Formatting Rules (Important!)
 
 ### Dates — Always Include Full Year
-```
+```text
 ✅ 2026-04-01T19:00
 ✅ 2026-04-01 7pm
 ❌ Apr 1 7pm
@@ -80,7 +80,7 @@ Default timezone: `America/Los_Angeles`. Use `--timezone` for other zones.
 
 ### Descriptions — Plain Text Only
 Partiful renders plain text. **No markdown.**
-```
+```text
 ✅ "🎮 Game Night!\n\nBring your favorite board games.\nSnacks provided."
 ❌ "**Game Night!**\n\n- Bring board games\n- Snacks provided"
 ```
