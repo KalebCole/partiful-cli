@@ -1,19 +1,21 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { execSync } from 'child_process';
-import path from 'path';
-import fs from 'fs';
-import os from 'os';
+import { describe, it, expect } from 'vitest';
+import { execFileSync } from 'child_process';
+import { resolve } from 'path';
 
-const CLI_PATH = path.resolve('src/cli.js');
+const CLI = resolve('bin/partiful');
 
 function runCli(args, env = {}) {
   try {
-    const result = execSync(`node ${CLI_PATH} ${args}`, {
+    const stdout = execFileSync('node', [CLI, ...args], {
       encoding: 'utf8',
-      env: { ...process.env, ...env, PARTIFUL_CREDENTIALS_FILE: '/tmp/__nonexistent_partiful_auth__.json' },
+      env: {
+        ...process.env,
+        ...env,
+        PARTIFUL_CREDENTIALS_FILE: '/tmp/__nonexistent_partiful_auth__.json',
+      },
       timeout: 10000,
     });
-    return { stdout: result, exitCode: 0 };
+    return { stdout, exitCode: 0 };
   } catch (e) {
     return { stdout: e.stdout || '', stderr: e.stderr || '', exitCode: e.status };
   }
@@ -21,7 +23,7 @@ function runCli(args, env = {}) {
 
 describe('doctor command', () => {
   it('--dry-run returns list of checks without executing', () => {
-    const { stdout, exitCode } = runCli('doctor --dry-run');
+    const { stdout } = runCli(['--dry-run', 'doctor']);
     const parsed = JSON.parse(stdout.trim());
     expect(parsed.status).toBe('success');
     expect(parsed.data.checks).toBeInstanceOf(Array);
@@ -33,7 +35,7 @@ describe('doctor command', () => {
   });
 
   it('missing config file produces failed config_file check', () => {
-    const { stdout, exitCode } = runCli('doctor');
+    const { stdout, exitCode } = runCli(['doctor']);
     expect(exitCode).not.toBe(0);
     const parsed = JSON.parse(stdout.trim());
     expect(parsed.status).toBe('success');
@@ -45,7 +47,7 @@ describe('doctor command', () => {
   });
 
   it('output shape matches expected envelope', () => {
-    const { stdout } = runCli('doctor');
+    const { stdout } = runCli(['doctor']);
     const parsed = JSON.parse(stdout.trim());
     expect(parsed).toHaveProperty('status');
     expect(parsed).toHaveProperty('data');
