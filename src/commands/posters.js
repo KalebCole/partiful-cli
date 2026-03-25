@@ -45,7 +45,11 @@ export function registerPosterCommands(program) {
             p.contentType && p.contentType.toLowerCase().includes(t)
           );
         }
-        const limit = parseInt(opts.limit, 10) || 20;
+        const limit = parseInt(opts.limit, 10);
+        if (isNaN(limit) || limit < 1) {
+          jsonError('--limit must be a positive integer', 3, 'validation_error');
+          return;
+        }
         const results = filtered.slice(0, limit).map(summarizePoster);
         jsonOutput(results, { count: results.length, totalAvailable: filtered.length });
       } catch (err) {
@@ -61,7 +65,11 @@ export function registerPosterCommands(program) {
       try {
         const catalog = await fetchCatalog();
         const results = searchPosters(catalog, query);
-        const limit = parseInt(opts.limit, 10) || 10;
+        const limit = parseInt(opts.limit, 10);
+        if (isNaN(limit) || limit < 1) {
+          jsonError('--limit must be a positive integer', 3, 'validation_error');
+          return;
+        }
         const limited = results.slice(0, limit).map(p => ({
           ...summarizePoster(p),
           score: p.score,

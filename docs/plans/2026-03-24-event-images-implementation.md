@@ -18,7 +18,7 @@
 
 ### Image Source Types (from app bundle module 90126)
 
-```
+```text
 GIPHY = "giphy"       — GIF search (Giphy API, skip for v1)
 LOCAL = "local"        — client-only, not persisted
 UNSPLASH = "unsplash"  — stock photos (skip for v1)
@@ -69,7 +69,7 @@ PARTIFUL_POSTERS = "partiful_posters" — built-in poster library
 
 ### Upload Endpoint
 
-```
+```text
 POST https://api.partiful.com/uploadPhoto
 Content-Type: multipart/form-data
 

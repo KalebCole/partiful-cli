@@ -126,7 +126,7 @@ describe('events integration', () => {
     });
   });
 
-  describe('JSON envelope shape', () => {
+  describe('JSON envelope shape - events update', () => {
     it('events update --poster in dry-run', () => {
       const out = run([
         'events', 'update', 'test-event-123',
