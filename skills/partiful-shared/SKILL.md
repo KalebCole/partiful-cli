@@ -1,6 +1,6 @@
 ---
 name: partiful-shared
-description: Shared auth, global flags, and security rules for the Partiful CLI
+description: Shared auth, global flags, formatting rules, and security for the Partiful CLI
 ---
 
 # Partiful CLI — Shared Patterns
@@ -10,24 +10,23 @@ description: Shared auth, global flags, and security rules for the Partiful CLI
 ### Login
 ```bash
 partiful auth login <phone>
-partiful auth login +15551234567
+partiful auth login +12065551234
 ```
-Phone-based authentication. Phone number must be in **E.164 format** (e.g. `+15551234567`).
+Phone-based authentication in **E.164 format**.
 
-1. Sends an SMS verification code to the provided number.
-2. **On macOS:** Automatically retrieves the code from iMessage (via `imsg`). No manual input needed.
-3. **Fallback:** If auto-retrieval fails, prompts you to enter the code manually.
+1. Sends an SMS verification code.
+2. **On macOS:** Auto-retrieves the code from iMessage (via `imsg`).
+3. **Fallback:** Prompts for manual code entry.
 
 | Flag | Description |
 |------|-------------|
-| `--code <code>` | Provide the verification code directly (skip SMS wait) |
-| `--no-auto` | Disable automatic SMS retrieval; always prompt manually |
+| `--code <code>` | Provide verification code directly (skip SMS wait) |
+| `--no-auto` | Disable automatic SMS retrieval |
 
 ### Check Status
 ```bash
 partiful auth status
 ```
-Prints current auth state (logged in user, token expiry).
 
 ### Credential Resolution (priority order)
 1. `PARTIFUL_TOKEN` environment variable
@@ -38,10 +37,10 @@ Prints current auth state (logged in user, token expiry).
 | Flag | Description |
 |------|-------------|
 | `--format <json\|table\|csv>` | Output format (default: `json`) |
-| `--dry-run` | Preview what would happen without making changes |
+| `--dry-run` | Preview without making changes |
 | `--yes` | Skip confirmation prompts |
 | `--force` | Override safety checks |
-| `--verbose` | Verbose logging |
+| `--verbose` | Verbose logging to stderr |
 | `--output <file>` | Write output to file |
 | `--no-color` | Disable colored output |
 
@@ -67,6 +66,36 @@ Prints current auth state (logged in user, token expiry).
 | 3 | Validation error |
 | 4 | Not found |
 | 5 | Internal error |
+
+## ⚠️ Formatting Rules (Important!)
+
+### Dates — Always Include Full Year
+```
+✅ 2026-04-01T19:00
+✅ 2026-04-01 7pm
+❌ Apr 1 7pm
+❌ 04/01 7pm
+```
+Default timezone: `America/Los_Angeles`. Use `--timezone` for other zones.
+
+### Descriptions — Plain Text Only
+Partiful renders plain text. **No markdown.**
+```
+✅ "🎮 Game Night!\n\nBring your favorite board games.\nSnacks provided."
+❌ "**Game Night!**\n\n- Bring board games\n- Snacks provided"
+```
+Use emoji for visual breaks. Use `\n` for newlines. No `**`, `-` lists, or `#` headers.
+
+### Times — Verify AM vs PM
+Always double-check AM/PM, especially for morning events. The CLI echoes back the parsed time.
+
+## Schema Introspection
+
+Discover command parameters programmatically:
+```bash
+partiful schema events.create
+partiful schema guests.invite
+```
 
 ## Security
 
