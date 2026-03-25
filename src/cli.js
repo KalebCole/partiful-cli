@@ -9,6 +9,7 @@ import { registerWatchHelper } from './helpers/watch.js';
 import { registerExportHelper } from './helpers/export.js';
 import { registerShareHelper } from './helpers/share.js';
 import { registerSchemaCommand } from './commands/schema.js';
+import { registerPosterCommands } from './commands/posters.js';
 import { jsonOutput } from './lib/output.js';
 
 export function run() {
@@ -36,6 +37,7 @@ export function run() {
   registerExportHelper(program);
   registerShareHelper(program);
   registerSchemaCommand(program);
+  registerPosterCommands(program);
 
   program
     .command('version')
