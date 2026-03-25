@@ -210,6 +210,104 @@ describe('events integration', () => {
       expect(out.error.type).toBe('not_found');
     });
   });
+
+  describe('--link flags', () => {
+    it('events create --link --dry-run includes links in payload', () => {
+      const out = run([
+        'events', 'create',
+        '--title', 'Link Party',
+        '--date', '2026-06-01 7pm',
+        '--link', 'https://zoom.us/j/123',
+        '--dry-run',
+      ]);
+      expect(out.status).toBe('success');
+      const event = out.data.payload.data.params.event;
+      expect(event.links).toEqual([{ url: 'https://zoom.us/j/123', text: 'https://zoom.us/j/123' }]);
+    });
+
+    it('events create with multiple --link flags', () => {
+      const out = run([
+        'events', 'create',
+        '--title', 'Multi Link',
+        '--date', '2026-06-01 7pm',
+        '--link', 'https://zoom.us/j/123',
+        '--link', 'https://docs.google.com/doc',
+        '--dry-run',
+      ]);
+      const event = out.data.payload.data.params.event;
+      expect(event.links).toHaveLength(2);
+      expect(event.links[0].url).toBe('https://zoom.us/j/123');
+      expect(event.links[1].url).toBe('https://docs.google.com/doc');
+    });
+
+    it('events create with --link + --link-text pairing', () => {
+      const out = run([
+        'events', 'create',
+        '--title', 'Named Links',
+        '--date', '2026-06-01 7pm',
+        '--link', 'https://zoom.us/j/123',
+        '--link-text', 'Zoom',
+        '--link', 'https://docs.google.com/doc',
+        '--link-text', 'Agenda',
+        '--dry-run',
+      ]);
+      const event = out.data.payload.data.params.event;
+      expect(event.links).toEqual([
+        { url: 'https://zoom.us/j/123', text: 'Zoom' },
+        { url: 'https://docs.google.com/doc', text: 'Agenda' },
+      ]);
+    });
+
+    it('events update --link --dry-run includes links in update', () => {
+      const out = run([
+        'events', 'update', 'test-event-123',
+        '--link', 'https://example.com',
+        '--link-text', 'Example',
+        '--dry-run',
+      ]);
+      expect(out.status).toBe('success');
+      expect(out.data.fields).toContain('links');
+      const linksField = out.data.body.fields.links;
+      expect(linksField.arrayValue.values).toHaveLength(1);
+      expect(linksField.arrayValue.values[0].mapValue.fields.url.stringValue).toBe('https://example.com');
+      expect(linksField.arrayValue.values[0].mapValue.fields.text.stringValue).toBe('Example');
+    });
+  });
+});
+
+describe('events clone', () => {
+  it('events clone --dry-run produces createEvent payload with clonedFrom', () => {
+    const out = run([
+      'events', 'clone', 'test-event-123',
+      '--date', '2026-06-01 7pm',
+      '--dry-run',
+    ]);
+    expect(out.status).toBe('success');
+    expect(out.data.dryRun).toBe(true);
+    expect(out.data.endpoint).toBe('/createEvent');
+    expect(out.data.clonedFrom).toBe('test-event-123');
+    expect(out.data.payload.data.params.event).toBeDefined();
+    expect(out.data.payload.data.params.event.startDate).toBeDefined();
+  });
+
+  it('events clone --dry-run with --title override applies override', () => {
+    const out = run([
+      'events', 'clone', 'test-event-123',
+      '--date', '2026-06-01 7pm',
+      '--title', 'Override Title',
+      '--dry-run',
+    ]);
+    expect(out.status).toBe('success');
+    const event = out.data.payload.data.params.event;
+    expect(event.title).toBe('Override Title');
+  });
+
+  it('events clone without --date shows error', () => {
+    const { stdout, exitCode } = runRaw([
+      'events', 'clone', 'test-event-123',
+    ]);
+    expect(exitCode).not.toBe(0);
+  });
 });
 
 describe('version command', () => {

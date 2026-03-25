@@ -10,6 +10,7 @@ import { registerExportHelper } from './helpers/export.js';
 import { registerShareHelper } from './helpers/share.js';
 import { registerSchemaCommand } from './commands/schema.js';
 import { registerPosterCommands } from './commands/posters.js';
+import { registerDoctorCommands } from './commands/doctor.js';
 import { jsonOutput } from './lib/output.js';
 
 export function run() {
@@ -38,6 +39,7 @@ export function run() {
   registerShareHelper(program);
   registerSchemaCommand(program);
   registerPosterCommands(program);
+  registerDoctorCommands(program);
 
   program
     .command('version')
