@@ -27,6 +27,9 @@ const SCHEMAS = {
       '--private': { type: 'boolean', required: false, default: false, description: 'Make event private' },
       '--timezone': { type: 'string', required: false, default: 'America/Los_Angeles', description: 'Timezone' },
       '--theme': { type: 'string', required: false, default: 'oxblood', description: 'Color theme' },
+      '--poster': { type: 'string', required: false, description: 'Built-in poster ID' },
+      '--poster-search': { type: 'string', required: false, description: 'Search poster library, use best match' },
+      '--image': { type: 'string', required: false, description: 'Custom image file path or URL to upload' },
     },
   },
   'events.update': {
@@ -39,6 +42,9 @@ const SCHEMAS = {
       '--location': { type: 'string', required: false },
       '--description': { type: 'string', required: false },
       '--capacity': { type: 'integer', required: false },
+      '--poster': { type: 'string', required: false, description: 'Built-in poster ID' },
+      '--poster-search': { type: 'string', required: false, description: 'Search poster library, use best match' },
+      '--image': { type: 'string', required: false, description: 'Custom image file path or URL to upload' },
     },
   },
   'events.cancel': {
@@ -75,6 +81,27 @@ const SCHEMAS = {
     parameters: {
       eventId: { type: 'string', required: true, positional: true, description: 'Event ID' },
       '--message': { type: 'string', required: false, description: 'Message to send' },
+    },
+  },
+  'posters.list': {
+    command: 'posters list',
+    parameters: {
+      '--category': { type: 'string', required: false, description: 'Filter by category' },
+      '--type': { type: 'string', required: false, description: 'Filter by content type (png, gif, jpeg)' },
+      '--limit': { type: 'integer', required: false, default: 20, description: 'Max results' },
+    },
+  },
+  'posters.search': {
+    command: 'posters search <query>',
+    parameters: {
+      query: { type: 'string', required: true, positional: true, description: 'Search query' },
+      '--limit': { type: 'integer', required: false, default: 10, description: 'Max results' },
+    },
+  },
+  'posters.get': {
+    command: 'posters get <posterId>',
+    parameters: {
+      posterId: { type: 'string', required: true, positional: true, description: 'Poster ID' },
     },
   },
 };

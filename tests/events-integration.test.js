@@ -42,6 +42,137 @@ describe('events integration', () => {
       expect(out.data.dryRun).toBe(true);
       expect(out.data.endpoint).toBe('/cancelEvent');
     });
+
+    it('events create --poster includes image in payload', () => {
+      const out = run([
+        'events', 'create',
+        '--title', 'Poster Test',
+        '--date', '2026-06-01 7pm',
+        '--poster', 'piscesairbrush.png',
+        '--dry-run',
+      ]);
+      expect(out.status).toBe('success');
+      const event = out.data.payload.data.params.event;
+      expect(event.image).toBeDefined();
+      expect(event.image.source).toBe('partiful_posters');
+      expect(event.image.poster.id).toBe('piscesairbrush.png');
+      expect(event.image.url).toContain('assets.getpartiful.com');
+    });
+
+    it('events create --poster errors on unknown poster', () => {
+      const { stdout } = runRaw([
+        'events', 'create',
+        '--title', 'Bad Poster',
+        '--date', '2026-06-01 7pm',
+        '--poster', 'nonexistent-poster-xyz',
+        '--dry-run',
+      ]);
+      const out = JSON.parse(stdout.trim());
+      expect(out.status).toBe('error');
+      expect(out.error.type).toBe('not_found');
+    });
+
+    it('events create --poster-search finds and uses best match', () => {
+      const out = run([
+        'events', 'create',
+        '--title', 'Search Test',
+        '--date', '2026-06-01 7pm',
+        '--poster-search', 'birthday',
+        '--dry-run',
+      ]);
+      expect(out.status).toBe('success');
+      const event = out.data.payload.data.params.event;
+      expect(event.image).toBeDefined();
+      expect(event.image.source).toBe('partiful_posters');
+    });
+
+    it('events create errors when both --poster and --poster-search given', () => {
+      const { stdout } = runRaw([
+        'events', 'create',
+        '--title', 'Conflict',
+        '--date', '2026-06-01 7pm',
+        '--poster', 'piscesairbrush.png',
+        '--poster-search', 'birthday',
+        '--dry-run',
+      ]);
+      const out = JSON.parse(stdout.trim());
+      expect(out.status).toBe('error');
+    });
+
+    it('events create --image validates file extension', () => {
+      const { stdout } = runRaw([
+        'events', 'create',
+        '--title', 'Upload Test',
+        '--date', '2026-06-01 7pm',
+        '--image', '/tmp/not-an-image.txt',
+        '--dry-run',
+      ]);
+      const out = JSON.parse(stdout);
+      expect(out.status).toBe('error');
+      expect(out.error.message).toContain('Unsupported');
+    });
+
+    it('events create errors when --poster and --image used together', () => {
+      const { stdout } = runRaw([
+        'events', 'create',
+        '--title', 'Conflict',
+        '--date', '2026-06-01 7pm',
+        '--poster', 'piscesairbrush.png',
+        '--image', '/tmp/test.png',
+        '--dry-run',
+      ]);
+      const out = JSON.parse(stdout);
+      expect(out.status).toBe('error');
+    });
+
+    it('events create --image with URL shows download note in dry-run', () => {
+      const out = run([
+        'events', 'create',
+        '--title', 'URL Image Test',
+        '--date', '2026-06-01 7pm',
+        '--image', 'https://example.com/test.png',
+        '--dry-run',
+      ]);
+      expect(out.status).toBe('success');
+      const image = out.data.payload.data.params.event.image;
+      expect(image.url).toBe('https://example.com/test.png');
+      expect(image.note).toBe('URL will be downloaded and uploaded on real run');
+    });
+  });
+
+  describe('JSON envelope shape - events update', () => {
+    it('events update --poster in dry-run', () => {
+      const out = run([
+        'events', 'update', 'test-event-123',
+        '--poster', 'piscesairbrush.png',
+        '--dry-run',
+      ]);
+      expect(out.status).toBe('success');
+      expect(out.data.dryRun).toBe(true);
+      expect(out.data.fields).toContain('image');
+    });
+
+    it('events update --image validates extension', () => {
+      const { stdout } = runRaw([
+        'events', 'update', 'test-event-123',
+        '--image', '/tmp/bad-file.txt',
+        '--dry-run',
+      ]);
+      const out = JSON.parse(stdout);
+      expect(out.status).toBe('error');
+      expect(out.error.message).toContain('Unsupported');
+    });
+
+    it('events update --image with URL in dry-run', () => {
+      const out = run([
+        'events', 'update', 'test-event-123',
+        '--image', 'https://example.com/test.png',
+        '--dry-run',
+      ]);
+      expect(out.status).toBe('success');
+      expect(out.data.dryRun).toBe(true);
+      expect(out.data.fields).toContain('image');
+    });
   });
 
   describe('JSON envelope shape', () => {

@@ -3,10 +3,12 @@
  */
 
 import { loadConfig, getValidToken, wrapPayload } from '../lib/auth.js';
+import { fetchCatalog, searchPosters, buildPosterImage } from '../lib/posters.js';
 import { apiRequest, firestoreRequest } from '../lib/http.js';
 import { parseDateTime, stripMarkdown, formatDate } from '../lib/dates.js';
 import { jsonOutput, jsonError } from '../lib/output.js';
 import { PartifulError, ValidationError } from '../lib/errors.js';
+import { extname as pathExtname, basename as pathBasename } from 'path';
 import readline from 'readline';
 
 async function confirm(question) {
@@ -17,6 +19,34 @@ async function confirm(question) {
       resolve(answer.toLowerCase() === 'y' || answer.toLowerCase() === 'yes');
     });
   });
+}
+
+function toFirestoreMap(obj) {
+  const fields = {};
+  for (const [key, value] of Object.entries(obj)) {
+    if (value === null || value === undefined) continue;
+    if (typeof value === 'string') fields[key] = { stringValue: value };
+    else if (typeof value === 'number') {
+      if (Number.isInteger(value)) fields[key] = { integerValue: String(value) };
+      else fields[key] = { doubleValue: value };
+    }
+    else if (typeof value === 'boolean') fields[key] = { booleanValue: value };
+    else if (Array.isArray(value)) {
+      fields[key] = { arrayValue: { values: value.map(v => {
+        if (typeof v === 'string') return { stringValue: v };
+        if (typeof v === 'number') {
+          if (Number.isInteger(v)) return { integerValue: String(v) };
+          return { doubleValue: v };
+        }
+        if (typeof v === 'object') return { mapValue: { fields: toFirestoreMap(v) } };
+        return { stringValue: String(v) };
+      })}};
+    }
+    else if (typeof value === 'object') {
+      fields[key] = { mapValue: { fields: toFirestoreMap(value) } };
+    }
+  }
+  return fields;
 }
 
 export function registerEventsCommands(program) {
@@ -146,11 +176,32 @@ export function registerEventsCommands(program) {
     .option('--timezone <tz>', 'Timezone', 'America/Los_Angeles')
     .option('--theme <theme>', 'Color theme', 'oxblood')
     .option('--effect <effect>', 'Visual effect', 'sunbeams')
+    .option('--poster <posterId>', 'Built-in poster ID (use "posters search" to find)')
+    .option('--poster-search <query>', 'Search for a poster by keyword')
+    .option('--image <path>', 'Custom image file to upload')
     .action(async (opts, cmd) => {
       const globalOpts = cmd.optsWithGlobals();
       try {
         const config = loadConfig();
         const token = await getValidToken(config);
+
+        const imageOptCount = [opts.poster, opts.posterSearch, opts.image].filter(Boolean).length;
+        if (imageOptCount > 1) {
+          jsonError('Use only one of --poster, --poster-search, or --image.', 3, 'validation_error');
+          return;
+        }
+
+        // Validate image extension early (before dry-run check) — skip for URLs
+        const isImageUrl = opts.image && (opts.image.startsWith('http://') || opts.image.startsWith('https://'));
+        if (opts.image && !isImageUrl) {
+          const { extname } = await import('path');
+          const ext = extname(opts.image).toLowerCase();
+          const allowed = ['.png', '.jpg', '.jpeg', '.gif', '.webp', '.avif'];
+          if (!allowed.includes(ext)) {
+            jsonError(`Unsupported image type "${ext}". Allowed types: ${allowed.join(', ')}`, 3, 'validation_error');
+            return;
+          }
+        }
 
         const startDate = parseDateTime(opts.date, opts.timezone);
         const endDate = opts.endDate ? parseDateTime(opts.endDate, opts.timezone) : null;
@@ -194,6 +245,48 @@ export function registerEventsCommands(program) {
           event.enableWaitlist = true;
         }
 
+        // Poster image handling
+        if (opts.poster) {
+          const catalog = await fetchCatalog();
+          const poster = catalog.find(p => p.id === opts.poster);
+          if (!poster) {
+            jsonError(`Poster not found: "${opts.poster}". Use "partiful posters search <term>" to find posters.`, 4, 'not_found');
+            return;
+          }
+          event.image = buildPosterImage(poster);
+        } else if (opts.posterSearch) {
+          const catalog = await fetchCatalog();
+          const results = searchPosters(catalog, opts.posterSearch);
+          if (results.length === 0) {
+            jsonError(`No posters found matching "${opts.posterSearch}". Try "partiful posters search <term>".`, 4, 'not_found');
+            return;
+          }
+          event.image = buildPosterImage(results[0]);
+        } else if (opts.image) {
+          if (globalOpts.dryRun) {
+            if (isImageUrl) {
+              event.image = { source: 'upload', url: opts.image, note: 'URL will be downloaded and uploaded on real run' };
+            } else {
+              event.image = { source: 'upload', file: opts.image, note: 'File will be uploaded on real run' };
+            }
+          } else if (isImageUrl) {
+            const { downloadToTemp, uploadEventImage, buildUploadImage } = await import('../lib/upload.js');
+            const { basename } = await import('path');
+            const { tempPath, cleanup } = await downloadToTemp(opts.image);
+            try {
+              const uploadData = await uploadEventImage(tempPath, token, config, globalOpts.verbose);
+              event.image = buildUploadImage(uploadData, basename(tempPath));
+            } finally {
+              cleanup();
+            }
+          } else {
+            const { uploadEventImage, buildUploadImage } = await import('../lib/upload.js');
+            const { basename } = await import('path');
+            const uploadData = await uploadEventImage(opts.image, token, config, globalOpts.verbose);
+            event.image = buildUploadImage(uploadData, basename(opts.image));
+          }
+        }
+
         const payload = {
           data: wrapPayload(config, {
             params: { event, cohostIds: [] },
@@ -232,6 +325,9 @@ export function registerEventsCommands(program) {
     .option('--location <location>', 'New location')
     .option('--description <desc>', 'New description')
     .option('--capacity <n>', 'New guest limit', parseInt)
+    .option('--poster <posterId>', 'Set poster by ID')
+    .option('--poster-search <query>', 'Search and set best matching poster')
+    .option('--image <path>', 'Upload and set custom image')
     .action(async (eventId, opts, cmd) => {
       const globalOpts = cmd.optsWithGlobals();
       try {
@@ -248,8 +344,78 @@ export function registerEventsCommands(program) {
         if (opts.endDate) { fields.endDate = { timestampValue: parseDateTime(opts.endDate).toISOString() }; updateFields.push('endDate'); }
         if (opts.capacity) { fields.guestLimit = { integerValue: String(opts.capacity) }; updateFields.push('guestLimit'); }
 
+        // Handle image options
+        const imageOpts = [opts.poster, opts.posterSearch, opts.image].filter(Boolean).length;
+        if (imageOpts > 1) {
+          jsonError('Use only one of --poster, --poster-search, or --image.', 3, 'validation_error');
+          return;
+        }
+
+        if (opts.poster || opts.posterSearch) {
+          const { fetchCatalog, searchPosters, buildPosterImage } = await import('../lib/posters.js');
+          const catalog = await fetchCatalog();
+          let poster;
+
+          if (opts.poster) {
+            poster = catalog.find(p => p.id === opts.poster);
+            if (!poster) {
+              jsonError(`Poster not found: "${opts.poster}". Use "partiful posters search <term>" to find posters.`, 4, 'not_found');
+              return;
+            }
+          } else {
+            const results = searchPosters(catalog, opts.posterSearch);
+            if (results.length === 0) {
+              jsonError(`No posters found matching "${opts.posterSearch}".`, 4, 'not_found');
+              return;
+            }
+            poster = results[0].poster;
+          }
+
+          const imageObj = buildPosterImage(poster);
+          fields.image = { mapValue: { fields: toFirestoreMap(imageObj) } };
+          updateFields.push('image');
+        }
+
+        if (opts.image) {
+          const isImageUrl = opts.image.startsWith('http://') || opts.image.startsWith('https://');
+          if (!isImageUrl) {
+            const ext = pathExtname(opts.image).toLowerCase();
+            const allowed = ['.png', '.jpg', '.jpeg', '.gif', '.webp', '.avif'];
+            if (!allowed.includes(ext)) {
+              jsonError(`Unsupported image type: "${ext}". Allowed: ${allowed.join(', ')}`, 3, 'validation_error');
+              return;
+            }
+          }
+
+          if (globalOpts.dryRun) {
+            if (isImageUrl) {
+              fields.image = { mapValue: { fields: toFirestoreMap({ source: 'upload', url: opts.image, note: 'URL will be downloaded and uploaded on real run' }) } };
+            } else {
+              fields.image = { mapValue: { fields: {} } };
+            }
+            updateFields.push('image');
+          } else if (isImageUrl) {
+            const { downloadToTemp, uploadEventImage, buildUploadImage } = await import('../lib/upload.js');
+            const { tempPath, cleanup } = await downloadToTemp(opts.image);
+            try {
+              const uploadData = await uploadEventImage(tempPath, token, config, globalOpts.verbose);
+              const imageObj = buildUploadImage(uploadData, pathBasename(tempPath));
+              fields.image = { mapValue: { fields: toFirestoreMap(imageObj) } };
+              updateFields.push('image');
+            } finally {
+              cleanup();
+            }
+          } else {
+            const { uploadEventImage, buildUploadImage } = await import('../lib/upload.js');
+            const uploadData = await uploadEventImage(opts.image, token, config, globalOpts.verbose);
+            const imageObj = buildUploadImage(uploadData, pathBasename(opts.image));
+            fields.image = { mapValue: { fields: toFirestoreMap(imageObj) } };
+            updateFields.push('image');
+          }
+        }
+
         if (updateFields.length === 0) {
-          jsonError('No fields to update. Use --title, --location, --description, --date, --end-date, or --capacity', 3, 'validation_error');
+          jsonError('No fields to update. Use --title, --location, --description, --date, --end-date, --capacity, --poster, --poster-search, or --image', 3, 'validation_error');
           return;
         }
 
