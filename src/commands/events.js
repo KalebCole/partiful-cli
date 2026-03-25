@@ -3,6 +3,7 @@
  */
 
 import { loadConfig, getValidToken, wrapPayload } from '../lib/auth.js';
+import { fetchCatalog, searchPosters, buildPosterImage } from '../lib/posters.js';
 import { apiRequest, firestoreRequest } from '../lib/http.js';
 import { parseDateTime, stripMarkdown, formatDate } from '../lib/dates.js';
 import { jsonOutput, jsonError } from '../lib/output.js';
@@ -146,11 +147,18 @@ export function registerEventsCommands(program) {
     .option('--timezone <tz>', 'Timezone', 'America/Los_Angeles')
     .option('--theme <theme>', 'Color theme', 'oxblood')
     .option('--effect <effect>', 'Visual effect', 'sunbeams')
+    .option('--poster <posterId>', 'Built-in poster ID (use "posters search" to find)')
+    .option('--poster-search <query>', 'Search for a poster by keyword')
     .action(async (opts, cmd) => {
       const globalOpts = cmd.optsWithGlobals();
       try {
         const config = loadConfig();
         const token = await getValidToken(config);
+
+        if (opts.poster && opts.posterSearch) {
+          jsonError('Cannot use both --poster and --poster-search. Pick one.', 3, 'validation_error');
+          return;
+        }
 
         const startDate = parseDateTime(opts.date, opts.timezone);
         const endDate = opts.endDate ? parseDateTime(opts.endDate, opts.timezone) : null;
@@ -192,6 +200,25 @@ export function registerEventsCommands(program) {
         if (opts.capacity) {
           event.guestLimit = opts.capacity;
           event.enableWaitlist = true;
+        }
+
+        // Poster image handling
+        if (opts.poster) {
+          const catalog = await fetchCatalog();
+          const poster = catalog.find(p => p.id === opts.poster);
+          if (!poster) {
+            jsonError(`Poster not found: "${opts.poster}". Use "partiful posters search <term>" to find posters.`, 4, 'not_found');
+            return;
+          }
+          event.image = buildPosterImage(poster);
+        } else if (opts.posterSearch) {
+          const catalog = await fetchCatalog();
+          const results = searchPosters(catalog, opts.posterSearch);
+          if (results.length === 0) {
+            jsonError(`No posters found matching "${opts.posterSearch}". Try "partiful posters search <term>".`, 4, 'not_found');
+            return;
+          }
+          event.image = buildPosterImage(results[0]);
         }
 
         const payload = {
