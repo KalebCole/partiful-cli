@@ -34,7 +34,10 @@ function toFirestoreMap(obj) {
     else if (Array.isArray(value)) {
       fields[key] = { arrayValue: { values: value.map(v => {
         if (typeof v === 'string') return { stringValue: v };
-        if (typeof v === 'number') return { integerValue: String(v) };
+        if (typeof v === 'number') {
+          if (Number.isInteger(v)) return { integerValue: String(v) };
+          return { doubleValue: v };
+        }
         if (typeof v === 'object') return { mapValue: { fields: toFirestoreMap(v) } };
         return { stringValue: String(v) };
       })}};
