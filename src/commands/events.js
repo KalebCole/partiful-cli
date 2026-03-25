@@ -500,14 +500,8 @@ export function registerEventsCommands(program) {
 
         let sourceEvent;
         if (globalOpts.dryRun) {
-          // In dry-run, still try to fetch the event for field extraction
-          try {
-            const result = await apiRequest('POST', '/getEvent', token, getPayload, globalOpts.verbose);
-            sourceEvent = result.result?.data?.event;
-          } catch {
-            // If fetch fails in dry-run, use a placeholder
-            sourceEvent = null;
-          }
+          // In dry-run, skip the API fetch — we can't guarantee network access
+          sourceEvent = null;
         } else {
           const result = await apiRequest('POST', '/getEvent', token, getPayload, globalOpts.verbose);
           sourceEvent = result.result?.data?.event;
