@@ -3,7 +3,8 @@
  */
 
 import { readFileSync, existsSync, statSync, writeFileSync, unlinkSync } from 'fs';
-import { basename, extname } from 'path';
+import { basename, extname, join } from 'path';
+import { tmpdir } from 'os';
 import { randomBytes } from 'crypto';
 
 const ALLOWED_EXTENSIONS = ['.png', '.jpg', '.jpeg', '.gif', '.webp', '.avif'];
@@ -44,18 +45,44 @@ export async function uploadEventImage(filePath, token, config, verbose) {
     console.error(`[upload] POSTing ${basename(filePath)} (${stat.size} bytes) to uploadPhoto`);
   }
 
-  const response = await fetch(url, {
-    method: 'POST',
-    headers: { Authorization: `Bearer ${token}` },
-    body: formData,
-  });
+  const uploadTimeoutMs = Number(config?.uploadTimeoutMs ?? 30000);
+  const uploadController = new AbortController();
+  const uploadTimeoutId = setTimeout(() => uploadController.abort(), uploadTimeoutMs);
+
+  let response;
+  try {
+    response = await fetch(url, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}` },
+      body: formData,
+      signal: uploadController.signal,
+    });
+  } catch (err) {
+    if (err.name === 'AbortError') {
+      throw new Error(`Upload timed out after ${uploadTimeoutMs / 1000}s`);
+    }
+    throw err;
+  } finally {
+    clearTimeout(uploadTimeoutId);
+  }
 
   if (!response.ok) {
     throw new Error(`Upload failed: ${response.status} ${response.statusText}`);
   }
 
-  const result = await response.json();
-  return result.uploadData || result.result?.uploadData || result;
+  let result;
+  try {
+    result = await response.json();
+  } catch {
+    throw new Error('Upload failed: invalid JSON response body');
+  }
+
+  const uploadData = result?.uploadData ?? result?.result?.uploadData;
+  if (!uploadData || typeof uploadData.url !== 'string' || !uploadData.url) {
+    throw new Error('Upload failed: missing uploadData.url in response');
+  }
+
+  return uploadData;
 }
 
 const CONTENT_TYPE_TO_EXT = {
@@ -93,9 +120,18 @@ export async function downloadToTemp(url) {
     throw new Error(`Unsupported content type "${contentType}" from ${url}. Expected an image type.`);
   }
 
+  const contentLength = Number(response.headers.get('content-length') || 0);
+  if (contentLength && contentLength > MAX_SIZE) {
+    throw new Error(`Download failed: ${(contentLength / 1024 / 1024).toFixed(1)}MB exceeds 10MB limit`);
+  }
+
   const buffer = Buffer.from(await response.arrayBuffer());
+  if (buffer.length > MAX_SIZE) {
+    throw new Error(`Download failed: ${(buffer.length / 1024 / 1024).toFixed(1)}MB exceeds 10MB limit`);
+  }
+
   const rand = randomBytes(8).toString('hex');
-  const tempPath = `/tmp/partiful-upload-${rand}${ext}`;
+  const tempPath = join(tmpdir(), `partiful-upload-${rand}${ext}`);
   writeFileSync(tempPath, buffer);
 
   return {
