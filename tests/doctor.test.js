@@ -10,8 +10,8 @@ function runCli(args, env = {}) {
       encoding: 'utf8',
       env: {
         ...process.env,
-        ...env,
         PARTIFUL_CREDENTIALS_FILE: '/tmp/__nonexistent_partiful_auth__.json',
+        ...env,
       },
       timeout: 10000,
     });

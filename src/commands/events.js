@@ -483,6 +483,7 @@ export function registerEventsCommands(program) {
     .option('--image <path>', 'Override with custom image')
     .option('--link <url...>', 'Override links (repeatable)')
     .option('--link-text <text...>', 'Display text for links')
+    .option('--reinvite <statuses>', 'Re-invite guests with given statuses (e.g. GOING,MAYBE)')
     .action(async (eventId, opts, cmd) => {
       const globalOpts = cmd.optsWithGlobals();
       try {
@@ -499,12 +500,13 @@ export function registerEventsCommands(program) {
         };
 
         let sourceEvent;
-        if (globalOpts.dryRun) {
-          // In dry-run, skip the API fetch — we can't guarantee network access
-          sourceEvent = null;
-        } else {
+        try {
           const result = await apiRequest('POST', '/getEvent', token, getPayload, globalOpts.verbose);
           sourceEvent = result.result?.data?.event;
+        } catch (e) {
+          if (!globalOpts.dryRun) throw e;
+          // In dry-run, tolerate network failure — preview with empty source
+          sourceEvent = null;
         }
 
         if (!sourceEvent && !globalOpts.dryRun) {
@@ -541,17 +543,17 @@ export function registerEventsCommands(program) {
             effect: opts.effect || src.displaySettings?.effect || 'sunbeams',
             titleFont: src.displaySettings?.titleFont || 'display',
           },
-          showHostList: true,
-          showGuestCount: true,
-          showGuestList: true,
-          showActivityTimestamps: true,
-          displayInviteButton: true,
+          showHostList: src.showHostList ?? true,
+          showGuestCount: src.showGuestCount ?? true,
+          showGuestList: src.showGuestList ?? true,
+          showActivityTimestamps: src.showActivityTimestamps ?? true,
+          displayInviteButton: src.displayInviteButton ?? true,
           visibility: opts.private ? 'private' : (src.visibility || 'public'),
-          allowGuestPhotoUpload: true,
-          enableGuestReminders: true,
-          rsvpsEnabled: true,
-          allowGuestsToInviteMutuals: true,
-          rsvpButtonGlyphType: 'emojis',
+          allowGuestPhotoUpload: src.allowGuestPhotoUpload ?? true,
+          enableGuestReminders: src.enableGuestReminders ?? true,
+          rsvpsEnabled: src.rsvpsEnabled ?? true,
+          allowGuestsToInviteMutuals: src.allowGuestsToInviteMutuals ?? true,
+          rsvpButtonGlyphType: src.rsvpButtonGlyphType ?? 'emojis',
           status: 'UNSAVED',
           guestStatusCounts: {
             READY_TO_SEND: 0, SENDING: 0, SENT: 0, SEND_ERROR: 0,

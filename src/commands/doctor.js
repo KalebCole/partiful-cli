@@ -41,7 +41,6 @@ async function runChecks() {
         parsed = JSON.parse(raw);
       } catch {
         results.push({ name: 'config_file', passed: false, detail: 'Invalid JSON' });
-        return results;
       }
       const required = ['apiKey', 'refreshToken', 'userId'];
       const missing = required.filter(f => !parsed[f]);
