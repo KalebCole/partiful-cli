@@ -11,6 +11,8 @@ import { registerShareHelper } from './helpers/share.js';
 import { registerSchemaCommand } from './commands/schema.js';
 import { registerPosterCommands } from './commands/posters.js';
 import { registerDoctorCommands } from './commands/doctor.js';
+import { registerTemplateCommands } from './commands/templates.js';
+import { registerBulkCommands } from './commands/bulk.js';
 import { jsonOutput } from './lib/output.js';
 
 export function run() {
@@ -40,6 +42,8 @@ export function run() {
   registerSchemaCommand(program);
   registerPosterCommands(program);
   registerDoctorCommands(program);
+  registerTemplateCommands(program);
+  registerBulkCommands(program);
 
   program
     .command('version')
