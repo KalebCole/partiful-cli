@@ -127,6 +127,30 @@ describe('events integration', () => {
   });
 
   describe('JSON envelope shape', () => {
+    it('events update --poster in dry-run', () => {
+      const out = run([
+        'events', 'update', 'test-event-123',
+        '--poster', 'piscesairbrush.png',
+        '--dry-run',
+      ]);
+      expect(out.status).toBe('success');
+      expect(out.data.dryRun).toBe(true);
+      expect(out.data.fields).toContain('image');
+    });
+
+    it('events update --image validates extension', () => {
+      const { stdout } = runRaw([
+        'events', 'update', 'test-event-123',
+        '--image', '/tmp/bad-file.txt',
+        '--dry-run',
+      ]);
+      const out = JSON.parse(stdout);
+      expect(out.status).toBe('error');
+      expect(out.error.message).toContain('Unsupported');
+    });
+  });
+
+  describe('JSON envelope shape', () => {
     it('dry-run output has status, data, metadata', () => {
       const out = run(['events', 'list', '--dry-run']);
       expect(out).toHaveProperty('status', 'success');

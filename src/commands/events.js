@@ -20,6 +20,31 @@ async function confirm(question) {
   });
 }
 
+function toFirestoreMap(obj) {
+  const fields = {};
+  for (const [key, value] of Object.entries(obj)) {
+    if (value === null || value === undefined) continue;
+    if (typeof value === 'string') fields[key] = { stringValue: value };
+    else if (typeof value === 'number') {
+      if (Number.isInteger(value)) fields[key] = { integerValue: String(value) };
+      else fields[key] = { doubleValue: value };
+    }
+    else if (typeof value === 'boolean') fields[key] = { booleanValue: value };
+    else if (Array.isArray(value)) {
+      fields[key] = { arrayValue: { values: value.map(v => {
+        if (typeof v === 'string') return { stringValue: v };
+        if (typeof v === 'number') return { integerValue: String(v) };
+        if (typeof v === 'object') return { mapValue: { fields: toFirestoreMap(v) } };
+        return { stringValue: String(v) };
+      })}};
+    }
+    else if (typeof value === 'object') {
+      fields[key] = { mapValue: { fields: toFirestoreMap(value) } };
+    }
+  }
+  return fields;
+}
+
 export function registerEventsCommands(program) {
   const events = program.command('events').description('Manage events');
 
@@ -281,6 +306,9 @@ export function registerEventsCommands(program) {
     .option('--location <location>', 'New location')
     .option('--description <desc>', 'New description')
     .option('--capacity <n>', 'New guest limit', parseInt)
+    .option('--poster <posterId>', 'Set poster by ID')
+    .option('--poster-search <query>', 'Search and set best matching poster')
+    .option('--image <path>', 'Upload and set custom image')
     .action(async (eventId, opts, cmd) => {
       const globalOpts = cmd.optsWithGlobals();
       try {
@@ -297,8 +325,60 @@ export function registerEventsCommands(program) {
         if (opts.endDate) { fields.endDate = { timestampValue: parseDateTime(opts.endDate).toISOString() }; updateFields.push('endDate'); }
         if (opts.capacity) { fields.guestLimit = { integerValue: String(opts.capacity) }; updateFields.push('guestLimit'); }
 
+        // Handle image options
+        const imageOpts = [opts.poster, opts.posterSearch, opts.image].filter(Boolean).length;
+        if (imageOpts > 1) {
+          jsonError('Use only one of --poster, --poster-search, or --image.', 3, 'validation_error');
+          return;
+        }
+
+        if (opts.poster || opts.posterSearch) {
+          const { fetchCatalog, searchPosters, buildPosterImage } = await import('../lib/posters.js');
+          const catalog = await fetchCatalog();
+          let poster;
+
+          if (opts.poster) {
+            poster = catalog.find(p => p.id === opts.poster);
+            if (!poster) {
+              jsonError(`Poster not found: "${opts.poster}". Use "partiful posters search <term>" to find posters.`, 4, 'not_found');
+              return;
+            }
+          } else {
+            const results = searchPosters(catalog, opts.posterSearch);
+            if (results.length === 0) {
+              jsonError(`No posters found matching "${opts.posterSearch}".`, 4, 'not_found');
+              return;
+            }
+            poster = results[0].poster;
+          }
+
+          const imageObj = buildPosterImage(poster);
+          fields.image = { mapValue: { fields: toFirestoreMap(imageObj) } };
+          updateFields.push('image');
+        }
+
+        if (opts.image) {
+          const ext = opts.image.split('.').pop().toLowerCase();
+          const allowed = ['png', 'jpg', 'jpeg', 'gif', 'webp', 'avif'];
+          if (!allowed.includes(ext)) {
+            jsonError(`Unsupported image type: .${ext}. Allowed: ${allowed.map(e => '.' + e).join(', ')}`, 3, 'validation_error');
+            return;
+          }
+
+          if (globalOpts.dryRun) {
+            fields.image = { mapValue: { fields: {} } };
+            updateFields.push('image');
+          } else {
+            const { uploadEventImage, buildUploadImage } = await import('../lib/upload.js');
+            const uploadData = await uploadEventImage(opts.image, token, config, globalOpts.verbose);
+            const imageObj = buildUploadImage(uploadData, opts.image.split('/').pop());
+            fields.image = { mapValue: { fields: toFirestoreMap(imageObj) } };
+            updateFields.push('image');
+          }
+        }
+
         if (updateFields.length === 0) {
-          jsonError('No fields to update. Use --title, --location, --description, --date, --end-date, or --capacity', 3, 'validation_error');
+          jsonError('No fields to update. Use --title, --location, --description, --date, --end-date, --capacity, --poster, --poster-search, or --image', 3, 'validation_error');
           return;
         }
 
