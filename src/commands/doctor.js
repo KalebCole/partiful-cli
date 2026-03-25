@@ -18,12 +18,6 @@ const CHECKS = [
   { name: 'platform', label: 'Platform' },
 ];
 
-function mask(value, visibleEnd = 4) {
-  if (!value || typeof value !== 'string') return '(empty)';
-  if (value.length <= visibleEnd) return '****';
-  return '****' + value.slice(-visibleEnd);
-}
-
 async function runChecks() {
   const results = [];
 
