@@ -394,7 +394,7 @@ export function registerEventsCommands(program) {
               jsonError(`No posters found matching "${opts.posterSearch}".`, 4, 'not_found');
               return;
             }
-            poster = results[0].poster;
+            poster = results[0];
           }
 
           const imageObj = buildPosterImage(poster);
@@ -483,7 +483,6 @@ export function registerEventsCommands(program) {
     .option('--image <path>', 'Override with custom image')
     .option('--link <url...>', 'Override links (repeatable)')
     .option('--link-text <text...>', 'Display text for links')
-    .option('--reinvite <statuses>', 'Re-invite guests with given statuses (e.g. GOING,MAYBE)')
     .action(async (eventId, opts, cmd) => {
       const globalOpts = cmd.optsWithGlobals();
       try {

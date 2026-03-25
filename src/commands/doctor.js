@@ -92,13 +92,21 @@ async function runChecks() {
   }
 
   // 4. Environment
-  const pkgPath = new URL('../../package.json', import.meta.url);
-  const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf8'));
-  results.push({
-    name: 'environment',
-    passed: true,
-    detail: `CLI v${pkg.version}, Node ${process.version}`,
-  });
+  try {
+    const pkgPath = new URL('../../package.json', import.meta.url);
+    const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf8'));
+    results.push({
+      name: 'environment',
+      passed: true,
+      detail: `CLI v${pkg.version}, Node ${process.version}`,
+    });
+  } catch (e) {
+    results.push({
+      name: 'environment',
+      passed: false,
+      detail: `Unable to read runtime metadata: ${e.message}`,
+    });
+  }
 
   // 5. Platform
   const platform = os.platform();
