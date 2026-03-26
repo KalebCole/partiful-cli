@@ -21,6 +21,12 @@ function resolveWorkspace(optPath) {
   return null;
 }
 
+function getSkillDirs(skillsSource) {
+  return fs.readdirSync(skillsSource).filter(
+    d => d.startsWith('partiful-') && fs.statSync(path.join(skillsSource, d)).isDirectory()
+  );
+}
+
 export function registerSetupCommands(program) {
   const setup = program
     .command('setup')
@@ -40,8 +46,7 @@ export function registerSetupCommands(program) {
       if (!workspace) {
         jsonError(
           'Could not find OpenClaw workspace. Set $OPENCLAW_WORKSPACE, ensure ~/.openclaw/workspace exists, or pass --workspace <path>.',
-          3,
-          'validation_error'
+          3, 'validation_error'
         );
         return;
       }
@@ -53,13 +58,9 @@ export function registerSetupCommands(program) {
       }
 
       const workspaceSkills = path.join(workspace, 'skills');
-
-      // Read partiful-* dirs from source
       let sourceDirs;
       try {
-        sourceDirs = fs.readdirSync(skillsSource).filter(
-          d => d.startsWith('partiful-') && fs.statSync(path.join(skillsSource, d)).isDirectory()
-        );
+        sourceDirs = getSkillDirs(skillsSource);
       } catch (e) {
         jsonError(`Cannot read skills directory: ${e.message}`, 5, 'internal_error');
         return;
@@ -70,39 +71,26 @@ export function registerSetupCommands(program) {
         return;
       }
 
+      // Uninstall mode
       if (opts.uninstall) {
-        // Uninstall mode
         const removed = [];
         const skipped = [];
 
         for (const dir of sourceDirs) {
           const linkPath = path.join(workspaceSkills, dir);
-          if (!fs.existsSync(linkPath)) {
-            skipped.push({ skill: dir, reason: 'not found' });
-            continue;
-          }
+          let stat;
+          try { stat = fs.lstatSync(linkPath); } catch { skipped.push({ skill: dir, reason: 'not found' }); continue; }
 
-          const stat = fs.lstatSync(linkPath);
           if (!stat.isSymbolicLink()) {
             skipped.push({ skill: dir, reason: 'not a symlink' });
             continue;
           }
 
-          if (dryRun) {
-            removed.push({ skill: dir, path: linkPath });
-          } else {
-            fs.unlinkSync(linkPath);
-            removed.push({ skill: dir, path: linkPath });
-          }
+          if (!dryRun) fs.unlinkSync(linkPath);
+          removed.push({ skill: dir, path: linkPath });
         }
 
-        jsonOutput({
-          action: 'uninstall',
-          dryRun,
-          workspace,
-          removed,
-          skipped,
-        }, {}, globalOpts);
+        jsonOutput({ action: 'uninstall', dryRun, workspace, removed, skipped }, {}, globalOpts);
         return;
       }
 
@@ -118,44 +106,35 @@ export function registerSetupCommands(program) {
         const target = path.join(skillsSource, dir);
         const linkPath = path.join(workspaceSkills, dir);
 
-        if (fs.existsSync(linkPath) || (fs.existsSync(linkPath) === false && (() => { try { fs.lstatSync(linkPath); return true; } catch { return false; } })())) {
-          // Something exists at linkPath (or broken symlink)
-          let stat;
-          try { stat = fs.lstatSync(linkPath); } catch { stat = null; }
+        // Check if something already exists at linkPath
+        let stat;
+        try { stat = fs.lstatSync(linkPath); } catch { stat = null; }
 
-          if (stat && stat.isSymbolicLink()) {
+        if (stat) {
+          if (stat.isSymbolicLink()) {
             const existing = fs.readlinkSync(linkPath);
-            if (path.resolve(path.dirname(linkPath), existing) === target || existing === target) {
+            const resolvedExisting = path.resolve(path.dirname(linkPath), existing);
+            if (resolvedExisting === target) {
               skipped.push({ skill: dir, reason: 'already linked' });
               continue;
-            } else {
-              if (force) {
-                if (!dryRun) fs.unlinkSync(linkPath);
-              } else {
-                skipped.push({ skill: dir, reason: `symlink exists → ${existing}` });
-                continue;
-              }
             }
-          } else if (stat) {
+            // Points somewhere else
+            if (force) {
+              if (!dryRun) fs.unlinkSync(linkPath);
+            } else {
+              skipped.push({ skill: dir, reason: `symlink exists → ${existing}` });
+              continue;
+            }
+          } else {
             skipped.push({ skill: dir, reason: 'path exists (not a symlink)' });
             continue;
           }
         }
 
-        if (dryRun) {
-          linked.push({ skill: dir, from: target, to: linkPath });
-        } else {
-          fs.symlinkSync(target, linkPath);
-          linked.push({ skill: dir, from: target, to: linkPath });
-        }
+        if (!dryRun) fs.symlinkSync(target, linkPath);
+        linked.push({ skill: dir, from: target, to: linkPath });
       }
 
-      jsonOutput({
-        action: 'install',
-        dryRun,
-        workspace,
-        linked,
-        skipped,
-      }, {}, globalOpts);
+      jsonOutput({ action: 'install', dryRun, workspace, linked, skipped }, {}, globalOpts);
     });
 }
