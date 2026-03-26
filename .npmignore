@@ -1,0 +1,7 @@
+tests/
+docs/
+.env
+.git/
+node_modules/
+*.test.js
+fixtures/
