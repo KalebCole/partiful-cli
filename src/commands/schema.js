@@ -30,6 +30,7 @@ const SCHEMAS = {
       '--poster': { type: 'string', required: false, description: 'Built-in poster ID' },
       '--poster-search': { type: 'string', required: false, description: 'Search poster library, use best match' },
       '--image': { type: 'string', required: false, description: 'Custom image file path or URL to upload' },
+      '--cohost': { type: 'string[]', required: false, description: 'Co-host names (resolved from contacts)' },
     },
   },
   'events.update': {
@@ -45,6 +46,7 @@ const SCHEMAS = {
       '--poster': { type: 'string', required: false, description: 'Built-in poster ID' },
       '--poster-search': { type: 'string', required: false, description: 'Search poster library, use best match' },
       '--image': { type: 'string', required: false, description: 'Custom image file path or URL to upload' },
+      '--cohost': { type: 'string[]', required: false, description: 'Co-host names (resolved from contacts)' },
     },
   },
   'events.cancel': {
@@ -74,6 +76,27 @@ const SCHEMAS = {
     parameters: {
       query: { type: 'string', required: false, positional: true, description: 'Search query' },
       '--limit': { type: 'integer', required: false, default: 20 },
+    },
+  },
+  'cohosts.list': {
+    command: 'cohosts list <eventId>',
+    parameters: {
+      eventId: { type: 'string', required: true, positional: true, description: 'Event ID' },
+    },
+  },
+  'cohosts.add': {
+    command: 'cohosts add <eventId>',
+    parameters: {
+      eventId: { type: 'string', required: true, positional: true, description: 'Event ID' },
+      '--name': { type: 'string[]', required: false, description: 'Co-host names (resolved from contacts)' },
+      '--user-id': { type: 'string[]', required: false, description: 'Co-host user IDs' },
+    },
+  },
+  'cohosts.remove': {
+    command: 'cohosts remove <eventId>',
+    parameters: {
+      eventId: { type: 'string', required: true, positional: true, description: 'Event ID' },
+      '--user-id': { type: 'string', required: true, description: 'User ID to remove' },
     },
   },
   'blasts.send': {

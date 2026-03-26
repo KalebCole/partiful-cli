@@ -183,6 +183,7 @@ export function registerEventsCommands(program) {
     .option('--link-text <text...>', 'Display text for link (paired with --link by position)')
     .option('--template <name>', 'Create from a saved template')
     .option('--var <vars...>', 'Template variables (key=value)')
+    .option('--cohost <names...>', 'Co-host names (resolved from contacts)')
     .action(async (opts, cmd) => {
       const globalOpts = cmd.optsWithGlobals();
       try {
@@ -331,16 +332,33 @@ export function registerEventsCommands(program) {
           }
         }
 
+        // Resolve co-host names to IDs
+        const cohostIds = [];
+        if (opts.cohost && opts.cohost.length > 0) {
+          const contactsPayload = { data: wrapPayload(config, { params: {}, amplitudeSessionId: Date.now(), userId: config.userId }) };
+          const contactsResult = await apiRequest('POST', '/getContacts', token, contactsPayload, globalOpts.verbose);
+          const allContacts = contactsResult.result?.data || [];
+          for (const name of opts.cohost) {
+            const q = name.toLowerCase();
+            const match = allContacts.find(c => (c.name || '').toLowerCase() === q) || allContacts.find(c => (c.name || '').toLowerCase().includes(q));
+            if (match && match.userId) {
+              cohostIds.push(match.userId);
+            } else {
+              process.stderr.write(`Warning: could not resolve co-host "${name}" from contacts — skipping\n`);
+            }
+          }
+        }
+
         const payload = {
           data: wrapPayload(config, {
-            params: { event, cohostIds: [] },
+            params: { event, cohostIds },
             amplitudeSessionId: Date.now(),
             userId: config.userId,
           }),
         };
 
         if (globalOpts.dryRun) {
-          jsonOutput({ dryRun: true, endpoint: '/createEvent', payload, ...(opts.repeat ? { series: { repeat: opts.repeat, count: opts.count } } : {}) });
+          jsonOutput({ dryRun: true, endpoint: '/createEvent', payload, cohostsResolved: cohostIds.length, ...(opts.repeat ? { series: { repeat: opts.repeat, count: opts.count } } : {}) });
           return;
         }
 
@@ -360,7 +378,7 @@ export function registerEventsCommands(program) {
             const seriesEvent = { ...event, startDate: d.toISOString() };
             const seriesPayload = {
               data: wrapPayload(config, {
-                params: { event: seriesEvent, cohostIds: [] },
+                params: { event: seriesEvent, cohostIds },
                 amplitudeSessionId: Date.now(),
                 userId: config.userId,
               }),
@@ -409,6 +427,7 @@ export function registerEventsCommands(program) {
     .option('--image <path>', 'Upload and set custom image')
     .option('--link <url...>', 'Link URL (repeatable)')
     .option('--link-text <text...>', 'Display text for link (paired with --link by position)')
+    .option('--cohost <names...>', 'Co-host names (resolved from contacts)')
     .action(async (eventId, opts, cmd) => {
       const globalOpts = cmd.optsWithGlobals();
       try {
@@ -510,8 +529,30 @@ export function registerEventsCommands(program) {
           }
         }
 
+        if (opts.cohost && opts.cohost.length > 0) {
+          const contactsPayload = { data: wrapPayload(config, { params: {}, amplitudeSessionId: Date.now(), userId: config.userId }) };
+          const contactsResult = await apiRequest('POST', '/getContacts', token, contactsPayload, globalOpts.verbose);
+          const allContacts = contactsResult.result?.data || [];
+          const resolvedIds = [];
+          for (const name of opts.cohost) {
+            const q = name.toLowerCase();
+            const match = allContacts.find(c => (c.name || '').toLowerCase() === q) || allContacts.find(c => (c.name || '').toLowerCase().includes(q));
+            if (match && match.userId) {
+              resolvedIds.push(match.userId);
+            } else {
+              process.stderr.write(`Warning: could not resolve co-host "${name}" from contacts — skipping\n`);
+            }
+          }
+          if (resolvedIds.length > 0) {
+            fields.cohostIds = {
+              arrayValue: { values: resolvedIds.map(id => ({ stringValue: id })) }
+            };
+            updateFields.push('cohostIds');
+          }
+        }
+
         if (updateFields.length === 0) {
-          jsonError('No fields to update. Use --title, --location, --description, --date, --end-date, --capacity, --link, --poster, --poster-search, or --image', 3, 'validation_error');
+          jsonError('No fields to update. Use --title, --location, --description, --date, --end-date, --capacity, --link, --poster, --poster-search, --image, or --cohost', 3, 'validation_error');
           return;
         }
 
@@ -553,6 +594,7 @@ export function registerEventsCommands(program) {
     .option('--image <path>', 'Override with custom image')
     .option('--link <url...>', 'Override links (repeatable)')
     .option('--link-text <text...>', 'Display text for links')
+    .option('--cohost <names...>', 'Co-host names (resolved from contacts)')
     .action(async (eventId, opts, cmd) => {
       const globalOpts = cmd.optsWithGlobals();
       try {
@@ -717,10 +759,27 @@ export function registerEventsCommands(program) {
           event.image = src.image;
         }
 
+        // Resolve co-host names to IDs
+        const cohostIds = [];
+        if (opts.cohost && opts.cohost.length > 0) {
+          const contactsPayload = { data: wrapPayload(config, { params: {}, amplitudeSessionId: Date.now(), userId: config.userId }) };
+          const contactsResult = await apiRequest('POST', '/getContacts', token, contactsPayload, globalOpts.verbose);
+          const allContacts = contactsResult.result?.data || [];
+          for (const name of opts.cohost) {
+            const q = name.toLowerCase();
+            const match = allContacts.find(c => (c.name || '').toLowerCase() === q) || allContacts.find(c => (c.name || '').toLowerCase().includes(q));
+            if (match && match.userId) {
+              cohostIds.push(match.userId);
+            } else {
+              process.stderr.write(`Warning: could not resolve co-host "${name}" from contacts — skipping\n`);
+            }
+          }
+        }
+
         // 4. Build API payload
         const payload = {
           data: wrapPayload(config, {
-            params: { event, cohostIds: [] },
+            params: { event, cohostIds },
             amplitudeSessionId: Date.now(),
             userId: config.userId,
           }),
