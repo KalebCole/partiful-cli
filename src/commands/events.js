@@ -3,6 +3,7 @@
  */
 
 import { loadConfig, getValidToken, wrapPayload } from '../lib/auth.js';
+import { resolveCohostNames } from '../lib/cohosts.js';
 import { fetchCatalog, searchPosters, buildPosterImage } from '../lib/posters.js';
 import { apiRequest, firestoreRequest } from '../lib/http.js';
 import { parseDateTime, stripMarkdown, formatDate } from '../lib/dates.js';
@@ -183,6 +184,7 @@ export function registerEventsCommands(program) {
     .option('--link-text <text...>', 'Display text for link (paired with --link by position)')
     .option('--template <name>', 'Create from a saved template')
     .option('--var <vars...>', 'Template variables (key=value)')
+    .option('--cohost <names...>', 'Co-host names (resolved from contacts)')
     .action(async (opts, cmd) => {
       const globalOpts = cmd.optsWithGlobals();
       try {
@@ -331,16 +333,18 @@ export function registerEventsCommands(program) {
           }
         }
 
+        const cohostIds = await resolveCohostNames(opts.cohost, token, config, globalOpts.verbose);
+
         const payload = {
           data: wrapPayload(config, {
-            params: { event, cohostIds: [] },
+            params: { event, cohostIds },
             amplitudeSessionId: Date.now(),
             userId: config.userId,
           }),
         };
 
         if (globalOpts.dryRun) {
-          jsonOutput({ dryRun: true, endpoint: '/createEvent', payload, ...(opts.repeat ? { series: { repeat: opts.repeat, count: opts.count } } : {}) });
+          jsonOutput({ dryRun: true, endpoint: '/createEvent', payload, cohostsResolved: cohostIds.length, ...(opts.repeat ? { series: { repeat: opts.repeat, count: opts.count } } : {}) });
           return;
         }
 
@@ -360,7 +364,7 @@ export function registerEventsCommands(program) {
             const seriesEvent = { ...event, startDate: d.toISOString() };
             const seriesPayload = {
               data: wrapPayload(config, {
-                params: { event: seriesEvent, cohostIds: [] },
+                params: { event: seriesEvent, cohostIds },
                 amplitudeSessionId: Date.now(),
                 userId: config.userId,
               }),
@@ -409,6 +413,7 @@ export function registerEventsCommands(program) {
     .option('--image <path>', 'Upload and set custom image')
     .option('--link <url...>', 'Link URL (repeatable)')
     .option('--link-text <text...>', 'Display text for link (paired with --link by position)')
+    .option('--cohost <names...>', 'Co-host names (resolved from contacts)')
     .action(async (eventId, opts, cmd) => {
       const globalOpts = cmd.optsWithGlobals();
       try {
@@ -510,8 +515,18 @@ export function registerEventsCommands(program) {
           }
         }
 
+        if (opts.cohost && opts.cohost.length > 0) {
+          const resolvedIds = await resolveCohostNames(opts.cohost, token, config, globalOpts.verbose);
+          if (resolvedIds.length > 0) {
+            fields.cohostIds = {
+              arrayValue: { values: resolvedIds.map(id => ({ stringValue: id })) }
+            };
+            updateFields.push('cohostIds');
+          }
+        }
+
         if (updateFields.length === 0) {
-          jsonError('No fields to update. Use --title, --location, --description, --date, --end-date, --capacity, --link, --poster, --poster-search, or --image', 3, 'validation_error');
+          jsonError('No fields to update. Use --title, --location, --description, --date, --end-date, --capacity, --link, --poster, --poster-search, --image, or --cohost', 3, 'validation_error');
           return;
         }
 
@@ -553,6 +568,7 @@ export function registerEventsCommands(program) {
     .option('--image <path>', 'Override with custom image')
     .option('--link <url...>', 'Override links (repeatable)')
     .option('--link-text <text...>', 'Display text for links')
+    .option('--cohost <names...>', 'Co-host names (resolved from contacts)')
     .action(async (eventId, opts, cmd) => {
       const globalOpts = cmd.optsWithGlobals();
       try {
@@ -717,10 +733,12 @@ export function registerEventsCommands(program) {
           event.image = src.image;
         }
 
+        const cohostIds = await resolveCohostNames(opts.cohost, token, config, globalOpts.verbose);
+
         // 4. Build API payload
         const payload = {
           data: wrapPayload(config, {
-            params: { event, cohostIds: [] },
+            params: { event, cohostIds },
             amplitudeSessionId: Date.now(),
             userId: config.userId,
           }),

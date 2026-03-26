@@ -3,6 +3,7 @@ import { registerAuthCommands } from './commands/auth.js';
 import { registerEventsCommands } from './commands/events.js';
 import { registerGuestsCommands } from './commands/guests.js';
 import { registerContactsCommands } from './commands/contacts.js';
+import { registerCohostsCommands } from './commands/cohosts.js';
 import { registerBlastsCommands } from './commands/blasts.js';
 import { registerCloneHelper } from './helpers/clone.js';
 import { registerWatchHelper } from './helpers/watch.js';
@@ -35,6 +36,7 @@ export function run() {
   registerEventsCommands(program);
   registerGuestsCommands(program);
   registerContactsCommands(program);
+  registerCohostsCommands(program);
   registerBlastsCommands(program);
   registerCloneHelper(program);
   registerWatchHelper(program);
