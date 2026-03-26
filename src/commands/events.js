@@ -3,6 +3,7 @@
  */
 
 import { loadConfig, getValidToken, wrapPayload } from '../lib/auth.js';
+import { resolveCohostNames } from '../lib/cohosts.js';
 import { fetchCatalog, searchPosters, buildPosterImage } from '../lib/posters.js';
 import { apiRequest, firestoreRequest } from '../lib/http.js';
 import { parseDateTime, stripMarkdown, formatDate } from '../lib/dates.js';
@@ -332,22 +333,7 @@ export function registerEventsCommands(program) {
           }
         }
 
-        // Resolve co-host names to IDs
-        const cohostIds = [];
-        if (opts.cohost && opts.cohost.length > 0) {
-          const contactsPayload = { data: wrapPayload(config, { params: {}, amplitudeSessionId: Date.now(), userId: config.userId }) };
-          const contactsResult = await apiRequest('POST', '/getContacts', token, contactsPayload, globalOpts.verbose);
-          const allContacts = contactsResult.result?.data || [];
-          for (const name of opts.cohost) {
-            const q = name.toLowerCase();
-            const match = allContacts.find(c => (c.name || '').toLowerCase() === q) || allContacts.find(c => (c.name || '').toLowerCase().includes(q));
-            if (match && match.userId) {
-              cohostIds.push(match.userId);
-            } else {
-              process.stderr.write(`Warning: could not resolve co-host "${name}" from contacts — skipping\n`);
-            }
-          }
-        }
+        const cohostIds = await resolveCohostNames(opts.cohost, token, config, globalOpts.verbose);
 
         const payload = {
           data: wrapPayload(config, {
@@ -530,19 +516,7 @@ export function registerEventsCommands(program) {
         }
 
         if (opts.cohost && opts.cohost.length > 0) {
-          const contactsPayload = { data: wrapPayload(config, { params: {}, amplitudeSessionId: Date.now(), userId: config.userId }) };
-          const contactsResult = await apiRequest('POST', '/getContacts', token, contactsPayload, globalOpts.verbose);
-          const allContacts = contactsResult.result?.data || [];
-          const resolvedIds = [];
-          for (const name of opts.cohost) {
-            const q = name.toLowerCase();
-            const match = allContacts.find(c => (c.name || '').toLowerCase() === q) || allContacts.find(c => (c.name || '').toLowerCase().includes(q));
-            if (match && match.userId) {
-              resolvedIds.push(match.userId);
-            } else {
-              process.stderr.write(`Warning: could not resolve co-host "${name}" from contacts — skipping\n`);
-            }
-          }
+          const resolvedIds = await resolveCohostNames(opts.cohost, token, config, globalOpts.verbose);
           if (resolvedIds.length > 0) {
             fields.cohostIds = {
               arrayValue: { values: resolvedIds.map(id => ({ stringValue: id })) }
@@ -759,22 +733,7 @@ export function registerEventsCommands(program) {
           event.image = src.image;
         }
 
-        // Resolve co-host names to IDs
-        const cohostIds = [];
-        if (opts.cohost && opts.cohost.length > 0) {
-          const contactsPayload = { data: wrapPayload(config, { params: {}, amplitudeSessionId: Date.now(), userId: config.userId }) };
-          const contactsResult = await apiRequest('POST', '/getContacts', token, contactsPayload, globalOpts.verbose);
-          const allContacts = contactsResult.result?.data || [];
-          for (const name of opts.cohost) {
-            const q = name.toLowerCase();
-            const match = allContacts.find(c => (c.name || '').toLowerCase() === q) || allContacts.find(c => (c.name || '').toLowerCase().includes(q));
-            if (match && match.userId) {
-              cohostIds.push(match.userId);
-            } else {
-              process.stderr.write(`Warning: could not resolve co-host "${name}" from contacts — skipping\n`);
-            }
-          }
-        }
+        const cohostIds = await resolveCohostNames(opts.cohost, token, config, globalOpts.verbose);
 
         // 4. Build API payload
         const payload = {
