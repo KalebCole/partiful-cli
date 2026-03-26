@@ -165,8 +165,8 @@ export function registerEventsCommands(program) {
   events
     .command('create')
     .description('Create a new event')
-    .requiredOption('--title <title>', 'Event title')
-    .requiredOption('--date <date>', 'Start date/time (e.g. "2026-04-01 7pm")')
+    .option('--title <title>', 'Event title (required unless using --template)')
+    .option('--date <date>', 'Start date/time (required unless using --template with date)')
     .option('--end-date <endDate>', 'End date/time')
     .option('--location <location>', 'Location name')
     .option('--address <address>', 'Street address')
@@ -181,9 +181,44 @@ export function registerEventsCommands(program) {
     .option('--image <path>', 'Custom image file to upload')
     .option('--link <url...>', 'Link URL (repeatable)')
     .option('--link-text <text...>', 'Display text for link (paired with --link by position)')
+    .option('--template <name>', 'Create from a saved template')
+    .option('--var <vars...>', 'Template variables (key=value)')
     .action(async (opts, cmd) => {
       const globalOpts = cmd.optsWithGlobals();
       try {
+        // Template merging
+        if (opts.template) {
+          const { loadTemplates, applyVariables, mergeTemplateOpts } = await import('../lib/templates.js');
+          const templates = loadTemplates();
+          if (!templates[opts.template]) {
+            jsonError(`Template "${opts.template}" not found. Use "partiful template list" to see available templates.`, 4, 'not_found');
+            return;
+          }
+          let tpl = templates[opts.template];
+          // Parse --var key=value pairs
+          if (opts.var) {
+            const vars = {};
+            for (const v of opts.var) {
+              const eq = v.indexOf('=');
+              if (eq > 0) vars[v.slice(0, eq)] = v.slice(eq + 1);
+            }
+            tpl = applyVariables(tpl, vars);
+          }
+          // Merge: CLI opts override template
+          const merged = mergeTemplateOpts(tpl, opts);
+          Object.assign(opts, merged);
+        }
+
+        // Validate required fields after template merge
+        if (!opts.title) {
+          jsonError('--title is required (provide directly or via --template).', 3, 'validation_error');
+          return;
+        }
+        if (!opts.date) {
+          jsonError('--date is required (provide directly or via --template).', 3, 'validation_error');
+          return;
+        }
+
         const config = loadConfig();
         const token = await getValidToken(config);
 
@@ -305,7 +340,42 @@ export function registerEventsCommands(program) {
         };
 
         if (globalOpts.dryRun) {
-          jsonOutput({ dryRun: true, endpoint: '/createEvent', payload });
+          jsonOutput({ dryRun: true, endpoint: '/createEvent', payload, ...(opts.repeat ? { series: { repeat: opts.repeat, count: opts.count } } : {}) });
+          return;
+        }
+
+        // Series creation: --repeat weekly --count 4
+        if (opts.repeat && opts.count && opts.count > 1) {
+          const results = [];
+          const intervals = { daily: 1, weekly: 7, biweekly: 14 };
+          for (let i = 0; i < opts.count; i++) {
+            const d = new Date(startDate);
+            if (opts.repeat === 'monthly') {
+              d.setMonth(d.getMonth() + i);
+            } else {
+              const days = intervals[opts.repeat];
+              if (!days) { jsonError(`Unknown repeat: ${opts.repeat}. Use: daily, weekly, biweekly, monthly`, 3, 'validation_error'); return; }
+              d.setDate(d.getDate() + (i * days));
+            }
+            const seriesEvent = { ...event, startDate: d.toISOString() };
+            const seriesPayload = {
+              data: wrapPayload(config, {
+                params: { event: seriesEvent, cohostIds: [] },
+                amplitudeSessionId: Date.now(),
+                userId: config.userId,
+              }),
+            };
+            try {
+              const res = await apiRequest('POST', '/createEvent', token, seriesPayload, globalOpts.verbose);
+              const id = res.result?.data || res.result?.eventId;
+              results.push({ index: i + 1, status: 'created', title: opts.title, date: d.toISOString(), id, url: `https://partiful.com/e/${id}` });
+              process.stderr.write(`[${i + 1}/${opts.count}] Created: ${opts.title} (${d.toLocaleDateString()})\n`);
+            } catch (err) {
+              results.push({ index: i + 1, status: 'error', title: opts.title, date: d.toISOString(), error: err.message });
+            }
+            if (i < opts.count - 1) await new Promise(r => setTimeout(r, 1000));
+          }
+          jsonOutput(results, { total: results.length, repeat: opts.repeat });
           return;
         }
 
