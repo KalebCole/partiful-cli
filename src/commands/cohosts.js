@@ -75,6 +75,12 @@ export function registerCohostsCommands(program) {
           if (!newIds.includes(id)) newIds.push(id);
         }
 
+        const added = newIds.filter(id => !currentIds.includes(id));
+        if (added.length === 0) {
+          jsonOutput({ eventId, added: [], total: currentIds.length, message: 'No new co-hosts to add' });
+          return;
+        }
+
         if (globalOpts.dryRun) {
           jsonOutput({ dryRun: true, eventId, currentCohosts: currentIds, newCohosts: newIds });
           return;
@@ -82,7 +88,6 @@ export function registerCohostsCommands(program) {
 
         await setCohostIds(eventId, newIds, token, globalOpts.verbose);
 
-        const added = newIds.filter(id => !currentIds.includes(id));
         jsonOutput({ eventId, added, total: newIds.length, url: `https://partiful.com/e/${eventId}` });
       } catch (e) {
         if (e instanceof PartifulError) jsonError(e.message, e.exitCode, e.type, e.details);

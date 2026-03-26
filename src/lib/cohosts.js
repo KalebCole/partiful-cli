@@ -30,7 +30,7 @@ export async function resolveCohostNames(names, token, config, verbose = false) 
       contacts.find(c => (c.name || '').toLowerCase() === q) ||
       contacts.find(c => (c.name || '').toLowerCase().includes(q));
     if (match?.userId) {
-      ids.push(match.userId);
+      if (!ids.includes(match.userId)) ids.push(match.userId);
     } else {
       process.stderr.write(`Warning: could not resolve co-host "${name}" from contacts — skipping\n`);
     }
@@ -52,9 +52,10 @@ export async function getCohostIds(eventId, token, verbose = false) {
  * Write cohostIds array to a Firestore event document.
  */
 export async function setCohostIds(eventId, ids, token, verbose = false) {
+  const unique = [...new Set(ids.filter(Boolean))];
   const fields = {
     cohostIds: {
-      arrayValue: { values: ids.map(id => ({ stringValue: id })) },
+      arrayValue: { values: unique.map(id => ({ stringValue: id })) },
     },
   };
   await firestoreRequest('PATCH', eventId, { fields }, token, ['cohostIds'], verbose);
