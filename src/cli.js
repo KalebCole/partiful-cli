@@ -13,6 +13,7 @@ import { registerPosterCommands } from './commands/posters.js';
 import { registerDoctorCommands } from './commands/doctor.js';
 import { registerTemplateCommands } from './commands/templates.js';
 import { registerBulkCommands } from './commands/bulk.js';
+import { registerSetupCommands } from './commands/setup.js';
 import { jsonOutput } from './lib/output.js';
 
 export function run() {
@@ -44,6 +45,7 @@ export function run() {
   registerDoctorCommands(program);
   registerTemplateCommands(program);
   registerBulkCommands(program);
+  registerSetupCommands(program);
 
   program
     .command('version')
