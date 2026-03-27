@@ -10,21 +10,10 @@ import { loadConfig, getValidToken, wrapPayload } from '../lib/auth.js';
 import { apiRequest } from '../lib/http.js';
 import { jsonOutput, jsonError } from '../lib/output.js';
 import { PartifulError, ValidationError } from '../lib/errors.js';
-import readline from 'readline';
+import { confirm } from '../lib/events.js';
 
 const VALID_TO_VALUES = ['GOING', 'MAYBE', 'DECLINED', 'SENT', 'INTERESTED', 'WAITLIST', 'APPROVED', 'RESPONDED_TO_FIND_A_TIME'];
 const MAX_MESSAGE_LENGTH = 480;
-const MAX_BLASTS_PER_EVENT = 10;
-
-async function confirm(question) {
-  const rl = readline.createInterface({ input: process.stdin, output: process.stderr });
-  return new Promise(resolve => {
-    rl.question(question + ' [y/N]: ', answer => {
-      rl.close();
-      resolve(answer.toLowerCase() === 'y' || answer.toLowerCase() === 'yes');
-    });
-  });
-}
 
 export function registerBlastsCommands(program) {
   const blasts = program.command('blasts').description('Text blasts to event guests');
