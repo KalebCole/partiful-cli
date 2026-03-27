@@ -20,6 +20,14 @@ import { apiRequest, firestoreRequest } from '../lib/http.js';
 import { PartifulError } from '../lib/errors.js';
 import { buildBaseEvent } from '../lib/events.js';
 
+function handleError(e) {
+  if (e instanceof PartifulError) {
+    jsonError(e.message, e.exitCode, e.type, e.details);
+  } else {
+    jsonError(e instanceof Error ? e.message : String(e));
+  }
+}
+
 const DEFAULT_DELAY = 1000; // ms between API calls
 
 function sleep(ms) {
@@ -147,8 +155,7 @@ export function registerBulkCommands(program) {
           errors: results.filter(r => r.status === 'error').length,
         }, globalOpts);
       } catch (e) {
-        if (e instanceof PartifulError) jsonError(e.message, e.exitCode, e.type, e.details);
-        else jsonError(e.message);
+        handleError(e);
       }
     });
 
@@ -254,8 +261,7 @@ export function registerBulkCommands(program) {
           errors: results.filter(r => r.status === 'error').length,
         }, globalOpts);
       } catch (e) {
-        if (e instanceof PartifulError) jsonError(e.message, e.exitCode, e.type, e.details);
-        else jsonError(e.message);
+        handleError(e);
       }
     });
 }
