@@ -37,16 +37,6 @@ export async function confirm(question) {
 export const ALLOWED_IMAGE_EXTENSIONS = ['.png', '.jpg', '.jpeg', '.gif', '.webp', '.avif'];
 
 /**
- * Validate image file extension. Throws on invalid type.
- */
-export function validateImageExtension(filePath) {
-  const { extname } = await_extname_sync(filePath);
-  if (!ALLOWED_IMAGE_EXTENSIONS.includes(ext)) {
-    throw new Error(`Unsupported image type "${ext}". Allowed types: ${ALLOWED_IMAGE_EXTENSIONS.join(', ')}`);
-  }
-}
-
-/**
  * Check if a string is an HTTP(S) URL.
  */
 export function isUrl(str) {

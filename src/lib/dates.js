@@ -1,6 +1,11 @@
 /**
  * Date parsing and formatting utilities for Partiful CLI.
- * Extracted from the original partiful monolith.
+ *
+ * KNOWN LIMITATION: parseDateTime() accepts a timezone param but Date construction
+ * uses the machine's local timezone. This works correctly when the machine timezone
+ * matches the target timezone (the common case). For cross-timezone event creation,
+ * the ISO string may be offset. Partiful stores timezone separately so the event
+ * displays correctly on their end, but the UTC instant may differ slightly.
  */
 
 export function parseDateTime(dateStr, timezone = 'America/Los_Angeles') {

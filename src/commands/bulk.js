@@ -4,6 +4,16 @@
 
 import fs from 'fs';
 import { loadConfig, getValidToken, wrapPayload } from '../lib/auth.js';
+
+function makePayload(config, params) {
+  return {
+    data: wrapPayload(config, {
+      params,
+      amplitudeSessionId: Date.now(),
+      userId: config.userId,
+    }),
+  };
+}
 import { parseDateTime } from '../lib/dates.js';
 import { jsonOutput, jsonError } from '../lib/output.js';
 import { apiRequest, firestoreRequest } from '../lib/http.js';
@@ -117,7 +127,7 @@ export function registerBulkCommands(program) {
 
         for (let i = 0; i < normalized.length; i++) {
           const { event } = buildBaseEvent(normalized[i]);
-          const payload = { data: wrapPayload(config, { event }) };
+          const payload = makePayload(config, { event, cohostIds: [] });
 
           try {
             const resp = await apiRequest('POST', '/createEvent', token, payload, globalOpts.verbose);
