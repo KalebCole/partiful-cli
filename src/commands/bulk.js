@@ -7,6 +7,8 @@ import { loadConfig, getValidToken, wrapPayload } from '../lib/auth.js';
 import { parseDateTime } from '../lib/dates.js';
 import { jsonOutput, jsonError } from '../lib/output.js';
 import { apiRequest, firestoreRequest } from '../lib/http.js';
+import { PartifulError } from '../lib/errors.js';
+import { buildBaseEvent } from '../lib/events.js';
 
 const DEFAULT_DELAY = 1000; // ms between API calls
 
@@ -38,7 +40,7 @@ function parseCsv(text) {
 }
 
 /**
- * Normalize a row from JSON/CSV into the shape events create expects.
+ * Normalize a row from JSON/CSV into the shape buildBaseEvent expects.
  */
 function normalizeRow(row) {
   return {
@@ -56,72 +58,6 @@ function normalizeRow(row) {
     poster: row.poster,
     posterSearch: row.posterSearch || row['poster-search'],
   };
-}
-
-/**
- * Build event payload (shared with events create — duplicated here to avoid circular imports).
- */
-function buildEventPayload(opts) {
-  const startDate = parseDateTime(opts.date, opts.timezone);
-  const endDate = opts.endDate ? parseDateTime(opts.endDate, opts.timezone) : null;
-
-  const event = {
-    title: opts.title,
-    startDate: startDate.toISOString(),
-    timezone: opts.timezone || 'America/Los_Angeles',
-    displaySettings: {
-      theme: opts.theme || 'oxblood',
-      effect: opts.effect || 'sunbeams',
-      titleFont: 'display',
-    },
-    showHostList: true,
-    showGuestCount: true,
-    showGuestList: true,
-    showActivityTimestamps: true,
-    displayInviteButton: true,
-    visibility: opts.private ? 'private' : 'public',
-    allowGuestPhotoUpload: true,
-    enableGuestReminders: true,
-    rsvpsEnabled: true,
-    allowGuestsToInviteMutuals: true,
-    rsvpButtonGlyphType: 'emojis',
-    status: 'UNSAVED',
-    guestStatusCounts: {
-      READY_TO_SEND: 0, SENDING: 0, SENT: 0, SEND_ERROR: 0,
-      DELIVERY_ERROR: 0, INTERESTED: 0, MAYBE: 0, GOING: 0,
-      DECLINED: 0, WAITLIST: 0, PENDING_APPROVAL: 0, APPROVED: 0,
-      WITHDRAWN: 0, RESPONDED_TO_FIND_A_TIME: 0,
-      WAITLISTED_FOR_APPROVAL: 0, REJECTED: 0,
-    },
-  };
-
-  if (endDate) event.endDate = endDate.toISOString();
-  if (opts.location) event.location = opts.location;
-  if (opts.address) event.address = opts.address;
-  if (opts.description) event.description = opts.description;
-  if (opts.capacity) { event.guestLimit = opts.capacity; event.enableWaitlist = true; }
-
-  return event;
-}
-
-/**
- * Generate a series of dates: weekly, biweekly, monthly from a start date.
- */
-function generateSeries(startDateStr, repeat, count, timezone) {
-  const dates = [];
-  const start = parseDateTime(startDateStr, timezone);
-  for (let i = 0; i < count; i++) {
-    const d = new Date(start);
-    switch (repeat) {
-      case 'daily': d.setDate(d.getDate() + i); break;
-      case 'weekly': d.setDate(d.getDate() + (i * 7)); break;
-      case 'biweekly': d.setDate(d.getDate() + (i * 14)); break;
-      case 'monthly': d.setMonth(d.getMonth() + i); break;
-      default: throw new Error(`Unknown repeat interval: ${repeat}. Use: daily, weekly, biweekly, monthly`);
-    }
-    dates.push(d.toISOString());
-  }
-  return dates;
 }
 
 export function registerBulkCommands(program) {
@@ -167,7 +103,7 @@ export function registerBulkCommands(program) {
         });
 
         if (globalOpts.dryRun) {
-          jsonOutput(normalized.map(n => buildEventPayload(n)), {
+          jsonOutput(normalized.map(n => buildBaseEvent(n).event), {
             total: normalized.length,
             action: 'dry_run',
             hint: 'Remove --dry-run to create these events',
@@ -180,7 +116,7 @@ export function registerBulkCommands(program) {
         const results = [];
 
         for (let i = 0; i < normalized.length; i++) {
-          const event = buildEventPayload(normalized[i]);
+          const { event } = buildBaseEvent(normalized[i]);
           const payload = { data: wrapPayload(config, { event }) };
 
           try {
@@ -201,7 +137,8 @@ export function registerBulkCommands(program) {
           errors: results.filter(r => r.status === 'error').length,
         }, globalOpts);
       } catch (e) {
-        jsonError(e.message);
+        if (e instanceof PartifulError) jsonError(e.message, e.exitCode, e.type, e.details);
+        else jsonError(e.message);
       }
     });
 
@@ -279,7 +216,6 @@ export function registerBulkCommands(program) {
         for (let i = 0; i < matched.length; i++) {
           const e = matched[i];
           try {
-            // Build Firestore update
             const fields = {};
             const updateFields = [];
             for (const [key, val] of Object.entries(updates)) {
@@ -308,7 +244,7 @@ export function registerBulkCommands(program) {
           errors: results.filter(r => r.status === 'error').length,
         }, globalOpts);
       } catch (e) {
-        if (e instanceof (await import('../lib/errors.js')).PartifulError) jsonError(e.message, e.exitCode, e.type, e.details);
+        if (e instanceof PartifulError) jsonError(e.message, e.exitCode, e.type, e.details);
         else jsonError(e.message);
       }
     });

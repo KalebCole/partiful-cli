@@ -6,48 +6,34 @@ import { loadConfig, getValidToken, wrapPayload } from '../lib/auth.js';
 import { resolveCohostNames } from '../lib/cohosts.js';
 import { fetchCatalog, searchPosters, buildPosterImage } from '../lib/posters.js';
 import { apiRequest, firestoreRequest } from '../lib/http.js';
-import { parseDateTime, stripMarkdown, formatDate } from '../lib/dates.js';
+import { parseDateTime, stripMarkdown } from '../lib/dates.js';
 import { jsonOutput, jsonError } from '../lib/output.js';
-import { PartifulError, ValidationError } from '../lib/errors.js';
-import { extname as pathExtname, basename as pathBasename } from 'path';
-import readline from 'readline';
+import { PartifulError } from '../lib/errors.js';
+import {
+  confirm, buildBaseEvent, buildLinks, toFirestoreMap,
+  validateImageOptions, resolvePosterImage, resolveUploadImage,
+  isUrl, ALLOWED_IMAGE_EXTENSIONS,
+} from '../lib/events.js';
 
-async function confirm(question) {
-  const rl = readline.createInterface({ input: process.stdin, output: process.stderr });
-  return new Promise(resolve => {
-    rl.question(question + ' [y/N]: ', answer => {
-      rl.close();
-      resolve(answer.toLowerCase() === 'y' || answer.toLowerCase() === 'yes');
-    });
-  });
+/**
+ * Build the standard API payload wrapper.
+ */
+function makePayload(config, params) {
+  return {
+    data: wrapPayload(config, {
+      params,
+      amplitudeSessionId: Date.now(),
+      userId: config.userId,
+    }),
+  };
 }
 
-function toFirestoreMap(obj) {
-  const fields = {};
-  for (const [key, value] of Object.entries(obj)) {
-    if (value === null || value === undefined) continue;
-    if (typeof value === 'string') fields[key] = { stringValue: value };
-    else if (typeof value === 'number') {
-      if (Number.isInteger(value)) fields[key] = { integerValue: String(value) };
-      else fields[key] = { doubleValue: value };
-    }
-    else if (typeof value === 'boolean') fields[key] = { booleanValue: value };
-    else if (Array.isArray(value)) {
-      fields[key] = { arrayValue: { values: value.map(v => {
-        if (typeof v === 'string') return { stringValue: v };
-        if (typeof v === 'number') {
-          if (Number.isInteger(v)) return { integerValue: String(v) };
-          return { doubleValue: v };
-        }
-        if (typeof v === 'object') return { mapValue: { fields: toFirestoreMap(v) } };
-        return { stringValue: String(v) };
-      })}};
-    }
-    else if (typeof value === 'object') {
-      fields[key] = { mapValue: { fields: toFirestoreMap(value) } };
-    }
-  }
-  return fields;
+/**
+ * Standard error handler for action callbacks.
+ */
+function handleError(e) {
+  if (e instanceof PartifulError) jsonError(e.message, e.exitCode, e.type, e.details);
+  else jsonError(e.message);
 }
 
 export function registerEventsCommands(program) {
@@ -68,13 +54,7 @@ export function registerEventsCommands(program) {
           ? '/getMyPastEventsForHomePage'
           : '/getMyUpcomingEventsForHomePage';
 
-        const payload = {
-          data: wrapPayload(config, {
-            params: {},
-            amplitudeSessionId: Date.now(),
-            userId: config.userId,
-          }),
-        };
+        const payload = makePayload(config, {});
 
         if (globalOpts.dryRun) {
           jsonOutput({ dryRun: true, endpoint, payload });
@@ -106,8 +86,7 @@ export function registerEventsCommands(program) {
 
         jsonOutput(mapped, { count: mapped.length, type: opts.past ? 'past' : 'upcoming' });
       } catch (e) {
-        if (e instanceof PartifulError) jsonError(e.message, e.exitCode, e.type, e.details);
-        else jsonError(e.message);
+        handleError(e);
       }
     });
 
@@ -121,13 +100,7 @@ export function registerEventsCommands(program) {
         const config = loadConfig();
         const token = await getValidToken(config);
 
-        const payload = {
-          data: wrapPayload(config, {
-            params: { eventId },
-            amplitudeSessionId: Date.now(),
-            userId: config.userId,
-          }),
-        };
+        const payload = makePayload(config, { eventId });
 
         if (globalOpts.dryRun) {
           jsonOutput({ dryRun: true, endpoint: '/getEvent', payload });
@@ -158,8 +131,7 @@ export function registerEventsCommands(program) {
           url: `https://partiful.com/e/${eventId}`,
         });
       } catch (e) {
-        if (e instanceof PartifulError) jsonError(e.message, e.exitCode, e.type, e.details);
-        else jsonError(e.message);
+        handleError(e);
       }
     });
 
@@ -197,7 +169,6 @@ export function registerEventsCommands(program) {
             return;
           }
           let tpl = templates[opts.template];
-          // Parse --var key=value pairs
           if (opts.var) {
             const vars = {};
             for (const v of opts.var) {
@@ -206,12 +177,10 @@ export function registerEventsCommands(program) {
             }
             tpl = applyVariables(tpl, vars);
           }
-          // Merge: CLI opts override template
           const merged = mergeTemplateOpts(tpl, opts);
           Object.assign(opts, merged);
         }
 
-        // Validate required fields after template merge
         if (!opts.title) {
           jsonError('--title is required (provide directly or via --template).', 3, 'validation_error');
           return;
@@ -224,124 +193,35 @@ export function registerEventsCommands(program) {
         const config = loadConfig();
         const token = await getValidToken(config);
 
-        const imageOptCount = [opts.poster, opts.posterSearch, opts.image].filter(Boolean).length;
-        if (imageOptCount > 1) {
-          jsonError('Use only one of --poster, --poster-search, or --image.', 3, 'validation_error');
-          return;
-        }
+        validateImageOptions(opts.poster, opts.posterSearch, opts.image);
 
         // Validate image extension early (before dry-run check) — skip for URLs
-        const isImageUrl = opts.image && (opts.image.startsWith('http://') || opts.image.startsWith('https://'));
-        if (opts.image && !isImageUrl) {
+        if (opts.image && !isUrl(opts.image)) {
           const { extname } = await import('path');
           const ext = extname(opts.image).toLowerCase();
-          const allowed = ['.png', '.jpg', '.jpeg', '.gif', '.webp', '.avif'];
-          if (!allowed.includes(ext)) {
-            jsonError(`Unsupported image type "${ext}". Allowed types: ${allowed.join(', ')}`, 3, 'validation_error');
+          if (!ALLOWED_IMAGE_EXTENSIONS.includes(ext)) {
+            jsonError(`Unsupported image type "${ext}". Allowed types: ${ALLOWED_IMAGE_EXTENSIONS.join(', ')}`, 3, 'validation_error');
             return;
           }
         }
 
-        const startDate = parseDateTime(opts.date, opts.timezone);
-        const endDate = opts.endDate ? parseDateTime(opts.endDate, opts.timezone) : null;
+        const { event, startDate } = buildBaseEvent(opts);
 
-        const event = {
-          title: opts.title,
-          startDate: startDate.toISOString(),
-          timezone: opts.timezone,
-          displaySettings: {
-            theme: opts.theme,
-            effect: opts.effect,
-            titleFont: 'display',
-          },
-          showHostList: true,
-          showGuestCount: true,
-          showGuestList: true,
-          showActivityTimestamps: true,
-          displayInviteButton: true,
-          visibility: opts.private ? 'private' : 'public',
-          allowGuestPhotoUpload: true,
-          enableGuestReminders: true,
-          rsvpsEnabled: true,
-          allowGuestsToInviteMutuals: true,
-          rsvpButtonGlyphType: 'emojis',
-          status: 'UNSAVED',
-          guestStatusCounts: {
-            READY_TO_SEND: 0, SENDING: 0, SENT: 0, SEND_ERROR: 0,
-            DELIVERY_ERROR: 0, INTERESTED: 0, MAYBE: 0, GOING: 0,
-            DECLINED: 0, WAITLIST: 0, PENDING_APPROVAL: 0, APPROVED: 0,
-            WITHDRAWN: 0, RESPONDED_TO_FIND_A_TIME: 0,
-            WAITLISTED_FOR_APPROVAL: 0, REJECTED: 0,
-          },
-        };
+        // Links
+        const links = buildLinks(opts.link, opts.linkText);
+        if (links) event.links = links;
 
-        if (endDate) event.endDate = endDate.toISOString();
-        if (opts.location) event.location = opts.location;
-        if (opts.address) event.address = opts.address;
-        if (opts.description) event.description = stripMarkdown(opts.description);
-        if (opts.capacity) {
-          event.guestLimit = opts.capacity;
-          event.enableWaitlist = true;
-        }
-
-        if (opts.link && opts.link.length > 0) {
-          event.links = opts.link.map((url, i) => ({
-            url,
-            text: opts.linkText?.[i] || url,
-          }));
-        }
-
-        // Poster image handling
-        if (opts.poster) {
-          const catalog = await fetchCatalog();
-          const poster = catalog.find(p => p.id === opts.poster);
-          if (!poster) {
-            jsonError(`Poster not found: "${opts.poster}". Use "partiful posters search <term>" to find posters.`, 4, 'not_found');
-            return;
-          }
-          event.image = buildPosterImage(poster);
-        } else if (opts.posterSearch) {
-          const catalog = await fetchCatalog();
-          const results = searchPosters(catalog, opts.posterSearch);
-          if (results.length === 0) {
-            jsonError(`No posters found matching "${opts.posterSearch}". Try "partiful posters search <term>".`, 4, 'not_found');
-            return;
-          }
-          event.image = buildPosterImage(results[0]);
+        // Poster/image handling
+        const posterImage = await resolvePosterImage(opts, fetchCatalog, searchPosters, buildPosterImage);
+        if (posterImage) {
+          event.image = posterImage;
         } else if (opts.image) {
-          if (globalOpts.dryRun) {
-            if (isImageUrl) {
-              event.image = { source: 'upload', url: opts.image, note: 'URL will be downloaded and uploaded on real run' };
-            } else {
-              event.image = { source: 'upload', file: opts.image, note: 'File will be uploaded on real run' };
-            }
-          } else if (isImageUrl) {
-            const { downloadToTemp, uploadEventImage, buildUploadImage } = await import('../lib/upload.js');
-            const { basename } = await import('path');
-            const { tempPath, cleanup } = await downloadToTemp(opts.image);
-            try {
-              const uploadData = await uploadEventImage(tempPath, token, config, globalOpts.verbose);
-              event.image = buildUploadImage(uploadData, basename(tempPath));
-            } finally {
-              cleanup();
-            }
-          } else {
-            const { uploadEventImage, buildUploadImage } = await import('../lib/upload.js');
-            const { basename } = await import('path');
-            const uploadData = await uploadEventImage(opts.image, token, config, globalOpts.verbose);
-            event.image = buildUploadImage(uploadData, basename(opts.image));
-          }
+          event.image = await resolveUploadImage(opts.image, token, config, globalOpts.verbose, globalOpts.dryRun);
         }
 
         const cohostIds = await resolveCohostNames(opts.cohost, token, config, globalOpts.verbose);
 
-        const payload = {
-          data: wrapPayload(config, {
-            params: { event, cohostIds },
-            amplitudeSessionId: Date.now(),
-            userId: config.userId,
-          }),
-        };
+        const payload = makePayload(config, { event, cohostIds });
 
         if (globalOpts.dryRun) {
           jsonOutput({ dryRun: true, endpoint: '/createEvent', payload, cohostsResolved: cohostIds.length, ...(opts.repeat ? { series: { repeat: opts.repeat, count: opts.count } } : {}) });
@@ -362,13 +242,7 @@ export function registerEventsCommands(program) {
               d.setDate(d.getDate() + (i * days));
             }
             const seriesEvent = { ...event, startDate: d.toISOString() };
-            const seriesPayload = {
-              data: wrapPayload(config, {
-                params: { event: seriesEvent, cohostIds },
-                amplitudeSessionId: Date.now(),
-                userId: config.userId,
-              }),
-            };
+            const seriesPayload = makePayload(config, { event: seriesEvent, cohostIds });
             try {
               const res = await apiRequest('POST', '/createEvent', token, seriesPayload, globalOpts.verbose);
               const id = res.result?.data || res.result?.eventId;
@@ -393,8 +267,7 @@ export function registerEventsCommands(program) {
           url: `https://partiful.com/e/${newEventId}`,
         });
       } catch (e) {
-        if (e instanceof PartifulError) jsonError(e.message, e.exitCode, e.type, e.details);
-        else jsonError(e.message);
+        handleError(e);
       }
     });
 
@@ -430,11 +303,9 @@ export function registerEventsCommands(program) {
         if (opts.endDate) { fields.endDate = { timestampValue: parseDateTime(opts.endDate).toISOString() }; updateFields.push('endDate'); }
         if (opts.capacity) { fields.guestLimit = { integerValue: String(opts.capacity) }; updateFields.push('guestLimit'); }
 
-        if (opts.link && opts.link.length > 0) {
-          const links = opts.link.map((url, i) => ({
-            url,
-            text: opts.linkText?.[i] || url,
-          }));
+        // Links
+        const links = buildLinks(opts.link, opts.linkText);
+        if (links) {
           fields.links = {
             arrayValue: {
               values: links.map(l => ({
@@ -445,74 +316,19 @@ export function registerEventsCommands(program) {
           updateFields.push('links');
         }
 
-        // Handle image options
-        const imageOpts = [opts.poster, opts.posterSearch, opts.image].filter(Boolean).length;
-        if (imageOpts > 1) {
-          jsonError('Use only one of --poster, --poster-search, or --image.', 3, 'validation_error');
-          return;
-        }
+        // Image options (mutually exclusive)
+        validateImageOptions(opts.poster, opts.posterSearch, opts.image);
 
         if (opts.poster || opts.posterSearch) {
-          const { fetchCatalog, searchPosters, buildPosterImage } = await import('../lib/posters.js');
-          const catalog = await fetchCatalog();
-          let poster;
-
-          if (opts.poster) {
-            poster = catalog.find(p => p.id === opts.poster);
-            if (!poster) {
-              jsonError(`Poster not found: "${opts.poster}". Use "partiful posters search <term>" to find posters.`, 4, 'not_found');
-              return;
-            }
-          } else {
-            const results = searchPosters(catalog, opts.posterSearch);
-            if (results.length === 0) {
-              jsonError(`No posters found matching "${opts.posterSearch}".`, 4, 'not_found');
-              return;
-            }
-            poster = results[0];
-          }
-
-          const imageObj = buildPosterImage(poster);
-          fields.image = { mapValue: { fields: toFirestoreMap(imageObj) } };
+          const posterImage = await resolvePosterImage(opts, fetchCatalog, searchPosters, buildPosterImage);
+          fields.image = { mapValue: { fields: toFirestoreMap(posterImage) } };
           updateFields.push('image');
         }
 
         if (opts.image) {
-          const isImageUrl = opts.image.startsWith('http://') || opts.image.startsWith('https://');
-          if (!isImageUrl) {
-            const ext = pathExtname(opts.image).toLowerCase();
-            const allowed = ['.png', '.jpg', '.jpeg', '.gif', '.webp', '.avif'];
-            if (!allowed.includes(ext)) {
-              jsonError(`Unsupported image type: "${ext}". Allowed: ${allowed.join(', ')}`, 3, 'validation_error');
-              return;
-            }
-          }
-
-          if (globalOpts.dryRun) {
-            if (isImageUrl) {
-              fields.image = { mapValue: { fields: toFirestoreMap({ source: 'upload', url: opts.image, note: 'URL will be downloaded and uploaded on real run' }) } };
-            } else {
-              fields.image = { mapValue: { fields: {} } };
-            }
-            updateFields.push('image');
-          } else if (isImageUrl) {
-            const { downloadToTemp, uploadEventImage, buildUploadImage } = await import('../lib/upload.js');
-            const { tempPath, cleanup } = await downloadToTemp(opts.image);
-            try {
-              const uploadData = await uploadEventImage(tempPath, token, config, globalOpts.verbose);
-              const imageObj = buildUploadImage(uploadData, pathBasename(tempPath));
-              fields.image = { mapValue: { fields: toFirestoreMap(imageObj) } };
-              updateFields.push('image');
-            } finally {
-              cleanup();
-            }
-          } else {
-            const { uploadEventImage, buildUploadImage } = await import('../lib/upload.js');
-            const uploadData = await uploadEventImage(opts.image, token, config, globalOpts.verbose);
-            const imageObj = buildUploadImage(uploadData, pathBasename(opts.image));
-            fields.image = { mapValue: { fields: toFirestoreMap(imageObj) } };
-            updateFields.push('image');
-          }
+          const imageObj = await resolveUploadImage(opts.image, token, config, globalOpts.verbose, globalOpts.dryRun);
+          fields.image = { mapValue: { fields: toFirestoreMap(imageObj) } };
+          updateFields.push('image');
         }
 
         if (opts.cohost && opts.cohost.length > 0) {
@@ -543,8 +359,7 @@ export function registerEventsCommands(program) {
           url: `https://partiful.com/e/${eventId}`,
         });
       } catch (e) {
-        if (e instanceof PartifulError) jsonError(e.message, e.exitCode, e.type, e.details);
-        else jsonError(e.message);
+        handleError(e);
       }
     });
 
@@ -576,21 +391,12 @@ export function registerEventsCommands(program) {
         const token = await getValidToken(config);
 
         // 1. Fetch source event
-        const getPayload = {
-          data: wrapPayload(config, {
-            params: { eventId },
-            amplitudeSessionId: Date.now(),
-            userId: config.userId,
-          }),
-        };
-
         let sourceEvent;
         try {
-          const result = await apiRequest('POST', '/getEvent', token, getPayload, globalOpts.verbose);
+          const result = await apiRequest('POST', '/getEvent', token, makePayload(config, { eventId }), globalOpts.verbose);
           sourceEvent = result.result?.data?.event;
         } catch (e) {
           if (!globalOpts.dryRun) throw e;
-          // In dry-run, tolerate network failure — preview with empty source
           sourceEvent = null;
         }
 
@@ -599,7 +405,6 @@ export function registerEventsCommands(program) {
           return;
         }
 
-        // Use empty object if source not available in dry-run
         const src = sourceEvent || {};
 
         // 2. Parse new date and preserve duration
@@ -610,146 +415,62 @@ export function registerEventsCommands(program) {
         if (opts.endDate) {
           newEnd = parseDateTime(opts.endDate, tz);
         } else if (src.startDate && src.endDate) {
-          const srcStart = new Date(src.startDate);
-          const srcEnd = new Date(src.endDate);
-          const durationMs = srcEnd.getTime() - srcStart.getTime();
-          if (durationMs > 0) {
-            newEnd = new Date(newStart.getTime() + durationMs);
-          }
+          const durationMs = new Date(src.endDate).getTime() - new Date(src.startDate).getTime();
+          if (durationMs > 0) newEnd = new Date(newStart.getTime() + durationMs);
         }
 
-        // 3. Build cloned event payload
-        const event = {
+        // 3. Build cloned event — merge source with overrides
+        const cloneOpts = {
           title: opts.title || src.title || 'Untitled Event',
-          startDate: newStart.toISOString(),
+          date: opts.date,
           timezone: tz,
-          displaySettings: {
-            theme: opts.theme || src.displaySettings?.theme || 'oxblood',
-            effect: opts.effect || src.displaySettings?.effect || 'sunbeams',
-            titleFont: src.displaySettings?.titleFont || 'display',
-          },
-          showHostList: src.showHostList ?? true,
-          showGuestCount: src.showGuestCount ?? true,
-          showGuestList: src.showGuestList ?? true,
-          showActivityTimestamps: src.showActivityTimestamps ?? true,
-          displayInviteButton: src.displayInviteButton ?? true,
-          visibility: opts.private ? 'private' : (src.visibility || 'public'),
-          allowGuestPhotoUpload: src.allowGuestPhotoUpload ?? true,
-          enableGuestReminders: src.enableGuestReminders ?? true,
-          rsvpsEnabled: src.rsvpsEnabled ?? true,
-          allowGuestsToInviteMutuals: src.allowGuestsToInviteMutuals ?? true,
-          rsvpButtonGlyphType: src.rsvpButtonGlyphType ?? 'emojis',
-          status: 'UNSAVED',
-          guestStatusCounts: {
-            READY_TO_SEND: 0, SENDING: 0, SENT: 0, SEND_ERROR: 0,
-            DELIVERY_ERROR: 0, INTERESTED: 0, MAYBE: 0, GOING: 0,
-            DECLINED: 0, WAITLIST: 0, PENDING_APPROVAL: 0, APPROVED: 0,
-            WITHDRAWN: 0, RESPONDED_TO_FIND_A_TIME: 0,
-            WAITLISTED_FOR_APPROVAL: 0, REJECTED: 0,
-          },
+          theme: opts.theme || src.displaySettings?.theme || 'oxblood',
+          effect: opts.effect || src.displaySettings?.effect || 'sunbeams',
+          titleFont: src.displaySettings?.titleFont || 'display',
+          private: opts.private ? true : (src.visibility === 'private'),
+          location: opts.location !== undefined ? opts.location : src.location,
+          address: opts.address !== undefined ? opts.address : src.address,
+          description: opts.description !== undefined ? opts.description : src.description,
+          capacity: opts.capacity !== undefined ? opts.capacity : src.guestLimit,
         };
+
+        const { event } = buildBaseEvent(cloneOpts);
+
+        // Preserve source boolean settings
+        for (const key of ['showHostList', 'showGuestCount', 'showGuestList', 'showActivityTimestamps',
+          'displayInviteButton', 'allowGuestPhotoUpload', 'enableGuestReminders', 'rsvpsEnabled',
+          'allowGuestsToInviteMutuals', 'rsvpButtonGlyphType']) {
+          if (src[key] !== undefined) event[key] = src[key];
+        }
 
         if (newEnd) event.endDate = newEnd.toISOString();
 
-        // Copy location fields
-        const loc = opts.location !== undefined ? opts.location : src.location;
-        if (loc) event.location = loc;
-        const addr = opts.address !== undefined ? opts.address : src.address;
-        if (addr) event.address = addr;
+        // Links
+        const links = buildLinks(opts.link, opts.linkText);
+        if (links) event.links = links;
+        else if (src.links) event.links = src.links;
 
-        // Copy description
-        const desc = opts.description !== undefined ? stripMarkdown(opts.description) : src.description;
-        if (desc) event.description = desc;
+        // Image handling
+        validateImageOptions(opts.poster, opts.posterSearch, opts.image);
 
-        // Copy capacity
-        const cap = opts.capacity !== undefined ? opts.capacity : src.guestLimit;
-        if (cap) {
-          event.guestLimit = cap;
-          event.enableWaitlist = true;
-        }
-
-        // Copy links
-        if (opts.link && opts.link.length > 0) {
-          event.links = opts.link.map((url, i) => ({
-            url,
-            text: opts.linkText?.[i] || url,
-          }));
-        } else if (src.links) {
-          event.links = src.links;
-        }
-
-        // Copy image from source (unless overridden)
-        const imageOptCount = [opts.poster, opts.posterSearch, opts.image].filter(Boolean).length;
-        if (imageOptCount > 1) {
-          jsonError('Use only one of --poster, --poster-search, or --image.', 3, 'validation_error');
-          return;
-        }
-
-        if (opts.poster) {
-          const catalog = await fetchCatalog();
-          const poster = catalog.find(p => p.id === opts.poster);
-          if (!poster) {
-            jsonError(`Poster not found: "${opts.poster}".`, 4, 'not_found');
-            return;
-          }
-          event.image = buildPosterImage(poster);
-        } else if (opts.posterSearch) {
-          const catalog = await fetchCatalog();
-          const results = searchPosters(catalog, opts.posterSearch);
-          if (results.length === 0) {
-            jsonError(`No posters found matching "${opts.posterSearch}".`, 4, 'not_found');
-            return;
-          }
-          event.image = buildPosterImage(results[0]);
+        const posterImage = await resolvePosterImage(opts, fetchCatalog, searchPosters, buildPosterImage);
+        if (posterImage) {
+          event.image = posterImage;
         } else if (opts.image) {
-          const isImageUrl = opts.image.startsWith('http://') || opts.image.startsWith('https://');
-          if (!isImageUrl) {
-            const ext = pathExtname(opts.image).toLowerCase();
-            const allowed = ['.png', '.jpg', '.jpeg', '.gif', '.webp', '.avif'];
-            if (!allowed.includes(ext)) {
-              jsonError(`Unsupported image type "${ext}".`, 3, 'validation_error');
-              return;
-            }
-          }
-          if (globalOpts.dryRun) {
-            event.image = isImageUrl
-              ? { source: 'upload', url: opts.image, note: 'URL will be downloaded and uploaded on real run' }
-              : { source: 'upload', file: opts.image, note: 'File will be uploaded on real run' };
-          } else if (isImageUrl) {
-            const { downloadToTemp, uploadEventImage, buildUploadImage } = await import('../lib/upload.js');
-            const { tempPath, cleanup } = await downloadToTemp(opts.image);
-            try {
-              const uploadData = await uploadEventImage(tempPath, token, config, globalOpts.verbose);
-              event.image = buildUploadImage(uploadData, pathBasename(tempPath));
-            } finally {
-              cleanup();
-            }
-          } else {
-            const { uploadEventImage, buildUploadImage } = await import('../lib/upload.js');
-            const uploadData = await uploadEventImage(opts.image, token, config, globalOpts.verbose);
-            event.image = buildUploadImage(uploadData, pathBasename(opts.image));
-          }
+          event.image = await resolveUploadImage(opts.image, token, config, globalOpts.verbose, globalOpts.dryRun);
         } else if (src.image) {
           event.image = src.image;
         }
 
         const cohostIds = await resolveCohostNames(opts.cohost, token, config, globalOpts.verbose);
 
-        // 4. Build API payload
-        const payload = {
-          data: wrapPayload(config, {
-            params: { event, cohostIds },
-            amplitudeSessionId: Date.now(),
-            userId: config.userId,
-          }),
-        };
+        const payload = makePayload(config, { event, cohostIds });
 
         if (globalOpts.dryRun) {
           jsonOutput({ dryRun: true, endpoint: '/createEvent', clonedFrom: eventId, payload });
           return;
         }
 
-        // 5. Create the event
         const result = await apiRequest('POST', '/createEvent', token, payload, globalOpts.verbose);
         const newEventId = result.result?.data || result.result?.eventId;
 
@@ -761,8 +482,7 @@ export function registerEventsCommands(program) {
           url: `https://partiful.com/e/${newEventId}`,
         });
       } catch (e) {
-        if (e instanceof PartifulError) jsonError(e.message, e.exitCode, e.type, e.details);
-        else jsonError(e.message);
+        handleError(e);
       }
     });
 
@@ -778,15 +498,7 @@ export function registerEventsCommands(program) {
 
         // Confirm unless --yes or --force
         if (!globalOpts.yes && !globalOpts.force) {
-          // Fetch event info first
-          const getPayload = {
-            data: wrapPayload(config, {
-              params: { eventId },
-              amplitudeSessionId: Date.now(),
-              userId: config.userId,
-            }),
-          };
-          const eventResult = await apiRequest('POST', '/getEvent', token, getPayload, globalOpts.verbose);
+          const eventResult = await apiRequest('POST', '/getEvent', token, makePayload(config, { eventId }), globalOpts.verbose);
           const event = eventResult.result?.data?.event;
           if (event) {
             const going = event.guestStatusCounts?.GOING || 0;
@@ -801,13 +513,7 @@ export function registerEventsCommands(program) {
           }
         }
 
-        const payload = {
-          data: wrapPayload(config, {
-            params: { eventId },
-            amplitudeSessionId: Date.now(),
-            userId: config.userId,
-          }),
-        };
+        const payload = makePayload(config, { eventId });
 
         if (globalOpts.dryRun) {
           jsonOutput({ dryRun: true, endpoint: '/cancelEvent', payload });
@@ -817,8 +523,7 @@ export function registerEventsCommands(program) {
         await apiRequest('POST', '/cancelEvent', token, payload, globalOpts.verbose);
         jsonOutput({ id: eventId, cancelled: true });
       } catch (e) {
-        if (e instanceof PartifulError) jsonError(e.message, e.exitCode, e.type, e.details);
-        else jsonError(e.message);
+        handleError(e);
       }
     });
 }
