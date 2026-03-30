@@ -44,8 +44,8 @@ npm install && npm link
 ## Quick Start
 
 ```bash
-# 1. Authenticate (grab tokens from partiful.com — see Auth Setup below)
-partiful auth save --token <accessToken> --refresh <refreshToken> --user-id <userId>
+# 1. Authenticate
+partiful auth login +12065551234
 
 # 2. Verify setup
 partiful doctor
@@ -56,7 +56,7 @@ partiful events create --title "Game Night" --date "Apr 15 7pm" --location "My P
 # 4. List your events
 partiful events list
 
-# 5. Invite and blast
+# 5. Invite and blast (use an eventId from step 4)
 partiful guests list <eventId>
 partiful blasts send <eventId> --message "See you tonight!"
 ```
@@ -66,10 +66,9 @@ partiful blasts send <eventId> --message "See you tonight!"
 ### `auth` — Manage authentication
 
 ```bash
-partiful auth save --token <token> --refresh <refresh> --user-id <id>
-partiful auth status
-partiful auth refresh
-partiful auth clear
+partiful auth login +12065551234    # SMS-based auth
+partiful auth status                # Check current auth
+partiful auth logout                # Clear credentials
 ```
 
 ### `events` — Manage events
@@ -99,7 +98,8 @@ partiful blasts send <eventId> --message "Doors open at 7!"
 ### `contacts` — Manage contacts
 
 ```bash
-partiful contacts list
+partiful contacts list              # All contacts
+partiful contacts list "alex"       # Search by name
 ```
 
 ### `cohosts` — Manage co-hosts
@@ -115,6 +115,7 @@ partiful cohosts remove <eventId>
 ```bash
 partiful posters list
 partiful posters search "birthday"
+partiful posters get <posterId>
 ```
 
 ### `template` — Event templates
@@ -172,17 +173,12 @@ partiful +share <eventId>
 
 ## Auth Setup
 
-Partiful doesn't have a public API. This CLI uses the same internal API as the web app, authenticated via Firebase tokens.
-
-1. Log into [partiful.com](https://partiful.com)
-2. Open DevTools → Application → Local Storage → grab your auth tokens
-3. Save them:
+Partiful doesn't have a public API. This CLI authenticates via SMS verification through Firebase.
 
 ```bash
-partiful auth save --token <accessToken> --refresh <refreshToken> --user-id <userId>
+partiful auth login +12065551234   # sends SMS code, completes auth
+partiful auth status               # verify you're logged in
 ```
-
-4. Verify: `partiful auth status`
 
 Tokens auto-refresh when expired. Run `partiful doctor` if anything seems off.
 
