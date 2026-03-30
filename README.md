@@ -180,6 +180,13 @@ partiful auth login +12065551234   # sends SMS code, completes auth
 partiful auth status               # verify you're logged in
 ```
 
+**How it works:**
+1. You provide your phone number (E.164 format, e.g. `+12065551234`)
+2. Partiful sends an SMS verification code to that number
+3. On macOS with [`imsg`](https://github.com/nicktomlin/imsg) installed, the code is auto-retrieved from Messages
+4. Otherwise, you'll be prompted to enter it manually
+5. Credentials are saved to `~/.config/partiful/auth.json`
+
 Tokens auto-refresh when expired. Run `partiful doctor` if anything seems off.
 
 ## JSON Output
@@ -200,7 +207,12 @@ Exit codes: `0` success · `1` API error · `2` auth error · `3` validation · 
 
 ## Contributing
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for development setup and guidelines.
+```bash
+git clone https://github.com/KalebCole/partiful-cli && cd partiful-cli
+npm install
+npm link          # makes `partiful` available globally for testing
+npm test          # run tests
+```
 
 ## License
 
