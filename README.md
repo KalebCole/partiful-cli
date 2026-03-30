@@ -1,171 +1,190 @@
-# Partiful CLI
+![Banner](https://ghrb.waren.build/banner?header=partiful-cli+%F0%9F%8E%89&subheader=Manage+Partiful+events+from+your+terminal&bg=0d1117&color=f0f6fc&support=false)
 
-JSON-first, agent-friendly CLI for managing [Partiful](https://partiful.com) events from the command line.
+# partiful-cli
 
-## Installation
+> Manage [Partiful](https://partiful.com) events from your terminal. JSON-first, script-friendly.
 
-```bash
-npm install -g .
-# or link for development
-npm link
-```
+[![npm version](https://img.shields.io/npm/v/partiful-cli)](https://www.npmjs.com/package/partiful-cli)
+[![license](https://img.shields.io/npm/l/partiful-cli)](LICENSE)
+[![node](https://img.shields.io/node/v/partiful-cli)](package.json)
 
-Requires **Node.js 18+**.
-
-## Auth Setup
-
-Partiful doesn't offer a public API. This CLI uses the same internal API that the web app uses, authenticated via Firebase tokens.
-
-### Bookmarklet Flow
-
-1. Log into [partiful.com](https://partiful.com) in your browser
-2. Run the bookmarklet extractor or use browser DevTools to capture your auth tokens
-3. Save credentials:
+## Try it now
 
 ```bash
-partiful auth save --token <accessToken> --refresh <refreshToken> --user-id <userId>
+npx partiful-cli --help
 ```
 
-4. Verify:
+## Install
 
 ```bash
-partiful auth status
+# Install globally
+npm install -g partiful-cli
+
+# Or run without installing
+npx partiful-cli <command>
+
+# Or clone and link
+git clone https://github.com/KalebCole/partiful-cli && cd partiful-cli
+npm install && npm link
 ```
 
-Tokens auto-refresh when expired.
+## Features
+
+- 🎉 **Events** — create, list, get, update, cancel
+- 👥 **Guests** — list RSVPs, send invites
+- 📱 **Blasts** — text all your guests at once
+- 🎨 **Posters** — browse and attach poster images
+- 📋 **Templates** — save and reuse event configs
+- 📦 **Bulk** — batch create/update from JSON
+- 👀 **Watch** — live RSVP polling with NDJSON output
+- 🔄 **Clone** — duplicate events to new dates
+- 📤 **Export** — event + guests to JSON or CSV
+- 🩺 **Doctor** — diagnose auth and setup issues
 
 ## Quick Start
 
 ```bash
-# List upcoming events
-partiful events list
+# 1. Authenticate
+partiful auth login +12065551234
 
-# Get event details
-partiful events get <eventId>
+# 2. Verify setup
+partiful doctor
 
-# Create an event
+# 3. Create your first event
 partiful events create --title "Game Night" --date "Apr 15 7pm" --location "My Place"
 
-# List guests
-partiful guests list <eventId>
+# 4. List your events
+partiful events list
 
+# 5. Invite and blast (use an eventId from step 4)
+partiful guests list <eventId>
+partiful blasts send <eventId> --message "See you tonight!"
+```
+
+## Commands
+
+### `auth` — Manage authentication
+
+```bash
+partiful auth login +12065551234    # SMS-based auth
+partiful auth status                # Check current auth
+partiful auth logout                # Clear credentials
+```
+
+### `events` — Manage events
+
+```bash
+partiful events list                # Upcoming events
+partiful events list --past         # Past events
+partiful events get <id>            # Event details
+partiful events create --title "Party" --date "May 1 8pm" --location "Rooftop"
+partiful events update <id> --title "New Title"
+partiful events cancel <id>
+```
+
+### `guests` — Manage event guests
+
+```bash
+partiful guests list <eventId>      # All guests with RSVP status
+partiful guests invite <eventId>    # Send invites
+```
+
+### `blasts` — Text guests
+
+```bash
+partiful blasts send <eventId> --message "Doors open at 7!"
+```
+
+### `contacts` — Manage contacts
+
+```bash
+partiful contacts list              # All contacts
+partiful contacts list "alex"       # Search by name
+```
+
+### `cohosts` — Manage co-hosts
+
+```bash
+partiful cohosts list <eventId>
+partiful cohosts add <eventId> --name "Alex" --name "Jordan"
+partiful cohosts remove <eventId>
+```
+
+### `posters` — Browse poster catalog
+
+```bash
+partiful posters list
+partiful posters search "birthday"
+partiful posters get <posterId>
+```
+
+### `template` — Event templates
+
+```bash
+partiful template list                          # List saved templates
+partiful template show <name>                   # Show template details
+partiful template save --name "Game Night"       # Save a template
+partiful template edit <name>                   # Edit a template
+partiful template delete <name>                 # Delete a template
+```
+
+### `bulk` — Batch operations
+
+```bash
+partiful bulk create events.json                              # Create from JSON file
+partiful bulk update --filter "title contains Game" --location "New Spot"  # Bulk update
+```
+
+### `schema` — Introspect command parameters
+
+```bash
+partiful schema events.create       # Show params for events create
+```
+
+### `doctor` — Health check
+
+```bash
+partiful doctor                     # Check auth, connectivity, setup
+```
+
+### Helper commands
+
+Helpers use the `+` prefix:
+
+```bash
 # Clone an event to next week
 partiful +clone <eventId>
+partiful +clone <eventId> --date "May 1 8pm" --title "Game Night v2"
 
-# Export event + guests
-partiful +export <eventId> --format json --output event.json
+# Watch RSVPs in real-time (NDJSON stream)
+partiful +watch <eventId> --interval 15 --duration 30
 
-# Share link
+# Export event + guest list
+partiful +export <eventId> --format json --output party.json
+partiful +export <eventId> --format csv
+
+# Get shareable link
 partiful +share <eventId>
 ```
 
-## Command Reference
+## Global Flags
 
-### Global Options
+`--format <fmt>` (json/table/csv/ndjson) · `--dry-run` · `-y, --yes` · `--force` · `-v, --verbose` · `-o, --output <path>` · `--no-color`
 
-| Option | Description |
-|--------|-------------|
-| `--format <fmt>` | Output format: `json` (default), `table`, `csv`, `ndjson` |
-| `--dry-run` | Preview request without executing |
-| `-y, --yes` | Skip confirmation prompts |
-| `--force` | Skip confirmation and overwrite protection |
-| `-v, --verbose` | Show request details on stderr |
-| `-o, --output <path>` | Write output to file |
-| `--no-color` | Disable colored output |
+## Auth Setup
 
-### Commands
-
-#### `auth` — Manage authentication
-
-| Subcommand | Description |
-|------------|-------------|
-| `auth save` | Save auth credentials (`--token`, `--refresh`, `--user-id`) |
-| `auth status` | Check current auth status |
-| `auth refresh` | Force token refresh |
-| `auth clear` | Remove saved credentials |
-
-#### `events` — Manage events
-
-| Subcommand | Description |
-|------------|-------------|
-| `events list` | List upcoming events (`--past` for past events) |
-| `events get <id>` | Get event details |
-| `events create` | Create a new event (`--title`, `--date`, `--location`, etc.) |
-| `events update <id>` | Update event via Firestore (`--title`, `--date`, etc.) |
-| `events cancel <id>` | Cancel an event |
-
-#### `guests` — Manage event guests
-
-| Subcommand | Description |
-|------------|-------------|
-| `guests list <eventId>` | List guests with RSVP status |
-| `guests summary <eventId>` | Guest count summary by status |
-
-#### `contacts` — Manage contacts
-
-| Subcommand | Description |
-|------------|-------------|
-| `contacts list` | List your Partiful contacts |
-
-#### `blasts` — Text blasts to event guests
-
-| Subcommand | Description |
-|------------|-------------|
-| `blasts send <eventId>` | Send a text blast (`--message`, `--filter`) |
-| `blasts history <eventId>` | View blast history |
-
-### Helper Commands
-
-Helpers use the `+` prefix to distinguish from core CRUD commands.
-
-| Command | Description |
-|---------|-------------|
-| `+clone <eventId>` | Clone an event with shifted date (`--title`, `--date`, `--shift <days>`) |
-| `+watch <eventId>` | Poll for guest RSVP changes as NDJSON (`--interval <s>`, `--duration <m>`) |
-| `+export <eventId>` | Export event + guests to file (`--format json\|csv`, `--output <path>`) |
-| `+share <eventId>` | Generate shareable event link |
-
-#### `+clone` Examples
+Partiful doesn't have a public API. This CLI authenticates via SMS verification through Firebase.
 
 ```bash
-# Clone to next week (default: +7 days)
-partiful +clone FDwyIXK42phoWEZgFin5
-
-# Clone with specific date
-partiful +clone FDwyIXK42phoWEZgFin5 --date "May 1 8pm"
-
-# Clone with new title
-partiful +clone FDwyIXK42phoWEZgFin5 --title "Game Night v2" --shift 14
+partiful auth login +12065551234   # sends SMS code, completes auth
+partiful auth status               # verify you're logged in
 ```
 
-#### `+watch` Example
+Tokens auto-refresh when expired. Run `partiful doctor` if anything seems off.
 
-```bash
-# Watch for 30 minutes, polling every 15 seconds
-partiful +watch FDwyIXK42phoWEZgFin5 --interval 15 --duration 30
-```
+## JSON Output
 
-Output (NDJSON):
-```json
-{"type":"rsvp_change","guest":{"name":"Alex","count":1},"from":"SENT","to":"GOING","timestamp":"..."}
-{"type":"new_guest","guest":{"name":"Jordan","count":2},"from":null,"to":"GOING","timestamp":"..."}
-```
-
-#### `+export` Example
-
-```bash
-# Export as JSON
-partiful +export FDwyIXK42phoWEZgFin5 --output party.json
-
-# Export guest list as CSV
-partiful +export FDwyIXK42phoWEZgFin5 --format csv
-```
-
-## JSON Envelope Format
-
-All JSON output follows a consistent envelope:
-
-### Success
+All commands support `--format json`. Responses follow a consistent envelope:
 
 ```json
 {
@@ -175,33 +194,13 @@ All JSON output follows a consistent envelope:
 }
 ```
 
-### Error
+Errors return `{ "status": "error", "error": { "code": 1, "type": "api_error", "message": "..." } }`.
 
-```json
-{
-  "status": "error",
-  "error": {
-    "code": 1,
-    "type": "api_error",
-    "message": "Description of what went wrong"
-  }
-}
-```
-
-## Exit Codes
-
-| Code | Meaning |
-|------|---------|
-| `0` | Success |
-| `1` | API error |
-| `2` | Authentication error |
-| `3` | Validation error |
-| `4` | Not found |
-| `5` | Internal error |
+Exit codes: `0` success · `1` API error · `2` auth error · `3` validation · `4` not found · `5` internal.
 
 ## Contributing
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for development setup, testing, and contribution guidelines.
+See [CONTRIBUTING.md](CONTRIBUTING.md) for development setup and guidelines.
 
 ## License
 
