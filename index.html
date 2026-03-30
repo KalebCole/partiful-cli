@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>partiful-cli — Your parties. Your terminal.</title>
+  <meta name="description" content="The unofficial CLI for Partiful. Create events, manage guests, send blasts — all from your terminal.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Syne:wght@700;800&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-deep: #0a0a12;
+      --bg-card: #12121e;
+      --bg-terminal: #0d0d18;
+      --neon-magenta: #ff2d78;
+      --neon-coral: #ff6b6b;
+      --neon-amber: #ffbe0b;
+      --neon-cyan: #00f5d4;
+      --text-primary: #e8e6f0;
+      --text-muted: #8b87a0;
+      --text-dim: #5a5672;
+      --border: #1e1e30;
+      --glow-magenta: rgba(255, 45, 120, 0.15);
+      --glow-cyan: rgba(0, 245, 212, 0.1);
+      --font-display: 'Syne', sans-serif;
+      --font-body: 'Outfit', sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: var(--bg-deep);
+      color: var(--text-primary);
+      font-family: var(--font-body);
+      font-weight: 400;
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+
+    /* ─── Animated background ─── */
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background:
+        radial-gradient(ellipse 80% 60% at 20% 10%, var(--glow-magenta), transparent),
+        radial-gradient(ellipse 60% 50% at 80% 80%, var(--glow-cyan), transparent),
+        radial-gradient(ellipse 40% 40% at 50% 50%, rgba(255, 190, 11, 0.04), transparent);
+      z-index: -1;
+      animation: bgPulse 12s ease-in-out infinite alternate;
+    }
+
+    @keyframes bgPulse {
+      0% { opacity: 0.6; }
+      100% { opacity: 1; }
+    }
+
+    /* ─── Noise overlay ─── */
+    body::after {
+      content: '';
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+      z-index: -1;
+      pointer-events: none;
+    }
+
+    .container {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    /* ─── Nav ─── */
+    nav {
+      padding: 24px 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    nav .logo {
+      font-family: var(--font-mono);
+      font-weight: 700;
+      font-size: 1.1rem;
+      color: var(--neon-magenta);
+      text-decoration: none;
+      letter-spacing: -0.02em;
+    }
+
+    nav .links {
+      display: flex;
+      gap: 24px;
+    }
+
+    nav .links a {
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+
+    nav .links a:hover { color: var(--text-primary); }
+
+    /* ─── Hero ─── */
+    .hero {
+      padding: 80px 0 60px;
+      text-align: center;
+    }
+
+    .hero-badge {
+      display: inline-block;
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      color: var(--neon-cyan);
+      background: rgba(0, 245, 212, 0.08);
+      border: 1px solid rgba(0, 245, 212, 0.2);
+      padding: 6px 16px;
+      border-radius: 100px;
+      margin-bottom: 28px;
+      letter-spacing: 0.04em;
+    }
+
+    .hero h1 {
+      font-family: var(--font-display);
+      font-weight: 800;
+      font-size: clamp(3rem, 8vw, 5.5rem);
+      letter-spacing: -0.04em;
+      line-height: 1;
+      margin-bottom: 16px;
+      background: linear-gradient(135deg, var(--text-primary) 0%, var(--neon-magenta) 50%, var(--neon-coral) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero .tagline {
+      font-family: var(--font-body);
+      font-weight: 300;
+      font-size: 1.35rem;
+      color: var(--text-muted);
+      margin-bottom: 48px;
+    }
+
+    /* ─── Terminal ─── */
+    .terminal {
+      background: var(--bg-terminal);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      text-align: left;
+      max-width: 680px;
+      margin: 0 auto;
+      box-shadow:
+        0 4px 60px rgba(255, 45, 120, 0.06),
+        0 0 0 1px rgba(255, 255, 255, 0.03);
+    }
+
+    .terminal-bar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 14px 18px;
+      background: rgba(255, 255, 255, 0.02);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .terminal-dot {
+      width: 12px; height: 12px;
+      border-radius: 50%;
+    }
+    .terminal-dot.red { background: #ff5f57; }
+    .terminal-dot.yellow { background: #febc2e; }
+    .terminal-dot.green { background: #28c840; }
+
+    .terminal-title {
+      flex: 1;
+      text-align: center;
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      color: var(--text-dim);
+    }
+
+    .terminal-body {
+      padding: 20px 22px;
+      font-family: var(--font-mono);
+      font-size: 0.82rem;
+      line-height: 1.8;
+      min-height: 220px;
+    }
+
+    .terminal-line {
+      opacity: 0;
+      animation: lineAppear 0.4s ease forwards;
+      white-space: nowrap;
+      overflow: hidden;
+    }
+
+    .terminal-line .prompt { color: var(--neon-cyan); }
+    .terminal-line .cmd { color: var(--text-primary); }
+    .terminal-line .flag { color: var(--neon-amber); }
+    .terminal-line .str { color: var(--neon-magenta); }
+    .terminal-line .output { color: var(--text-dim); font-style: italic; }
+
+    .terminal-line:nth-child(1) { animation-delay: 0.5s; }
+    .terminal-line:nth-child(2) { animation-delay: 1.2s; }
+    .terminal-line:nth-child(3) { animation-delay: 2.2s; }
+    .terminal-line:nth-child(4) { animation-delay: 2.9s; }
+    .terminal-line:nth-child(5) { animation-delay: 3.9s; }
+    .terminal-line:nth-child(6) { animation-delay: 4.6s; }
+    .terminal-line:nth-child(7) { animation-delay: 5.6s; }
+    .terminal-line:nth-child(8) { animation-delay: 6.3s; }
+
+    @keyframes lineAppear {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ─── Install Section ─── */
+    .install-section {
+      padding: 60px 0;
+      text-align: center;
+    }
+
+    .install-box {
+      display: inline-flex;
+      align-items: center;
+      gap: 16px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 16px 20px 16px 24px;
+      cursor: pointer;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .install-box:hover {
+      border-color: rgba(255, 45, 120, 0.3);
+      box-shadow: 0 0 30px rgba(255, 45, 120, 0.06);
+    }
+
+    .install-box code {
+      font-family: var(--font-mono);
+      font-size: 0.95rem;
+      color: var(--text-primary);
+    }
+
+    .install-box .copy-btn {
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text-muted);
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      padding: 6px 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .install-box .copy-btn:hover {
+      color: var(--neon-cyan);
+      border-color: rgba(0, 245, 212, 0.3);
+    }
+
+    /* ─── Section headings ─── */
+    .section-title {
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 2.2rem;
+      letter-spacing: -0.03em;
+      margin-bottom: 12px;
+    }
+
+    .section-subtitle {
+      color: var(--text-muted);
+      font-size: 1.05rem;
+      margin-bottom: 48px;
+    }
+
+    /* ─── Features ─── */
+    .features-section {
+      padding: 60px 0;
+    }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 16px;
+    }
+
+    .feature-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 22px 24px;
+      transition: border-color 0.25s, transform 0.25s;
+    }
+
+    .feature-card:hover {
+      border-color: rgba(255, 45, 120, 0.25);
+      transform: translateY(-2px);
+    }
+
+    .feature-card .emoji {
+      font-size: 1.5rem;
+      margin-bottom: 10px;
+      display: block;
+    }
+
+    .feature-card h3 {
+      font-family: var(--font-body);
+      font-weight: 600;
+      font-size: 0.95rem;
+      margin-bottom: 6px;
+    }
+
+    .feature-card p {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+
+    /* ─── Quick Start ─── */
+    .quickstart-section {
+      padding: 60px 0;
+    }
+
+    .step {
+      display: flex;
+      gap: 24px;
+      margin-bottom: 32px;
+      align-items: flex-start;
+    }
+
+    .step-num {
+      flex-shrink: 0;
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      background: rgba(255, 45, 120, 0.1);
+      border: 1px solid rgba(255, 45, 120, 0.25);
+      font-family: var(--font-mono);
+      font-weight: 700;
+      font-size: 0.85rem;
+      color: var(--neon-magenta);
+    }
+
+    .step-content h3 {
+      font-family: var(--font-body);
+      font-weight: 600;
+      font-size: 1rem;
+      margin-bottom: 8px;
+    }
+
+    .step-content code {
+      display: block;
+      background: var(--bg-terminal);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px 16px;
+      font-family: var(--font-mono);
+      font-size: 0.82rem;
+      color: var(--neon-cyan);
+      overflow-x: auto;
+    }
+
+    /* ─── Footer ─── */
+    footer {
+      padding: 48px 0;
+      border-top: 1px solid var(--border);
+      text-align: center;
+    }
+
+    footer .footer-links {
+      display: flex;
+      justify-content: center;
+      gap: 32px;
+      margin-bottom: 20px;
+    }
+
+    footer a {
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+
+    footer a:hover { color: var(--neon-magenta); }
+
+    footer .license {
+      font-size: 0.75rem;
+      color: var(--text-dim);
+    }
+
+    /* ─── Responsive ─── */
+    @media (max-width: 640px) {
+      .hero { padding: 48px 0 40px; }
+      .hero .tagline { font-size: 1.1rem; }
+      .terminal-body { font-size: 0.72rem; padding: 16px; }
+      .features-grid { grid-template-columns: 1fr; }
+      .step { flex-direction: column; gap: 12px; }
+      nav .links { gap: 16px; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+
+    <!-- Nav -->
+    <nav>
+      <a href="#" class="logo">partiful-cli</a>
+      <div class="links">
+        <a href="#features">Features</a>
+        <a href="#quickstart">Quick Start</a>
+        <a href="https://github.com/KalebCole/partiful-cli">GitHub</a>
+        <a href="https://www.npmjs.com/package/partiful-cli">npm</a>
+      </div>
+    </nav>
+
+    <!-- Hero -->
+    <section class="hero">
+      <span class="hero-badge">open source · works on macOS, Linux, Windows</span>
+      <h1>partiful-cli</h1>
+      <p class="tagline">Your parties. Your terminal.</p>
+
+      <div class="terminal">
+        <div class="terminal-bar">
+          <span class="terminal-dot red"></span>
+          <span class="terminal-dot yellow"></span>
+          <span class="terminal-dot green"></span>
+          <span class="terminal-title">~/events — zsh</span>
+          <span style="width: 36px;"></span>
+        </div>
+        <div class="terminal-body">
+          <div class="terminal-line">
+            <span class="prompt">❯ </span><span class="cmd">partiful events list</span>
+          </div>
+          <div class="terminal-line">
+            <span class="output">  ✓ 4 upcoming events</span>
+          </div>
+          <div class="terminal-line">
+            <span class="prompt">❯ </span><span class="cmd">partiful events create </span><span class="flag">--title</span> <span class="str">"Rooftop Vibes"</span> <span class="flag">--date</span> <span class="str">"Jun 15 8pm"</span>
+          </div>
+          <div class="terminal-line">
+            <span class="output">  ✓ Event created — id: ev_a7x92k</span>
+          </div>
+          <div class="terminal-line">
+            <span class="prompt">❯ </span><span class="cmd">partiful guests invite ev_a7x92k </span><span class="flag">--phone</span> <span class="str">+12065551234</span>
+          </div>
+          <div class="terminal-line">
+            <span class="output">  ✓ 1 guest invited</span>
+          </div>
+          <div class="terminal-line">
+            <span class="prompt">❯ </span><span class="cmd">partiful blasts send ev_a7x92k </span><span class="flag">--message</span> <span class="str">"Doors open at 8!"</span>
+          </div>
+          <div class="terminal-line">
+            <span class="output">  ✓ Blast sent to 23 guests (GOING)</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Install -->
+    <section class="install-section">
+      <div class="install-box" onclick="copyInstall(this)">
+        <code>npm install -g partiful-cli</code>
+        <button class="copy-btn" aria-label="Copy install command">copy</button>
+      </div>
+    </section>
+
+    <!-- Features -->
+    <section class="features-section" id="features">
+      <div style="text-align: center;">
+        <h2 class="section-title">Everything you need</h2>
+        <p class="section-subtitle">Full Partiful control without leaving your terminal.</p>
+      </div>
+      <div class="features-grid">
+        <div class="feature-card">
+          <span class="emoji">🎉</span>
+          <h3>Create & manage events</h3>
+          <p>Create, update, list, and inspect events with full control over every detail.</p>
+        </div>
+        <div class="feature-card">
+          <span class="emoji">👥</span>
+          <h3>Guest management</h3>
+          <p>Invite by phone or user ID. Track RSVPs — going, maybe, waitlist, declined.</p>
+        </div>
+        <div class="feature-card">
+          <span class="emoji">📢</span>
+          <h3>Text blasts</h3>
+          <p>Send messages to guests filtered by RSVP status. Show on event page or keep private.</p>
+        </div>
+        <div class="feature-card">
+          <span class="emoji">🎨</span>
+          <h3>Poster catalog</h3>
+          <p>Browse, search, and preview Partiful's poster library by category or content type.</p>
+        </div>
+        <div class="feature-card">
+          <span class="emoji">👯</span>
+          <h3>Co-host management</h3>
+          <p>Add and remove co-hosts by name or user ID. List all co-hosts for any event.</p>
+        </div>
+        <div class="feature-card">
+          <span class="emoji">📋</span>
+          <h3>Event templates</h3>
+          <p>Save events as templates. Create new events from templates in one command.</p>
+        </div>
+        <div class="feature-card">
+          <span class="emoji">🔄</span>
+          <h3>Bulk operations</h3>
+          <p>Create event series from CSV. Bulk update capacity, location, description with filters.</p>
+        </div>
+        <div class="feature-card">
+          <span class="emoji">🔧</span>
+          <h3>JSON output</h3>
+          <p>Every command supports <code style="background:var(--bg-deep); padding:2px 6px; border-radius:4px; font-size:0.8rem;">--format json</code> for scripting and automation.</p>
+        </div>
+        <div class="feature-card">
+          <span class="emoji">🩺</span>
+          <h3>Built-in diagnostics</h3>
+          <p>Run <code style="background:var(--bg-deep); padding:2px 6px; border-radius:4px; font-size:0.8rem;">partiful doctor</code> to verify auth, connectivity, and config health.</p>
+        </div>
+        <div class="feature-card">
+          <span class="emoji">📇</span>
+          <h3>Contact management</h3>
+          <p>List and search your Partiful contacts. Resolve names for invites and co-hosts.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Quick Start -->
+    <section class="quickstart-section" id="quickstart">
+      <div style="text-align: center;">
+        <h2 class="section-title">Get started in 60 seconds</h2>
+        <p class="section-subtitle">From install to your first event.</p>
+      </div>
+
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-content">
+          <h3>Install</h3>
+          <code>npm install -g partiful-cli</code>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-content">
+          <h3>Authenticate with your phone number</h3>
+          <code>partiful auth login +12065551234</code>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-content">
+          <h3>List your events</h3>
+          <code>partiful events list</code>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">4</div>
+        <div class="step-content">
+          <h3>Create an event</h3>
+          <code>partiful events create --title "Game Night" --date "2025-07-04 7pm" --location "My Place"</code>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">5</div>
+        <div class="step-content">
+          <h3>Invite guests & send a blast</h3>
+          <code>partiful guests invite &lt;eventId&gt; --phone +12065559876<br>partiful blasts send &lt;eventId&gt; --message "See you there!"</code>
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+      <div class="footer-links">
+        <a href="https://github.com/KalebCole/partiful-cli">GitHub</a>
+        <a href="https://www.npmjs.com/package/partiful-cli">npm</a>
+        <a href="https://github.com/KalebCole/partiful-cli/issues">Issues</a>
+      </div>
+      <p class="license">MIT License · Built by <a href="https://github.com/KalebCole" style="color: var(--text-muted);">Kaleb Cole</a></p>
+    </footer>
+
+  </div>
+
+  <script>
+    function copyInstall(el) {
+      navigator.clipboard.writeText('npm install -g partiful-cli').then(() => {
+        const btn = el.querySelector('.copy-btn');
+        btn.textContent = 'copied!';
+        btn.style.color = 'var(--neon-cyan)';
+        setTimeout(() => {
+          btn.textContent = 'copy';
+          btn.style.color = '';
+        }, 2000);
+      });
+    }
+  </script>
+
+</body>
+</html>
