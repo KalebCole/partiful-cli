@@ -31,7 +31,7 @@ npm install && npm link
 ## Features
 
 - 🎉 **Events** — create, list, get, update, cancel
-- 👥 **Guests** — list RSVPs, view summaries
+- 👥 **Guests** — list RSVPs, send invites
 - 📱 **Blasts** — text all your guests at once
 - 🎨 **Posters** — browse and attach poster images
 - 📋 **Templates** — save and reuse event configs
@@ -87,14 +87,13 @@ partiful events cancel <id>
 
 ```bash
 partiful guests list <eventId>      # All guests with RSVP status
-partiful guests summary <eventId>   # Count by status
+partiful guests invite <eventId>    # Send invites
 ```
 
 ### `blasts` — Text guests
 
 ```bash
 partiful blasts send <eventId> --message "Doors open at 7!"
-partiful blasts history <eventId>
 ```
 
 ### `contacts` — Manage contacts
@@ -107,7 +106,8 @@ partiful contacts list
 
 ```bash
 partiful cohosts list <eventId>
-partiful cohosts add <eventId> --user <userId>
+partiful cohosts add <eventId> --name "Alex" --name "Jordan"
+partiful cohosts remove <eventId>
 ```
 
 ### `posters` — Browse poster catalog
@@ -120,16 +120,18 @@ partiful posters search "birthday"
 ### `template` — Event templates
 
 ```bash
-partiful template list
-partiful template save <eventId> --name "Weekly Game Night"
-partiful template create <templateName>
+partiful template list                          # List saved templates
+partiful template show <name>                   # Show template details
+partiful template save --name "Game Night"       # Save a template
+partiful template edit <name>                   # Edit a template
+partiful template delete <name>                 # Delete a template
 ```
 
 ### `bulk` — Batch operations
 
 ```bash
-partiful bulk create --file events.json
-partiful bulk update --file updates.json
+partiful bulk create events.json                              # Create from JSON file
+partiful bulk update --filter "title contains Game" --location "New Spot"  # Bulk update
 ```
 
 ### `schema` — Introspect command parameters
