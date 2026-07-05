@@ -201,6 +201,27 @@ All commands support `--format json`. Responses follow a consistent envelope:
 }
 ```
 
+`events list` returns one summary object per event. Each includes your **own** RSVP and host status:
+
+```json
+{
+  "id": "BiwCtA9kRMh8Od5TvuPq",
+  "title": "Skills & Drills",
+  "startDate": "2026-07-08T01:30:00.000Z",
+  "endDate": null,
+  "location": null,
+  "status": "PUBLISHED",
+  "isHost": false,
+  "myRsvp": "GOING",
+  "going": 12,
+  "maybe": 14,
+  "url": "https://partiful.com/e/BiwCtA9kRMh8Od5TvuPq"
+}
+```
+
+- **`myRsvp`** — your personal RSVP: `GOING`, `MAYBE`, `DECLINED`, `SENT` (invited, no reply yet), or `null` on events you host. Filter on this to sync only the events you've accepted, e.g. `partiful events list | jq '.data[] | select(.myRsvp == "GOING")'`.
+- **`isHost`** — `true` for events you own. (`going`/`maybe` are aggregate counts across all guests, not your status.)
+
 Errors return `{ "status": "error", "error": { "code": 1, "type": "api_error", "message": "..." } }`.
 
 Exit codes: `0` success · `1` API error · `2` auth error · `3` validation · `4` not found · `5` internal.

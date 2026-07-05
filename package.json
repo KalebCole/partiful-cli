@@ -1,6 +1,6 @@
 {
   "name": "partiful-cli",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "description": "CLI for creating and managing Partiful events via API — JSON-first, agent-friendly",
   "type": "module",
   "bin": {

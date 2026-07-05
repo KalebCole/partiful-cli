@@ -71,8 +71,54 @@ export async function getValidToken(config) {
     config.refreshToken = result.refresh_token;
   }
 
+  // Self-heal: older auth.json files predate userId capture. Backfill it from
+  // the token here (the refresh path already persists config below), so
+  // host detection and any userId-dependent payloads work without re-login.
+  // Note: the env-var token path returns early above and never writes to disk.
+  if (!config.userId) {
+    const uid = getUserIdFromToken(config.accessToken);
+    if (uid) config.userId = uid;
+  }
+
   saveConfig(config);
   return config.accessToken;
+}
+
+/**
+ * Decode the (unverified) payload of a Firebase JWT.
+ *
+ * The CLI does not need to verify the signature — the token was already issued
+ * to us by Firebase and is only decoded to read identity claims. Returns null
+ * for anything that is not a well-formed three-segment JWT.
+ *
+ * @param {string} token JWT string (header.payload.signature).
+ * @returns {object|null} Decoded payload object, or null on any parse failure.
+ */
+export function decodeJwtPayload(token) {
+  if (typeof token !== 'string') return null;
+  const parts = token.split('.');
+  if (parts.length !== 3) return null;
+  try {
+    // JWTs use base64url; normalise to base64 before decoding.
+    const b64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+    return JSON.parse(Buffer.from(b64, 'base64').toString('utf8'));
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Extract the authenticated user's Partiful user ID from a Firebase token.
+ * Firebase ID tokens carry the UID in both `user_id` and the standard `sub`
+ * claim; we prefer `user_id` and fall back to `sub`.
+ *
+ * @param {string} token Firebase JWT.
+ * @returns {string|null} The user ID, or null if it cannot be determined.
+ */
+export function getUserIdFromToken(token) {
+  const payload = decodeJwtPayload(token);
+  if (!payload || typeof payload !== 'object') return null;
+  return payload.user_id || payload.sub || null;
 }
 
 export function wrapPayload(config, params = {}) {

@@ -2,7 +2,7 @@
  * Events commands: list, get, create, update, cancel
  */
 
-import { loadConfig, getValidToken, wrapPayload } from '../lib/auth.js';
+import { loadConfig, getValidToken, wrapPayload, getUserIdFromToken } from '../lib/auth.js';
 import { resolveCohostNames } from '../lib/cohosts.js';
 import { fetchCatalog, searchPosters, buildPosterImage } from '../lib/posters.js';
 import { apiRequest, firestoreRequest } from '../lib/http.js';
@@ -12,7 +12,7 @@ import { PartifulError } from '../lib/errors.js';
 import {
   confirm, buildBaseEvent, buildLinks, toFirestoreMap,
   validateImageOptions, resolvePosterImage, resolveUploadImage,
-  isUrl, ALLOWED_IMAGE_EXTENSIONS,
+  isUrl, ALLOWED_IMAGE_EXTENSIONS, mapEventSummary,
 } from '../lib/events.js';
 
 /**
@@ -71,18 +71,13 @@ export function registerEventsCommands(program) {
           eventList = eventList.filter(e => e.status !== 'CANCELED');
         }
 
-        const mapped = (eventList || []).map(e => ({
-          id: e.id,
-          title: e.title,
-          startDate: e.startDate,
-          endDate: e.endDate || null,
-          location: e.location || null,
-          status: e.status,
-          isHost: e.ownerIds?.includes(config.userId) || false,
-          going: e.guestStatusCounts?.GOING || 0,
-          maybe: e.guestStatusCounts?.MAYBE || 0,
-          url: `https://partiful.com/e/${e.id}`,
-        }));
+        // Identify the authenticated user so we can surface their own RSVP
+        // (myRsvp) and host status. config.userId is backfilled on token
+        // refresh, but fall back to decoding the token directly for the
+        // PARTIFUL_TOKEN env path where config.userId is never set.
+        const me = config.userId || getUserIdFromToken(token);
+
+        const mapped = (eventList || []).map(e => mapEventSummary(e, me));
 
         jsonOutput(mapped, { count: mapped.length, type: opts.past ? 'past' : 'upcoming' });
       } catch (e) {
