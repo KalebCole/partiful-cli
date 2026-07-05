@@ -1,4 +1,5 @@
 import { Command } from 'commander';
+import { createRequire } from 'module';
 import { registerAuthCommands } from './commands/auth.js';
 import { registerEventsCommands } from './commands/events.js';
 import { registerGuestsCommands } from './commands/guests.js';
@@ -17,13 +18,17 @@ import { registerBulkCommands } from './commands/bulk.js';
 import { registerSetupCommands } from './commands/setup.js';
 import { jsonOutput } from './lib/output.js';
 
+// Single source of truth for the version — read from package.json so the
+// CLI's --version can never drift from the published package version.
+const { version: pkgVersion } = createRequire(import.meta.url)('../package.json');
+
 export function run() {
   const program = new Command();
 
   program
     .name('partiful')
     .description('Manage Partiful events from the command line — JSON-first, agent-friendly')
-    .version('2.0.0')
+    .version(pkgVersion)
     .option('--format <format>', 'Output format: json, table, csv, ndjson', process.env.PARTIFUL_FORMAT || 'json')
     .option('--dry-run', 'Preview request without executing')
     .option('-y, --yes', 'Skip confirmation prompts')
