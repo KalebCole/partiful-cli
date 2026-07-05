@@ -31,7 +31,7 @@ export function registerCloneHelper(program) {
           }),
         };
 
-        const getResult = await apiRequest('POST', '/getEvent', token, getPayload, globalOpts.verbose);
+        const getResult = await apiRequest('POST', '/getEventInfo', token, getPayload, globalOpts.verbose);
         const source = getResult.result?.data?.event;
 
         if (!source) {

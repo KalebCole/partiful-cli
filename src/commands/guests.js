@@ -58,7 +58,7 @@ export function registerGuestsCommands(program) {
         let counts = {};
         let eventTitle = 'Unknown Event';
         try {
-          const eventResult = await apiRequest('POST', '/getEvent', token, eventPayload, globalOpts.verbose);
+          const eventResult = await apiRequest('POST', '/getEventInfo', token, eventPayload, globalOpts.verbose);
           const event = eventResult.result?.data?.event;
           if (event) {
             eventTitle = event.title;

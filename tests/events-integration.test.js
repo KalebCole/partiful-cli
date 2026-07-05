@@ -20,7 +20,7 @@ describe('events integration', () => {
       const out = run(['events', 'get', 'test-event-123', '--dry-run']);
       expect(out.status).toBe('success');
       expect(out.data.dryRun).toBe(true);
-      expect(out.data.endpoint).toBe('/getEvent');
+      expect(out.data.endpoint).toBe('/getEventInfo');
     });
 
     it('events create --dry-run', () => {

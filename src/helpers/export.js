@@ -31,7 +31,7 @@ export function registerExportHelper(program) {
           }),
         };
 
-        const result = await apiRequest('POST', '/getEvent', token, payload, globalOpts.verbose);
+        const result = await apiRequest('POST', '/getEventInfo', token, payload, globalOpts.verbose);
         const event = result.result?.data?.event;
 
         if (!event) {

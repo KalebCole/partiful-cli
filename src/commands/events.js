@@ -103,11 +103,11 @@ export function registerEventsCommands(program) {
         const payload = makePayload(config, { eventId });
 
         if (globalOpts.dryRun) {
-          jsonOutput({ dryRun: true, endpoint: '/getEvent', payload });
+          jsonOutput({ dryRun: true, endpoint: '/getEventInfo', payload });
           return;
         }
 
-        const result = await apiRequest('POST', '/getEvent', token, payload, globalOpts.verbose);
+        const result = await apiRequest('POST', '/getEventInfo', token, payload, globalOpts.verbose);
         const event = result.result?.data?.event;
 
         if (!event) {
@@ -393,7 +393,7 @@ export function registerEventsCommands(program) {
         // 1. Fetch source event
         let sourceEvent;
         try {
-          const result = await apiRequest('POST', '/getEvent', token, makePayload(config, { eventId }), globalOpts.verbose);
+          const result = await apiRequest('POST', '/getEventInfo', token, makePayload(config, { eventId }), globalOpts.verbose);
           sourceEvent = result.result?.data?.event;
         } catch (e) {
           if (!globalOpts.dryRun) throw e;
@@ -498,7 +498,7 @@ export function registerEventsCommands(program) {
 
         // Confirm unless --yes or --force
         if (!globalOpts.yes && !globalOpts.force) {
-          const eventResult = await apiRequest('POST', '/getEvent', token, makePayload(config, { eventId }), globalOpts.verbose);
+          const eventResult = await apiRequest('POST', '/getEventInfo', token, makePayload(config, { eventId }), globalOpts.verbose);
           const event = eventResult.result?.data?.event;
           if (event) {
             const going = event.guestStatusCounts?.GOING || 0;
