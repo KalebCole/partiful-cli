@@ -173,6 +173,17 @@ export function validateImageOptions(...imageOpts) {
 }
 
 /**
+ * Canonical public URL for an event's Partiful page.
+ * Single source of truth for the `partiful.com/e/<id>` format.
+ *
+ * @param {string} id  Event ID.
+ * @returns {string} The event's public URL.
+ */
+export function buildEventUrl(id) {
+  return `https://partiful.com/e/${id}`;
+}
+
+/**
  * Map a raw event object from the Partiful home-page endpoints
  * (getMyUpcomingEventsForHomePage / getMyPastEventsForHomePage) into the
  * compact summary shape returned by `events list`.
@@ -204,7 +215,7 @@ export function mapEventSummary(e, me) {
     myRsvp: e.guest?.status ?? null,
     going: e.guestStatusCounts?.GOING || 0,
     maybe: e.guestStatusCounts?.MAYBE || 0,
-    url: `https://partiful.com/e/${e.id}`,
+    url: buildEventUrl(e.id),
   };
 }
 

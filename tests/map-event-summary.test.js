@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { mapEventSummary } from '../src/lib/events.js';
+import { mapEventSummary, buildEventUrl } from '../src/lib/events.js';
 
 const ME = 'eBhI7Kx0hDTVW56uZHO519Ifm452';
 
@@ -15,6 +15,17 @@ function rawEvent(overrides = {}) {
     ...overrides,
   };
 }
+
+describe('buildEventUrl', () => {
+  it('builds the canonical Partiful event URL', () => {
+    expect(buildEventUrl('abc123')).toBe('https://partiful.com/e/abc123');
+  });
+
+  it('is the single source used by mapEventSummary', () => {
+    const summary = mapEventSummary({ id: 'zzz', guestStatusCounts: {} }, null);
+    expect(summary.url).toBe(buildEventUrl('zzz'));
+  });
+});
 
 describe('mapEventSummary — myRsvp', () => {
   it.each(['GOING', 'MAYBE', 'DECLINED', 'SENT'])(
