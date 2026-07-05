@@ -14,6 +14,19 @@ partiful events list --past
 partiful events list --past --include-cancelled
 ```
 
+Each event in the list includes **your own** RSVP and host status:
+
+| Field | Meaning |
+|-------|---------|
+| `myRsvp` | Your personal RSVP: `GOING`, `MAYBE`, `DECLINED`, `SENT` (invited, not yet answered), or `null` on events you host |
+| `isHost` | `true` when you own the event |
+| `going` / `maybe` | Aggregate guest counts (everyone), **not** your status |
+
+```bash
+# Only the events you've said yes to (e.g. to sync to a calendar)
+partiful events list | jq '.data[] | select(.myRsvp == "GOING")'
+```
+
 ### Get Event Details
 ```bash
 partiful events get <event-id>

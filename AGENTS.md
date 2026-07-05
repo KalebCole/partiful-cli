@@ -23,6 +23,8 @@ There is no `--name` flag on `guests invite`. You must resolve names to user IDs
 ### Auth: userId can be null and things still work
 `partiful doctor` may flag `userId: null`. The CLI authenticates via Firebase token, not userId — most operations work fine. Don't treat this as a blocking error.
 
+On the next token refresh the CLI now **backfills `userId` from the token** automatically (decoded from the Firebase JWT), so `myRsvp` and `isHost` on `events list` are correct even for older `auth.json` files that predate userId capture. No re-login needed.
+
 ### Destructive commands require confirmation
 `events cancel` and `blasts send` prompt for confirmation before executing. Pass `-y` or `--yes` to skip in automated/agent flows. Use `--dry-run` on any command to preview what would happen without side effects.
 

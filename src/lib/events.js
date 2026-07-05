@@ -173,6 +173,42 @@ export function validateImageOptions(...imageOpts) {
 }
 
 /**
+ * Map a raw event object from the Partiful home-page endpoints
+ * (getMyUpcomingEventsForHomePage / getMyPastEventsForHomePage) into the
+ * compact summary shape returned by `events list`.
+ *
+ * Pure function — no I/O — so it can be unit-tested against fixtures.
+ *
+ * Two personal fields are derived from the caller's identity (`me`, the
+ * authenticated Partiful user ID):
+ *   - `myRsvp`: the caller's own RSVP for the event. Present on events the
+ *     caller was invited to as `e.guest.status`
+ *     (GOING | MAYBE | DECLINED | SENT). Null when the caller hosts the event
+ *     (no guest record) or when the field is absent.
+ *   - `isHost`: whether the caller owns the event, i.e. their ID is in
+ *     `e.ownerIds`. Falls back to false when `me` is unknown.
+ *
+ * @param {object} e  Raw event object from the API.
+ * @param {string|null} me  Authenticated user's Partiful user ID.
+ * @returns {object} Summary object with a stable field order.
+ */
+export function mapEventSummary(e, me) {
+  return {
+    id: e.id,
+    title: e.title,
+    startDate: e.startDate,
+    endDate: e.endDate || null,
+    location: e.location || null,
+    status: e.status,
+    isHost: (me != null && e.ownerIds?.includes(me)) || false,
+    myRsvp: e.guest?.status ?? null,
+    going: e.guestStatusCounts?.GOING || 0,
+    maybe: e.guestStatusCounts?.MAYBE || 0,
+    url: `https://partiful.com/e/${e.id}`,
+  };
+}
+
+/**
  * Convert a plain JS object to Firestore field format (recursive).
  */
 export function toFirestoreMap(obj) {
