@@ -1,4 +1,7 @@
 #!/usr/bin/env node
+// Register the tsx ESM loader so the CLI runs directly from TypeScript
+// sources (and JS during the migration) with no separate build step.
+import 'tsx/esm';
 import 'dotenv/config';
 import { run } from '../src/cli.js';
 run();
