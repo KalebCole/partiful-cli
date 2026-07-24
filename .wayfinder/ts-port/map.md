@@ -34,6 +34,7 @@ Success = the API spec is a *byproduct* of typing the code, not a separate artif
 
 - T0 CLOSED (2026-07-24): RSVP work merged to main via PR #65 (squash, commit ad7be30); tree clean; main green at 195/195 tests. Port branch to be cut from ad7be30.
 - T1 CLOSED (2026-07-24): TS toolchain up. tsx-loader run path (no dist build), tsconfig strict+NodeNext+allowJs, zod added. `npm run typecheck` clean + 195/195 green on still-JS tree.
+- T2 CLOSED (2026-07-24): Convention doc at `docs/TYPESCRIPT-PORT-GUIDE.md`. Enforceable rules + worked createEvent endpoint (envelope generic + request interface + Zod passthrough + z.infer + metadata). Spec home = `src/lib/api/`.
 
 ## Not yet specified
 
@@ -57,7 +58,7 @@ Success = the API spec is a *byproduct* of typing the code, not a separate artif
 |---|---|---|---|---|
 | T0 | RSVP work merged to main, tree clean, port branch cut | task (AFK) | — | ✅ CLOSED (PR #65 merged, ad7be30) |
 | T1 | TS toolchain setup (tsconfig strict, tsx run, bin, build) | task (AFK) | T0 | ✅ CLOSED (tsx loader, no dist) |
-| T2 | Write porting convention doc (strict + Zod pattern) | task (AFK) | T1 | OPEN |
+| T2 | Write porting convention doc (strict + Zod pattern) | task (AFK) | T1 | ✅ CLOSED (docs/TYPESCRIPT-PORT-GUIDE.md) |
 | T3 | Port src/lib/ API layer + author endpoint types/Zod (THE SPEC) | task (AFK) | T2 | OPEN |
 | T4 | Port src/commands/ + src/helpers/ | task (AFK) | T3 | OPEN |
 | T5 | Rewire schema command → schema api.<method> | task (AFK) | T3 | OPEN |
