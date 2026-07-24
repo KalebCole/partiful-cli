@@ -88,7 +88,18 @@ export function buildRsvpParams(o = {}) {
 
   const plusOnes = Array.isArray(o.plusOnes) ? o.plusOnes.filter(Boolean) : [];
   const derivedCount = 1 + plusOnes.length;
-  const count = Number.isFinite(o.count) ? Math.trunc(o.count) : derivedCount;
+  let count;
+  if (o.count == null) {
+    count = derivedCount;
+  } else if (!Number.isFinite(o.count) || o.count <= 0) {
+    throw new PartifulError(
+      `Invalid --count "${o.count}". Must be a positive whole number.`,
+      3,
+      'validation_error'
+    );
+  } else {
+    count = Math.trunc(o.count);
+  }
 
   const rsvp = {
     name: String(name),
@@ -197,10 +208,36 @@ export function eventRequiresQuestionnaire(event) {
  */
 export function buildQuestionnaireResponse(event, answersByKey = {}) {
   if (!eventRequiresQuestionnaire(event)) return null;
-  const questions = event.questionnaire.questions;
+
+  // Resolve question list defensively — event.questionnaire may be absent
+  // when the questionnaire was detected via a legacy field path.
+  let questions;
+  const primaryQuestions = event.questionnaire?.questions;
+  if (Array.isArray(primaryQuestions) && primaryQuestions.length > 0) {
+    questions = primaryQuestions;
+  } else {
+    const legacyField = LEGACY_QUESTIONNAIRE_FIELDS.find(
+      f => Array.isArray(event[f]) && event[f].length > 0
+    );
+    if (legacyField) {
+      questions = event[legacyField];
+    } else {
+      throw new PartifulError(
+        'Event questionnaire is enabled but no questions were found.',
+        3,
+        'validation_error'
+      );
+    }
+  }
+
   const answers = {};
   const missing = [];
-  for (const question of questions) {
+  for (const rawQuestion of questions) {
+    // Normalise bare-string legacy questions: treat the string as both id and text.
+    const question =
+      typeof rawQuestion === 'string'
+        ? { id: rawQuestion, text: rawQuestion, required: false }
+        : rawQuestion;
     // Accept an answer supplied under the question id OR its exact text.
     const val =
       answersByKey[question.id] ??

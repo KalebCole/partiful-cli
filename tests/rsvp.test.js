@@ -250,3 +250,75 @@ describe('questionnaire (verified shape)', () => {
     expect(rsvp).not.toHaveProperty('questionnaireResponse');
   });
 });
+
+describe('buildRsvpParams — count validation (Fix 1)', () => {
+  it('throws for count 0', () => {
+    expect(() => buildRsvpParams({ eventId: 'EV1', name: 'A', count: 0 }))
+      .toThrow(/Invalid --count/);
+  });
+
+  it('throws for negative count', () => {
+    expect(() => buildRsvpParams({ eventId: 'EV1', name: 'A', count: -3 }))
+      .toThrow(/Invalid --count/);
+  });
+
+  it('throws for NaN count (simulating bad parseInt)', () => {
+    expect(() => buildRsvpParams({ eventId: 'EV1', name: 'A', count: NaN }))
+      .toThrow(/Invalid --count/);
+  });
+
+  it('accepts a positive explicit count', () => {
+    const { rsvp } = buildRsvpParams({ eventId: 'EV1', name: 'A', count: 5 });
+    expect(rsvp.count).toBe(5);
+  });
+
+  it('derives count from plus-ones when count is omitted (null/undefined)', () => {
+    const { rsvp } = buildRsvpParams({ eventId: 'EV1', name: 'A', plusOnes: ['B', 'C'] });
+    expect(rsvp.count).toBe(3); // 1 + 2
+  });
+});
+
+describe('buildQuestionnaireResponse — legacy questionnaire guard (Fix 2)', () => {
+  const legacyEvent = {
+    // No event.questionnaire — detected only via the legacy `questions` field
+    questions: [
+      { id: 'q1', text: 'Dietary needs?', required: true },
+      { id: 'q2', text: 'Song request?', required: false },
+    ],
+  };
+
+  it('does not throw a TypeError when event.questionnaire is absent', () => {
+    let caughtError;
+    try {
+      buildQuestionnaireResponse(legacyEvent, { q1: 'None' });
+    } catch (e) {
+      caughtError = e;
+    }
+    // Either succeeds or throws a handled PartifulError — never a raw TypeError
+    if (caughtError) {
+      expect(caughtError).not.toBeInstanceOf(TypeError);
+      expect(caughtError.constructor.name).toBe('PartifulError');
+    }
+  });
+
+  it('returns a valid response object for legacy event with all required answers', () => {
+    const resp = buildQuestionnaireResponse(legacyEvent, { q1: 'Vegan' });
+    expect(resp).not.toBeNull();
+    expect(resp.answers).toHaveProperty('q1', 'Vegan');
+    expect(typeof resp.questionnaireVersion).toBe('number');
+  });
+
+  it('still returns correct versioned answers for primary event.questionnaire shape', () => {
+    const primaryEvent = {
+      questionnaireEnabled: true,
+      questionnaireVersions: [{ questions: [] }],
+      questionnaire: {
+        questions: [
+          { id: '111', type: 'short_answer', text: 'Dietary restrictions?', required: true },
+        ],
+      },
+    };
+    const resp = buildQuestionnaireResponse(primaryEvent, { '111': 'None' });
+    expect(resp).toEqual({ questionnaireVersion: 0, answers: { '111': 'None' } });
+  });
+});
