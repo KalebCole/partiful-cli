@@ -27,19 +27,48 @@ export interface DriftRecord {
 }
 
 /**
- * Enumerate the declared (known) top-level keys of a Zod schema. Mirrors the
- * `fieldsOf` helper in endpoints.ts but resolves through common wrappers
- * (arrays expose their element's keys; effects/optionals unwrap) so the diff
- * compares against the real object shape.
+ * Enumerate the declared (known) top-level keys of a Zod schema. Resolves
+ * through an array wrapper (arrays expose their element's keys) so the diff
+ * compares against a single record's shape. Non-object/array schemas yield an
+ * empty set (no field surface → no drift reported).
  */
 function knownKeys(schema: z.ZodTypeAny): Set<string> {
   let s: unknown = schema;
   // Unwrap array element schemas so we compare a single record's keys.
-  const def = s as { _def?: { type?: unknown; innerType?: unknown }; element?: unknown; shape?: Record<string, unknown> };
+  const def = s as { element?: unknown; shape?: Record<string, unknown> };
   if (def.element) s = def.element as z.ZodTypeAny;
   const inner = s as { shape?: Record<string, unknown> };
   if (inner.shape && typeof inner.shape === 'object') return new Set(Object.keys(inner.shape));
   return new Set();
+}
+
+/**
+ * A few endpoints nest their real payload one level deeper than the callable
+ * envelope's `result.data`, so the schema in `responseSchemas` describes that
+ * inner value, not `data` itself. Map those methods to the sub-key the drift
+ * checker must descend into before diffing; methods absent from this map are
+ * diffed at `result.data` directly. Keeping this here (next to the schemas it
+ * pairs with) means the http wiring stays a dumb, uniform caller.
+ */
+const PAYLOAD_UNWRAP: Partial<Record<ApiMethod, string>> = {
+  getEventInfo: 'event', // result.data.event
+  getMyUpcomingEventsForHomePage: 'upcomingEvents', // result.data.upcomingEvents[]
+  getMyPastEventsForHomePage: 'pastEvents', // result.data.pastEvents[]
+};
+
+/**
+ * Given the already-unwrapped `result.data` for a method, descend into the
+ * method-specific sub-key when one is declared (returning that inner value),
+ * otherwise return `data` unchanged. Never throws — a missing/oddly-shaped
+ * key falls back to the original value so drift detection stays advisory.
+ */
+export function unwrapPayload(method: ApiMethod, data: unknown): unknown {
+  const key = PAYLOAD_UNWRAP[method];
+  if (!key) return data;
+  if (data && typeof data === 'object' && !Array.isArray(data) && key in (data as Record<string, unknown>)) {
+    return (data as Record<string, unknown>)[key];
+  }
+  return data;
 }
 
 /**

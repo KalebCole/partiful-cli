@@ -5,7 +5,7 @@
 
 import { AuthError, NotFoundError, ApiError } from './errors.js';
 import { apiEndpoints, type ApiMethod } from './api/endpoints.js';
-import { reportDrift } from './drift.js';
+import { reportDrift, unwrapPayload } from './drift.js';
 
 const API_BASE = 'https://api.partiful.com';
 const FIRESTORE_BASE = 'https://firestore.googleapis.com';
@@ -28,7 +28,11 @@ function checkDrift(endpoint: string, parsed: unknown): void {
     const method = PATH_TO_METHOD[endpoint];
     if (!method) return;
     const env = parsed as { result?: { data?: unknown } } | undefined;
-    const payload = env?.result?.data ?? parsed;
+    const data = env?.result?.data ?? parsed;
+    // A few methods nest their real payload one level deeper than result.data
+    // (e.g. getEventInfo → .event, homepage → .upcomingEvents/.pastEvents);
+    // descend to the value the response schema actually describes.
+    const payload = unwrapPayload(method, data);
     reportDrift(method, payload);
   } catch {
     /* drift detection is advisory only */

@@ -6,7 +6,7 @@
  * (getContacts, homepage events) are diffed against their element schema.
  */
 import { describe, it, expect, afterEach } from 'vitest';
-import { detectDrift, reportDrift } from '../src/lib/drift.ts';
+import { detectDrift, reportDrift, unwrapPayload } from '../src/lib/drift.ts';
 
 describe('drift detection', () => {
   it('flags unknown top-level fields against an object schema', () => {
@@ -59,5 +59,33 @@ describe('drift detection', () => {
     expect(() => reportDrift('createEvent', null)).not.toThrow();
     expect(() => reportDrift('createEvent', 'not-an-object')).not.toThrow();
     expect(reportDrift('createEvent', null)).toBeNull();
+  });
+
+  it('unwrapPayload descends into method-specific nested payloads', () => {
+    // getEventInfo real shape is result.data.event — diffing at .data would
+    // otherwise flag { event } as an unknown field on every single call.
+    const event = { id: 'e1', title: 'Party' };
+    expect(unwrapPayload('getEventInfo', { event })).toBe(event);
+    // homepage lists nest under upcomingEvents/pastEvents arrays.
+    const up = [{ id: 'e1' }];
+    expect(unwrapPayload('getMyUpcomingEventsForHomePage', { upcomingEvents: up })).toBe(up);
+    const past = [{ id: 'e2' }];
+    expect(unwrapPayload('getMyPastEventsForHomePage', { pastEvents: past })).toBe(past);
+    // methods with no nesting pass data through untouched.
+    const data = { id: 'e' };
+    expect(unwrapPayload('createEvent', data)).toBe(data);
+    // missing sub-key falls back to the original (never throws).
+    expect(unwrapPayload('getEventInfo', { notEvent: 1 })).toEqual({ notEvent: 1 });
+  });
+
+  it('nested-payload methods do not false-positive after unwrap', () => {
+    // A conforming getEventInfo event unwrapped to its inner shape reports no drift.
+    const eventData = { event: { id: 'e1', title: 'Party', status: 'published', startDate: '2026-08-01' } };
+    const drift = detectDrift('getEventInfo', unwrapPayload('getEventInfo', eventData));
+    // GetEventInfoResponseSchema is passthrough-only (no declared fields) → [].
+    expect(drift).toEqual([]);
+    // But the raw un-unwrapped data would look like a single unknown key 'event'.
+    const naive = detectDrift('createEvent', eventData); // createEvent declares id/title/...
+    expect(naive).toContain('event');
   });
 });
