@@ -71,6 +71,30 @@ partiful events cancel <event-id>
 partiful events cancel <event-id> --yes          # skip confirmation
 ```
 
+### RSVP to an Event
+```bash
+partiful events rsvp <event-id>                        # RSVP going (default)
+partiful events rsvp <event-id> --status maybe         # going | maybe | declined
+partiful events rsvp <event-id> --plus-one Maddie --plus-one Justin
+partiful events rsvp <event-id> --name "Kaleb Cole" --message "See you there"
+partiful events rsvp <event-id> --dry-run --yes        # preview the addGuest payload
+```
+Read-before-write: updates your existing guest record if present (`updated:true`),
+else creates one (`guestId:null` on the wire). Ticketed/paid events and events
+that require a host questionnaire are refused with a validation error (exit 3),
+since the CLI cannot purchase tickets or submit questionnaire answers yet, use
+the app for those. `--yes` / `--force` skips the write confirmation.
+
+### Mark Interest
+```bash
+partiful events interested <event-id>                  # mark interested
+partiful events interested <event-id> --remove         # remove interest
+```
+
+> These four verbs are also aliased under `explore` (`partiful explore rsvp ...`,
+> `partiful explore interested ...`) for the public-event discovery flow. They
+> forward to the same handler and behave identically.
+
 ## Posters & Images
 
 Three ways to set event imagery (all require Partiful auth since they're used on `events create/update`):

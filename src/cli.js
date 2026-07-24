@@ -16,6 +16,7 @@ import { registerDoctorCommands } from './commands/doctor.js';
 import { registerTemplateCommands } from './commands/templates.js';
 import { registerBulkCommands } from './commands/bulk.js';
 import { registerSetupCommands } from './commands/setup.js';
+import { registerRsvpCommands } from './commands/rsvp.js';
 import { jsonOutput } from './lib/output.js';
 
 // Single source of truth for the version — read from package.json so the
@@ -53,6 +54,13 @@ export function run() {
   registerTemplateCommands(program);
   registerBulkCommands(program);
   registerSetupCommands(program);
+
+  // RSVP / interest verbs, shared across the canonical `events` group and the
+  // `explore` alias group. Look up the `events` command created above; create
+  // the `explore` group here.
+  const eventsCmd = program.commands.find(c => c.name() === 'events');
+  const exploreCmd = program.command('explore').description('Discover public events and RSVP to them');
+  registerRsvpCommands(program, { events: eventsCmd, explore: exploreCmd });
 
   program
     .command('version')
