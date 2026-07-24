@@ -4,10 +4,36 @@
  */
 
 import { AuthError, NotFoundError, ApiError } from './errors.js';
+import { apiEndpoints, type ApiMethod } from './api/endpoints.js';
+import { reportDrift } from './drift.js';
 
 const API_BASE = 'https://api.partiful.com';
 const FIRESTORE_BASE = 'https://firestore.googleapis.com';
 const FIRESTORE_PROJECT = 'getpartiful';
+
+// Reverse map: endpoint path (e.g. '/createEvent') → spec method name, so the
+// central request path can diff live responses against the spec (T6 drift).
+const PATH_TO_METHOD: Record<string, ApiMethod> = Object.fromEntries(
+  (Object.entries(apiEndpoints) as [ApiMethod, { path: string }][]).map(([method, meta]) => [meta.path, method]),
+) as Record<string, ApiMethod>;
+
+/**
+ * Best-effort drift check for a callable response. Unwraps the firebase
+ * callable envelope ({ result: { data } }) to the payload the response schema
+ * describes, then reports any unknown fields. Never throws — a broken drift
+ * check must never break a real request.
+ */
+function checkDrift(endpoint: string, parsed: unknown): void {
+  try {
+    const method = PATH_TO_METHOD[endpoint];
+    if (!method) return;
+    const env = parsed as { result?: { data?: unknown } } | undefined;
+    const payload = env?.result?.data ?? parsed;
+    reportDrift(method, payload);
+  } catch {
+    /* drift detection is advisory only */
+  }
+}
 
 const RETRYABLE_CODES = new Set([429, 500, 502, 503, 504]);
 const MAX_RETRIES = parseInt(process.env.PARTIFUL_MAX_RETRIES || '3', 10);
@@ -93,7 +119,9 @@ export async function apiRequest(
   }
 
   const text = await resp.text();
-  return text ? JSON.parse(text) : {};
+  const parsed = text ? JSON.parse(text) : {};
+  checkDrift(endpoint, parsed);
+  return parsed;
 }
 
 export async function firestoreRequest(

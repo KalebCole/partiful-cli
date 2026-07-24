@@ -193,11 +193,34 @@ types — T4) → `src/commands/schema.ts` (surface them — T5). Drift + smoke 
 onto the T3 parse path. If while porting a command (T4) you find yourself authoring a new
 endpoint shape, it belonged in T3 — go back and add it there.
 
-## 10. Drift detection & smoke tests (T6 summary)
+## 10. Drift detection & smoke tests (T6 — implemented)
 
-- Because responses use `.passthrough()`, unknown keys are observable at parse time. Log
-  them behind a verbose/debug flag so real traffic reveals the vendor's true shape over
-  time.
-- A small real-API smoke suite (gated behind auth env, like existing `*.integration.test.js`)
-  is the spec verifier: when Partiful changes a shape, a smoke test fails before users hit
-  it.
+**Drift detection** (`src/lib/drift.ts`):
+- Every response schema in `api/endpoints.ts` uses `.passthrough()`, so unknown vendor
+  fields survive parsing. `detectDrift(method, response)` diffs a response's top-level keys
+  against the schema's declared keys (unwrapping array element schemas) and returns the
+  unknown fields. `reportDrift()` logs them.
+- Wired centrally into `apiRequest()` via a `path → method` reverse map + envelope unwrap
+  (`checkDrift`). It is **advisory only** and fully `try/catch`-guarded — drift detection can
+  never break a real request.
+- **Opt-in logging**, off by default to keep stdout JSON clean for agents:
+  - `PARTIFUL_DRIFT_LOG=1` (or `true`/`stderr`) → human line to **stderr**.
+  - `PARTIFUL_DRIFT_LOG=/path/to/file.ndjson` → append **NDJSON** `{ "drift": {...} }` records.
+  - unset/`0`/`false` → silent (drift still detectable in-process/tests).
+- Schemas that are `z.object({}).passthrough()` (no declared fields, e.g. `cancelEvent`)
+  have no field surface to diff and never flag — expected.
+
+**Smoke tests** (`tests/smoke-real-api.test.js`) — THE SPEC VERIFIER:
+- Hit the **live** Partiful API (read-only endpoints only; safe to re-run). When Partiful
+  changes a shape, a smoke test fails before users do; `PARTIFUL_DRIFT_LOG=1` names the fields.
+- **Skipped by default** via `describe.skipIf(!SMOKE)`; secrets never required in CI.
+- Run manually:
+  ```
+  PARTIFUL_SMOKE=1 PARTIFUL_TOKEN=<real-jwt> npx vitest run tests/smoke-real-api.test.js
+  # optional: PARTIFUL_SMOKE_EVENT_ID=<id> to exercise getEventInfo
+  # optional: PARTIFUL_DRIFT_LOG=1 to surface unknown vendor fields while running
+  ```
+- **CI vs manual:** manual (or a secrets-provisioned job) — auth secrets don't belong in
+  the default CI matrix. The unit-level drift suite (`tests/drift.test.js`) runs everywhere
+  and needs no auth.
+

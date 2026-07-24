@@ -452,3 +452,29 @@ export const apiEndpoints = {
 } as const satisfies Record<string, EndpointMeta>;
 
 export type ApiMethod = keyof typeof apiEndpoints;
+
+// ===========================================================================
+// Response-schema registry — consumed by the drift detector (T6).
+// Maps each spec'd method to its Zod `.passthrough()` response schema so raw
+// API responses can be diffed against the known field surface at parse time.
+// Methods whose real response is an array expose the element schema (the unit
+// whose keys we compare); firebase-auth/refreshToken uses its object schema.
+// ===========================================================================
+
+export const responseSchemas = {
+  createEvent: CreateEventResponseSchema,
+  cancelEvent: CancelEventResponseSchema,
+  getEventInfo: GetEventInfoResponseSchema,
+  getContacts: ContactSchema,
+  createTextBlast: CreateTextBlastResponseSchema,
+  addInvitedGuestsAsHost: AddInvitedGuestsAsHostResponseSchema,
+  getMyUpcomingEventsForHomePage: HomePageEventSchema,
+  getMyPastEventsForHomePage: HomePageEventSchema,
+  addGuest: AddGuestResponseSchema,
+  markEventInterest: MarkEventInterestResponseSchema,
+  getCurrentGuest: GetCurrentGuestResponseSchema,
+  firestoreGetEvent: FirestoreDocumentSchema,
+  firestorePatchEvent: FirestoreDocumentSchema,
+  firestoreListDocuments: FirestoreListResponseSchema,
+  refreshToken: RefreshTokenResponseSchema,
+} as const satisfies Record<ApiMethod, z.ZodTypeAny>;
