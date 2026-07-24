@@ -1,10 +1,39 @@
 # BUILD-PROMPT: partiful-cli JavaScript → TypeScript Port (API Spec-as-Types)
 
-> **You are an autonomous porting agent.** Work in a loop until the Definition of Done is met.
-> Do not stop at a plan or a stub — keep going until `tsc --noEmit` is clean AND `npm test` is
-> green across the whole suite. This is fully AFK: no human will answer questions mid-run. When a
-> decision is ambiguous, follow the conventions in this file; if still ambiguous, choose the option
-> that keeps behavior identical to the current JS and note it in your final report.
+> **You are an autonomous porting orchestrator.** Work in a loop until the Definition of Done is met.
+> Do not stop at a plan or a stub — keep going until EVERYTHING is complete: the full port, all
+> review gates passed, and all bot review threads resolved. This is fully AFK: no human will answer
+> questions mid-run. When a decision is ambiguous, follow the conventions in this file and the map;
+> if still ambiguous, choose the option that keeps behavior identical to the current JS and note it.
+
+## Operating rules (read first — these govern the whole run)
+
+1. **Drive off the map.** `.wayfinder/ts-port/map.md` and `.wayfinder/ts-port/tickets/T*.md` are the
+   source of truth for scope, sequencing, and per-ticket detail. Work the tickets T1→T6 in order.
+   Mark each closed in the map's "Decisions so far" as you finish it. Do not invent scope outside
+   the map.
+2. **Complete EVERYTHING.** Done is not "most of it." Every ticket closed, every gate green, every
+   review comment resolved. Do not hand back a partial port.
+3. **Test-Driven Development.** For every fix, new validation, and new typed surface: write the
+   failing test FIRST (RED), make it pass (GREEN), then refactor. Follow the `test-driven-development`
+   skill. Never add behavior without a test that would fail without it. Never weaken existing tests.
+4. **Adversarial self-review before every PR.** Before opening any PR, spawn an adversarial code
+   review pass (follow the `adversarial-code-review` skill — VERDICT format, diff+context, attack
+   the change). Fix everything it flags as blocking, then re-review until it returns a clean verdict.
+   Do this yourself (or via a review subagent) BEFORE requesting external review.
+5. **Poll the review bots and handle them.** After opening the PR, external review bots (CodeRabbit,
+   etc.) run asynchronously. Enter a **poll loop** (follow the `pr-review-bots` skill):
+   - Wait, then re-check the PR for new bot reviews/comments (`gh pr view`, `gh pr checks`).
+   - For each actionable comment: verify it against current code, FIX still-valid issues (TDD:
+     test first), and SKIP invalid ones with a one-line rationale posted as a reply.
+   - Push fixes, which re-triggers the bots. Repeat.
+   - **Termination criteria for the loop (stop when ANY holds):** (a) the latest bot review has zero
+     actionable comments AND all checks pass; OR (b) two consecutive poll cycles produce only
+     comments you've reasoned-declined with no new actionable items; OR (c) 6 poll cycles elapsed —
+     then stop and summarize the remaining open threads with your rationale. Never loop forever.
+6. **Then done.** Once the port is complete, gates green, adversarial review clean, and the bot-poll
+   loop hit a termination criterion, finalize: ensure the PR is green and mergeable, write the final
+   report, and STOP.
 
 ---
 
