@@ -1,5 +1,6 @@
 import { jsonOutput, jsonError, EXIT } from '../lib/output.js';
 import type { Command } from 'commander';
+import { apiEndpoints } from '../lib/api/endpoints.js';
 
 /** A single parameter descriptor in a command schema. */
 interface SchemaParameter {
@@ -188,16 +189,54 @@ const SCHEMAS: Record<string, CommandSchema> = {
 export function registerSchemaCommand(program: Command): void {
   program
     .command('schema [path]')
-    .description('Introspect command parameters (e.g., events.create)')
+    .description('Introspect command parameters (e.g., events.create) or API endpoints (e.g., api.createEvent)')
     .action((path: string | undefined, _opts: unknown, cmd: Command) => {
       const globalOpts = cmd.optsWithGlobals();
+
+      // ── API-endpoint introspection namespace: `schema api` / `schema api.<method>`
+      // Reads from the T3 endpoint registry (api/endpoints.ts) — the spec-as-types
+      // source of truth: host, method, transport, request params, response fields.
+      if (path === 'api') {
+        const methods = Object.keys(apiEndpoints);
+        jsonOutput({ methods }, { count: methods.length }, globalOpts);
+        return;
+      }
+      if (path && path.startsWith('api.')) {
+        const method = path.slice('api.'.length);
+        if (!Object.hasOwn(apiEndpoints, method)) {
+          const available = Object.keys(apiEndpoints).join(', ');
+          jsonError(`Unknown API method: ${method}. Available: ${available}`, EXIT.NOT_FOUND, 'not_found');
+          return;
+        }
+        const meta = apiEndpoints[method as keyof typeof apiEndpoints];
+        jsonOutput(
+          {
+            method: `api.${method}`,
+            transport: meta.transport,
+            host: meta.host,
+            httpMethod: meta.method,
+            path: meta.path,
+            requestParams: meta.requestParams,
+            responseFields: meta.responseFields,
+          },
+          {},
+          globalOpts,
+        );
+        return;
+      }
+
+      // ── CLI-flag introspection (original behavior)
       if (!path) {
-        jsonOutput({ commands: Object.keys(SCHEMAS) }, { count: Object.keys(SCHEMAS).length }, globalOpts);
+        jsonOutput(
+          { commands: Object.keys(SCHEMAS), api: Object.keys(apiEndpoints).map((m) => `api.${m}`) },
+          { count: Object.keys(SCHEMAS).length + Object.keys(apiEndpoints).length },
+          globalOpts,
+        );
         return;
       }
       if (!Object.hasOwn(SCHEMAS, path)) {
         const available = Object.keys(SCHEMAS).join(', ');
-        jsonError(`Unknown schema path: ${path}. Available: ${available}`, 4, 'not_found');
+        jsonError(`Unknown schema path: ${path}. Available: ${available}`, EXIT.NOT_FOUND, 'not_found');
         return;
       }
       const schema = SCHEMAS[path];
