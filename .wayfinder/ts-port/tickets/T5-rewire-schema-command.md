@@ -23,4 +23,14 @@ endpoint; existing `schema <command>` unchanged; tests cover the new namespace.
 
 ## Answer
 
-<!-- record on close -->
+**CLOSED (2026-07-24, commit 06eeb68).** Added a `schema api.<method>` namespace driven off
+the `apiEndpoints` registry in `src/lib/api/endpoints.ts` (the T3 types-as-spec source of truth):
+- `schema api` → lists every spec'd method.
+- `schema api.<method>` → prints `{ method, transport, host, httpMethod, path, requestParams,
+  responseFields }` derived from the registry + Zod schemas.
+- Bare `schema` now lists both CLI `commands` and `api.*` methods; existing `schema <command>`
+  CLI-flag lookup is unchanged (different layer, kept).
+- Output shape: mirrors the existing JSON-envelope format (jsonOutput/jsonError), diverging only
+  in the payload keys (endpoint metadata vs. CLI-flag params).
+- Tests: `tests/schema-api.test.js` (+5) cover list, per-endpoint spec, firestore transport, and
+  the unknown-method not_found path.
