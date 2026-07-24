@@ -8,7 +8,14 @@
  * displays correctly on their end, but the UTC instant may differ slightly.
  */
 
-export function parseDateTime(dateStr, timezone = 'America/Los_Angeles') {
+/** Parsed hour/minute pair from a time string. */
+export interface ParsedTime {
+  hours: number;
+  minutes: number;
+}
+
+export function parseDateTime(dateStr: string, timezone = 'America/Los_Angeles'): Date {
+  void timezone; // accepted for API parity; see module note on local-tz construction
   const lower = dateStr.trim().toLowerCase();
   const now = new Date();
 
@@ -22,7 +29,7 @@ export function parseDateTime(dateStr, timezone = 'America/Los_Angeles') {
   const nextDayMatch = lower.match(/^next\s+(sunday|monday|tuesday|wednesday|thursday|friday|saturday)(?:\s+(.+))?$/i);
   if (nextDayMatch) {
     const dayNames = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
-    const targetDay = dayNames.indexOf(nextDayMatch[1].toLowerCase());
+    const targetDay = dayNames.indexOf(nextDayMatch[1]!.toLowerCase());
     const d = new Date(now);
     let daysAhead = targetDay - d.getDay();
     if (daysAhead <= 0) daysAhead += 7;
@@ -64,10 +71,10 @@ export function parseDateTime(dateStr, timezone = 'America/Los_Angeles') {
   return date;
 }
 
-export function parseTimeString(str) {
+export function parseTimeString(str: string): ParsedTime | null {
   const match = str.match(/^(\d{1,2})(?::(\d{2}))?\s*(am|pm)?$/i);
   if (!match) return null;
-  let hours = parseInt(match[1]);
+  let hours = parseInt(match[1]!);
   const minutes = parseInt(match[2] || '0');
   const ampm = match[3]?.toLowerCase();
   if (ampm === 'pm' && hours < 12) hours += 12;
@@ -75,26 +82,26 @@ export function parseTimeString(str) {
   return { hours, minutes };
 }
 
-export function hasExplicitYear(dateStr) {
+export function hasExplicitYear(dateStr: string): boolean {
   return /\b20\d{2}\b/.test(dateStr);
 }
 
-export function needsYearFix(dateStr, date) {
+export function needsYearFix(dateStr: string, date: Date): boolean {
   if (hasExplicitYear(dateStr)) return false;
   const currentYear = new Date().getFullYear();
   return date.getFullYear() < currentYear || date.getFullYear() > currentYear + 1;
 }
 
-export function tryAddYear(dateStr, now) {
+export function tryAddYear(dateStr: string, now: Date): string {
   const year = now.getFullYear();
   const timeMatch = dateStr.match(/^(.+?)(\d{1,2}(?::\d{2})?\s*(?:am|pm).*)$/i);
   if (timeMatch) {
-    return `${timeMatch[1].trim()} ${year} ${timeMatch[2].trim()}`;
+    return `${timeMatch[1]!.trim()} ${year} ${timeMatch[2]!.trim()}`;
   }
   return `${dateStr} ${year}`;
 }
 
-export function stripMarkdown(text) {
+export function stripMarkdown(text: string): string {
   if (!text) return text;
   return text
     .replace(/\*\*(.*?)\*\*/g, '$1')
@@ -106,10 +113,13 @@ export function stripMarkdown(text) {
     .replace(/>\s+/g, '');
 }
 
-export function formatDate(isoStr) {
+export function formatDate(isoStr: string): string {
   const d = new Date(isoStr);
   return d.toLocaleDateString('en-US', {
-    weekday: 'short', month: 'short', day: 'numeric',
-    hour: 'numeric', minute: '2-digit'
+    weekday: 'short',
+    month: 'short',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
   });
 }

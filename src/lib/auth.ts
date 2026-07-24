@@ -6,15 +6,38 @@
 import fs from 'fs';
 import path from 'path';
 import crypto from 'crypto';
+import type { RefreshTokenResponse } from './api/endpoints.js';
 
 const GOOGLE_TOKEN_URL = 'securetoken.googleapis.com';
 
-export function resolveCredentialsPath() {
-  return process.env.PARTIFUL_CREDENTIALS_FILE
-    || path.join(process.env.HOME, '.config/partiful/auth.json');
+/** On-disk auth config. Mutated in place by getValidToken() then persisted. */
+export interface PartifulConfig {
+  accessToken?: string;
+  tokenExpiry?: number;
+  refreshToken?: string;
+  apiKey?: string;
+  userId?: string | null;
+  amplitudeDeviceId?: string;
+  name?: string;
+  uploadTimeoutMs?: number;
+  [extra: string]: unknown;
 }
 
-export function loadConfig() {
+/** Decoded Firebase JWT payload (identity claims only; signature unverified). */
+export interface JwtPayload {
+  user_id?: string;
+  sub?: string;
+  [claim: string]: unknown;
+}
+
+export function resolveCredentialsPath(): string {
+  return (
+    process.env.PARTIFUL_CREDENTIALS_FILE ||
+    path.join(process.env.HOME as string, '.config/partiful/auth.json')
+  );
+}
+
+export function loadConfig(): PartifulConfig {
   // Check env var for direct token
   if (process.env.PARTIFUL_TOKEN) {
     return { accessToken: process.env.PARTIFUL_TOKEN, tokenExpiry: Date.now() + 3600000 };
@@ -27,7 +50,7 @@ export function loadConfig() {
   return JSON.parse(fs.readFileSync(configPath, 'utf8'));
 }
 
-export function saveConfig(config) {
+export function saveConfig(config: PartifulConfig): void {
   const configPath = resolveCredentialsPath();
   const configDir = path.dirname(configPath);
   if (!fs.existsSync(configDir)) {
@@ -36,26 +59,26 @@ export function saveConfig(config) {
   fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
 }
 
-export async function refreshAccessToken(config) {
+export async function refreshAccessToken(config: PartifulConfig): Promise<RefreshTokenResponse> {
   const postData = `grant_type=refresh_token&refresh_token=${config.refreshToken}`;
 
   const resp = await fetch(`https://${GOOGLE_TOKEN_URL}/v1/token?key=${config.apiKey}`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/x-www-form-urlencoded',
-      'Referer': 'https://partiful.com/'
+      Referer: 'https://partiful.com/',
     },
     body: postData,
   });
 
-  const result = await resp.json();
+  const result = (await resp.json()) as RefreshTokenResponse;
   if (result.error) {
     throw new Error(result.error.message || 'Token refresh failed');
   }
   return result;
 }
 
-export async function getValidToken(config) {
+export async function getValidToken(config: PartifulConfig): Promise<string> {
   if (config.accessToken && config.tokenExpiry) {
     const now = Date.now();
     if (now < config.tokenExpiry - 60000) {
@@ -65,7 +88,7 @@ export async function getValidToken(config) {
 
   const result = await refreshAccessToken(config);
   config.accessToken = result.id_token;
-  config.tokenExpiry = Date.now() + (parseInt(result.expires_in) * 1000);
+  config.tokenExpiry = Date.now() + parseInt(result.expires_in ?? '0') * 1000;
 
   if (result.refresh_token) {
     config.refreshToken = result.refresh_token;
@@ -76,12 +99,12 @@ export async function getValidToken(config) {
   // host detection and any userId-dependent payloads work without re-login.
   // Note: the env-var token path returns early above and never writes to disk.
   if (!config.userId) {
-    const uid = getUserIdFromToken(config.accessToken);
+    const uid = getUserIdFromToken(config.accessToken!);
     if (uid) config.userId = uid;
   }
 
   saveConfig(config);
-  return config.accessToken;
+  return config.accessToken!;
 }
 
 /**
@@ -90,17 +113,14 @@ export async function getValidToken(config) {
  * The CLI does not need to verify the signature — the token was already issued
  * to us by Firebase and is only decoded to read identity claims. Returns null
  * for anything that is not a well-formed three-segment JWT.
- *
- * @param {string} token JWT string (header.payload.signature).
- * @returns {object|null} Decoded payload object, or null on any parse failure.
  */
-export function decodeJwtPayload(token) {
+export function decodeJwtPayload(token: string): JwtPayload | null {
   if (typeof token !== 'string') return null;
   const parts = token.split('.');
   if (parts.length !== 3) return null;
   try {
     // JWTs use base64url; normalise to base64 before decoding.
-    const b64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+    const b64 = parts[1]!.replace(/-/g, '+').replace(/_/g, '/');
     return JSON.parse(Buffer.from(b64, 'base64').toString('utf8'));
   } catch {
     return null;
@@ -111,23 +131,29 @@ export function decodeJwtPayload(token) {
  * Extract the authenticated user's Partiful user ID from a Firebase token.
  * Firebase ID tokens carry the UID in both `user_id` and the standard `sub`
  * claim; we prefer `user_id` and fall back to `sub`.
- *
- * @param {string} token Firebase JWT.
- * @returns {string|null} The user ID, or null if it cannot be determined.
  */
-export function getUserIdFromToken(token) {
+export function getUserIdFromToken(token: string): string | null {
   const payload = decodeJwtPayload(token);
   if (!payload || typeof payload !== 'object') return null;
   return payload.user_id || payload.sub || null;
 }
 
-export function wrapPayload(config, params = {}) {
+/** The wrapped payload passed as `data` in a firebase-callable envelope. */
+export interface WrappedPayload {
+  amplitudeDeviceId: string;
+  [key: string]: unknown;
+}
+
+export function wrapPayload(
+  config: PartifulConfig,
+  params: Record<string, unknown> = {},
+): WrappedPayload {
   return {
     ...params,
     amplitudeDeviceId: config.amplitudeDeviceId || generateAmplitudeDeviceId(),
   };
 }
 
-export function generateAmplitudeDeviceId() {
+export function generateAmplitudeDeviceId(): string {
   return crypto.randomBytes(12).toString('base64').replace(/[+/=]/g, '');
 }

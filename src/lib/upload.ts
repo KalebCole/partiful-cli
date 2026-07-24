@@ -6,10 +6,11 @@ import { readFileSync, existsSync, statSync, writeFileSync, unlinkSync } from 'f
 import { basename, extname, join } from 'path';
 import { tmpdir } from 'os';
 import { randomBytes } from 'crypto';
+import type { PartifulConfig } from './auth.js';
 
 const ALLOWED_EXTENSIONS = ['.png', '.jpg', '.jpeg', '.gif', '.webp', '.avif'];
 const MAX_SIZE = 10 * 1024 * 1024; // 10MB
-const MIME_TYPES = {
+const MIME_TYPES: Record<string, string> = {
   '.png': 'image/png',
   '.jpg': 'image/jpeg',
   '.jpeg': 'image/jpeg',
@@ -18,7 +19,39 @@ const MIME_TYPES = {
   '.avif': 'image/avif',
 };
 
-export async function uploadEventImage(filePath, token, config, verbose) {
+/** The uploadData object returned by the uploadPhoto endpoint. */
+export interface UploadData {
+  url: string;
+  contentType?: string;
+  height?: number;
+  width?: number;
+  [extra: string]: unknown;
+}
+
+/** The image object we attach to an event when using a custom upload. */
+export interface UploadImage {
+  source: 'upload';
+  type: 'image';
+  upload: UploadData;
+  url: string;
+  contentType?: string;
+  name: string;
+  height?: number;
+  width?: number;
+}
+
+/** A downloaded temp file plus its cleanup handle. */
+export interface TempDownload {
+  tempPath: string;
+  cleanup: () => void;
+}
+
+export async function uploadEventImage(
+  filePath: string,
+  token: string,
+  config: PartifulConfig | null | undefined,
+  verbose?: boolean,
+): Promise<UploadData> {
   if (!existsSync(filePath)) {
     throw new Error(`File not found: ${filePath}`);
   }
@@ -49,7 +82,7 @@ export async function uploadEventImage(filePath, token, config, verbose) {
   const uploadController = new AbortController();
   const uploadTimeoutId = setTimeout(() => uploadController.abort(), uploadTimeoutMs);
 
-  let response;
+  let response: Response;
   try {
     response = await fetch(url, {
       method: 'POST',
@@ -58,7 +91,7 @@ export async function uploadEventImage(filePath, token, config, verbose) {
       signal: uploadController.signal,
     });
   } catch (err) {
-    if (err.name === 'AbortError') {
+    if ((err as Error).name === 'AbortError') {
       throw new Error(`Upload timed out after ${uploadTimeoutMs / 1000}s`);
     }
     throw err;
@@ -70,9 +103,9 @@ export async function uploadEventImage(filePath, token, config, verbose) {
     throw new Error(`Upload failed: ${response.status} ${response.statusText}`);
   }
 
-  let result;
+  let result: { uploadData?: UploadData; result?: { uploadData?: UploadData } };
   try {
-    result = await response.json();
+    result = (await response.json()) as typeof result;
   } catch {
     throw new Error('Upload failed: invalid JSON response body');
   }
@@ -85,7 +118,7 @@ export async function uploadEventImage(filePath, token, config, verbose) {
   return uploadData;
 }
 
-const CONTENT_TYPE_TO_EXT = {
+const CONTENT_TYPE_TO_EXT: Record<string, string> = {
   'image/png': '.png',
   'image/jpeg': '.jpg',
   'image/gif': '.gif',
@@ -93,19 +126,19 @@ const CONTENT_TYPE_TO_EXT = {
   'image/avif': '.avif',
 };
 
-export async function downloadToTemp(url) {
+export async function downloadToTemp(url: string): Promise<TempDownload> {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 15000);
 
-  let response;
+  let response: Response;
   try {
     response = await fetch(url, { signal: controller.signal });
   } catch (err) {
     clearTimeout(timeout);
-    if (err.name === 'AbortError') {
+    if ((err as Error).name === 'AbortError') {
       throw new Error(`Download timed out after 15s: ${url}`);
     }
-    throw new Error(`Download failed: ${err.message}`);
+    throw new Error(`Download failed: ${(err as Error).message}`);
   } finally {
     clearTimeout(timeout);
   }
@@ -114,7 +147,7 @@ export async function downloadToTemp(url) {
     throw new Error(`Download failed: ${response.status} ${response.statusText} from ${url}`);
   }
 
-  const contentType = (response.headers.get('content-type') || '').split(';')[0].trim();
+  const contentType = (response.headers.get('content-type') || '').split(';')[0]!.trim();
   const ext = CONTENT_TYPE_TO_EXT[contentType];
   if (!ext) {
     throw new Error(`Unsupported content type "${contentType}" from ${url}. Expected an image type.`);
@@ -137,12 +170,16 @@ export async function downloadToTemp(url) {
   return {
     tempPath,
     cleanup() {
-      try { unlinkSync(tempPath); } catch {}
+      try {
+        unlinkSync(tempPath);
+      } catch {
+        /* best-effort cleanup */
+      }
     },
   };
 }
 
-export function buildUploadImage(uploadData, filename) {
+export function buildUploadImage(uploadData: UploadData, filename: string): UploadImage {
   return {
     source: 'upload',
     type: 'image',

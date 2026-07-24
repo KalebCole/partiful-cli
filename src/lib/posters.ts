@@ -2,9 +2,40 @@
  * Shared poster catalog helpers.
  */
 
-let _catalogCache = null;
+/** A poster entry from the Partiful catalog (broad shape, extra fields allowed). */
+export interface Poster {
+  id?: string;
+  name?: string;
+  url?: string;
+  blurHash?: string;
+  contentType?: string;
+  height?: number;
+  width?: number;
+  tags?: string[];
+  categories?: string[];
+  [extra: string]: unknown;
+}
 
-export async function fetchCatalog() {
+/** A poster augmented with its search relevance score. */
+export interface ScoredPoster extends Poster {
+  score: number;
+}
+
+/** The image object we attach to an event when using a catalog poster. */
+export interface PosterImage {
+  source: 'partiful_posters';
+  poster: Poster;
+  url?: string;
+  blurHash?: string;
+  contentType?: string;
+  name?: string;
+  height?: number;
+  width?: number;
+}
+
+let _catalogCache: Poster[] | null = null;
+
+export async function fetchCatalog(): Promise<Poster[]> {
   if (_catalogCache) return _catalogCache;
 
   // Support local fixture for testing
@@ -12,7 +43,7 @@ export async function fetchCatalog() {
   if (localFile) {
     const { readFileSync } = await import('fs');
     _catalogCache = JSON.parse(readFileSync(localFile, 'utf-8'));
-    return _catalogCache;
+    return _catalogCache!;
   }
 
   const controller = new AbortController();
@@ -20,23 +51,23 @@ export async function fetchCatalog() {
   try {
     const res = await fetch('https://assets.getpartiful.com/posters.json', { signal: controller.signal });
     if (!res.ok) throw new Error(`Failed to fetch poster catalog: ${res.status}`);
-    _catalogCache = await res.json();
-    return _catalogCache;
+    _catalogCache = (await res.json()) as Poster[];
+    return _catalogCache!;
   } catch (err) {
-    if (err.name === 'AbortError') throw new Error('Poster catalog fetch timed out (10s)');
+    if ((err as Error).name === 'AbortError') throw new Error('Poster catalog fetch timed out (10s)');
     throw err;
   } finally {
     clearTimeout(timeout);
   }
 }
 
-export function posterThumbnail(posterId) {
+export function posterThumbnail(posterId: string): string {
   return `https://partiful-posters.imgix.net/${encodeURIComponent(posterId)}?fit=max&w=400`;
 }
 
-export function searchPosters(catalog, query) {
+export function searchPosters(catalog: Poster[], query: string): ScoredPoster[] {
   const q = query.toLowerCase();
-  const results = [];
+  const results: ScoredPoster[] = [];
   for (const poster of catalog) {
     let score = 0;
     // Tag exact match
@@ -60,7 +91,7 @@ export function searchPosters(catalog, query) {
   return results;
 }
 
-export function buildPosterImage(poster) {
+export function buildPosterImage(poster: Poster): PosterImage {
   return {
     source: 'partiful_posters',
     poster,
