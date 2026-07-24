@@ -2,3 +2,4 @@ node_modules/
 
 # git worktrees (local dev)
 .worktrees/
+.npmrc

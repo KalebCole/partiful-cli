@@ -82,6 +82,22 @@ partiful events update <id> --title "New Title"
 partiful events cancel <id>
 ```
 
+### `events rsvp` / `events interested` — RSVP to events
+
+```bash
+partiful events rsvp <id>                          # RSVP going (default)
+partiful events rsvp <id> --status maybe           # going | maybe | declined
+partiful events rsvp <id> --plus-one Maddie --plus-one Justin   # bring guests
+partiful events rsvp <id> --name "Kaleb Cole" --message "Stoked!"
+partiful events interested <id>                    # mark interest
+partiful events interested <id> --remove           # remove interest
+```
+
+RSVP does a read-before-write: it updates your existing guest record if you
+already RSVP'd, otherwise creates one. Ticketed and questionnaire-gated events
+are refused with a clear error (use the app for those). The same verbs are
+available under `explore` (`partiful explore rsvp <id>`) for the discovery flow.
+
 ### `guests` — Manage event guests
 
 ```bash
