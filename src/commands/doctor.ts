@@ -5,12 +5,25 @@
 import os from 'os';
 import fs from 'fs';
 import { execSync } from 'child_process';
+import { Command } from 'commander';
 import { loadConfig, refreshAccessToken, resolveCredentialsPath, wrapPayload } from '../lib/auth.js';
+import type { PartifulConfig } from '../lib/auth.js';
 import { apiRequest } from '../lib/http.js';
 import { jsonOutput, jsonError } from '../lib/output.js';
 import { PartifulError } from '../lib/errors.js';
 
-const CHECKS = [
+interface CheckDef {
+  name: string;
+  label: string;
+}
+
+interface CheckResult {
+  name: string;
+  passed: boolean;
+  detail: string;
+}
+
+const CHECKS: CheckDef[] = [
   { name: 'config_file', label: 'Config file' },
   { name: 'token_refresh', label: 'Token refresh' },
   { name: 'api_connectivity', label: 'API connectivity' },
@@ -18,35 +31,38 @@ const CHECKS = [
   { name: 'platform', label: 'Platform' },
 ];
 
-async function runChecks() {
-  const results = [];
+async function runChecks(): Promise<CheckResult[]> {
+  const results: CheckResult[] = [];
 
   // 1. Config file
   const configPath = resolveCredentialsPath();
-  const displayPath = configPath.replace(process.env.HOME, '~');
-  let config = null;
+  const home = process.env['HOME'] ?? '';
+  const displayPath = configPath.replace(home, '~');
+  let config: PartifulConfig | null = null;
   try {
     if (!fs.existsSync(configPath)) {
       results.push({ name: 'config_file', passed: false, detail: `Not found: ${displayPath}` });
     } else {
       const raw = fs.readFileSync(configPath, 'utf8');
-      let parsed;
+      let parsed: Record<string, unknown> | null = null;
       try {
-        parsed = JSON.parse(raw);
+        parsed = JSON.parse(raw) as Record<string, unknown>;
       } catch {
         results.push({ name: 'config_file', passed: false, detail: 'Invalid JSON' });
       }
-      const required = ['apiKey', 'refreshToken', 'userId'];
-      const missing = required.filter(f => !parsed[f]);
-      if (missing.length > 0) {
-        results.push({ name: 'config_file', passed: false, detail: `Missing fields: ${missing.join(', ')}` });
-      } else {
-        config = parsed;
-        results.push({ name: 'config_file', passed: true, detail: displayPath });
+      if (parsed) {
+        const required = ['apiKey', 'refreshToken', 'userId'];
+        const missing = required.filter(f => !parsed![f]);
+        if (missing.length > 0) {
+          results.push({ name: 'config_file', passed: false, detail: `Missing fields: ${missing.join(', ')}` });
+        } else {
+          config = parsed as PartifulConfig;
+          results.push({ name: 'config_file', passed: true, detail: displayPath });
+        }
       }
     }
   } catch (e) {
-    results.push({ name: 'config_file', passed: false, detail: e.message });
+    results.push({ name: 'config_file', passed: false, detail: (e as Error).message });
   }
 
   // 2. Token refresh
@@ -55,14 +71,14 @@ async function runChecks() {
   } else {
     try {
       const tokenResult = await refreshAccessToken(config);
-      const expiresIn = parseInt(tokenResult.expires_in) || 0;
+      const expiresIn = parseInt(String(tokenResult.expires_in)) || 0;
       const minutes = Math.floor(expiresIn / 60);
       config.accessToken = tokenResult.id_token;
       config.tokenExpiry = Date.now() + expiresIn * 1000;
       if (tokenResult.refresh_token) config.refreshToken = tokenResult.refresh_token;
       results.push({ name: 'token_refresh', passed: true, detail: `Token valid for ${minutes} min` });
     } catch (e) {
-      results.push({ name: 'token_refresh', passed: false, detail: e.message });
+      results.push({ name: 'token_refresh', passed: false, detail: (e as Error).message });
     }
   }
 
@@ -81,14 +97,14 @@ async function runChecks() {
       await apiRequest('POST', '/getMyUpcomingEventsForHomePage', config.accessToken, payload, false);
       results.push({ name: 'api_connectivity', passed: true, detail: 'api.partiful.com reachable' });
     } catch (e) {
-      results.push({ name: 'api_connectivity', passed: false, detail: e.message });
+      results.push({ name: 'api_connectivity', passed: false, detail: (e as Error).message });
     }
   }
 
   // 4. Environment
   try {
     const pkgPath = new URL('../../package.json', import.meta.url);
-    const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf8'));
+    const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf8')) as { version: string };
     results.push({
       name: 'environment',
       passed: true,
@@ -98,14 +114,14 @@ async function runChecks() {
     results.push({
       name: 'environment',
       passed: false,
-      detail: `Unable to read runtime metadata: ${e.message}`,
+      detail: `Unable to read runtime metadata: ${(e as Error).message}`,
     });
   }
 
   // 5. Platform
   const platform = os.platform();
   const arch = os.arch();
-  let smsDetail;
+  let smsDetail: string;
   if (platform === 'darwin') {
     try {
       execSync('which imsg', { stdio: 'ignore' });
@@ -113,7 +129,7 @@ async function runChecks() {
     } catch {
       smsDetail = 'imsg not found';
     }
-  } else if (platform === 'linux' && process.env.TERMUX_VERSION) {
+  } else if (platform === 'linux' && process.env['TERMUX_VERSION']) {
     smsDetail = 'termux detected';
   } else {
     smsDetail = 'no SMS auto-retrieve';
@@ -127,12 +143,12 @@ async function runChecks() {
   return results;
 }
 
-function printTable(checks) {
+function printTable(checks: CheckResult[]): void {
   process.stderr.write('\nPartiful CLI — Doctor\n');
   process.stderr.write('─'.repeat(50) + '\n');
   for (const check of checks) {
     const icon = check.passed ? '✓' : '✗';
-    const label = CHECKS.find(c => c.name === check.name)?.label || check.name;
+    const label = CHECKS.find(c => c.name === check.name)?.label ?? check.name;
     process.stderr.write(`  ${icon}  ${label.padEnd(20)} ${check.detail}\n`);
   }
   const allPassed = checks.every(c => c.passed);
@@ -140,14 +156,14 @@ function printTable(checks) {
   process.stderr.write(allPassed ? '  All checks passed ✓\n\n' : '  Some checks failed ✗\n\n');
 }
 
-export function registerDoctorCommands(program) {
+export function registerDoctorCommands(program: Command): void {
   program
     .command('doctor')
     .description('Check CLI setup health and report diagnostics')
-    .action(async (opts, cmd) => {
-      const globalOpts = cmd.optsWithGlobals();
+    .action(async (_opts: Record<string, unknown>, cmd: Command) => {
+      const globalOpts = cmd.optsWithGlobals<Record<string, unknown>>();
 
-      if (globalOpts.dryRun) {
+      if (globalOpts['dryRun']) {
         jsonOutput({
           checks: CHECKS.map(c => ({ name: c.name, label: c.label })),
           note: 'Dry run — no checks executed',
@@ -159,7 +175,7 @@ export function registerDoctorCommands(program) {
         const checks = await runChecks();
         const allPassed = checks.every(c => c.passed);
 
-        if (globalOpts.format !== 'json') {
+        if (globalOpts['format'] !== 'json') {
           printTable(checks);
         }
 
@@ -172,7 +188,7 @@ export function registerDoctorCommands(program) {
         if (!allPassed) process.exit(1);
       } catch (e) {
         if (e instanceof PartifulError) jsonError(e.message, e.exitCode, e.type, e.details);
-        else jsonError(e.message);
+        else jsonError((e as Error).message);
       }
     });
 }

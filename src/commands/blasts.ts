@@ -6,6 +6,7 @@
  * See docs/research/2026-03-24-text-blast-endpoint.md
  */
 
+import { Command } from 'commander';
 import { loadConfig, getValidToken, wrapPayload } from '../lib/auth.js';
 import { apiRequest } from '../lib/http.js';
 import { jsonOutput, jsonError } from '../lib/output.js';
@@ -15,7 +16,7 @@ import { confirm } from '../lib/events.js';
 const VALID_TO_VALUES = ['GOING', 'MAYBE', 'DECLINED', 'SENT', 'INTERESTED', 'WAITLIST', 'APPROVED', 'RESPONDED_TO_FIND_A_TIME'];
 const MAX_MESSAGE_LENGTH = 480;
 
-export function registerBlastsCommands(program) {
+export function registerBlastsCommands(program: Command): void {
   const blasts = program.command('blasts').description('Text blasts to event guests');
 
   blasts
@@ -26,17 +27,18 @@ export function registerBlastsCommands(program) {
     .option('--to <statuses>', 'Comma-separated guest statuses to send to (default: GOING)', 'GOING')
     .option('--show-on-event-page', 'Show blast in event activity feed (default: true)')
     .option('--no-show-on-event-page', 'Hide blast from event activity feed')
-    .action(async (eventId, opts, cmd) => {
-      const globalOpts = cmd.optsWithGlobals();
+    .action(async (eventId: string, opts: Record<string, unknown>, cmd: Command) => {
+      const globalOpts = cmd.optsWithGlobals<Record<string, unknown>>();
 
       try {
+        const message = opts['message'] as string;
         // Validate message length
-        if (opts.message.length > MAX_MESSAGE_LENGTH) {
-          throw new ValidationError(`Message exceeds ${MAX_MESSAGE_LENGTH} char limit (got ${opts.message.length})`);
+        if (message.length > MAX_MESSAGE_LENGTH) {
+          throw new ValidationError(`Message exceeds ${MAX_MESSAGE_LENGTH} char limit (got ${message.length})`);
         }
 
         // Parse and validate 'to' statuses
-        const toStatuses = opts.to.split(',').map(s => s.trim().toUpperCase());
+        const toStatuses = (opts['to'] as string).split(',').map((s: string) => s.trim().toUpperCase());
         for (const status of toStatuses) {
           if (!VALID_TO_VALUES.includes(status)) {
             throw new ValidationError(
@@ -46,7 +48,7 @@ export function registerBlastsCommands(program) {
         }
 
         // Default showOnEventPage to true unless explicitly disabled
-        const showOnEventPage = opts.showOnEventPage !== false;
+        const showOnEventPage = opts['showOnEventPage'] !== false;
 
         const config = loadConfig();
         const token = await getValidToken(config);
@@ -56,7 +58,7 @@ export function registerBlastsCommands(program) {
             params: {
               eventId,
               message: {
-                text: opts.message,
+                text: message,
                 to: toStatuses,
                 showOnEventPage,
               },
@@ -66,18 +68,18 @@ export function registerBlastsCommands(program) {
           }),
         };
 
-        if (globalOpts.dryRun) {
+        if (globalOpts['dryRun']) {
           jsonOutput({ dryRun: true, endpoint: '/createTextBlast', payload }, {}, globalOpts);
           return;
         }
 
         // Safety confirmation unless --yes
-        if (!globalOpts.yes) {
+        if (!globalOpts['yes']) {
           console.error(`\nText Blast Preview:`);
           console.error(`  Event: ${eventId}`);
           console.error(`  To: ${toStatuses.join(', ')}`);
           console.error(`  Show on event page: ${showOnEventPage}`);
-          console.error(`  Message: "${opts.message}"`);
+          console.error(`  Message: "${message}"`);
           console.error('');
           const ok = await confirm('Send this text blast? This will SMS real people');
           if (!ok) {
@@ -86,21 +88,23 @@ export function registerBlastsCommands(program) {
           }
         }
 
-        const result = await apiRequest('POST', '/createTextBlast', token, payload, globalOpts.verbose);
+        const rawResult = await apiRequest('POST', '/createTextBlast', token, payload, globalOpts['verbose'] as boolean | undefined);
+        const result = rawResult as Record<string, unknown>;
+        const resultInner = result['result'] as Record<string, unknown> | undefined;
 
         jsonOutput({
           sent: true,
           eventId,
           to: toStatuses,
-          messageLength: opts.message.length,
+          messageLength: message.length,
           showOnEventPage,
-          response: result?.result?.data || result?.result || result,
+          response: resultInner?.['data'] ?? resultInner ?? rawResult,
         }, {}, globalOpts);
       } catch (err) {
         if (err instanceof PartifulError) {
           jsonError(err.message, err.exitCode, err.type, err.details);
         } else {
-          jsonError(err.message, 1, 'blast_error');
+          jsonError(err instanceof Error ? err.message : String(err), 1, 'blast_error');
         }
       }
     });

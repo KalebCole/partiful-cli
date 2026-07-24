@@ -2,37 +2,41 @@
  * Template commands — save, list, show, edit, delete event templates.
  */
 
-import { loadTemplates, saveTemplates, extractTemplate, applyVariables } from '../lib/templates.js';
+import { Command } from 'commander';
+import { loadTemplates, saveTemplates, extractTemplate } from '../lib/templates.js';
 import { jsonOutput, jsonError } from '../lib/output.js';
 
-export function registerTemplateCommands(program) {
+export function registerTemplateCommands(program: Command): void {
   const template = program.command('template').description('Manage event templates');
 
   template
     .command('list')
     .description('List saved templates')
-    .action((opts, cmd) => {
-      const globalOpts = cmd.optsWithGlobals();
+    .action((_opts: Record<string, unknown>, cmd: Command) => {
+      const globalOpts = cmd.optsWithGlobals<Record<string, unknown>>();
       const templates = loadTemplates();
       const names = Object.keys(templates);
       if (names.length === 0) {
         jsonOutput([], { total: 0, hint: 'Save a template with: partiful template save <eventId> --name <name>' }, globalOpts);
         return;
       }
-      const items = names.map(name => ({
-        name,
-        title: templates[name].title || '(no title)',
-        location: templates[name].location || '',
-        fields: Object.keys(templates[name]).length,
-      }));
+      const items = names.map(name => {
+        const tpl = templates[name]!;
+        return {
+          name,
+          title: (tpl['title'] as string | undefined) ?? '(no title)',
+          location: (tpl['location'] as string | undefined) ?? '',
+          fields: Object.keys(tpl).length,
+        };
+      });
       jsonOutput(items, { total: items.length }, globalOpts);
     });
 
   template
     .command('show <name>')
     .description('Show template details')
-    .action((name, opts, cmd) => {
-      const globalOpts = cmd.optsWithGlobals();
+    .action((name: string, _opts: Record<string, unknown>, cmd: Command) => {
+      const globalOpts = cmd.optsWithGlobals<Record<string, unknown>>();
       const templates = loadTemplates();
       if (!templates[name]) {
         jsonError(`Template "${name}" not found. Use "partiful template list" to see available templates.`, 4, 'not_found');
@@ -59,12 +63,12 @@ export function registerTemplateCommands(program) {
     .option('--link <url...>', 'Link URL (repeatable)')
     .option('--link-text <text...>', 'Display text for link')
     .option('--force', 'Overwrite existing template')
-    .action((opts, cmd) => {
-      const globalOpts = cmd.optsWithGlobals();
+    .action((opts: Record<string, unknown>, cmd: Command) => {
+      const globalOpts = cmd.optsWithGlobals<Record<string, unknown>>();
       const templates = loadTemplates();
-      const name = opts.name;
+      const name = opts['name'] as string;
 
-      if (templates[name] && !opts.force && !globalOpts.force) {
+      if (templates[name] && !opts['force'] && !globalOpts['force']) {
         jsonError(`Template "${name}" already exists. Use --force to overwrite.`, 3, 'validation_error');
         return;
       }
@@ -97,8 +101,8 @@ export function registerTemplateCommands(program) {
     .option('--link <url...>', 'Link URL (repeatable)')
     .option('--link-text <text...>', 'Display text for link')
     .option('--rename <newName>', 'Rename template')
-    .action((name, opts, cmd) => {
-      const globalOpts = cmd.optsWithGlobals();
+    .action((name: string, opts: Record<string, unknown>, cmd: Command) => {
+      const globalOpts = cmd.optsWithGlobals<Record<string, unknown>>();
       const templates = loadTemplates();
 
       if (!templates[name]) {
@@ -106,15 +110,15 @@ export function registerTemplateCommands(program) {
         return;
       }
 
-      // Apply edits
       const edits = extractTemplate(opts);
       const updated = { ...templates[name], ...edits };
 
-      if (opts.rename) {
+      if (opts['rename']) {
+        const newName = opts['rename'] as string;
         delete templates[name];
-        templates[opts.rename] = updated;
+        templates[newName] = updated;
         saveTemplates(templates);
-        jsonOutput(updated, { name: opts.rename, renamedFrom: name, action: 'edited' }, globalOpts);
+        jsonOutput(updated, { name: newName, renamedFrom: name, action: 'edited' }, globalOpts);
       } else {
         templates[name] = updated;
         saveTemplates(templates);
@@ -125,8 +129,8 @@ export function registerTemplateCommands(program) {
   template
     .command('delete <name>')
     .description('Delete a saved template')
-    .action((name, opts, cmd) => {
-      const globalOpts = cmd.optsWithGlobals();
+    .action((name: string, _opts: Record<string, unknown>, cmd: Command) => {
+      const globalOpts = cmd.optsWithGlobals<Record<string, unknown>>();
       const templates = loadTemplates();
 
       if (!templates[name]) {

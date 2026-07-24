@@ -5,29 +5,31 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { Command } from 'commander';
 import { jsonOutput, jsonError } from '../lib/output.js';
 
-function getPackageSkillsDir() {
+function getPackageSkillsDir(): string {
   const thisFile = fileURLToPath(import.meta.url);
   const packageRoot = path.resolve(path.dirname(thisFile), '..', '..');
   return path.join(packageRoot, 'skills');
 }
 
-function resolveWorkspace(optPath) {
+function resolveWorkspace(optPath: string | undefined): string | null {
   if (optPath) return optPath;
-  if (process.env.OPENCLAW_WORKSPACE) return process.env.OPENCLAW_WORKSPACE;
-  const defaultPath = path.join(process.env.HOME, '.openclaw', 'workspace');
+  if (process.env['OPENCLAW_WORKSPACE']) return process.env['OPENCLAW_WORKSPACE']!;
+  const home = process.env['HOME'] ?? '';
+  const defaultPath = path.join(home, '.openclaw', 'workspace');
   if (fs.existsSync(defaultPath)) return defaultPath;
   return null;
 }
 
-function getSkillDirs(skillsSource) {
+function getSkillDirs(skillsSource: string): string[] {
   return fs.readdirSync(skillsSource).filter(
     d => d.startsWith('partiful-') && fs.statSync(path.join(skillsSource, d)).isDirectory()
   );
 }
 
-export function registerSetupCommands(program) {
+export function registerSetupCommands(program: Command): void {
   const setup = program
     .command('setup')
     .description('Setup and integration commands');
@@ -37,12 +39,12 @@ export function registerSetupCommands(program) {
     .description('Link partiful skills into an OpenClaw workspace')
     .option('--workspace <path>', 'OpenClaw workspace path')
     .option('--uninstall', 'Remove symlinks instead of creating them')
-    .action(async (opts, cmd) => {
-      const globalOpts = cmd.optsWithGlobals();
-      const force = globalOpts.force || false;
-      const dryRun = globalOpts.dryRun || false;
+    .action(async (opts: Record<string, unknown>, cmd: Command) => {
+      const globalOpts = cmd.optsWithGlobals<Record<string, unknown>>();
+      const force = globalOpts['force'] || false;
+      const dryRun = globalOpts['dryRun'] || false;
 
-      const workspace = resolveWorkspace(opts.workspace);
+      const workspace = resolveWorkspace(opts['workspace'] as string | undefined);
       if (!workspace) {
         jsonError(
           'Could not find OpenClaw workspace. Set $OPENCLAW_WORKSPACE, ensure ~/.openclaw/workspace exists, or pass --workspace <path>.',
@@ -58,11 +60,11 @@ export function registerSetupCommands(program) {
       }
 
       const workspaceSkills = path.join(workspace, 'skills');
-      let sourceDirs;
+      let sourceDirs: string[];
       try {
         sourceDirs = getSkillDirs(skillsSource);
       } catch (e) {
-        jsonError(`Cannot read skills directory: ${e.message}`, 5, 'internal_error');
+        jsonError(`Cannot read skills directory: ${(e as Error).message}`, 5, 'internal_error');
         return;
       }
 
@@ -72,13 +74,13 @@ export function registerSetupCommands(program) {
       }
 
       // Uninstall mode
-      if (opts.uninstall) {
-        const removed = [];
-        const skipped = [];
+      if (opts['uninstall']) {
+        const removed: Array<{ skill: string; path: string }> = [];
+        const skipped: Array<{ skill: string; reason: string }> = [];
 
         for (const dir of sourceDirs) {
           const linkPath = path.join(workspaceSkills, dir);
-          let stat;
+          let stat: fs.Stats | undefined;
           try { stat = fs.lstatSync(linkPath); } catch { skipped.push({ skill: dir, reason: 'not found' }); continue; }
 
           if (!stat.isSymbolicLink()) {
@@ -99,15 +101,14 @@ export function registerSetupCommands(program) {
         fs.mkdirSync(workspaceSkills, { recursive: true });
       }
 
-      const linked = [];
-      const skipped = [];
+      const linked: Array<{ skill: string; from: string; to: string }> = [];
+      const skipped: Array<{ skill: string; reason: string }> = [];
 
       for (const dir of sourceDirs) {
         const target = path.join(skillsSource, dir);
         const linkPath = path.join(workspaceSkills, dir);
 
-        // Check if something already exists at linkPath
-        let stat;
+        let stat: fs.Stats | null;
         try { stat = fs.lstatSync(linkPath); } catch { stat = null; }
 
         if (stat) {
@@ -118,7 +119,6 @@ export function registerSetupCommands(program) {
               skipped.push({ skill: dir, reason: 'already linked' });
               continue;
             }
-            // Points somewhere else
             if (force) {
               if (!dryRun) fs.unlinkSync(linkPath);
             } else {

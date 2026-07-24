@@ -1,6 +1,22 @@
 import { jsonOutput, jsonError, EXIT } from '../lib/output.js';
+import type { Command } from 'commander';
 
-const SCHEMAS = {
+/** A single parameter descriptor in a command schema. */
+interface SchemaParameter {
+  type: string;
+  required: boolean;
+  description?: string;
+  default?: unknown;
+  positional?: boolean;
+}
+
+/** A command schema entry: invocation string + parameter map. */
+interface CommandSchema {
+  command: string;
+  parameters: Record<string, SchemaParameter>;
+}
+
+const SCHEMAS: Record<string, CommandSchema> = {
   'events.list': {
     command: 'events list',
     parameters: {
@@ -169,11 +185,11 @@ const SCHEMAS = {
   },
 };
 
-export function registerSchemaCommand(program) {
+export function registerSchemaCommand(program: Command): void {
   program
     .command('schema [path]')
     .description('Introspect command parameters (e.g., events.create)')
-    .action((path, opts, cmd) => {
+    .action((path: string | undefined, _opts: unknown, cmd: Command) => {
       const globalOpts = cmd.optsWithGlobals();
       if (!path) {
         jsonOutput({ commands: Object.keys(SCHEMAS) }, { count: Object.keys(SCHEMAS).length }, globalOpts);

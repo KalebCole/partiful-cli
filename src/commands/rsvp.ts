@@ -10,6 +10,7 @@
  * user-facing verb surface.
  */
 
+import type { Command } from 'commander';
 import { loadConfig, getValidToken, wrapPayload, decodeJwtPayload } from '../lib/auth.js';
 import { apiRequest } from '../lib/http.js';
 import { jsonOutput, jsonError } from '../lib/output.js';
@@ -22,10 +23,11 @@ import {
   isTicketedEvent,
   eventRequiresQuestionnaire,
   resolveDisplayName,
+  type RsvpEvent,
 } from '../lib/rsvp.js';
 
 /** Wrap params in the Firebase-callable envelope the API expects. */
-function makePayload(config, params) {
+function makePayload(config: ReturnType<typeof loadConfig>, params: Record<string, unknown>): Record<string, unknown> {
   return {
     data: wrapPayload(config, {
       params,
@@ -35,9 +37,9 @@ function makePayload(config, params) {
   };
 }
 
-function handleError(e) {
+function handleError(e: unknown): void {
   if (e instanceof PartifulError) jsonError(e.message, e.exitCode, e.type, e.details);
-  else jsonError(e.message);
+  else jsonError((e as Error).message);
 }
 
 /**
@@ -49,9 +51,9 @@ function handleError(e) {
  * record instead of updating the existing one. A genuine "no record yet" is a
  * successful response with currentGuest absent -> null, which is correct.
  */
-async function fetchCurrentGuest(config, token, eventId, verbose) {
-  const res = await apiRequest('POST', '/getCurrentGuest', token, makePayload(config, { eventId }), verbose);
-  return res.result?.data?.currentGuest || null;
+async function fetchCurrentGuest(config: ReturnType<typeof loadConfig>, token: string, eventId: string, verbose: boolean | undefined): Promise<Record<string, unknown> | null> {
+  const res = await apiRequest('POST', '/getCurrentGuest', token, makePayload(config, { eventId }), verbose) as { result?: { data?: { currentGuest?: Record<string, unknown> } } };
+  return res.result?.data?.currentGuest ?? null;
 }
 
 /**
@@ -61,35 +63,35 @@ async function fetchCurrentGuest(config, token, eventId, verbose) {
  * guards treat as "not ticketed / no questionnaire", silently disabling the
  * safety rails on any transient error and letting an incomplete RSVP through.
  */
-async function fetchEvent(config, token, eventId, verbose) {
-  const res = await apiRequest('POST', '/getEventInfo', token, makePayload(config, { eventId }), verbose);
-  return res.result?.data?.event || null;
+async function fetchEvent(config: ReturnType<typeof loadConfig>, token: string, eventId: string, verbose: boolean | undefined): Promise<RsvpEvent | null> {
+  const res = await apiRequest('POST', '/getEventInfo', token, makePayload(config, { eventId }), verbose) as { result?: { data?: { event?: RsvpEvent } } };
+  return res.result?.data?.event ?? null;
 }
 
 /** Derive the caller's display name from the Firebase token, if present. */
-function nameFromToken(token) {
-  const payload = decodeJwtPayload(token);
-  return payload?.name || payload?.displayName || null;
+function nameFromToken(token: string): string | null {
+  const payload = decodeJwtPayload(token) as { name?: string; displayName?: string } | null;
+  return payload?.name ?? payload?.displayName ?? null;
 }
 
 /**
  * Shared RSVP handler. Backs `events rsvp` and `explore rsvp`.
  * Exported for unit testing of the orchestration branches.
  */
-export async function rsvpAction(eventId, opts, cmd) {
-  const globalOpts = cmd.optsWithGlobals();
+export async function rsvpAction(eventId: string, opts: Record<string, unknown>, cmd: Command): Promise<void> {
+  const globalOpts = cmd.optsWithGlobals<Record<string, unknown>>();
   try {
     const config = loadConfig();
     const token = await getValidToken(config);
 
     // Read-before-write: decide create (guestId:null) vs update. Skipped on
     // dry-run so the preview is fully offline.
-    let currentGuest = null;
-    let event = null;
-    if (!globalOpts.dryRun) {
+    let currentGuest: Record<string, unknown> | null = null;
+    let event: RsvpEvent | null = null;
+    if (!globalOpts['dryRun']) {
       [currentGuest, event] = await Promise.all([
-        fetchCurrentGuest(config, token, eventId, globalOpts.verbose),
-        fetchEvent(config, token, eventId, globalOpts.verbose),
+        fetchCurrentGuest(config, token, eventId, globalOpts['verbose'] as boolean | undefined),
+        fetchEvent(config, token, eventId, globalOpts['verbose'] as boolean | undefined),
       ]);
 
       // Refuse ticketed/paid events cleanly (Stripe wall).
@@ -120,7 +122,7 @@ export async function rsvpAction(eventId, opts, cmd) {
     }
 
     const name = resolveDisplayName({
-      override: opts.name,
+      override: opts['name'] as string | undefined,
       currentGuest,
       config,
       tokenName: nameFromToken(token),
@@ -128,25 +130,25 @@ export async function rsvpAction(eventId, opts, cmd) {
 
     const params = buildRsvpParams({
       eventId,
-      name,
-      status: opts.status,
-      plusOnes: opts.plusOne,
-      count: opts.count,
-      message: opts.message,
-      password: opts.password,
-      timezone: opts.timezone,
-      guestId: currentGuest?.id ?? null,
+      name: name ?? undefined,
+      status: opts['status'] as string | undefined,
+      plusOnes: opts['plusOne'] as string[] | undefined,
+      count: opts['count'] as number | undefined,
+      message: opts['message'] as string | undefined,
+      password: opts['password'] as string | undefined,
+      timezone: opts['timezone'] as string | undefined,
+      guestId: (currentGuest?.['id'] as string | undefined) ?? null,
     });
 
-    const payload = makePayload(config, params);
+    const payload = makePayload(config, params as unknown as Record<string, unknown>);
 
-    if (globalOpts.dryRun) {
+    if (globalOpts['dryRun']) {
       jsonOutput({ dryRun: true, endpoint: '/addGuest', payload });
       return;
     }
 
     // Confirmation gate: writing to a real host's guest list.
-    if (!globalOpts.yes && !globalOpts.force) {
+    if (!globalOpts['yes'] && !globalOpts['force']) {
       const verb = currentGuest ? 'update your RSVP on' : 'RSVP to';
       const confirmed = await confirm(`About to ${verb} "${eventId}" as ${params.rsvp.status}. Continue?`);
       if (!confirmed) {
@@ -155,13 +157,13 @@ export async function rsvpAction(eventId, opts, cmd) {
       }
     }
 
-    const result = await apiRequest('POST', '/addGuest', token, payload, globalOpts.verbose);
-    const guest = result.result?.data?.guest || result.result?.data || {};
+    const result = await apiRequest('POST', '/addGuest', token, payload, globalOpts['verbose'] as boolean | undefined) as { result?: { data?: { guest?: Record<string, unknown> } | Record<string, unknown> } };
+    const guest = (result.result?.data as { guest?: Record<string, unknown> })?.guest ?? result.result?.data ?? {};
 
     jsonOutput({
       eventId,
       status: params.rsvp.status,
-      guestId: guest.id || currentGuest?.id || null,
+      guestId: (guest as Record<string, unknown>)['id'] ?? currentGuest?.['id'] ?? null,
       count: params.rsvp.count,
       updated: Boolean(currentGuest),
       url: `https://partiful.com/e/${eventId}`,
@@ -174,24 +176,24 @@ export async function rsvpAction(eventId, opts, cmd) {
 /**
  * Shared interest handler. Backs `events interested` and `explore interested`.
  */
-async function interestedAction(eventId, opts, cmd) {
-  const globalOpts = cmd.optsWithGlobals();
+async function interestedAction(eventId: string, opts: Record<string, unknown>, cmd: Command): Promise<void> {
+  const globalOpts = cmd.optsWithGlobals<Record<string, unknown>>();
   try {
     const config = loadConfig();
     const token = await getValidToken(config);
 
-    const interested = !opts.remove;
+    const interested = !opts['remove'];
     // No confirmation gate here: marking interest is non-destructive and easily
     // reversible via --remove, unlike an RSVP write to a host's guest list.
     const params = buildInterestParams({ eventId, interested });
-    const payload = makePayload(config, params);
+    const payload = makePayload(config, params as unknown as Record<string, unknown>);
 
-    if (globalOpts.dryRun) {
+    if (globalOpts['dryRun']) {
       jsonOutput({ dryRun: true, endpoint: '/markEventInterest', payload });
       return;
     }
 
-    await apiRequest('POST', '/markEventInterest', token, payload, globalOpts.verbose);
+    await apiRequest('POST', '/markEventInterest', token, payload, globalOpts['verbose'] as boolean | undefined);
 
     jsonOutput({
       eventId,
@@ -204,7 +206,7 @@ async function interestedAction(eventId, opts, cmd) {
 }
 
 /** Attach rsvp + interested subcommands to a parent command (events or explore). */
-function attachRsvpVerbs(parent) {
+function attachRsvpVerbs(parent: Command): void {
   parent
     .command('rsvp')
     .description('RSVP to an event (going, maybe, or declined)')
@@ -212,7 +214,7 @@ function attachRsvpVerbs(parent) {
     .option('--status <status>', `RSVP status: ${RSVP_STATUSES.join(', ')}`, 'going')
     .option('--name <name>', 'Display name to RSVP with (defaults to your profile name)')
     .option('--plus-one <name...>', 'Plus-one name (repeatable)')
-    .option('--count <n>', 'Total headcount including plus-ones', (v) => parseInt(v, 10))
+    .option('--count <n>', 'Total headcount including plus-ones', (v: string) => parseInt(v, 10))
     .option('--message <text>', 'Optional public comment on the event')
     .option('--password <password>', 'Event password (if the event is password-gated)')
     .option('--timezone <tz>', 'IANA timezone for the RSVP')
@@ -226,7 +228,7 @@ function attachRsvpVerbs(parent) {
     .action(interestedAction);
 }
 
-export function registerRsvpCommands(program, { events, explore }) {
+export function registerRsvpCommands(program: Command, { events, explore }: { events: Command; explore: Command }): void {
   // Canonical verbs live under `events`; `explore` gets the same verbs as
   // thin aliases to the SAME handlers.
   attachRsvpVerbs(events);

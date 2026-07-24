@@ -21,9 +21,9 @@ import { jsonOutput } from './lib/output.js';
 
 // Single source of truth for the version — read from package.json so the
 // CLI's --version can never drift from the published package version.
-const { version: pkgVersion } = createRequire(import.meta.url)('../package.json');
+const { version: pkgVersion } = createRequire(import.meta.url)('../package.json') as { version: string };
 
-export function run() {
+export function run(): void {
   const program = new Command();
 
   program
@@ -58,43 +58,43 @@ export function run() {
   // RSVP / interest verbs, shared across the canonical `events` group and the
   // `explore` alias group. Look up the `events` command created above; create
   // the `explore` group here.
-  const eventsCmd = program.commands.find(c => c.name() === 'events');
+  const eventsCmd = program.commands.find((c) => c.name() === 'events');
   const exploreCmd = program.command('explore').description('Discover public events and RSVP to them');
-  registerRsvpCommands(program, { events: eventsCmd, explore: exploreCmd });
+  registerRsvpCommands(program, { events: eventsCmd!, explore: exploreCmd });
 
   program
     .command('version')
     .description('Show CLI version and info')
-    .action((opts, cmd) => {
+    .action((_opts: unknown, cmd: Command) => {
       const globalOpts = cmd.optsWithGlobals();
       jsonOutput({ version: program.version(), cli: 'partiful', node: process.version }, {}, globalOpts);
     });
 
   // Deprecated aliases — rewrite argv before parsing
   const args = process.argv.slice(2);
-  const aliasMap = {
-    'list': ['events', 'list'],
-    'get': ['events', 'get'],
-    'cancel': ['events', 'cancel'],
-    'clone': ['events', '+clone'],
+  const aliasMap: Record<string, string[]> = {
+    list: ['events', 'list'],
+    get: ['events', 'get'],
+    cancel: ['events', 'cancel'],
+    clone: ['events', '+clone'],
   };
 
   // Find first non-option token (skip --format <val>, -o <val>, etc.)
   const optsWithValue = new Set(['--format', '-o', '--output']);
   let cmdIndex = 0;
-  while (cmdIndex < args.length && args[cmdIndex].startsWith('-')) {
-    cmdIndex += optsWithValue.has(args[cmdIndex]) ? 2 : 1;
+  while (cmdIndex < args.length && args[cmdIndex]!.startsWith('-')) {
+    cmdIndex += optsWithValue.has(args[cmdIndex]!) ? 2 : 1;
   }
 
   const legacy = args[cmdIndex];
   if (legacy && aliasMap[legacy]) {
     const rewritten = [
       ...args.slice(0, cmdIndex),
-      ...aliasMap[legacy],
+      ...aliasMap[legacy]!,
       ...args.slice(cmdIndex + 1),
     ];
     process.stderr.write(
-      `[deprecated] "partiful ${legacy}" → use "partiful ${aliasMap[legacy].join(' ')}" instead\n`
+      `[deprecated] "partiful ${legacy}" → use "partiful ${aliasMap[legacy]!.join(' ')}" instead\n`,
     );
     process.argv = [...process.argv.slice(0, 2), ...rewritten];
   }

@@ -12,23 +12,29 @@
  */
 
 import fs from 'fs';
-import path from 'path';
 import os from 'os';
-import { execSync, spawnSync } from 'child_process';
+import { execSync } from 'child_process';
 import readline from 'readline';
+import type { Command } from 'commander';
 import { loadConfig, saveConfig, getValidToken, resolveCredentialsPath, generateAmplitudeDeviceId } from '../lib/auth.js';
 import { jsonOutput, jsonError } from '../lib/output.js';
 
-const FIREBASE_API_KEY = 'AIzaSyCky6PJ7cHRdBKk5X7gjuWERWaKWBHr4_k';
+const FIREBASE_API_KEY = 'AIzaSy...r4_k';
 const API_BASE = 'https://api.partiful.com';
 const IDENTITY_TOOLKIT = 'https://identitytoolkit.googleapis.com';
-const PARTIFUL_SMS_SENDER = '+18449460698';
+const PARTIFUL_SMS_SENDER = '+184****0698';
 const CODE_POLL_INTERVAL_MS = 3000;
 const CODE_POLL_TIMEOUT_MS = 120000; // 2 minutes
 
 // ─── Platform Detection ───────────────────────────────────────
 
-function detectPlatform() {
+interface PlatformInfo {
+  os: string;
+  canAutoRetrieve: boolean;
+  method: string;
+}
+
+function detectPlatform(): PlatformInfo {
   const platform = os.platform();
 
   if (platform === 'darwin') {
@@ -56,7 +62,7 @@ function detectPlatform() {
   return { os: platform, canAutoRetrieve: false, method: 'manual' };
 }
 
-function hasCommand(cmd) {
+function hasCommand(cmd: string): boolean {
   try {
     execSync(`which ${cmd}`, { stdio: 'ignore' });
     return true;
@@ -67,7 +73,22 @@ function hasCommand(cmd) {
 
 // ─── SMS Code Retrieval ───────────────────────────────────────
 
-async function pollForCodeImsg(phoneNumber, sentAt) {
+interface ImsgChat {
+  id: string;
+  identifier?: string;
+}
+
+interface ImsgMessage {
+  created_at: string;
+  text?: string;
+}
+
+interface TermuxSmsMessage {
+  received: string;
+  body?: string;
+}
+
+async function pollForCodeImsg(_phoneNumber: string, sentAt: number): Promise<string | null> {
   const deadline = Date.now() + CODE_POLL_TIMEOUT_MS;
   console.error('Watching for SMS verification code via iMessage...');
 
@@ -75,7 +96,7 @@ async function pollForCodeImsg(phoneNumber, sentAt) {
     try {
       // Find the Partiful SMS chat
       const chatsRaw = execSync('imsg chats --limit 30 --json', { encoding: 'utf8', timeout: 10000 });
-      const chats = chatsRaw.trim().split('\n').map(line => JSON.parse(line));
+      const chats: ImsgChat[] = chatsRaw.trim().split('\n').map((line: string) => JSON.parse(line) as ImsgChat);
 
       const partifulChat = chats.find(c =>
         c.identifier === PARTIFUL_SMS_SENDER ||
@@ -86,20 +107,20 @@ async function pollForCodeImsg(phoneNumber, sentAt) {
         const historyRaw = execSync(`imsg history --chat-id ${partifulChat.id} --limit 3 --json`, {
           encoding: 'utf8', timeout: 10000
         });
-        const messages = historyRaw.trim().split('\n').map(line => JSON.parse(line));
+        const messages: ImsgMessage[] = historyRaw.trim().split('\n').map((line: string) => JSON.parse(line) as ImsgMessage);
 
         for (const msg of messages) {
           const msgTime = new Date(msg.created_at).getTime();
           if (msgTime >= sentAt - 5000) { // within 5s of send
             const codeMatch = msg.text?.match(/(\d{6})\s+is your Partiful verification code/);
             if (codeMatch) {
-              console.error(`✓ Code received: ${codeMatch[1]}`);
-              return codeMatch[1];
+              console.error(`✓ Code received: ${codeMatch[1]!}`);
+              return codeMatch[1]!;
             }
           }
         }
       }
-    } catch (e) {
+    } catch {
       // imsg failed — continue polling
     }
 
@@ -113,26 +134,26 @@ async function pollForCodeImsg(phoneNumber, sentAt) {
   return null; // Timed out
 }
 
-async function pollForCodeTermux(phoneNumber, sentAt) {
+async function pollForCodeTermux(_phoneNumber: string, sentAt: number): Promise<string | null> {
   const deadline = Date.now() + CODE_POLL_TIMEOUT_MS;
   console.error('Watching for SMS verification code via Termux...');
 
   while (Date.now() < deadline) {
     try {
       const smsRaw = execSync('termux-sms-list -l 10 -t inbox', { encoding: 'utf8', timeout: 10000 });
-      const messages = JSON.parse(smsRaw);
+      const messages: TermuxSmsMessage[] = JSON.parse(smsRaw) as TermuxSmsMessage[];
 
       for (const msg of messages) {
         const msgTime = new Date(msg.received).getTime();
         if (msgTime >= sentAt - 5000) {
           const codeMatch = msg.body?.match(/(\d{6})\s+is your Partiful verification code/);
           if (codeMatch) {
-            console.error(`✓ Code received: ${codeMatch[1]}`);
-            return codeMatch[1];
+            console.error(`✓ Code received: ${codeMatch[1]!}`);
+            return codeMatch[1]!;
           }
         }
       }
-    } catch (e) {
+    } catch {
       // termux-sms-list failed — continue polling
     }
 
@@ -142,7 +163,7 @@ async function pollForCodeTermux(phoneNumber, sentAt) {
   return null;
 }
 
-async function promptForCode() {
+async function promptForCode(): Promise<string> {
   const rl = readline.createInterface({ input: process.stdin, output: process.stderr });
   return new Promise(resolve => {
     rl.question('Enter verification code: ', answer => {
@@ -154,7 +175,7 @@ async function promptForCode() {
 
 // ─── API Calls ────────────────────────────────────────────────
 
-async function sendAuthCode(phoneNumber) {
+async function sendAuthCode(phoneNumber: string): Promise<unknown> {
   const payload = {
     data: {
       params: {
@@ -189,7 +210,12 @@ async function sendAuthCode(phoneNumber) {
   return resp.json();
 }
 
-async function getLoginToken(phoneNumber, authCode) {
+interface LoginTokenResult {
+  token?: string;
+  [key: string]: unknown;
+}
+
+async function getLoginToken(phoneNumber: string, authCode: string): Promise<LoginTokenResult> {
   const payload = {
     data: {
       params: {
@@ -218,11 +244,19 @@ async function getLoginToken(phoneNumber, authCode) {
     throw new Error(`getLoginToken failed (${resp.status}): ${text}`);
   }
 
-  const result = await resp.json();
-  return result?.result?.data || result?.result || result;
+  const result = await resp.json() as { result?: { data?: LoginTokenResult } & LoginTokenResult };
+  return (result?.result?.data || result?.result || result) as LoginTokenResult;
 }
 
-async function signInWithCustomToken(customToken) {
+interface FirebaseSignInResult {
+  idToken?: string;
+  refreshToken?: string;
+  localId?: string;
+  expiresIn?: string;
+  [key: string]: unknown;
+}
+
+async function signInWithCustomToken(customToken: string): Promise<FirebaseSignInResult> {
   const resp = await fetch(
     `${IDENTITY_TOOLKIT}/v1/accounts:signInWithCustomToken?key=${FIREBASE_API_KEY}`,
     {
@@ -241,10 +275,16 @@ async function signInWithCustomToken(customToken) {
     throw new Error(`signInWithCustomToken failed (${resp.status}): ${text}`);
   }
 
-  return resp.json();
+  return resp.json() as Promise<FirebaseSignInResult>;
 }
 
-async function lookupUser(idToken) {
+interface FirebaseUser {
+  displayName?: string;
+  photoUrl?: string;
+  [key: string]: unknown;
+}
+
+async function lookupUser(idToken: string): Promise<FirebaseUser | null> {
   const resp = await fetch(
     `${IDENTITY_TOOLKIT}/v1/accounts:lookup?key=${FIREBASE_API_KEY}`,
     {
@@ -258,22 +298,22 @@ async function lookupUser(idToken) {
   );
 
   if (!resp.ok) return null;
-  const result = await resp.json();
-  return result?.users?.[0] || null;
+  const result = await resp.json() as { users?: FirebaseUser[] };
+  return result?.users?.[0] ?? null;
 }
 
 // ─── Commands ─────────────────────────────────────────────────
 
-export function registerAuthCommands(program) {
+export function registerAuthCommands(program: Command): void {
   const auth = program.command('auth').description('Manage authentication');
 
   auth
     .command('status')
     .description('Check authentication status and token validity')
-    .action(async (opts, cmd) => {
+    .action(async (_opts: unknown, _cmd: Command) => {
       try {
         const config = loadConfig();
-        const info = {
+        const info: Record<string, unknown> = {
           user: config.displayName || null,
           phone: config.phoneNumber || null,
           userId: config.userId || null,
@@ -283,24 +323,24 @@ export function registerAuthCommands(program) {
 
         try {
           await getValidToken(config);
-          info.tokenValid = true;
+          info['tokenValid'] = true;
         } catch (e) {
-          info.tokenError = e.message;
+          info['tokenError'] = (e as Error).message;
         }
 
         jsonOutput(info);
       } catch (e) {
-        jsonError(e.message, 2, 'auth_error');
+        jsonError((e as Error).message, 2, 'auth_error');
       }
     });
 
   auth
     .command('login')
     .description('Authenticate via SMS verification code')
-    .argument('<phone>', 'Phone number in E.164 format (e.g. +12066993977)')
+    .argument('<phone>', 'Phone number in E.164 format (e.g. +120****3977)')
     .option('--code <code>', 'Skip SMS — provide verification code directly')
     .option('--no-auto', 'Disable auto-retrieval of SMS code')
-    .action(async (phone, opts, cmd) => {
+    .action(async (phone: string, opts: { code?: string; auto?: boolean }, _cmd: Command) => {
       try {
         // Normalize phone number
         let phoneNumber = phone.replace(/[\s\-\(\)]/g, '');
@@ -310,12 +350,12 @@ export function registerAuthCommands(program) {
         }
 
         if (!/^\+\d{10,15}$/.test(phoneNumber)) {
-          jsonError(`Invalid phone number: ${phoneNumber}. Use E.164 format (+12066993977)`, 3, 'validation_error');
+          jsonError(`Invalid phone number: ${phoneNumber}. Use E.164 format (+120****3977)`, 3, 'validation_error');
           return;
         }
 
         const platform = detectPlatform();
-        let code = opts.code || null;
+        let code: string | null = opts.code ?? null;
 
         if (!code) {
           // Step 1: Send verification code
@@ -384,7 +424,7 @@ export function registerAuthCommands(program) {
           apiKey: FIREBASE_API_KEY,
           refreshToken: firebaseResult.refreshToken,
           accessToken: firebaseResult.idToken,
-          tokenExpiry: Date.now() + (parseInt(firebaseResult.expiresIn) * 1000),
+          tokenExpiry: Date.now() + (parseInt(firebaseResult.expiresIn ?? '3600') * 1000),
           userId: firebaseResult.localId,
           displayName: user?.displayName || '',
           phoneNumber: phoneNumber,
@@ -405,7 +445,7 @@ export function registerAuthCommands(program) {
           codeMethod: code === opts.code ? 'provided' : platform.method,
         });
       } catch (e) {
-        jsonError(e.message, 2, 'auth_error');
+        jsonError((e as Error).message, 2, 'auth_error');
       }
     });
 
