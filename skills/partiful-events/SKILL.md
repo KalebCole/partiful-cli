@@ -14,13 +14,24 @@ partiful events list --past
 partiful events list --past --include-cancelled
 ```
 
-Each event in the list includes **your own** RSVP and host status:
+Each event in the list includes **your own** raw RSVP state and host status:
 
-| Field | Meaning |
-|-------|---------|
-| `myRsvp` | Your personal RSVP: `GOING`, `MAYBE`, `DECLINED`, `SENT` (invited, not yet answered), or `null` on events you host |
-| `isHost` | `true` when you own the event |
-| `going` / `maybe` | Aggregate guest counts (everyone), **not** your status |
+| `myRsvp` | Meaning | Category |
+|---|---|---|
+| `GOING` | User accepted the invitation | Going |
+| `MAYBE` | User replied maybe | Maybe |
+| `INTERESTED` | User marked interest | Interested |
+| `DECLINED` | User declined the invitation | Declined |
+| `SENT` | Invitation sent to the authenticated user; no RSVP reply yet | Awaiting RSVP |
+
+**Do not misread `SENT`:** `SENT` does not mean you sent an invitation. It is an inbound invitation awaiting your RSVP.
+
+Categorize in this order:
+1. `isHost === true` → **Hosting** (takes precedence over `myRsvp`)
+2. Otherwise, use the `myRsvp` category in the table
+3. `myRsvp === null` → no personal guest RSVP record is present
+
+`going` and `maybe` are aggregate counts across all guests, **not** your status. Use `partiful schema events.list` for this mapping as machine-readable JSON.
 
 ```bash
 # Only the events you've said yes to (e.g. to sync to a calendar)
