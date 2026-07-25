@@ -82,7 +82,7 @@ describe('drift detection', () => {
     // A conforming getEventInfo event unwrapped to its inner shape reports no drift.
     const eventData = { event: { id: 'e1', title: 'Party', status: 'published', startDate: '2026-08-01' } };
     const drift = detectDrift('getEventInfo', unwrapPayload('getEventInfo', eventData));
-    // GetEventInfoResponseSchema is passthrough-only (no declared fields) → [].
+    // The inner event matches GetEventInfoResponseSchema's declared fields → no drift.
     expect(drift).toEqual([]);
     // But the raw un-unwrapped data would look like a single unknown key 'event'.
     const naive = detectDrift('createEvent', eventData); // createEvent declares id/title/...
