@@ -13,7 +13,8 @@ export function registerShareHelper(program: Command): void {
     .command('+share')
     .description('Generate shareable event link')
     .argument('<eventId>', 'Event ID')
-    .action(async (eventId: string, _opts: Record<string, unknown>, _cmd: Command) => {
+    .action(async (eventId: string, _opts: Record<string, unknown>, cmd: Command) => {
+      const globalOpts = cmd.optsWithGlobals<Record<string, unknown>>();
       try {
         const config = loadConfig();
         const token = await getValidToken(config);
@@ -27,12 +28,18 @@ export function registerShareHelper(program: Command): void {
           }),
         };
 
-        const result = await apiRequest('POST', '/getEventInfo', token, payload, false) as Record<string, unknown>;
+        const result = await apiRequest(
+          'POST',
+          '/getEventInfo',
+          token,
+          payload,
+          globalOpts['verbose'] as boolean | undefined,
+        ) as Record<string, unknown>;
         const data = (result as Record<string, unknown>)['result'] as Record<string, unknown> | undefined;
         const eventData = data?.['data'] as Record<string, unknown> | undefined;
         const event = eventData?.['event'] as Record<string, unknown> | undefined;
 
-        const title = (event?.['title'] as string | undefined) ?? 'Unknown Event';
+        const title = (event?.['title'] as string | undefined) || 'Unknown Event';
         const url = `https://partiful.com/e/${eventId}`;
 
         jsonOutput({ url, eventId, title });
