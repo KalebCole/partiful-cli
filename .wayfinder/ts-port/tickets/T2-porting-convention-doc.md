@@ -1,6 +1,6 @@
 # T2 — Write porting convention doc
 
-**Type:** task (AFK) · **Blocks on:** T1 · **Status:** OPEN
+**Type:** task (AFK) · **Blocks on:** T1 · **Status:** ✅ CLOSED
 
 ## Question
 
@@ -30,4 +30,12 @@ of one typed endpoint (envelope + request interface + Zod `.passthrough()` respo
 
 ## Answer
 
-<!-- link the committed guide on close -->
+**CLOSED 2026-07-24.** Guide committed at `docs/TYPESCRIPT-PORT-GUIDE.md`. Captures all
+settled decisions as file-by-file rules: per-file gate (typecheck + test), `.js` import
+specifiers under NodeNext, `import type` discipline (verbatimModuleSyntax), no behavior
+changes, internal shapes = plain interfaces, requests = fully-typed interfaces, responses =
+Zod `.passthrough()` + `z.infer`, the ONE reusable `CallableEnvelope<P>`/`CallableResult<D>`
+generic, three tagged transports (firebase-callable / firestore / firebase-auth), spec lives
+in `src/lib/api/` (envelope.ts + endpoints.ts registry). Includes the worked `createEvent`
+example: envelope reuse + request interface + Zod passthrough response + z.infer type +
+introspectable metadata record.

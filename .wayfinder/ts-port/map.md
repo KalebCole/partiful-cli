@@ -33,6 +33,13 @@ Success = the API spec is a *byproduct* of typing the code, not a separate artif
 ## Decisions so far
 
 - T0 CLOSED (2026-07-24): RSVP work merged to main via PR #65 (squash, commit ad7be30); tree clean; main green at 195/195 tests. Port branch to be cut from ad7be30.
+- T1 CLOSED (2026-07-24): TS toolchain up. tsx-loader run path (no dist build), tsconfig strict+NodeNext+allowJs, zod added. `npm run typecheck` clean + 195/195 green on still-JS tree.
+- T2 CLOSED (2026-07-24): Convention doc at `docs/TYPESCRIPT-PORT-GUIDE.md`. Enforceable rules + worked createEvent endpoint (envelope generic + request interface + Zod passthrough + z.infer + metadata). Spec home = `src/lib/api/`.
+- T3 CLOSED (2026-07-24): src/lib/ is 100% TS strict (11 modules). THE SPEC authored at `src/lib/api/{envelope,endpoints}.ts`: CallableEnvelope<P>/CallableResult<D> generics + per-endpoint request interfaces + Zod .passthrough() response schemas + z.infer types + introspectable `apiEndpoints` registry (14 entries across firebase-callable/firestore/firebase-auth). bin/partiful uses tsx register() then dynamic import (ESM hoist fix). tsc clean + 195/195 green.
+- T4 CLOSED (2026-07-24, cd6581a): src/ is 100% TypeScript. All 18 remaining .js (12 commands, 4 helpers, cli.ts, schema.ts) ported to strict; commander handlers typed, API responses narrowed via api/ spec + as-casts, `.js` import specifiers preserved (NodeNext). tsc clean + 195/195 green; ./bin/partiful --version + schema smoke-tested via tsx loader.
+- T5 CLOSED (2026-07-24, 06eeb68): `schema api.<method>` namespace driven off the apiEndpoints registry; `schema api` lists methods; bare `schema` lists commands + api.*; existing `schema <command>` unchanged. +5 tests. Output mirrors existing JSON-envelope format.
+- T6 CLOSED (2026-07-24, e45031e): drift detection (src/lib/drift.ts) diffs passthrough responses vs spec field surface, wired guarded into apiRequest, opt-in PARTIFUL_DRIFT_LOG (silent default / stderr / NDJSON file). Gated real-API smoke suite (skipIf !PARTIFUL_SMOKE, read-only). +6 drift unit tests. Strategy documented in guide §10. 206 passed / 6 smoke skipped.
+- REVIEW CLOSED (2026-07-24): adversarial pass = SHIP (0 blocker/major). Bot-poll loop (CodeRabbit + Copilot; Codex over-quota) terminated on stop-condition (a): 0 open threads, checks pass, mergeable. Two in-scope bot findings fixed — drift per-method payload unwrap (404c024, getEventInfo/homepage nest deeper than result.data; +2 tests) and tsx moved devDep→runtime dep (8eef646, no build step means the CLI can't start without it; verified via prod-only install). 5 pre-existing runtime-validation findings (watch/auth/http NaN + fetch timeout) deferred to issue #67 (annotation-only port must not change behavior). Merged origin/main (wayfinder-doc add/add conflicts only, resolved ours; f41237e). PR #66 green + mergeable. Final: 208 passed / 6 smoke skipped (baseline was 195).
 
 ## Not yet specified
 
@@ -55,9 +62,9 @@ Success = the API spec is a *byproduct* of typing the code, not a separate artif
 | # | Title | Type | Blocks on | Status |
 |---|---|---|---|---|
 | T0 | RSVP work merged to main, tree clean, port branch cut | task (AFK) | — | ✅ CLOSED (PR #65 merged, ad7be30) |
-| T1 | TS toolchain setup (tsconfig strict, tsx run, bin, build) | task (AFK) | T0 | OPEN |
-| T2 | Write porting convention doc (strict + Zod pattern) | task (AFK) | T1 | OPEN |
-| T3 | Port src/lib/ API layer + author endpoint types/Zod (THE SPEC) | task (AFK) | T2 | OPEN |
-| T4 | Port src/commands/ + src/helpers/ | task (AFK) | T3 | OPEN |
-| T5 | Rewire schema command → schema api.<method> | task (AFK) | T3 | OPEN |
-| T6 | Wire drift-detection + real-API smoke tests | task (AFK) | T3 | OPEN |
+| T1 | TS toolchain setup (tsconfig strict, tsx run, bin, build) | task (AFK) | T0 | ✅ CLOSED (tsx loader, no dist) |
+| T2 | Write porting convention doc (strict + Zod pattern) | task (AFK) | T1 | ✅ CLOSED (docs/TYPESCRIPT-PORT-GUIDE.md) |
+| T3 | Port src/lib/ API layer + author endpoint types/Zod (THE SPEC) | task (AFK) | T2 | ✅ CLOSED (src/lib 100% TS, api/ spec) |
+| T4 | Port src/commands/ + src/helpers/ | task (AFK) | T3 | ✅ CLOSED (src/ 100% TS, cd6581a) |
+| T5 | Rewire schema command → schema api.<method> | task (AFK) | T3 | ✅ CLOSED (schema api.*, 06eeb68) |
+| T6 | Wire drift-detection + real-API smoke tests | task (AFK) | T3 | ✅ CLOSED (drift.ts + smoke suite, e45031e) |

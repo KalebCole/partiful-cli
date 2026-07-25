@@ -1,6 +1,6 @@
 # T1 — TS toolchain setup
 
-**Type:** task (AFK) · **Blocks on:** T0 · **Status:** OPEN
+**Type:** task (AFK) · **Blocks on:** T0 · **Status:** ✅ CLOSED
 
 ## Question
 
@@ -25,4 +25,14 @@ tree (or reports only expected allowJs-permitted state), CLI still runs, tests g
 
 ## Answer
 
-<!-- record tsconfig decisions + run/build choice on close -->
+**CLOSED 2026-07-24.** Toolchain: `typescript@7`, `tsx@4`, `@types/node` in devDeps;
+`zod` added to runtime deps (needed T3+). `tsconfig.json` — `strict: true` plus
+`noUncheckedIndexedAccess`, `noImplicitOverride`, `noFallthroughCasesInSwitch`,
+`forceConsistentCasingInFileNames`; `module`/`moduleResolution` = `NodeNext` (ESM);
+`allowJs: true`, `checkJs: false` so JS+TS coexist file-by-file during the port;
+`noEmit: true`; `verbatimModuleSyntax: true` (enforces `import type` discipline).
+**Run path decision: tsx loader, NO dist build.** `bin/partiful` registers `tsx/esm`
+then imports `src/cli.js` — runs `.js` today and `.ts` after each file flips, zero build
+step, matching the repo's "no build step" ethos. Scripts: `typecheck` = `tsc --noEmit`,
+`start` = `node --import tsx bin/partiful`. Gate: `tsc --noEmit` clean + 195/195 tests
+green on the still-JS tree; `./bin/partiful --version` works.

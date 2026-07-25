@@ -1,4 +1,10 @@
 #!/usr/bin/env node
-import 'dotenv/config';
-import { run } from '../src/cli.js';
+// Register the tsx ESM loader BEFORE importing the (TypeScript) CLI graph, so
+// the CLI runs directly from source with no build step. Static imports hoist
+// and resolve before any code runs, so cli.js must be pulled in dynamically
+// AFTER register() — otherwise its .ts imports fail to resolve.
+import { register } from 'tsx/esm/api';
+register();
+await import('dotenv/config');
+const { run } = await import('../src/cli.js');
 run();
