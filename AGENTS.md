@@ -6,6 +6,19 @@ Run `partiful --help` and `partiful <command> --help` for command reference. Run
 
 ## Things you will get wrong without reading this
 
+### `myRsvp: SENT` means an inbound invite awaiting the user's reply
+`events list` returns the authenticated user's raw Partiful RSVP state in `myRsvp`:
+
+| `myRsvp` | Meaning | Category |
+|---|---|---|
+| `GOING` | User accepted the invitation | Going |
+| `MAYBE` | User replied maybe | Maybe |
+| `INTERESTED` | User marked interest | Interested |
+| `DECLINED` | User declined the invitation | Declined |
+| `SENT` | Invitation sent to the authenticated user; no RSVP reply yet | Awaiting RSVP |
+
+`SENT` does not mean you sent an invitation. It is an inbound invitation awaiting your RSVP. When categorizing event lists, `isHost === true` takes precedence and means **Hosting**; otherwise use the `myRsvp` mapping. A `null` value means no personal guest RSVP record is present. Run `partiful schema events.list` for the machine-readable contract.
+
 ### Contacts don't expose emails or phone numbers
 `contacts list` returns names, user IDs, and shared event counts. It does **not** return email addresses or phone numbers. This is a Partiful privacy constraint. Don't try to extract contact details — they aren't available through any endpoint.
 
@@ -42,7 +55,7 @@ Integration tests (`tests/*.integration.test.js`) hit real Partiful APIs and nee
 
 ## Code conventions
 
-- Plain JavaScript, no TypeScript, no build step
+- TypeScript strict mode; executed through the tsx loader (no checked-in build output)
 - Commander.js CLI framework, Vitest for tests
 - One file per command group in `src/commands/`
 - Structured error objects: `{ status, error: { code, type, message } }`

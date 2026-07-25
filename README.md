@@ -235,8 +235,25 @@ All commands support `--format json`. Responses follow a consistent envelope:
 }
 ```
 
-- **`myRsvp`** — your personal RSVP: `GOING`, `MAYBE`, `DECLINED`, `SENT` (invited, no reply yet), or `null` on events you host. Filter on this to sync only the events you've accepted, e.g. `partiful events list | jq '.data[] | select(.myRsvp == "GOING")'`.
-- **`isHost`** — `true` for events you own. (`going`/`maybe` are aggregate counts across all guests, not your status.)
+`myRsvp` is the raw Partiful state for the authenticated user:
+
+| `myRsvp` | Meaning | Category |
+|---|---|---|
+| `GOING` | User accepted the invitation | Going |
+| `MAYBE` | User replied maybe | Maybe |
+| `INTERESTED` | User marked interest | Interested |
+| `DECLINED` | User declined the invitation | Declined |
+| `SENT` | Invitation sent to the authenticated user; no RSVP reply yet | Awaiting RSVP |
+
+**Important:** `SENT` does not mean you sent an invitation. It is an inbound invitation awaiting your RSVP. For categorization, `isHost === true` takes precedence and means **Hosting**; otherwise use the `myRsvp` mapping above. A `null` `myRsvp` means no personal guest RSVP record is present, commonly because you host the event.
+
+Filter on the raw field to sync only events you've accepted:
+
+```bash
+partiful events list | jq '.data[] | select(.myRsvp == "GOING")'
+```
+
+`going` and `maybe` are aggregate counts across all guests, not your personal status. Run `partiful schema events.list` for the same mapping as machine-readable JSON.
 
 Errors return `{ "status": "error", "error": { "code": 1, "type": "api_error", "message": "..." } }`.
 

@@ -11,10 +11,32 @@ interface SchemaParameter {
   positional?: boolean;
 }
 
-/** A command schema entry: invocation string + parameter map. */
+/** Meaning and user-facing category for one enum value. */
+interface SchemaEnumValue {
+  meaning: string;
+  category: string;
+}
+
+/** A field in a command's machine-readable output contract. */
+interface SchemaOutputField {
+  type: string;
+  description: string;
+  values?: Record<string, SchemaEnumValue>;
+  warning?: string;
+}
+
+/** Machine-readable output and categorization guidance for agents. */
+interface SchemaOutput {
+  type: string;
+  fields: Record<string, SchemaOutputField>;
+  categorization?: Record<string, string>;
+}
+
+/** A command schema entry: invocation string, parameters, and optional output contract. */
 interface CommandSchema {
   command: string;
   parameters: Record<string, SchemaParameter>;
+  output?: SchemaOutput;
 }
 
 const SCHEMAS: Record<string, CommandSchema> = {
@@ -23,6 +45,43 @@ const SCHEMAS: Record<string, CommandSchema> = {
     parameters: {
       '--past': { type: 'boolean', required: false, description: 'Show past events' },
       '--include-cancelled': { type: 'boolean', required: false, description: 'Include cancelled events' },
+    },
+    output: {
+      type: 'EventSummary[]',
+      fields: {
+        myRsvp: {
+          type: '"GOING" | "MAYBE" | "INTERESTED" | "DECLINED" | "SENT" | null',
+          description: 'Authenticated user personal RSVP state; preserve this raw Partiful value',
+          values: {
+            GOING: { meaning: 'User accepted the invitation', category: 'Going' },
+            MAYBE: { meaning: 'User replied maybe', category: 'Maybe' },
+            INTERESTED: { meaning: 'User marked interest', category: 'Interested' },
+            DECLINED: { meaning: 'User declined the invitation', category: 'Declined' },
+            SENT: {
+              meaning: 'Invitation sent to the authenticated user; no RSVP reply yet',
+              category: 'Awaiting RSVP',
+            },
+            null: {
+              meaning: 'No personal guest RSVP record is present',
+              category: 'No RSVP record',
+            },
+          },
+          warning: 'SENT is inbound invitation state; it does not mean the authenticated user sent an invitation',
+        },
+        isHost: {
+          type: 'boolean',
+          description: 'True when the authenticated user owns the event; host categorization takes precedence over myRsvp',
+        },
+      },
+      categorization: {
+        precedence: 'isHost === true',
+        hosting: 'isHost === true → Hosting',
+        going: 'myRsvp === "GOING" → Going',
+        maybe: 'myRsvp === "MAYBE" → Maybe',
+        interested: 'myRsvp === "INTERESTED" → Interested',
+        declined: 'myRsvp === "DECLINED" → Declined',
+        awaitingRsvp: 'myRsvp === "SENT" → Awaiting RSVP',
+      },
     },
   },
   'events.get': {
