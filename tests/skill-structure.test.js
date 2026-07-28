@@ -1,5 +1,7 @@
 import { describe, it, expect } from 'vitest';
+import { execFileSync } from 'child_process';
 import fs from 'fs';
+import os from 'os';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { runRaw } from './helpers.js';
@@ -68,13 +70,42 @@ describe('bundled Partiful skill', () => {
     expect(references).toContain('--no-show-on-event-page');
     expect(references).not.toMatch(/partiful (?:events|guests) \+(?:clone|watch|export|share)/);
 
-    const shareSource = fs.readFileSync(path.join(repoRoot, 'src', 'helpers', 'share.ts'), 'utf8');
-    const blastsSource = fs.readFileSync(path.join(repoRoot, 'src', 'commands', 'blasts.ts'), 'utf8');
-    expect(shareSource).toContain(".command('+share')");
-    expect(shareSource).toContain(".description('Generate shareable event link')");
-    expect(shareSource).toContain('https://partiful.com/e/${eventId}');
-    expect(blastsSource).toContain(".option('--no-show-on-event-page'");
-    expect(blastsSource).toContain("opts['showOnEventPage'] !== false");
+    for (const command of [
+      ['+clone', '--help'],
+      ['+watch', '--help'],
+      ['+export', '--help'],
+      ['+share', '--help'],
+      ['events', 'rsvp', '--help'],
+      ['blasts', 'send', '--help'],
+    ]) {
+      const { stdout, exitCode } = runRaw(command);
+      expect(exitCode, `${command.join(' ')} should resolve`).toBe(0);
+      expect(stdout).toContain('Usage: partiful');
+    }
+
+    expect(runRaw(['events', 'rsvp', '--help']).stdout).toContain('--plus-one');
+    expect(runRaw(['blasts', 'send', '--help']).stdout).toContain('--no-show-on-event-page');
+  });
+
+  it('publishes SKILL.md and exactly five routed reference files', () => {
+    const packDir = fs.mkdtempSync(path.join(os.tmpdir(), 'partiful-pack-'));
+    try {
+      const raw = execFileSync('npm', ['pack', '--dry-run', '--json'], {
+        cwd: repoRoot,
+        encoding: 'utf8',
+        env: { ...process.env, npm_config_cache: path.join(packDir, 'npm-cache') },
+      });
+      const files = JSON.parse(raw)[0].files.map((entry) => entry.path);
+      const shippedSkillFiles = files.filter((file) => file.startsWith('skills/'));
+      const shippedReferences = files.filter((file) => file.startsWith('skills/partiful/references/'));
+
+      expect(shippedSkillFiles).toContain('skills/partiful/SKILL.md');
+      expect(shippedReferences).toHaveLength(5);
+      expect(shippedSkillFiles).toHaveLength(6);
+      expect(shippedSkillFiles.every((file) => file.startsWith('skills/partiful/'))).toBe(true);
+    } finally {
+      fs.rmSync(packDir, { recursive: true, force: true });
+    }
   });
 
   it('removes the obsolete OpenClaw setup command', () => {

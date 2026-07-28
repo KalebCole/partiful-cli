@@ -15,7 +15,8 @@ Login sends an SMS verification code. The CLI may retrieve it automatically on s
 Credentials resolve in this order:
 
 1. `PARTIFUL_TOKEN`
-2. `~/.config/partiful/auth.json`
+2. Credential file selected by `PARTIFUL_CREDENTIALS_FILE`
+3. `~/.config/partiful/auth.json`
 
 A `userId: null` diagnostic does not necessarily block operations because Firebase token authentication remains valid. A later refresh can backfill the user ID.
 
