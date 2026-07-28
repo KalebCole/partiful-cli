@@ -1,0 +1,90 @@
+import { describe, it, expect } from 'vitest';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import { runRaw } from './helpers.js';
+
+const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+const skillsRoot = path.join(repoRoot, 'skills');
+const skillRoot = path.join(skillsRoot, 'partiful');
+
+function skillDirectories() {
+  return fs.readdirSync(skillsRoot)
+    .filter((entry) => fs.statSync(path.join(skillsRoot, entry)).isDirectory())
+    .sort();
+}
+
+describe('bundled Partiful skill', () => {
+  it('ships one model-invoked skill named partiful', () => {
+    expect(skillDirectories()).toEqual(['partiful']);
+
+    const skill = fs.readFileSync(path.join(skillRoot, 'SKILL.md'), 'utf8');
+    expect(skill).toMatch(/^---\nname: partiful\n/);
+    expect(skill).toMatch(/description: .*Partiful/i);
+    expect(skill).not.toMatch(/disable-model-invocation:\s*true/);
+  });
+
+  it('has no broken markdown context pointers', () => {
+    const skill = fs.readFileSync(path.join(skillRoot, 'SKILL.md'), 'utf8');
+    const links = [...skill.matchAll(/\[[^\]]+\]\((references\/[^)]+\.md)\)/g)]
+      .map((match) => match[1]);
+
+    expect(links.length).toBeGreaterThan(0);
+    for (const link of links) {
+      expect(fs.existsSync(path.join(skillRoot, link))).toBe(true);
+    }
+  });
+
+  it('routes every supported task branch to focused reference documentation', () => {
+    const skill = fs.readFileSync(path.join(skillRoot, 'SKILL.md'), 'utf8');
+    const expectedReferences = [
+      'events.md',
+      'guests-and-rsvps.md',
+      'posters-and-images.md',
+      'text-blasts.md',
+      'auth-output-and-safety.md',
+    ];
+    const routedReferences = [...skill.matchAll(/^\|[^\n]+\]\(references\/([^)]+\.md)\) \|$/gm)]
+      .map((match) => match[1]);
+
+    expect(routedReferences).toHaveLength(5);
+    expect(new Set(routedReferences).size).toBe(5);
+    expect(routedReferences.sort()).toEqual(expectedReferences.sort());
+    for (const reference of expectedReferences) {
+      expect(skill).toContain(`references/${reference}`);
+    }
+  });
+
+  it('documents helper commands at their real top-level paths', () => {
+    const references = fs.readdirSync(path.join(skillRoot, 'references'))
+      .map((file) => fs.readFileSync(path.join(skillRoot, 'references', file), 'utf8'))
+      .join('\n');
+
+    expect(references).toContain('partiful +clone');
+    expect(references).toContain('partiful +watch');
+    expect(references).toContain('partiful +export');
+    expect(references).toContain('partiful +share');
+    expect(references).toContain('--plus-one');
+    expect(references).toContain('--no-show-on-event-page');
+    expect(references).not.toMatch(/partiful (?:events|guests) \+(?:clone|watch|export|share)/);
+
+    const shareSource = fs.readFileSync(path.join(repoRoot, 'src', 'helpers', 'share.ts'), 'utf8');
+    const blastsSource = fs.readFileSync(path.join(repoRoot, 'src', 'commands', 'blasts.ts'), 'utf8');
+    expect(shareSource).toContain(".command('+share')");
+    expect(shareSource).toContain(".description('Generate shareable event link')");
+    expect(shareSource).toContain('https://partiful.com/e/${eventId}');
+    expect(blastsSource).toContain(".option('--no-show-on-event-page'");
+    expect(blastsSource).toContain("opts['showOnEventPage'] !== false");
+  });
+
+  it('removes the obsolete OpenClaw setup command', () => {
+    expect(fs.existsSync(path.join(repoRoot, 'src', 'commands', 'setup.ts'))).toBe(false);
+    const packageJson = fs.readFileSync(path.join(repoRoot, 'package.json'), 'utf8');
+    const cli = fs.readFileSync(path.join(repoRoot, 'src', 'cli.ts'), 'utf8');
+    expect(packageJson).not.toMatch(/openclaw/i);
+    expect(cli).not.toMatch(/registerSetupCommands|commands\/setup/);
+    const { stdout, exitCode } = runRaw(['setup', 'openclaw']);
+    expect(exitCode).not.toBe(0);
+    expect(stdout).not.toContain('"status":"success"');
+  });
+});
