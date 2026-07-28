@@ -26,6 +26,15 @@ describe('bundled Partiful skill', () => {
     expect(skill).not.toMatch(/disable-model-invocation:\s*true/);
   });
 
+  it('describes user intents that should invoke the skill', () => {
+    const skill = fs.readFileSync(path.join(skillRoot, 'SKILL.md'), 'utf8');
+    const description = skill.match(/^description: (.+)$/m)?.[1] ?? '';
+
+    for (const intent of ['check Partiful', 'discover events', 'RSVP', 'create or manage an event']) {
+      expect(description).toContain(intent);
+    }
+  });
+
   it('has no broken markdown context pointers', () => {
     const skill = fs.readFileSync(path.join(skillRoot, 'SKILL.md'), 'utf8');
     const links = [...skill.matchAll(/\[[^\]]+\]\((references\/[^)]+\.md)\)/g)]
@@ -41,16 +50,18 @@ describe('bundled Partiful skill', () => {
     const skill = fs.readFileSync(path.join(skillRoot, 'SKILL.md'), 'utf8');
     const expectedReferences = [
       'events.md',
-      'guests-and-rsvps.md',
+      'rsvps-and-interest.md',
+      'guests-invitations-and-cohosts.md',
       'posters-and-images.md',
       'text-blasts.md',
-      'auth-output-and-safety.md',
+      'authentication.md',
+      'cli-output-and-safety.md',
     ];
     const routedReferences = [...skill.matchAll(/^\|[^\n]+\]\(references\/([^)]+\.md)\) \|$/gm)]
       .map((match) => match[1]);
 
-    expect(routedReferences).toHaveLength(5);
-    expect(new Set(routedReferences).size).toBe(5);
+    expect(routedReferences).toHaveLength(7);
+    expect(new Set(routedReferences).size).toBe(7);
     expect(routedReferences.sort()).toEqual(expectedReferences.sort());
     for (const reference of expectedReferences) {
       expect(skill).toContain(`references/${reference}`);
@@ -87,7 +98,7 @@ describe('bundled Partiful skill', () => {
     expect(runRaw(['blasts', 'send', '--help']).stdout).toContain('--no-show-on-event-page');
   });
 
-  it('publishes SKILL.md and exactly five routed reference files', () => {
+  it('publishes SKILL.md and exactly seven routed reference files', () => {
     const packDir = fs.mkdtempSync(path.join(os.tmpdir(), 'partiful-pack-'));
     try {
       const raw = execFileSync('npm', ['pack', '--dry-run', '--json'], {
@@ -100,8 +111,8 @@ describe('bundled Partiful skill', () => {
       const shippedReferences = files.filter((file) => file.startsWith('skills/partiful/references/'));
 
       expect(shippedSkillFiles).toContain('skills/partiful/SKILL.md');
-      expect(shippedReferences).toHaveLength(5);
-      expect(shippedSkillFiles).toHaveLength(6);
+      expect(shippedReferences).toHaveLength(7);
+      expect(shippedSkillFiles).toHaveLength(8);
       expect(shippedSkillFiles.every((file) => file.startsWith('skills/partiful/'))).toBe(true);
     } finally {
       fs.rmSync(packDir, { recursive: true, force: true });

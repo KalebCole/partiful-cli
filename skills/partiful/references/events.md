@@ -18,13 +18,13 @@ partiful events create \
   --date "2026-08-01T19:00" \
   --timezone "America/Los_Angeles" \
   --location "My Place" \
-  --description "🎮 Game Night!\n\nBring a favorite game." \
+  --description $'🎮 Game Night!\n\nBring a favorite game.' \
   --dry-run
 ```
 
 `--title` and `--date` are required unless supplied by a template. Common options: `--end-date`, `--address`, `--capacity`, `--private`, `--theme`, `--effect`, `--poster`, `--poster-search`, `--image`, `--link`, `--link-text`, `--cohost`, `--template`, and `--var`.
 
-Dates must include a full year. The default timezone is Pacific. Descriptions are plain text, not Markdown.
+Dates must include a full year. The default timezone is `America/Los_Angeles`. Descriptions are plain text, not Markdown.
 
 ## Update and Cancel
 

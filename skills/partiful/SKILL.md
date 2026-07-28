@@ -1,6 +1,6 @@
 ---
 name: partiful
-description: Use when managing Partiful from the CLI, including authentication, events, RSVPs, guests, invitations, cohosts, contacts, posters, images, templates, exports, bulk operations, and text blasts.
+description: Use when the user wants to check Partiful, discover events to attend, RSVP or express interest, create or manage an event, invite or review guests, choose event imagery, or send a text blast.
 ---
 
 # Partiful CLI
@@ -18,9 +18,11 @@ Operate Partiful through the JSON-first `partiful` CLI. Load only the reference 
 
 | Task | Read |
 |---|---|
-| Login, auth status, diagnostics, output formats, global flags, schema, errors, security | [Auth, output, and safety](references/auth-output-and-safety.md) |
+| Login, auth status, credential resolution, or authentication diagnostics | [Authentication](references/authentication.md) |
+| Output formats, global flags, schema discovery, errors, or cross-command safety | [CLI output and safety](references/cli-output-and-safety.md) |
 | List, inspect, create, update, cancel, clone, template, or bulk-manage events | [Events](references/events.md) |
-| RSVP, express interest, list/export/watch guests, invite people, find contacts, or manage cohosts | [Guests and RSVPs](references/guests-and-rsvps.md) |
+| RSVP to an event or express interest as an attendee | [RSVPs and interest](references/rsvps-and-interest.md) |
+| List/export/watch guests, invite people, find contacts, or manage cohosts as a host | [Guests, invitations, and cohosts](references/guests-invitations-and-cohosts.md) |
 | Browse posters, select event imagery, or upload a custom image | [Posters and images](references/posters-and-images.md) |
 | Draft, preview, or send a text blast | [Text blasts](references/text-blasts.md) |
 
