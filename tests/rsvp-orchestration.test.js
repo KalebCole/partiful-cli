@@ -74,11 +74,59 @@ describe('rsvpAction ticketed guard', () => {
 });
 
 describe('rsvpAction questionnaire guard', () => {
-  it('refuses a questionnaire-gated event and never calls addGuest', async () => {
-    routeApi({ event: { questions: [{ id: 'q1', required: true }] } });
+  it('refuses a questionnaire with an unanswered required question and never calls addGuest', async () => {
+    routeApi({ event: { questions: [{ id: 'q1', text: 'Required answer?', required: true }] } });
     await rsvpAction('EV1', { name: 'Kaleb' }, mkCmd({ yes: true }));
 
-    expect(jsonError).toHaveBeenCalledWith(expect.stringMatching(/questionnaire/i), 3, 'validation_error');
+    expect(jsonError).toHaveBeenCalledWith(expect.stringMatching(/required question/i), 3, 'validation_error', null);
+    expect(apiRequest.mock.calls.some(c => c[1] === '/addGuest')).toBe(false);
+  });
+
+  it('allows an optional questionnaire with no answers', async () => {
+    routeApi({
+      event: {
+        questionnaireEnabled: true,
+        questionnaireVersions: [{ questions: [] }],
+        questionnaire: { questions: [{ id: 'q1', text: 'Optional answer?', required: false }] },
+      },
+    });
+    await rsvpAction('EV1', { name: 'Kaleb' }, mkCmd({ yes: true }));
+
+    const addCall = apiRequest.mock.calls.find(c => c[1] === '/addGuest');
+    expect(addCall[3].data.params.rsvp.questionnaireResponse).toEqual({
+      questionnaireVersion: 0,
+      answers: {},
+    });
+  });
+
+  it('submits supplied answers inside questionnaireResponse', async () => {
+    routeApi({
+      event: {
+        questionnaireEnabled: true,
+        questionnaireVersions: [{ questions: [] }],
+        questionnaire: { questions: [{ id: 'q1', text: 'Dietary restrictions?', required: true }] },
+      },
+    });
+    await rsvpAction('EV1', { name: 'Kaleb', answer: ['q1=Vegan'] }, mkCmd({ yes: true }));
+
+    const addCall = apiRequest.mock.calls.find(c => c[1] === '/addGuest');
+    expect(addCall).toBeDefined();
+    expect(addCall[3].data.params.rsvp.questionnaireResponse).toEqual({
+      questionnaireVersion: 0,
+      answers: { q1: 'Vegan' },
+    });
+  });
+
+  it('refuses incomplete supplied answers and never calls addGuest', async () => {
+    routeApi({
+      event: {
+        questionnaireEnabled: true,
+        questionnaire: { questions: [{ id: 'q1', text: 'Dietary restrictions?', required: true }] },
+      },
+    });
+    await rsvpAction('EV1', { name: 'Kaleb', answer: ['other=value'] }, mkCmd({ yes: true }));
+
+    expect(jsonError).toHaveBeenCalledWith(expect.stringMatching(/unknown questionnaire answer key/i), 3, 'validation_error', null);
     expect(apiRequest.mock.calls.some(c => c[1] === '/addGuest')).toBe(false);
   });
 });

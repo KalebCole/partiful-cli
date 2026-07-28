@@ -83,6 +83,7 @@ const SCHEMAS: Record<string, CommandSchema> = {
       '--message': { type: 'string', required: false, description: 'Optional public comment on the event' },
       '--password': { type: 'string', required: false, description: 'Event password (if password-gated)' },
       '--timezone': { type: 'string', required: false, description: 'IANA timezone for the RSVP' },
+      '--answer': { type: 'string[]', required: false, description: 'Host-questionnaire answer as key=value (repeatable; key is question ID or exact text)' },
     },
   },
   'events.interested': {
@@ -103,6 +104,7 @@ const SCHEMAS: Record<string, CommandSchema> = {
       '--message': { type: 'string', required: false, description: 'Optional public comment on the event' },
       '--password': { type: 'string', required: false, description: 'Event password (if password-gated)' },
       '--timezone': { type: 'string', required: false, description: 'IANA timezone for the RSVP' },
+      '--answer': { type: 'string[]', required: false, description: 'Host-questionnaire answer as key=value (repeatable; key is question ID or exact text)' },
     },
   },
   'explore.interested': {

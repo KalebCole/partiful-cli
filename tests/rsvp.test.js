@@ -16,6 +16,7 @@ import {
   isTicketedEvent,
   eventRequiresQuestionnaire,
   buildQuestionnaireResponse,
+  parseQuestionnaireAnswers,
   resolveDisplayName,
 } from '../src/lib/rsvp.js';
 
@@ -231,6 +232,11 @@ describe('questionnaire (verified shape)', () => {
     expect(resp.answers).toEqual({ '111': 'None' });
   });
 
+  it('rejects supplied keys that match no question instead of silently dropping them', () => {
+    expect(() => buildQuestionnaireResponse(qEvent, { unknown: 'value', '111': 'None' }))
+      .toThrow(/unknown questionnaire answer key/i);
+  });
+
   it('throws when a required question is unanswered', () => {
     expect(() => buildQuestionnaireResponse(qEvent, { '222': 'Song' })).toThrow(/required question/i);
   });
@@ -248,6 +254,21 @@ describe('questionnaire (verified shape)', () => {
   it('leaves questionnaireResponse off the payload when not supplied', () => {
     const { rsvp } = buildRsvpParams({ eventId: 'e1', name: 'Kaleb' });
     expect(rsvp).not.toHaveProperty('questionnaireResponse');
+  });
+});
+
+describe('parseQuestionnaireAnswers', () => {
+  it('parses repeated key=value answers and preserves equals signs in values', () => {
+    expect(parseQuestionnaireAnswers(['111=Vegan', 'Song request?=A=B'])).toEqual({
+      '111': 'Vegan',
+      'Song request?': 'A=B',
+    });
+  });
+
+  it('rejects malformed or empty answer pairs', () => {
+    expect(() => parseQuestionnaireAnswers(['missing-separator'])).toThrow(/key=value/i);
+    expect(() => parseQuestionnaireAnswers(['=value'])).toThrow(/key/i);
+    expect(() => parseQuestionnaireAnswers(['111='])).toThrow(/value/i);
   });
 });
 

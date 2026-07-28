@@ -56,6 +56,27 @@ export interface QuestionnaireResponse {
   answers: Record<string, string>;
 }
 
+/** Parse repeatable `--answer key=value` options into a lookup map. */
+export function parseQuestionnaireAnswers(pairs: string[] = []): Record<string, string> {
+  const answers: Record<string, string> = {};
+  for (const pair of pairs) {
+    const separator = pair.indexOf('=');
+    if (separator < 0) {
+      throw new PartifulError(`Invalid --answer "${pair}". Use key=value.`, 3, 'validation_error');
+    }
+    const key = pair.slice(0, separator).trim();
+    const value = pair.slice(separator + 1).trim();
+    if (!key) {
+      throw new PartifulError('Invalid --answer: question key cannot be empty.', 3, 'validation_error');
+    }
+    if (!value) {
+      throw new PartifulError(`Invalid --answer "${pair}": value cannot be empty.`, 3, 'validation_error');
+    }
+    answers[key] = value;
+  }
+  return answers;
+}
+
 /** Loose event shape read by the RSVP guards (broad — hosts see more fields). */
 export interface RsvpEvent {
   ticketing?: { enabled?: boolean };
@@ -242,6 +263,7 @@ export function buildQuestionnaireResponse(
 
   const answers: Record<string, string> = {};
   const missing: string[] = [];
+  const matchedKeys = new Set<string>();
   for (const rawQuestion of questions) {
     // Normalise bare-string legacy questions: treat the string as both id and text.
     const question: QuestionnaireQuestion =
@@ -249,12 +271,24 @@ export function buildQuestionnaireResponse(
         ? { id: rawQuestion, text: rawQuestion, required: false }
         : rawQuestion;
     // Accept an answer supplied under the question id OR its exact text.
-    const val = answersByKey[question.id] ?? answersByKey[question.text] ?? undefined;
+    const hasId = Object.hasOwn(answersByKey, question.id);
+    const hasText = Object.hasOwn(answersByKey, question.text);
+    const val = hasId ? answersByKey[question.id] : hasText ? answersByKey[question.text] : undefined;
+    if (hasId) matchedKeys.add(question.id);
+    if (hasText) matchedKeys.add(question.text);
     if (val === undefined || val === null || String(val).trim() === '') {
       if (question.required) missing.push(question.text);
       continue;
     }
     answers[question.id] = String(val);
+  }
+  const unknownKeys = Object.keys(answersByKey).filter((key) => !matchedKeys.has(key));
+  if (unknownKeys.length > 0) {
+    throw new PartifulError(
+      `Unknown questionnaire answer key(s): ${unknownKeys.join('; ')}`,
+      3,
+      'validation_error',
+    );
   }
   if (missing.length > 0) {
     throw new PartifulError(

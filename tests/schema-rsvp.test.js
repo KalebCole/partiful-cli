@@ -13,11 +13,12 @@ describe('schema covers rsvp / interested verbs', () => {
     expect(out.data.commands).toContain('explore.interested');
   });
 
-  it('events.rsvp schema exposes status + plus-one params', () => {
+  it('events.rsvp schema exposes status, plus-one, and questionnaire answer params', () => {
     const out = run(['schema', 'events.rsvp']);
     expect(out.data.command).toContain('rsvp');
     expect(out.data.parameters['--status']).toBeDefined();
     expect(out.data.parameters['--plus-one']).toBeDefined();
+    expect(out.data.parameters['--answer']).toEqual(expect.objectContaining({ type: 'string[]' }));
     expect(out.data.parameters.eventId.required).toBe(true);
   });
 

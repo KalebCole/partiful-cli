@@ -104,14 +104,17 @@ partiful events rsvp <id>                          # RSVP going (default)
 partiful events rsvp <id> --status maybe           # going | maybe | declined
 partiful events rsvp <id> --plus-one Maddie --plus-one Justin   # bring guests
 partiful events rsvp <id> --name "Kaleb Cole" --message "Stoked!"
+partiful events rsvp <id> --answer "<question-id-or-text>=<value>"  # repeat per host question
 partiful events interested <id>                    # mark interest
 partiful events interested <id> --remove           # remove interest
 ```
 
 RSVP does a read-before-write: it updates your existing guest record if you
-already RSVP'd, otherwise creates one. Ticketed and questionnaire-gated events
-are refused with a clear error (use the app for those). The same verbs are
-available under `explore` (`partiful explore rsvp <id>`) for the discovery flow.
+already RSVP'd, otherwise creates one. Ticketed events are refused with a clear
+error (use the app to purchase a ticket). For host-questionnaire events, pass one
+repeatable `--answer "<question-id-or-exact-text>=<value>"` per answer; required
+answers are validated before submission. The same verbs are available under
+`explore` (`partiful explore rsvp <id>`) for the discovery flow.
 
 ### `guests` — Manage event guests
 

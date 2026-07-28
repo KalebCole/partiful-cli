@@ -12,4 +12,11 @@ partiful events interested <event-id> --remove
 
 `explore rsvp` and `explore interested` are equivalent aliases.
 
-The current CLI cannot complete ticket purchases or host questionnaires. Questionnaire response fields are known internally, but `events rsvp` exposes no answer option and deliberately rejects questionnaire-gated events. Use Partiful directly for either flow.
+For questionnaire events, pass one repeatable answer per question. Keys may be the question ID or its exact text:
+
+```bash
+partiful events rsvp <event-id> --answer "<question-id>=<value>"
+partiful events rsvp <event-id> --answer "Dietary restrictions?=None" --answer "Song request?=Anything"
+```
+
+Required answers are validated before submission. Ticketed or paid events remain unsupported because the CLI cannot purchase tickets.

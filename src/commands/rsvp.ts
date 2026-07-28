@@ -22,6 +22,8 @@ import {
   buildInterestParams,
   isTicketedEvent,
   eventRequiresQuestionnaire,
+  buildQuestionnaireResponse,
+  parseQuestionnaireAnswers,
   resolveDisplayName,
   type RsvpEvent,
 } from '../lib/rsvp.js';
@@ -84,8 +86,11 @@ export async function rsvpAction(eventId: string, opts: Record<string, unknown>,
     const config = loadConfig();
     const token = await getValidToken(config);
 
-    // Read-before-write: decide create (guestId:null) vs update. Skipped on
-    // dry-run so the preview is fully offline.
+    const answerPairs = (opts['answer'] as string[] | undefined) ?? [];
+    const suppliedAnswers = parseQuestionnaireAnswers(answerPairs);
+
+    // Read-before-write: decide create (guestId:null) vs update. A dry-run with
+    // answers still fetches the event to validate questions and version.
     let currentGuest: Record<string, unknown> | null = null;
     let event: RsvpEvent | null = null;
     if (!globalOpts['dryRun']) {
@@ -103,22 +108,19 @@ export async function rsvpAction(eventId: string, opts: Record<string, unknown>,
         );
         return;
       }
+    } else if (answerPairs.length > 0) {
+      event = await fetchEvent(config, token, eventId, globalOpts['verbose'] as boolean | undefined);
+    }
 
-      // Refuse questionnaire-gated events. The CLI cannot yet capture or submit
-      // questionnaire answers (live recon of the addGuest answer shape is still
-      // pending, see .wayfinder/tickets/07), so we refuse rather than silently
-      // submit an incomplete RSVP. When --answer support lands, gate this on it.
-      // NOTE: eventRequiresQuestionnaire field names are UNVERIFIED against a
-      // real /getEventInfo payload; confirm via CDP recon before trusting it as
-      // a positive-detection guarantee.
-      if (eventRequiresQuestionnaire(event)) {
-        jsonError(
-          'This event requires answering a host questionnaire before you can RSVP. The CLI cannot submit questionnaire answers yet; please RSVP in the Partiful app.',
-          3,
-          'validation_error'
-        );
-        return;
-      }
+    let questionnaireResponse = null;
+    if (eventRequiresQuestionnaire(event)) {
+      questionnaireResponse = buildQuestionnaireResponse(event!, suppliedAnswers);
+    } else if (answerPairs.length > 0) {
+      throw new PartifulError(
+        'This event does not expose a host questionnaire, so --answer cannot be used.',
+        3,
+        'validation_error'
+      );
     }
 
     const name = resolveDisplayName({
@@ -138,6 +140,7 @@ export async function rsvpAction(eventId: string, opts: Record<string, unknown>,
       password: opts['password'] as string | undefined,
       timezone: opts['timezone'] as string | undefined,
       guestId: (currentGuest?.['id'] as string | undefined) ?? null,
+      questionnaireResponse,
     });
 
     const payload = makePayload(config, params as unknown as Record<string, unknown>);
@@ -207,6 +210,7 @@ async function interestedAction(eventId: string, opts: Record<string, unknown>, 
 
 /** Attach rsvp + interested subcommands to a parent command (events or explore). */
 function attachRsvpVerbs(parent: Command): void {
+  const collect = (value: string, previous: string[]): string[] => [...previous, value];
   parent
     .command('rsvp')
     .description('RSVP to an event (going, maybe, or declined)')
@@ -218,6 +222,7 @@ function attachRsvpVerbs(parent: Command): void {
     .option('--message <text>', 'Optional public comment on the event')
     .option('--password <password>', 'Event password (if the event is password-gated)')
     .option('--timezone <tz>', 'IANA timezone for the RSVP')
+    .option('--answer <key=value>', 'Host-questionnaire answer; repeat for each answer (question id or exact text)', collect, [])
     .action(rsvpAction);
 
   parent
