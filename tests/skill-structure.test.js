@@ -119,14 +119,24 @@ describe('bundled Partiful skill', () => {
     }
   });
 
-  it('removes the obsolete OpenClaw setup command', () => {
+  it('exposes the agent-neutral skill installer and retires setup openclaw', () => {
     expect(fs.existsSync(path.join(repoRoot, 'src', 'commands', 'setup.ts'))).toBe(false);
-    const packageJson = fs.readFileSync(path.join(repoRoot, 'package.json'), 'utf8');
     const cli = fs.readFileSync(path.join(repoRoot, 'src', 'cli.ts'), 'utf8');
-    expect(packageJson).not.toMatch(/openclaw/i);
+    expect(cli).toMatch(/registerSkillCommands/);
     expect(cli).not.toMatch(/registerSetupCommands|commands\/setup/);
-    const { stdout, exitCode } = runRaw(['setup', 'openclaw']);
-    expect(exitCode).not.toBe(0);
-    expect(stdout).not.toContain('"status":"success"');
+
+    for (const command of [
+      ['skill', '--help'],
+      ['skill', 'install', '--help'],
+      ['skill', 'uninstall', '--help'],
+    ]) {
+      const { stdout, exitCode } = runRaw(command);
+      expect(exitCode, `${command.join(' ')} should resolve`).toBe(0);
+      expect(stdout).toContain('Usage: partiful skill');
+    }
+
+    const legacy = runRaw(['setup', 'openclaw']);
+    expect(legacy.exitCode).not.toBe(0);
+    expect(legacy.stdout).not.toContain('"status":"success"');
   });
 });

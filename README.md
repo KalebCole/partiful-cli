@@ -28,6 +28,21 @@ git clone https://github.com/KalebCole/partiful-cli && cd partiful-cli
 npm install && npm link
 ```
 
+### Install the Partiful agent skill
+
+The package includes one Partiful skill. Install it globally for whichever agent you use:
+
+```bash
+partiful skill install hermes
+partiful skill install openclaw
+partiful skill install copilot
+partiful skill install claude
+```
+
+Remove an installer-owned copy with `partiful skill uninstall <agent>`. For OpenClaw, uninstall also cleans legacy `partiful-*` links created by older releases; pass `--workspace <path>` when the old workspace was not at `~/.openclaw/workspace`.
+
+Use `--dry-run` to preview filesystem changes. During installation, existing or locally modified skill directories are preserved unless `--force` is supplied. Uninstall never removes an unowned destination; an installer-owned copy with local edits also requires `--force`.
+
 ## Features
 
 - 🎉 **Events** — create, list, get, update, cancel

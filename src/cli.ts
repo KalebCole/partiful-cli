@@ -16,6 +16,7 @@ import { registerDoctorCommands } from './commands/doctor.js';
 import { registerTemplateCommands } from './commands/templates.js';
 import { registerBulkCommands } from './commands/bulk.js';
 import { registerRsvpCommands } from './commands/rsvp.js';
+import { registerSkillCommands } from './commands/skill.js';
 import { jsonOutput } from './lib/output.js';
 
 // Single source of truth for the version — read from package.json so the
@@ -52,6 +53,7 @@ export function run(): void {
   registerDoctorCommands(program);
   registerTemplateCommands(program);
   registerBulkCommands(program);
+  registerSkillCommands(program);
   // RSVP / interest verbs, shared across the canonical `events` group and the
   // `explore` alias group. Look up the `events` command created above; create
   // the `explore` group here.
