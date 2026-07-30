@@ -19,8 +19,7 @@
     "party",
     "rsvp",
     "agent",
-    "ai",
-    "openclaw"
+    "ai"
   ],
   "repository": {
     "type": "git",
