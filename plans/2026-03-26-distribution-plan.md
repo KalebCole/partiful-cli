@@ -1,5 +1,7 @@
 # Distribution Plan — partiful-cli
 
+> **Superseded:** `partiful setup openclaw` and the five `partiful-*` skills were removed by the singular `partiful` skill migration tracked in issue #70. This document remains as historical planning context, not current setup guidance.
+
 **Date:** 2026-03-26
 **Status:** Draft
 **Goal:** One-command install for humans and AI agents
