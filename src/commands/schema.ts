@@ -19,7 +19,7 @@ interface CommandSchema {
 
 const RSVP_PARAMETERS: Record<string, SchemaParameter> = {
   eventId: { type: 'string', required: true, positional: true, description: 'Event ID' },
-  '--status': { type: 'string', required: false, default: 'going', description: 'RSVP status: going, maybe, declined' },
+  '--status': { type: 'string', required: false, description: 'RSVP status: going, maybe, declined (defaults to your existing status, or going for a new RSVP)' },
   '--name': { type: 'string', required: false, description: 'Display name to RSVP with (defaults to profile name)' },
   '--plus-one': { type: 'string[]', required: false, description: 'Plus-one name (repeatable)' },
   '--count': { type: 'integer', required: false, description: 'Total headcount including plus-ones' },

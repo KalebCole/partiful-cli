@@ -58,7 +58,7 @@ export interface QuestionnaireResponse {
 
 /** Parse repeatable `--answer key=value` options into a lookup map. */
 export function parseQuestionnaireAnswers(pairs: string[] = []): Record<string, string> {
-  const answers: Record<string, string> = {};
+  const answers: Record<string, string> = Object.create(null);
   for (const pair of pairs) {
     const separator = pair.indexOf('=');
     if (separator < 0) {
@@ -157,6 +157,13 @@ export function buildRsvpParams(o: BuildRsvpOptions = {}): AddGuestParams {
     );
   } else {
     count = Math.trunc(o.count);
+  }
+  if (o.count != null && count < derivedCount) {
+    throw new PartifulError(
+      `Invalid --count "${o.count}". Count must include you and all named plus-ones (minimum ${derivedCount}).`,
+      3,
+      'validation_error',
+    );
   }
 
   const rsvp: RsvpDraft = {

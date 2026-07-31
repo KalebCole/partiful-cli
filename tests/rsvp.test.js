@@ -89,6 +89,12 @@ describe('buildRsvpParams', () => {
     expect(params.rsvp.count).toBe(5);
   });
 
+  it('rejects a count lower than self plus named plus-ones', () => {
+    expect(() => buildRsvpParams({
+      eventId: 'EV1', name: 'Kaleb', plusOnes: ['Maddie', 'Justin'], count: 2,
+    })).toThrow(/count.*plus-one/i);
+  });
+
   it('carries message, password and timezone through', () => {
     const params = buildRsvpParams({
       eventId: 'EV1', name: 'Kaleb', message: 'stoked', password: 'sesame', timezone: 'America/New_York',
@@ -384,6 +390,12 @@ describe('parseQuestionnaireAnswers', () => {
   it('rejects a repeated answer key instead of silently taking the final value', () => {
     expect(() => parseQuestionnaireAnswers(['111=None', '111=Vegan']))
       .toThrow(/duplicate questionnaire answer key/i);
+  });
+
+  it('retains prototype-like keys so unknown-key validation cannot be bypassed', () => {
+    const parsed = parseQuestionnaireAnswers(['__proto__=value']);
+    expect(Object.hasOwn(parsed, '__proto__')).toBe(true);
+    expect(parsed.__proto__).toBe('value');
   });
 });
 

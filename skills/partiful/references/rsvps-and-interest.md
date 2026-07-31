@@ -19,4 +19,4 @@ partiful events rsvp <event-id> --answer "<question-id>=<value>"
 partiful events rsvp <event-id> --answer "Dietary restrictions?=None" --answer "Song request?=Anything"
 ```
 
-Required answers are validated before submission. Ticketed or paid events remain unsupported because the CLI cannot purchase tickets.
+Required answers are validated before submission. Plain `--dry-run` remains offline; combining `--answer` with `--dry-run` performs read-only guest and event lookups to validate the live questionnaire preview. Ticketed or paid events remain unsupported because the CLI cannot purchase tickets.

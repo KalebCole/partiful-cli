@@ -61,6 +61,21 @@ describe('rsvpAction edit path (existing guest record)', () => {
     expect(out.updated).toBe(true);
     expect(out.guestId).toBe('G7');
   });
+
+  it('defaults non-self guest statuses to GOING when status is omitted', async () => {
+    routeApi({ currentGuest: { id: 'G7', name: 'Server Name', status: 'SENT' }, addGuest: { id: 'G7' } });
+    await rsvpAction('EV1', { message: 'I can make it' }, mkCmd({ yes: true }));
+
+    const addCall = apiRequest.mock.calls.find(c => c[1] === '/addGuest');
+    expect(addCall[3].data.params.rsvp.status).toBe('GOING');
+  });
+
+  it('keeps a plain dry-run offline', async () => {
+    await rsvpAction('EV1', { name: 'Kaleb' }, mkCmd({ dryRun: true }));
+
+    expect(apiRequest).not.toHaveBeenCalled();
+    expect(jsonOutput).toHaveBeenCalled();
+  });
 });
 
 describe('rsvpAction ticketed guard', () => {
@@ -246,6 +261,16 @@ describe('rsvpAction questionnaire guard', () => {
     await rsvpAction('EV1', { name: 'Kaleb', answer: ['other=value'] }, mkCmd({ yes: true }));
 
     expect(jsonError).toHaveBeenCalledWith(expect.stringMatching(/unknown questionnaire answer key/i), 3, 'validation_error', null);
+    expect(apiRequest.mock.calls.some(c => c[1] === '/addGuest')).toBe(false);
+  });
+
+  it('refuses --answer for an event without a questionnaire', async () => {
+    routeApi({ event: { title: 'Plain party' }, currentGuest: { id: 'G7', name: 'Kaleb' } });
+    await rsvpAction('EV1', { answer: ['q1=Vegan'] }, mkCmd({ yes: true }));
+
+    expect(jsonError).toHaveBeenCalledWith(
+      expect.stringMatching(/does not expose a host questionnaire/i), 3, 'validation_error', null,
+    );
     expect(apiRequest.mock.calls.some(c => c[1] === '/addGuest')).toBe(false);
   });
 });

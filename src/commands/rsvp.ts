@@ -143,11 +143,16 @@ export async function rsvpAction(eventId: string, opts: Record<string, unknown>,
     const message = opts['message'] !== undefined
       ? opts['message'] as string
       : currentGuest?.['rsvpMessage'] as string | null | undefined;
+    const currentStatus = currentGuest?.['status'];
+    const reusableCurrentStatus = typeof currentStatus === 'string'
+      && ['GOING', 'MAYBE', 'DECLINED'].includes(currentStatus.trim().toUpperCase())
+      ? currentStatus
+      : undefined;
 
     const params = buildRsvpParams({
       eventId,
       name: name ?? undefined,
-      status: (opts['status'] as string | undefined) ?? (currentGuest?.['status'] as string | undefined),
+      status: (opts['status'] as string | undefined) ?? reusableCurrentStatus,
       plusOnes,
       count,
       message,

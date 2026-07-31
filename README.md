@@ -113,7 +113,9 @@ RSVP does a read-before-write: it updates your existing guest record if you
 already RSVP'd, otherwise creates one. Ticketed events are refused with a clear
 error (use the app to purchase a ticket). For host-questionnaire events, pass one
 repeatable `--answer "<question-id-or-exact-text>=<value>"` per answer; required
-answers are validated before submission. The same verbs are available under
+answers are validated before submission. Plain `--dry-run` stays offline, while
+`--answer ... --dry-run` performs read-only guest/event lookups so the preview can
+validate and preserve live questionnaire state. The same verbs are available under
 `explore` (`partiful explore rsvp <id>`) for the discovery flow.
 
 ### `guests` — Manage event guests
