@@ -25,6 +25,7 @@ import {
   buildQuestionnaireResponse,
   parseQuestionnaireAnswers,
   resolveDisplayName,
+  type QuestionnaireResponse,
   type RsvpEvent,
 } from '../lib/rsvp.js';
 
@@ -89,17 +90,18 @@ export async function rsvpAction(eventId: string, opts: Record<string, unknown>,
     const answerPairs = (opts['answer'] as string[] | undefined) ?? [];
     const suppliedAnswers = parseQuestionnaireAnswers(answerPairs);
 
-    // Read-before-write: decide create (guestId:null) vs update. A dry-run with
-    // answers still fetches the event to validate questions and version.
+    // Live writes and answer-aware previews use the same read-before-write state.
+    // Plain dry-runs remain offline for backward compatibility.
     let currentGuest: Record<string, unknown> | null = null;
     let event: RsvpEvent | null = null;
-    if (!globalOpts['dryRun']) {
+    const needsRemoteState = !globalOpts['dryRun'] || answerPairs.length > 0;
+    if (needsRemoteState) {
       [currentGuest, event] = await Promise.all([
         fetchCurrentGuest(config, token, eventId, globalOpts['verbose'] as boolean | undefined),
         fetchEvent(config, token, eventId, globalOpts['verbose'] as boolean | undefined),
       ]);
 
-      // Refuse ticketed/paid events cleanly (Stripe wall).
+      // Ticketed events cannot be represented by /addGuest, including previews.
       if (isTicketedEvent(event)) {
         jsonError(
           'This is a ticketed or paid event. Self-RSVP is not supported here; use the Partiful app to purchase a ticket.',
@@ -108,13 +110,12 @@ export async function rsvpAction(eventId: string, opts: Record<string, unknown>,
         );
         return;
       }
-    } else if (answerPairs.length > 0) {
-      event = await fetchEvent(config, token, eventId, globalOpts['verbose'] as boolean | undefined);
     }
 
-    let questionnaireResponse = null;
+    const existingResponse = currentGuest?.['questionnaireResponse'] as QuestionnaireResponse | undefined;
+    let questionnaireResponse: QuestionnaireResponse | null = existingResponse ?? null;
     if (eventRequiresQuestionnaire(event)) {
-      questionnaireResponse = buildQuestionnaireResponse(event!, suppliedAnswers);
+      questionnaireResponse = buildQuestionnaireResponse(event!, suppliedAnswers, existingResponse ?? null);
     } else if (answerPairs.length > 0) {
       throw new PartifulError(
         'This event does not expose a host questionnaire, so --answer cannot be used.',
@@ -130,13 +131,26 @@ export async function rsvpAction(eventId: string, opts: Record<string, unknown>,
       tokenName: nameFromToken(token),
     });
 
+    const suppliedPlusOnes = opts['plusOne'] as string[] | undefined;
+    const existingPlusOnes = currentGuest?.['plusOnes'];
+    const plusOnes = suppliedPlusOnes
+      ?? (Array.isArray(existingPlusOnes) ? existingPlusOnes as string[] : undefined);
+    const count = opts['count'] !== undefined
+      ? opts['count'] as number
+      : suppliedPlusOnes !== undefined
+        ? undefined
+        : currentGuest?.['count'] as number | undefined;
+    const message = opts['message'] !== undefined
+      ? opts['message'] as string
+      : currentGuest?.['rsvpMessage'] as string | null | undefined;
+
     const params = buildRsvpParams({
       eventId,
       name: name ?? undefined,
-      status: opts['status'] as string | undefined,
-      plusOnes: opts['plusOne'] as string[] | undefined,
-      count: opts['count'] as number | undefined,
-      message: opts['message'] as string | undefined,
+      status: (opts['status'] as string | undefined) ?? (currentGuest?.['status'] as string | undefined),
+      plusOnes,
+      count,
+      message,
       password: opts['password'] as string | undefined,
       timezone: opts['timezone'] as string | undefined,
       guestId: (currentGuest?.['id'] as string | undefined) ?? null,
@@ -210,19 +224,18 @@ async function interestedAction(eventId: string, opts: Record<string, unknown>, 
 
 /** Attach rsvp + interested subcommands to a parent command (events or explore). */
 function attachRsvpVerbs(parent: Command): void {
-  const collect = (value: string, previous: string[]): string[] => [...previous, value];
   parent
     .command('rsvp')
     .description('RSVP to an event (going, maybe, or declined)')
     .argument('<eventId>', 'Event ID')
-    .option('--status <status>', `RSVP status: ${RSVP_STATUSES.join(', ')}`, 'going')
+    .option('--status <status>', `RSVP status: ${RSVP_STATUSES.join(', ')}`)
     .option('--name <name>', 'Display name to RSVP with (defaults to your profile name)')
     .option('--plus-one <name...>', 'Plus-one name (repeatable)')
     .option('--count <n>', 'Total headcount including plus-ones', (v: string) => parseInt(v, 10))
     .option('--message <text>', 'Optional public comment on the event')
     .option('--password <password>', 'Event password (if the event is password-gated)')
     .option('--timezone <tz>', 'IANA timezone for the RSVP')
-    .option('--answer <key=value>', 'Host-questionnaire answer; repeat for each answer (question id or exact text)', collect, [])
+    .option('--answer <key=value...>', 'Host-questionnaire answers (question id or exact text)')
     .action(rsvpAction);
 
   parent

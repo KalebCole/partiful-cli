@@ -72,6 +72,9 @@ export function parseQuestionnaireAnswers(pairs: string[] = []): Record<string, 
     if (!value) {
       throw new PartifulError(`Invalid --answer "${pair}": value cannot be empty.`, 3, 'validation_error');
     }
+    if (Object.hasOwn(answers, key)) {
+      throw new PartifulError(`Duplicate questionnaire answer key: ${key}`, 3, 'validation_error');
+    }
     answers[key] = value;
   }
   return answers;
@@ -237,59 +240,110 @@ export function eventRequiresQuestionnaire(event: RsvpEvent | null | undefined):
 export function buildQuestionnaireResponse(
   event: RsvpEvent,
   answersByKey: Record<string, unknown> = {},
+  existingResponse: QuestionnaireResponse | null = null,
 ): QuestionnaireResponse | null {
   if (!eventRequiresQuestionnaire(event)) return null;
 
-  // Resolve question list defensively — event.questionnaire may be absent
-  // when the questionnaire was detected via a legacy field path.
-  let questions: Array<QuestionnaireQuestion | string>;
+  let rawQuestions: Array<QuestionnaireQuestion | string>;
   const primaryQuestions = event.questionnaire?.questions;
   if (Array.isArray(primaryQuestions) && primaryQuestions.length > 0) {
-    questions = primaryQuestions;
+    rawQuestions = primaryQuestions;
   } else {
     const legacyField = LEGACY_QUESTIONNAIRE_FIELDS.find(
       (f) => Array.isArray(event[f]) && (event[f] as unknown[]).length > 0,
     );
-    if (legacyField) {
-      questions = event[legacyField] as Array<QuestionnaireQuestion | string>;
-    } else {
+    if (!legacyField) {
       throw new PartifulError(
         'Event questionnaire is enabled but no questions were found.',
         3,
         'validation_error',
       );
     }
+    rawQuestions = event[legacyField] as Array<QuestionnaireQuestion | string>;
   }
 
-  const answers: Record<string, string> = {};
-  const missing: string[] = [];
-  const matchedKeys = new Set<string>();
-  for (const rawQuestion of questions) {
-    // Normalise bare-string legacy questions: treat the string as both id and text.
-    const question: QuestionnaireQuestion =
-      typeof rawQuestion === 'string'
-        ? { id: rawQuestion, text: rawQuestion, required: false }
-        : rawQuestion;
-    // Accept an answer supplied under the question id OR its exact text.
-    const hasId = Object.hasOwn(answersByKey, question.id);
-    const hasText = Object.hasOwn(answersByKey, question.text);
-    const val = hasId ? answersByKey[question.id] : hasText ? answersByKey[question.text] : undefined;
-    if (hasId) matchedKeys.add(question.id);
-    if (hasText) matchedKeys.add(question.text);
-    if (val === undefined || val === null || String(val).trim() === '') {
-      if (question.required) missing.push(question.text);
-      continue;
+  // For status-only edits, preserve the exact server-accepted response and version.
+  // Rebuilding under a newer host schema would drop answers or demand new ones.
+  if (existingResponse && Object.keys(answersByKey).length === 0) return existingResponse;
+
+  const normalizeQuestion = (question: QuestionnaireQuestion | string): QuestionnaireQuestion =>
+    typeof question === 'string'
+      ? { id: question, text: question, required: false }
+      : question;
+  const questions = rawQuestions.map(normalizeQuestion);
+
+  let questionnaireVersion = 0;
+  const versions = event.questionnaireVersions;
+  if (Array.isArray(versions) && versions.length > 0) {
+    const latestQuestions = (versions.at(-1) as { questions?: Array<QuestionnaireQuestion | string> } | undefined)?.questions;
+    const latest = Array.isArray(latestQuestions) ? latestQuestions.map(normalizeQuestion) : [];
+    const sameQuestion = (left: QuestionnaireQuestion, right: QuestionnaireQuestion): boolean =>
+      left.id === right.id
+      && left.text === right.text
+      && left.type === right.type
+      && Boolean(left.required) === Boolean(right.required);
+    if (latest.length !== questions.length || latest.some((question, index) => !sameQuestion(question, questions[index]!))) {
+      throw new PartifulError(
+        'The active questionnaire does not match its latest version history. Update answers in Partiful.',
+        3,
+        'validation_error',
+      );
     }
-    answers[question.id] = String(val);
-  }
-  const unknownKeys = Object.keys(answersByKey).filter((key) => !matchedKeys.has(key));
-  if (unknownKeys.length > 0) {
+    questionnaireVersion = versions.length - 1;
+  } else {
     throw new PartifulError(
-      `Unknown questionnaire answer key(s): ${unknownKeys.join('; ')}`,
+      'Event questionnaire version history is missing. Update answers in Partiful.',
       3,
       'validation_error',
     );
   }
+
+  if (existingResponse && existingResponse.questionnaireVersion !== questionnaireVersion) {
+    throw new PartifulError(
+      'The event questionnaire changed after your existing response. Update answers in Partiful.',
+      3,
+      'validation_error',
+    );
+  }
+
+  const questionsByAlias = new Map<string, QuestionnaireQuestion[]>();
+  for (const question of questions) {
+    for (const alias of new Set([question.id, question.text])) {
+      const matches = questionsByAlias.get(alias) ?? [];
+      matches.push(question);
+      questionsByAlias.set(alias, matches);
+    }
+  }
+
+  const answers: Record<string, string> = { ...existingResponse?.answers };
+  const overriddenQuestionIds = new Set<string>();
+  for (const [key, rawValue] of Object.entries(answersByKey)) {
+    const matches = questionsByAlias.get(key) ?? [];
+    if (matches.length > 1) {
+      throw new PartifulError(
+        `Ambiguous questionnaire answer key "${key}". Update this questionnaire in Partiful.`,
+        3,
+        'validation_error',
+      );
+    }
+    const question = matches[0];
+    if (!question) {
+      throw new PartifulError(`Unknown questionnaire answer key: ${key}`, 3, 'validation_error');
+    }
+    if (overriddenQuestionIds.has(question.id)) {
+      throw new PartifulError(
+        `Multiple answers target the same question: ${question.text}`,
+        3,
+        'validation_error',
+      );
+    }
+    overriddenQuestionIds.add(question.id);
+    answers[question.id] = String(rawValue);
+  }
+
+  const missing = questions
+    .filter((question) => question.required && !String(answers[question.id] ?? '').trim())
+    .map((question) => question.text);
   if (missing.length > 0) {
     throw new PartifulError(
       `Missing answer(s) for required question(s): ${missing.join('; ')}`,
@@ -297,13 +351,7 @@ export function buildQuestionnaireResponse(
       'validation_error',
     );
   }
-  return {
-    // Version index into questionnaireVersions; current is the last entry.
-    questionnaireVersion: Array.isArray(event.questionnaireVersions)
-      ? Math.max(0, event.questionnaireVersions.length - 1)
-      : 0,
-    answers,
-  };
+  return { questionnaireVersion, answers };
 }
 
 /** Inputs for resolveDisplayName(). */

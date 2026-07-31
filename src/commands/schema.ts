@@ -17,6 +17,18 @@ interface CommandSchema {
   parameters: Record<string, SchemaParameter>;
 }
 
+const RSVP_PARAMETERS: Record<string, SchemaParameter> = {
+  eventId: { type: 'string', required: true, positional: true, description: 'Event ID' },
+  '--status': { type: 'string', required: false, default: 'going', description: 'RSVP status: going, maybe, declined' },
+  '--name': { type: 'string', required: false, description: 'Display name to RSVP with (defaults to profile name)' },
+  '--plus-one': { type: 'string[]', required: false, description: 'Plus-one name (repeatable)' },
+  '--count': { type: 'integer', required: false, description: 'Total headcount including plus-ones' },
+  '--message': { type: 'string', required: false, description: 'Optional public comment on the event' },
+  '--password': { type: 'string', required: false, description: 'Event password (if password-gated)' },
+  '--timezone': { type: 'string', required: false, description: 'IANA timezone for the RSVP' },
+  '--answer': { type: 'string[]', required: false, description: 'Host-questionnaire answer as key=value (repeatable; key is question ID or exact text)' },
+};
+
 const SCHEMAS: Record<string, CommandSchema> = {
   'events.list': {
     command: 'events list',
@@ -74,17 +86,7 @@ const SCHEMAS: Record<string, CommandSchema> = {
   },
   'events.rsvp': {
     command: 'events rsvp <eventId>',
-    parameters: {
-      eventId: { type: 'string', required: true, positional: true, description: 'Event ID' },
-      '--status': { type: 'string', required: false, default: 'going', description: 'RSVP status: going, maybe, declined' },
-      '--name': { type: 'string', required: false, description: 'Display name to RSVP with (defaults to profile name)' },
-      '--plus-one': { type: 'string[]', required: false, description: 'Plus-one name (repeatable)' },
-      '--count': { type: 'integer', required: false, description: 'Total headcount including plus-ones' },
-      '--message': { type: 'string', required: false, description: 'Optional public comment on the event' },
-      '--password': { type: 'string', required: false, description: 'Event password (if password-gated)' },
-      '--timezone': { type: 'string', required: false, description: 'IANA timezone for the RSVP' },
-      '--answer': { type: 'string[]', required: false, description: 'Host-questionnaire answer as key=value (repeatable; key is question ID or exact text)' },
-    },
+    parameters: RSVP_PARAMETERS,
   },
   'events.interested': {
     command: 'events interested <eventId>',
@@ -95,17 +97,7 @@ const SCHEMAS: Record<string, CommandSchema> = {
   },
   'explore.rsvp': {
     command: 'explore rsvp <eventId>',
-    parameters: {
-      eventId: { type: 'string', required: true, positional: true, description: 'Event ID' },
-      '--status': { type: 'string', required: false, default: 'going', description: 'RSVP status: going, maybe, declined' },
-      '--name': { type: 'string', required: false, description: 'Display name to RSVP with (defaults to profile name)' },
-      '--plus-one': { type: 'string[]', required: false, description: 'Plus-one name (repeatable)' },
-      '--count': { type: 'integer', required: false, description: 'Total headcount including plus-ones' },
-      '--message': { type: 'string', required: false, description: 'Optional public comment on the event' },
-      '--password': { type: 'string', required: false, description: 'Event password (if password-gated)' },
-      '--timezone': { type: 'string', required: false, description: 'IANA timezone for the RSVP' },
-      '--answer': { type: 'string[]', required: false, description: 'Host-questionnaire answer as key=value (repeatable; key is question ID or exact text)' },
-    },
+    parameters: RSVP_PARAMETERS,
   },
   'explore.interested': {
     command: 'explore interested <eventId>',

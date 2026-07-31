@@ -71,11 +71,126 @@ describe('rsvpAction ticketed guard', () => {
     expect(jsonError).toHaveBeenCalledWith(expect.stringMatching(/ticketed|paid/i), 3, 'validation_error');
     expect(apiRequest.mock.calls.some(c => c[1] === '/addGuest')).toBe(false);
   });
+
+  it('applies the ticket guard to answer-aware dry-runs', async () => {
+    routeApi({ event: { ticketing: { enabled: true } } });
+    await rsvpAction('EV1', { answer: ['q1=value'] }, mkCmd({ yes: true, dryRun: true }));
+
+    expect(jsonError).toHaveBeenCalledWith(expect.stringMatching(/ticketed|paid/i), 3, 'validation_error');
+    expect(jsonOutput).not.toHaveBeenCalled();
+    expect(apiRequest.mock.calls.some(c => c[1] === '/addGuest')).toBe(false);
+  });
 });
 
 describe('rsvpAction questionnaire guard', () => {
+  const questionnaireQuestions = [
+    { id: 'q1', text: 'Required answer?', required: true },
+    { id: 'q2', text: 'Optional answer?', required: false },
+  ];
+  const questionnaireEvent = {
+    questionnaireEnabled: true,
+    questionnaireVersions: [{ questions: questionnaireQuestions }],
+    questionnaire: { questions: questionnaireQuestions },
+  };
+
+  it('preserves existing answers during a status-only update', async () => {
+    const existingResponse = {
+      questionnaireVersion: 0,
+      answers: { q1: 'Saved', q2: 'Also saved' },
+    };
+    routeApi({
+      event: questionnaireEvent,
+      currentGuest: { id: 'G7', name: 'Kaleb', questionnaireResponse: existingResponse },
+      addGuest: { id: 'G7' },
+    });
+
+    await rsvpAction('EV1', { status: 'maybe' }, mkCmd({ yes: true }));
+
+    const addCall = apiRequest.mock.calls.find(c => c[1] === '/addGuest');
+    expect(addCall[3].data.params.rsvp.questionnaireResponse).toEqual(existingResponse);
+  });
+
+  it('preserves the existing response after the host removes the questionnaire', async () => {
+    const existingResponse = {
+      questionnaireVersion: 0,
+      answers: { q1: 'Saved answer' },
+    };
+    routeApi({
+      event: { questionnaireEnabled: false, questionnaire: { questions: [] } },
+      currentGuest: { id: 'G7', name: 'Kaleb', questionnaireResponse: existingResponse },
+      addGuest: { id: 'G7' },
+    });
+
+    await rsvpAction('EV1', { status: 'maybe' }, mkCmd({ yes: true }));
+
+    const addCall = apiRequest.mock.calls.find(c => c[1] === '/addGuest');
+    expect(addCall[3].data.params.rsvp.questionnaireResponse).toEqual(existingResponse);
+  });
+
+  it('overrides one answer without dropping other existing answers', async () => {
+    routeApi({
+      event: questionnaireEvent,
+      currentGuest: {
+        id: 'G7',
+        name: 'Kaleb',
+        status: 'MAYBE',
+        count: 2,
+        plusOnes: ['Friend'],
+        rsvpMessage: 'Saved message',
+        questionnaireResponse: {
+          questionnaireVersion: 0,
+          answers: { q1: 'Old', q2: 'Keep me' },
+        },
+      },
+      addGuest: { id: 'G7' },
+    });
+
+    await rsvpAction('EV1', { answer: ['q1=New'] }, mkCmd({ yes: true }));
+
+    const addCall = apiRequest.mock.calls.find(c => c[1] === '/addGuest');
+    expect(addCall[3].data.params.rsvp).toMatchObject({
+      status: 'MAYBE',
+      count: 2,
+      plusOnes: ['Friend'],
+      message: 'Saved message',
+      questionnaireResponse: {
+        questionnaireVersion: 0,
+        answers: { q1: 'New', q2: 'Keep me' },
+      },
+    });
+  });
+
+  it('uses the live read path for answer dry-runs and preserves existing state', async () => {
+    routeApi({
+      event: questionnaireEvent,
+      currentGuest: {
+        id: 'G7',
+        name: 'Kaleb',
+        status: 'MAYBE',
+        questionnaireResponse: {
+          questionnaireVersion: 0,
+          answers: { q1: 'Old', q2: 'Keep me' },
+        },
+      },
+    });
+
+    await rsvpAction('EV1', { answer: ['q1=New'] }, mkCmd({ yes: true, dryRun: true }));
+
+    expect(apiRequest.mock.calls.some(c => c[1] === '/getCurrentGuest')).toBe(true);
+    const output = jsonOutput.mock.calls.at(-1)[0];
+    expect(output.payload.data.params.rsvp).toMatchObject({
+      guestId: 'G7',
+      status: 'MAYBE',
+      questionnaireResponse: {
+        questionnaireVersion: 0,
+        answers: { q1: 'New', q2: 'Keep me' },
+      },
+    });
+    expect(apiRequest.mock.calls.some(c => c[1] === '/addGuest')).toBe(false);
+  });
+
   it('refuses a questionnaire with an unanswered required question and never calls addGuest', async () => {
-    routeApi({ event: { questions: [{ id: 'q1', text: 'Required answer?', required: true }] } });
+    routeApi({ event: questionnaireEvent });
     await rsvpAction('EV1', { name: 'Kaleb' }, mkCmd({ yes: true }));
 
     expect(jsonError).toHaveBeenCalledWith(expect.stringMatching(/required question/i), 3, 'validation_error', null);
@@ -83,11 +198,12 @@ describe('rsvpAction questionnaire guard', () => {
   });
 
   it('allows an optional questionnaire with no answers', async () => {
+    const questions = [{ id: 'q1', text: 'Optional answer?', required: false }];
     routeApi({
       event: {
         questionnaireEnabled: true,
-        questionnaireVersions: [{ questions: [] }],
-        questionnaire: { questions: [{ id: 'q1', text: 'Optional answer?', required: false }] },
+        questionnaireVersions: [{ questions }],
+        questionnaire: { questions },
       },
     });
     await rsvpAction('EV1', { name: 'Kaleb' }, mkCmd({ yes: true }));
@@ -100,11 +216,12 @@ describe('rsvpAction questionnaire guard', () => {
   });
 
   it('submits supplied answers inside questionnaireResponse', async () => {
+    const questions = [{ id: 'q1', text: 'Dietary restrictions?', required: true }];
     routeApi({
       event: {
         questionnaireEnabled: true,
-        questionnaireVersions: [{ questions: [] }],
-        questionnaire: { questions: [{ id: 'q1', text: 'Dietary restrictions?', required: true }] },
+        questionnaireVersions: [{ questions }],
+        questionnaire: { questions },
       },
     });
     await rsvpAction('EV1', { name: 'Kaleb', answer: ['q1=Vegan'] }, mkCmd({ yes: true }));
@@ -118,10 +235,12 @@ describe('rsvpAction questionnaire guard', () => {
   });
 
   it('refuses incomplete supplied answers and never calls addGuest', async () => {
+    const questions = [{ id: 'q1', text: 'Dietary restrictions?', required: true }];
     routeApi({
       event: {
         questionnaireEnabled: true,
-        questionnaire: { questions: [{ id: 'q1', text: 'Dietary restrictions?', required: true }] },
+        questionnaireVersions: [{ questions }],
+        questionnaire: { questions },
       },
     });
     await rsvpAction('EV1', { name: 'Kaleb', answer: ['other=value'] }, mkCmd({ yes: true }));
