@@ -24,6 +24,16 @@ partiful events create \
 
 `--title` and `--date` are required unless supplied by a template. Common options: `--end-date`, `--address`, `--capacity`, `--private`, `--theme`, `--effect`, `--poster`, `--poster-search`, `--image`, `--link`, `--link-text`, `--cohost`, `--template`, and `--var`.
 
+Add cohosts by unique Partiful contact name. This previews a post-create canonical cohost request, not a direct `cohostIds` write:
+
+```bash
+partiful events create --title "Game Night" --date "2026-08-01T19:00" \
+  --cohost "Alex Smith" --dry-run
+partiful events update <event-id> --cohost "Alex Smith" --dry-run
+```
+
+Get approval before executing because the request notifies another person and grants event controls after acceptance. See [Guests, invitations, and cohosts](guests-invitations-and-cohosts.md) for direct-request states and invite-link workflows.
+
 Dates must include a full year. The default timezone is `America/Los_Angeles`. Descriptions are plain text, not Markdown.
 
 ## Update and Cancel

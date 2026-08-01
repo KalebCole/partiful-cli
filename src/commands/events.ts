@@ -6,7 +6,7 @@ import type { Command } from 'commander';
 import type { EventOptions } from '../lib/events.js';
 import type { Template } from '../lib/templates.js';
 import { loadConfig, getValidToken, wrapPayload, getUserIdFromToken } from '../lib/auth.js';
-import { resolveCohostNames } from '../lib/cohosts.js';
+import { resolveCohostNames, getCohostRequests, getCohostIds, mergeCohostState, setCohostIds, inviteCohostBatch } from '../lib/cohosts.js';
 import { fetchCatalog, searchPosters, buildPosterImage } from '../lib/posters.js';
 import { apiRequest, firestoreRequest } from '../lib/http.js';
 import { parseDateTime, stripMarkdown } from '../lib/dates.js';
@@ -29,6 +29,14 @@ function makePayload(config: ReturnType<typeof loadConfig>, params: Record<strin
       userId: config.userId,
     }),
   };
+}
+
+function makeCohostCall(
+  token: string,
+  config: ReturnType<typeof loadConfig>,
+  verbose?: boolean,
+): (endpoint: string, params: Record<string, string>) => Promise<unknown> {
+  return (endpoint, params) => apiRequest('POST', endpoint, token, makePayload(config, params), verbose);
 }
 
 /**
@@ -222,11 +230,16 @@ export function registerEventsCommands(program: Command): void {
         }
 
         const cohostIds = await resolveCohostNames((opts['cohost'] as string[] | undefined) ?? [], token, config, globalOpts['verbose'] as boolean | undefined);
-
-        const payload = makePayload(config, { event, cohostIds });
+        // Cohosts are invited only after creation through createCohostRequest.
+        // Passing IDs directly to createEvent reproduces the stale-membership bug.
+        const payload = makePayload(config, { event, cohostIds: [] });
+        const cohostInvites = cohostIds.map((cohostId) => ({
+          endpoint: '/createCohostRequest',
+          params: { targetUserId: cohostId },
+        }));
 
         if (globalOpts['dryRun']) {
-          jsonOutput({ dryRun: true, endpoint: '/createEvent', payload, cohostsResolved: cohostIds.length, ...(opts['repeat'] ? { series: { repeat: opts['repeat'], count: opts['count'] } } : {}) });
+          jsonOutput({ dryRun: true, endpoint: '/createEvent', payload, cohostsResolved: cohostIds.length, cohostInvites, ...(opts['repeat'] ? { series: { repeat: opts['repeat'], count: opts['count'] } } : {}) });
           return;
         }
 
@@ -244,11 +257,17 @@ export function registerEventsCommands(program: Command): void {
               d.setDate(d.getDate() + (i * days));
             }
             const seriesEvent = { ...event, startDate: d.toISOString() };
-            const seriesPayload = makePayload(config, { event: seriesEvent, cohostIds });
+            const seriesPayload = makePayload(config, { event: seriesEvent, cohostIds: [] });
             try {
-              const res = await apiRequest('POST', '/createEvent', token, seriesPayload, globalOpts['verbose'] as boolean | undefined) as { result?: { data?: unknown; eventId?: string } };
-              const id = res.result?.data ?? res.result?.eventId;
-              results.push({ index: i + 1, status: 'created', title: opts['title'], date: d.toISOString(), id, url: `https://partiful.com/e/${String(id)}` });
+              const res = await apiRequest('POST', '/createEvent', token, seriesPayload, globalOpts['verbose'] as boolean | undefined) as { result?: { data?: string | { id?: string }; eventId?: string } };
+              const data = res.result?.data;
+              const id = typeof data === 'string' ? data : data?.id ?? res.result?.eventId;
+              if (!id) throw new Error('Partiful did not return an event ID');
+              const inviteResults = await inviteCohostBatch(
+                id, cohostIds, [], makeCohostCall(token, config, globalOpts['verbose'] as boolean | undefined),
+              );
+              if (inviteResults.failed.length > 0) process.exitCode = 1;
+              results.push({ index: i + 1, status: 'created', title: opts['title'], date: d.toISOString(), id, cohostInvites: inviteResults, url: `https://partiful.com/e/${id}` });
               process.stderr.write(`[${i + 1}/${opts['count']}] Created: ${opts['title']} (${d.toLocaleDateString()})\n`);
             } catch (err) {
               results.push({ index: i + 1, status: 'error', title: opts['title'], date: d.toISOString(), error: (err as Error).message });
@@ -259,14 +278,21 @@ export function registerEventsCommands(program: Command): void {
           return;
         }
 
-        const result = await apiRequest('POST', '/createEvent', token, payload, globalOpts['verbose'] as boolean | undefined) as { result?: { data?: unknown; eventId?: string } };
-        const newEventId = result.result?.data ?? result.result?.eventId;
+        const result = await apiRequest('POST', '/createEvent', token, payload, globalOpts['verbose'] as boolean | undefined) as { result?: { data?: string | { id?: string }; eventId?: string } };
+        const data = result.result?.data;
+        const newEventId = typeof data === 'string' ? data : data?.id ?? result.result?.eventId;
+        if (!newEventId) throw new Error('Partiful did not return an event ID');
+        const inviteResults = await inviteCohostBatch(
+          newEventId, cohostIds, [], makeCohostCall(token, config, globalOpts['verbose'] as boolean | undefined),
+        );
 
+        if (inviteResults.failed.length > 0) process.exitCode = 1;
         jsonOutput({
           id: newEventId,
           title: opts['title'],
           startDate: startDate.toISOString(),
-          url: `https://partiful.com/e/${String(newEventId)}`,
+          cohostInvites: inviteResults,
+          url: `https://partiful.com/e/${newEventId}`,
         });
       } catch (e) {
         handleError(e);
@@ -297,6 +323,9 @@ export function registerEventsCommands(program: Command): void {
 
         const fields: Record<string, unknown> = {};
         const updateFields: string[] = [];
+        let cohostIds: string[] = [];
+        let currentCohostIds: string[] = [];
+        let cohostStates: ReturnType<typeof mergeCohostState> = [];
 
         if (opts['title']) { fields['title'] = { stringValue: opts['title'] }; updateFields.push('title'); }
         if (opts['location']) { fields['location'] = { stringValue: opts['location'] }; updateFields.push('location'); }
@@ -334,30 +363,58 @@ export function registerEventsCommands(program: Command): void {
         }
 
         if (opts['cohost'] && (opts['cohost'] as string[]).length > 0) {
-          const resolvedIds = await resolveCohostNames(opts['cohost'] as string[], token, config, globalOpts['verbose'] as boolean | undefined);
-          if (resolvedIds.length > 0) {
-            fields['cohostIds'] = {
-              arrayValue: { values: resolvedIds.map((id: string) => ({ stringValue: id })) }
-            };
-            updateFields.push('cohostIds');
-          }
+          const [resolvedIds, requests, existingIds] = await Promise.all([
+            resolveCohostNames(opts['cohost'] as string[], token, config, globalOpts['verbose'] as boolean | undefined),
+            getCohostRequests(eventId, token, globalOpts['verbose'] as boolean | undefined),
+            getCohostIds(eventId, token, globalOpts['verbose'] as boolean | undefined),
+          ]);
+          cohostIds = resolvedIds;
+          currentCohostIds = existingIds;
+          cohostStates = mergeCohostState(requests, existingIds);
         }
 
-        if (updateFields.length === 0) {
+        if (updateFields.length === 0 && cohostIds.length === 0) {
           jsonError('No fields to update. Use --title, --location, --description, --date, --end-date, --capacity, --link, --poster, --poster-search, --image, or --cohost', 3, 'validation_error');
           return;
         }
 
+        const cohostInvites = cohostIds.map((cohostId) => {
+          const state = cohostStates.find((item) => item.userId === cohostId);
+          return {
+            cohostId,
+            currentStatus: state?.status ?? null,
+            endpoints: state?.status === 'pending' || state?.status === 'accepted'
+              ? []
+              : state?.status === 'stale'
+                ? ['Firestore PATCH cohostIds (remove stale ID)', '/createCohostRequest']
+                : ['/createCohostRequest'],
+          };
+        });
         if (globalOpts['dryRun']) {
-          jsonOutput({ dryRun: true, eventId, fields: updateFields, body: { fields } });
+          jsonOutput({ dryRun: true, eventId, fields: updateFields, body: { fields }, cohostInvites });
           return;
         }
 
-        await firestoreRequest('PATCH', eventId, { fields }, token, updateFields, globalOpts['verbose'] as boolean | undefined);
+        if (updateFields.length > 0) {
+          await firestoreRequest('PATCH', eventId, { fields }, token, updateFields, globalOpts['verbose'] as boolean | undefined);
+        }
+        const call = makeCohostCall(token, config, globalOpts['verbose'] as boolean | undefined);
+        const inviteResults = await inviteCohostBatch(
+          eventId,
+          cohostIds,
+          cohostStates,
+          call,
+          async (cohostId) => {
+            currentCohostIds = currentCohostIds.filter((id) => id !== cohostId);
+            await setCohostIds(eventId, currentCohostIds, token, globalOpts['verbose'] as boolean | undefined);
+          },
+        );
 
+        if (inviteResults.failed.length > 0) process.exitCode = 1;
         jsonOutput({
           id: eventId,
           updated: updateFields,
+          cohostInvites: inviteResults,
           url: `https://partiful.com/e/${eventId}`,
         });
       } catch (e) {
@@ -466,23 +523,33 @@ export function registerEventsCommands(program: Command): void {
         }
 
         const cohostIds = await resolveCohostNames((opts['cohost'] as string[] | undefined) ?? [], token, config, globalOpts['verbose'] as boolean | undefined);
-
-        const payload = makePayload(config, { event, cohostIds });
+        const payload = makePayload(config, { event, cohostIds: [] });
+        const cohostInvites = cohostIds.map((cohostId) => ({
+          endpoint: '/createCohostRequest',
+          params: { targetUserId: cohostId },
+        }));
 
         if (globalOpts['dryRun']) {
-          jsonOutput({ dryRun: true, endpoint: '/createEvent', clonedFrom: eventId, payload });
+          jsonOutput({ dryRun: true, endpoint: '/createEvent', clonedFrom: eventId, payload, cohostInvites });
           return;
         }
 
-        const result = await apiRequest('POST', '/createEvent', token, payload, globalOpts['verbose'] as boolean | undefined) as { result?: { data?: unknown; eventId?: string } };
-        const newEventId = result.result?.data ?? result.result?.eventId;
+        const result = await apiRequest('POST', '/createEvent', token, payload, globalOpts['verbose'] as boolean | undefined) as { result?: { data?: string | { id?: string }; eventId?: string } };
+        const data = result.result?.data;
+        const newEventId = typeof data === 'string' ? data : data?.id ?? result.result?.eventId;
+        if (!newEventId) throw new Error('Partiful did not return an event ID');
+        const inviteResults = await inviteCohostBatch(
+          newEventId, cohostIds, [], makeCohostCall(token, config, globalOpts['verbose'] as boolean | undefined),
+        );
 
+        if (inviteResults.failed.length > 0) process.exitCode = 1;
         jsonOutput({
           id: newEventId,
           clonedFrom: eventId,
           title: event['title'],
           startDate: newStart.toISOString(),
-          url: `https://partiful.com/e/${String(newEventId)}`,
+          cohostInvites: inviteResults,
+          url: `https://partiful.com/e/${newEventId}`,
         });
       } catch (e) {
         handleError(e);

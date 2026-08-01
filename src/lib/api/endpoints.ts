@@ -191,6 +191,39 @@ export const AddInvitedGuestsAsHostResponseSchema = z.object({}).passthrough();
 export type AddInvitedGuestsAsHostData = z.infer<typeof AddInvitedGuestsAsHostResponseSchema>;
 export type AddInvitedGuestsAsHostResponse = CallableResult<AddInvitedGuestsAsHostData>;
 
+// --- canonical cohost lifecycle -------------------------------------------
+export interface CohostRequestParams {
+  eventId: string;
+  targetUserId: string;
+}
+export type CreateCohostRequestRequest = CallableEnvelope<CohostRequestParams>;
+export const CreateCohostRequestResponseSchema = z.object({}).passthrough();
+export type CreateCohostRequestData = z.infer<typeof CreateCohostRequestResponseSchema>;
+export type CreateCohostRequestResponse = CallableResult<CreateCohostRequestData>;
+
+export type DeleteCohostRequestRequest = CallableEnvelope<CohostRequestParams>;
+export const DeleteCohostRequestResponseSchema = z.object({}).passthrough();
+export type DeleteCohostRequestData = z.infer<typeof DeleteCohostRequestResponseSchema>;
+export type DeleteCohostRequestResponse = CallableResult<DeleteCohostRequestData>;
+
+export type RemoveCohostRequest = CallableEnvelope<CohostRequestParams>;
+export const RemoveCohostResponseSchema = z.object({}).passthrough();
+export type RemoveCohostData = z.infer<typeof RemoveCohostResponseSchema>;
+export type RemoveCohostResponse = CallableResult<RemoveCohostData>;
+
+export interface EventCohostLinkParams {
+  eventId: string;
+}
+export type GenerateEventCohostLinkRequest = CallableEnvelope<EventCohostLinkParams>;
+export const GenerateEventCohostLinkResponseSchema = z.object({ path: z.string().optional() }).passthrough();
+export type GenerateEventCohostLinkData = z.infer<typeof GenerateEventCohostLinkResponseSchema>;
+export type GenerateEventCohostLinkResponse = CallableResult<GenerateEventCohostLinkData>;
+
+export type RevokeEventCohostLinkRequest = CallableEnvelope<EventCohostLinkParams>;
+export const RevokeEventCohostLinkResponseSchema = z.object({}).passthrough();
+export type RevokeEventCohostLinkData = z.infer<typeof RevokeEventCohostLinkResponseSchema>;
+export type RevokeEventCohostLinkResponse = CallableResult<RevokeEventCohostLinkData>;
+
 // --- getMyUpcomingEventsForHomePage ----------------------------------------
 export interface GetMyUpcomingEventsParams {
   // empty params
@@ -377,6 +410,26 @@ export const apiEndpoints = {
     requestParams: ['eventId', 'guests'],
     responseFields: fieldsOf(AddInvitedGuestsAsHostResponseSchema),
   },
+  createCohostRequest: {
+    method: 'POST', host: HOST_CALLABLE, path: '/createCohostRequest', transport: 'firebase-callable',
+    requestParams: ['eventId', 'targetUserId'], responseFields: fieldsOf(CreateCohostRequestResponseSchema),
+  },
+  deleteCohostRequest: {
+    method: 'POST', host: HOST_CALLABLE, path: '/deleteCohostRequest', transport: 'firebase-callable',
+    requestParams: ['eventId', 'targetUserId'], responseFields: fieldsOf(DeleteCohostRequestResponseSchema),
+  },
+  removeCohost: {
+    method: 'POST', host: HOST_CALLABLE, path: '/removeCohost', transport: 'firebase-callable',
+    requestParams: ['eventId', 'targetUserId'], responseFields: fieldsOf(RemoveCohostResponseSchema),
+  },
+  generateEventCohostLink: {
+    method: 'POST', host: HOST_CALLABLE, path: '/generateEventCohostLink', transport: 'firebase-callable',
+    requestParams: ['eventId'], responseFields: fieldsOf(GenerateEventCohostLinkResponseSchema),
+  },
+  revokeEventCohostLink: {
+    method: 'POST', host: HOST_CALLABLE, path: '/revokeEventCohostLink', transport: 'firebase-callable',
+    requestParams: ['eventId'], responseFields: fieldsOf(RevokeEventCohostLinkResponseSchema),
+  },
   getMyUpcomingEventsForHomePage: {
     method: 'POST',
     host: HOST_CALLABLE,
@@ -468,6 +521,11 @@ export const responseSchemas = {
   getContacts: ContactSchema,
   createTextBlast: CreateTextBlastResponseSchema,
   addInvitedGuestsAsHost: AddInvitedGuestsAsHostResponseSchema,
+  createCohostRequest: CreateCohostRequestResponseSchema,
+  deleteCohostRequest: DeleteCohostRequestResponseSchema,
+  removeCohost: RemoveCohostResponseSchema,
+  generateEventCohostLink: GenerateEventCohostLinkResponseSchema,
+  revokeEventCohostLink: RevokeEventCohostLinkResponseSchema,
   getMyUpcomingEventsForHomePage: HomePageEventSchema,
   getMyPastEventsForHomePage: HomePageEventSchema,
   addGuest: AddGuestResponseSchema,

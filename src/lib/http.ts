@@ -164,6 +164,32 @@ export async function firestoreRequest(
   return text ? JSON.parse(text) : {};
 }
 
+export async function firestoreGetDocument(
+  documentPath: string,
+  token: string,
+  verbose = false,
+): Promise<unknown | null> {
+  const normalized = documentPath.split('/').filter(Boolean).map(encodeURIComponent).join('/');
+  const fsPath = `/v1/projects/${FIRESTORE_PROJECT}/databases/(default)/documents/${normalized}`;
+  const resp = await withRetry(
+    () => fetch(`${FIRESTORE_BASE}${fsPath}`, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        Referer: 'https://partiful.com/',
+      },
+    }),
+    verbose,
+  );
+  if (resp.status === 404) return null;
+  if (!resp.ok) {
+    const text = await resp.text().catch(() => '');
+    throw classifyError(resp.status, 'Firestore document GET failed', text);
+  }
+  const text = await resp.text();
+  return text ? JSON.parse(text) : {};
+}
+
 export async function firestoreListDocuments(
   collectionPath: string,
   token: string,
