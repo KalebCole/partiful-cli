@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { apiRequest, firestoreRequest, firestoreListDocuments } from '../src/lib/http.js';
+import { apiRequest, firestoreRequest, firestoreListDocuments, firestoreGetDocument } from '../src/lib/http.js';
 
 describe('http module exports', () => {
   it('exports apiRequest as function', () => {
@@ -10,5 +10,8 @@ describe('http module exports', () => {
   });
   it('exports firestoreListDocuments as function', () => {
     expect(typeof firestoreListDocuments).toBe('function');
+  });
+  it('exports firestoreGetDocument as function', () => {
+    expect(typeof firestoreGetDocument).toBe('function');
   });
 });

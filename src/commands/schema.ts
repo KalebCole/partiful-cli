@@ -145,8 +145,16 @@ const SCHEMAS: Record<string, CommandSchema> = {
     command: 'cohosts add <eventId>',
     parameters: {
       eventId: { type: 'string', required: true, positional: true, description: 'Event ID' },
-      '--name': { type: 'string[]', required: false, description: 'Co-host names (resolved from contacts)' },
-      '--user-id': { type: 'string[]', required: false, description: 'Co-host user IDs' },
+      '--name': { type: 'string[]', required: false, description: 'Co-host names (must resolve uniquely from contacts)' },
+      '--user-id': { type: 'string[]', required: false, description: 'Partiful user IDs' },
+    },
+  },
+  'cohosts.link': {
+    command: 'cohosts link <eventId>',
+    parameters: {
+      eventId: { type: 'string', required: true, positional: true, description: 'Event ID' },
+      '--enable': { type: 'boolean', required: false, description: 'Enable/create the co-host invite link' },
+      '--disable': { type: 'boolean', required: false, description: 'Disable/revoke the co-host invite link' },
     },
   },
   'cohosts.remove': {
