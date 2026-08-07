@@ -84,15 +84,15 @@ const SCHEMAS: Record<string, CommandSchema> = {
       eventId: { type: 'string', required: true, positional: true },
     },
   },
-  'events.rsvp': {
-    command: 'events rsvp <eventId>',
-    parameters: RSVP_PARAMETERS,
-  },
-  'events.my-rsvp': {
-    command: 'events my-rsvp <eventId>',
+  'events.rsvp.get': {
+    command: 'events rsvp get <eventId>',
     parameters: {
       eventId: { type: 'string', required: true, positional: true, description: 'Event ID' },
     },
+  },
+  'events.rsvp.set': {
+    command: 'events rsvp set <eventId>',
+    parameters: RSVP_PARAMETERS,
   },
   'events.interested': {
     command: 'events interested <eventId>',
@@ -101,15 +101,15 @@ const SCHEMAS: Record<string, CommandSchema> = {
       '--remove': { type: 'boolean', required: false, description: 'Remove interest instead of adding it' },
     },
   },
-  'explore.rsvp': {
-    command: 'explore rsvp <eventId>',
-    parameters: RSVP_PARAMETERS,
-  },
-  'explore.my-rsvp': {
-    command: 'explore my-rsvp <eventId>',
+  'explore.rsvp.get': {
+    command: 'explore rsvp get <eventId>',
     parameters: {
       eventId: { type: 'string', required: true, positional: true, description: 'Event ID' },
     },
+  },
+  'explore.rsvp.set': {
+    command: 'explore rsvp set <eventId>',
+    parameters: RSVP_PARAMETERS,
   },
   'explore.interested': {
     command: 'explore interested <eventId>',

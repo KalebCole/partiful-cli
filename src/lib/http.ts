@@ -10,6 +10,7 @@ import { reportDrift, unwrapPayload } from './drift.js';
 const API_BASE = 'https://api.partiful.com';
 const FIRESTORE_BASE = 'https://firestore.googleapis.com';
 const FIRESTORE_PROJECT = 'getpartiful';
+const FIRESTORE_GET_TIMEOUT_MS = 30_000;
 
 // Reverse map: endpoint path (e.g. '/createEvent') → spec method name, so the
 // central request path can diff live responses against the spec (T6 drift).
@@ -177,6 +178,7 @@ export async function firestoreGetDocument(
     () =>
       fetch(`${FIRESTORE_BASE}${fsPath}`, {
         method: 'GET',
+        signal: AbortSignal.timeout(FIRESTORE_GET_TIMEOUT_MS),
         headers: {
           Authorization: `Bearer ${token}`,
           Referer: 'https://partiful.com/',

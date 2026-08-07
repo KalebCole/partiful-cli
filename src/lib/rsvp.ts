@@ -1,7 +1,7 @@
 /**
  * RSVP / interest library for the Partiful CLI.
  *
- * Pure builders + guards backing the `events rsvp` / `explore rsvp` and
+ * Pure builders + guards backing the `events rsvp set` / `explore rsvp set` and
  * `events interested` / `explore interested` commands. All network access lives
  * in the command layer (via src/lib/http.js); this module stays side-effect free
  * and unit-testable.

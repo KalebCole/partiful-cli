@@ -100,17 +100,17 @@ partiful events cancel <id>
 ### `events rsvp` / `events interested` — RSVP to events
 
 ```bash
-partiful events my-rsvp <id>                       # Read your RSVP and questionnaire answers
-partiful events rsvp <id>                          # RSVP going (default)
-partiful events rsvp <id> --status maybe           # going | maybe | declined
-partiful events rsvp <id> --plus-one Maddie --plus-one Justin   # bring guests
-partiful events rsvp <id> --name "Kaleb Cole" --message "Stoked!"
-partiful events rsvp <id> --answer "<question-id-or-text>=<value>"  # repeat per host question
+partiful events rsvp get <id>                      # Read your RSVP and questionnaire answers
+partiful events rsvp set <id>                      # RSVP going (default)
+partiful events rsvp set <id> --status maybe       # going | maybe | declined
+partiful events rsvp set <id> --plus-one Maddie --plus-one Justin   # bring guests
+partiful events rsvp set <id> --name "Kaleb Cole" --message "Stoked!"
+partiful events rsvp set <id> --answer "<question-id-or-text>=<value>"  # repeat per host question
 partiful events interested <id>                    # mark interest
 partiful events interested <id> --remove           # remove interest
 ```
 
-`events my-rsvp` reads your saved status, guest details, and questionnaire
+`events rsvp get` reads your saved status, guest details, and questionnaire
 answers without changing the RSVP. RSVP writes do a read-before-write: they update your existing guest record if you
 already RSVP'd, otherwise create one. Ticketed events are refused with a clear
 error (use the app to purchase a ticket). For host-questionnaire events, pass one
@@ -119,7 +119,7 @@ answers are validated before submission. Plain `--dry-run` stays offline, while
 `--answer ... --dry-run` performs read-only guest/event lookups so the preview can
 validate and preserve live questionnaire state, then read the Firestore guest record
 back to verify the saved status and answers. The same verbs are available under
-`explore` (`partiful explore my-rsvp <id>`) for the discovery flow.
+`explore` (`partiful explore rsvp get <id>`) for the discovery flow.
 
 ### `guests` — Manage event guests
 

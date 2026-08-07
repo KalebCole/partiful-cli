@@ -11,7 +11,7 @@ Wire callables are hidden — the CLI never says `addGuest`.
 | User verb | Hidden callable |
 |---|---|
 | `explore list` / `explore trending` / `explore regions` | `getDiscoverFeed`, `getDiscoverSections` |
-| `explore rsvp` | `addGuest` |
+| `explore rsvp set` | `addGuest` |
 | `explore interested` | `markEventInterest` |
 
 ---
@@ -27,7 +27,8 @@ Subcommands:
   list                 Browse the discovery feed (default region: nyc)
   trending             Trending carousels grouped by region
   regions              List available regions + their tags
-  rsvp <eventId>       RSVP yourself to a public event (going/maybe/declined)
+  rsvp get <eventId>   Read your current RSVP and questionnaire answers
+  rsvp set <eventId>   RSVP yourself to a public event (going/maybe/declined)
   interested <eventId> Mark yourself interested (softer than RSVP)
 ```
 
@@ -56,9 +57,9 @@ partiful explore regions [--format json|table]
   Lists region slugs + the tag list (id + friendly name) for --tag filtering.
 ```
 
-### `explore rsvp <eventId>`
+### `explore rsvp set <eventId>`
 ```
-partiful explore rsvp <eventId> [options]
+partiful explore rsvp set <eventId> [options]
 
   --status <s>       going | maybe | declined                   (default: going)
   --plus-one <name>  Add a named plus-one (repeatable)
@@ -124,7 +125,7 @@ partiful explore interested <eventId> [options]
 }
 ```
 
-### `explore rsvp` (success)
+### `explore rsvp set` (success)
 ```json
 {
   "eventId": "JKQD5kibarjDeBw4LN6W",
@@ -136,7 +137,7 @@ partiful explore interested <eventId> [options]
 }
 ```
 
-### `explore rsvp` (refused — ticketed)
+### `explore rsvp set` (refused — ticketed)
 ```json
 {
   "status": "error",
@@ -153,7 +154,7 @@ partiful explore interested <eventId> [options]
 ## Behavior notes for IMPLEMENT
 
 1. **Statelessness → read-before-write.** CLI won't have a `guestId` on a repeat
-   run. `explore rsvp` should call `getCurrentGuest {eventId}` first: if a record
+   run. `explore rsvp set` should call `getCurrentGuest {eventId}` first: if a record
    exists, pass its `guestId` back to `addGuest` (update); else send
    `guestId:null` (create). Same for `--status declined` (revert path).
 2. **`addGuest` payload** (built by `wrapPayload`, hidden from user):
@@ -161,7 +162,7 @@ partiful explore interested <eventId> [options]
    status, guestId, timezone, password:null}}`. `name` = `config.displayName`;
    `timezone` = config tz (default America/Los_Angeles).
 3. **Status mapping:** CLI `going|maybe|declined` → wire `GOING|MAYBE|DECLINED`.
-4. **Confirmation gate** (AGENTS.md destructive policy): `rsvp` + `interested`
+4. **Confirmation gate** (AGENTS.md destructive policy): `rsvp set` + `interested`
    write to a real host's guest list → prompt unless `-y`. `--dry-run` prints
    payload + target endpoint, no write.
 5. **Ticketed/password/questionnaire guard:** detect via `getEventInfo` /

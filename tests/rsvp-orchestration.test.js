@@ -202,6 +202,30 @@ describe('rsvpAction questionnaire guard', () => {
     expect(out.verified).toEqual({ status: true, questionnaireResponse: true });
   });
 
+  it('verifies equivalent questionnaire answers regardless of Firestore key order', async () => {
+    const persistedDocument = firestoreGuestDocument({
+      version: 0,
+      answers: { q2: 'Also saved', q1: 'Saved' },
+    });
+    routeApi({
+      event: questionnaireEvent,
+      currentGuest: { id: 'G7', name: 'Kaleb', status: 'GOING' },
+      addGuest: { id: 'G7' },
+    });
+    firestoreGetDocument
+      .mockResolvedValueOnce({ fields: { status: { stringValue: 'GOING' } } })
+      .mockResolvedValueOnce(persistedDocument);
+
+    await rsvpAction(
+      'EV1',
+      { answer: ['q1=Saved', 'q2=Also saved'] },
+      mkCmd({ yes: true }),
+    );
+
+    const out = jsonOutput.mock.calls.at(-1)[0];
+    expect(out.verified.questionnaireResponse).toBe(true);
+  });
+
   it('preserves the existing response after the host removes the questionnaire', async () => {
     const existingResponse = {
       questionnaireVersion: 0,

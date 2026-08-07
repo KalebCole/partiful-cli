@@ -2,7 +2,8 @@
  * RSVP / interest commands: a single shared implementation wired under both the
  * canonical `events *` verbs and the `explore *` aliases.
  *
- *   events rsvp <id>        (alias: explore rsvp <id>)        -> POST /addGuest
+ *   events rsvp set <id>    (alias: explore rsvp set <id>)    -> POST /addGuest
+ *   events rsvp get <id>    (alias: explore rsvp get <id>)    -> read current guest
  *   events interested <id>  (alias: explore interested <id>)  -> POST /markEventInterest
  *
  * The `explore *` verbs are thin forwards to the SAME handler; there is no
@@ -69,6 +70,19 @@ function questionnaireResponseFromDocument(document: FirestoreGuestDocument): Qu
     if (value.stringValue !== undefined) answers[questionId] = value.stringValue;
   }
   return { questionnaireVersion, answers };
+}
+
+function questionnaireResponsesEqual(
+  actual: QuestionnaireResponse | null,
+  expected: QuestionnaireResponse,
+): boolean {
+  if (actual === null || actual.questionnaireVersion !== expected.questionnaireVersion) return false;
+
+  const actualKeys = Object.keys(actual.answers);
+  const expectedKeys = Object.keys(expected.answers);
+  return actualKeys.length === expectedKeys.length
+    && expectedKeys.every((key) => Object.hasOwn(actual.answers, key)
+      && actual.answers[key] === expected.answers[key]);
 }
 
 async function fetchGuestDocument(
@@ -148,7 +162,7 @@ function nameFromToken(token: string): string | null {
 }
 
 /**
- * Shared RSVP handler. Backs `events rsvp` and `explore rsvp`.
+ * Shared RSVP handler. Backs `events rsvp set` and `explore rsvp set`.
  * Exported for unit testing of the orchestration branches.
  */
 export async function rsvpAction(eventId: string, opts: Record<string, unknown>, cmd: Command): Promise<void> {
@@ -276,7 +290,7 @@ export async function rsvpAction(eventId: string, opts: Record<string, unknown>,
       status: persistedStatus === params.rsvp.status,
       questionnaireResponse: expectedQuestionnaireResponse === null
         ? null
-        : JSON.stringify(persistedQuestionnaireResponse) === JSON.stringify(expectedQuestionnaireResponse),
+        : questionnaireResponsesEqual(persistedQuestionnaireResponse, expectedQuestionnaireResponse),
     };
 
     jsonOutput({
@@ -329,14 +343,18 @@ async function interestedAction(eventId: string, opts: Record<string, unknown>, 
 
 /** Attach RSVP/interest subcommands to a parent command (events or explore). */
 function attachRsvpVerbs(parent: Command): void {
-  parent
-    .command('my-rsvp')
+  const rsvp = parent
+    .command('rsvp')
+    .description('Read or change your RSVP');
+
+  rsvp
+    .command('get')
     .description('Read your RSVP status and questionnaire answers')
     .argument('<eventId>', 'Event ID')
     .action(currentGuestAction);
 
-  parent
-    .command('rsvp')
+  rsvp
+    .command('set')
     .description('RSVP to an event (going, maybe, or declined)')
     .argument('<eventId>', 'Event ID')
     .option('--status <status>', `RSVP status: ${RSVP_STATUSES.join(', ')}`)

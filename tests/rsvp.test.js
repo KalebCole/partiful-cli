@@ -2,7 +2,7 @@
  * Unit tests for the RSVP / interest library (src/lib/rsvp.js).
  *
  * These cover the PURE, side-effect-free builders and guards that back the
- * `events rsvp` / `explore rsvp` and `events interested` / `explore interested`
+ * `events rsvp set` / `explore rsvp set` and `events interested` / `explore interested`
  * commands. All network/orchestration is tested separately via CLI dry-run
  * integration tests; here we pin the wire-payload shapes and the refusal guards.
  */
