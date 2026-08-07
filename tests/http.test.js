@@ -35,7 +35,14 @@ describe('http module exports', () => {
 
     expect(fetchMock).toHaveBeenCalledWith(
       expect.any(String),
-      expect.objectContaining({ signal: expect.any(AbortSignal) }),
+      expect.objectContaining({
+        method: 'GET',
+        signal: expect.any(AbortSignal),
+        headers: expect.objectContaining({
+          Authorization: 'Bearer token',
+          Referer: 'https://partiful.com/',
+        }),
+      }),
     );
   });
 });

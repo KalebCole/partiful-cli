@@ -58,18 +58,23 @@ partiful explore regions [--format json|table]
 ```
 
 ### `explore rsvp set <eventId>`
-```
+```text
 partiful explore rsvp set <eventId> [options]
 
-  --status <s>       going | maybe | declined                   (default: going)
+  --status <s>       going | maybe | declined (preserves current status;
+                     defaults to going for a new RSVP)
   --plus-one <name>  Add a named plus-one (repeatable)
-  --count <n>        Total headcount incl. yourself + plus-ones  (default: 1)
+  --count <n>        Total headcount incl. yourself + plus-ones
   --message <msg>    Public comment posted on the event page
+  --answer <key=value>
+                     Host-questionnaire answer by question ID or exact text
+                     (repeatable)
   -y, --yes          Skip the confirmation prompt (agent flows)
-  --dry-run          Print the payload, don't write
+  --dry-run          Print the payload, don't write. Plain previews stay offline;
+                     previews with --answer read current guest and event state.
 
-  Refuses (exit 4, type unsupported_event) on ticketed / password-gated /
-  questionnaire events — use the Partiful app for those.
+  Refuses unsupported ticketed events. Supported host-questionnaire events
+  require complete valid answers and preserve omitted saved answers.
 ```
 
 ### `explore interested <eventId>`
@@ -153,10 +158,11 @@ partiful explore interested <eventId> [options]
 
 ## Behavior notes for IMPLEMENT
 
-1. **Statelessness → read-before-write.** CLI won't have a `guestId` on a repeat
-   run. `explore rsvp set` should call `getCurrentGuest {eventId}` first: if a record
-   exists, pass its `guestId` back to `addGuest` (update); else send
-   `guestId:null` (create). Same for `--status declined` (revert path).
+1. **Statelessness → read-before-write.** Live `explore rsvp set` calls
+   `getCurrentGuest {eventId}` first: if a record exists, it preserves omitted RSVP
+   fields and passes its `guestId` back to `addGuest` (update); otherwise it sends
+   `guestId:null` (create). Answer-aware dry-runs perform the same reads so they can
+   validate and merge questionnaire answers; plain dry-runs remain offline.
 2. **`addGuest` payload** (built by `wrapPayload`, hidden from user):
    `{eventId, rsvp:{name, count, plusOnes[], message, emailInvitationId:null,
    status, guestId, timezone, password:null}}`. `name` = `config.displayName`;
@@ -165,9 +171,9 @@ partiful explore interested <eventId> [options]
 4. **Confirmation gate** (AGENTS.md destructive policy): `rsvp set` + `interested`
    write to a real host's guest list → prompt unless `-y`. `--dry-run` prints
    payload + target endpoint, no write.
-5. **Ticketed/password/questionnaire guard:** detect via `getEventInfo` /
-   `getEventRestrictions` before writing; refuse rather than create a broken
-   record. (These branches are UNTESTED against `addGuest` — see ticket 02/07.)
+5. **Unsupported-event guard:** detect ticketed events via `getEventInfo` before
+   writing and refuse rather than create a broken record. Supported host
+   questionnaires are validated and submitted with the RSVP.
 6. **File layout:** new `src/commands/explore.js`, `registerExploreCommands`,
    one command group, structured `{status, error:{code,type,message}}` errors,
    `jsonOutput`/`jsonError` like the rest.
