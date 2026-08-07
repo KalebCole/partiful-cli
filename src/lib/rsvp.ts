@@ -1,7 +1,7 @@
 /**
  * RSVP / interest library for the Partiful CLI.
  *
- * Pure builders + guards backing the `events rsvp` / `explore rsvp` and
+ * Pure builders + guards backing the `events rsvp set` / `explore rsvp set` and
  * `events interested` / `explore interested` commands. All network access lives
  * in the command layer (via src/lib/http.js); this module stays side-effect free
  * and unit-testable.
@@ -54,6 +54,30 @@ export interface QuestionnaireQuestion {
 export interface QuestionnaireResponse {
   questionnaireVersion: number;
   answers: Record<string, string>;
+}
+
+/** Parse repeatable `--answer key=value` options into a lookup map. */
+export function parseQuestionnaireAnswers(pairs: string[] = []): Record<string, string> {
+  const answers: Record<string, string> = Object.create(null);
+  for (const pair of pairs) {
+    const separator = pair.indexOf('=');
+    if (separator < 0) {
+      throw new PartifulError(`Invalid --answer "${pair}". Use key=value.`, 3, 'validation_error');
+    }
+    const key = pair.slice(0, separator).trim();
+    const value = pair.slice(separator + 1).trim();
+    if (!key) {
+      throw new PartifulError('Invalid --answer: question key cannot be empty.', 3, 'validation_error');
+    }
+    if (!value) {
+      throw new PartifulError(`Invalid --answer "${pair}": value cannot be empty.`, 3, 'validation_error');
+    }
+    if (Object.hasOwn(answers, key)) {
+      throw new PartifulError(`Duplicate questionnaire answer key: ${key}`, 3, 'validation_error');
+    }
+    answers[key] = value;
+  }
+  return answers;
 }
 
 /** Loose event shape read by the RSVP guards (broad — hosts see more fields). */
@@ -133,6 +157,13 @@ export function buildRsvpParams(o: BuildRsvpOptions = {}): AddGuestParams {
     );
   } else {
     count = Math.trunc(o.count);
+  }
+  if (o.count != null && count < derivedCount) {
+    throw new PartifulError(
+      `Invalid --count "${o.count}". Count must include you and all named plus-ones (minimum ${derivedCount}).`,
+      3,
+      'validation_error',
+    );
   }
 
   const rsvp: RsvpDraft = {
@@ -216,46 +247,110 @@ export function eventRequiresQuestionnaire(event: RsvpEvent | null | undefined):
 export function buildQuestionnaireResponse(
   event: RsvpEvent,
   answersByKey: Record<string, unknown> = {},
+  existingResponse: QuestionnaireResponse | null = null,
 ): QuestionnaireResponse | null {
   if (!eventRequiresQuestionnaire(event)) return null;
 
-  // Resolve question list defensively — event.questionnaire may be absent
-  // when the questionnaire was detected via a legacy field path.
-  let questions: Array<QuestionnaireQuestion | string>;
+  let rawQuestions: Array<QuestionnaireQuestion | string>;
   const primaryQuestions = event.questionnaire?.questions;
   if (Array.isArray(primaryQuestions) && primaryQuestions.length > 0) {
-    questions = primaryQuestions;
+    rawQuestions = primaryQuestions;
   } else {
     const legacyField = LEGACY_QUESTIONNAIRE_FIELDS.find(
       (f) => Array.isArray(event[f]) && (event[f] as unknown[]).length > 0,
     );
-    if (legacyField) {
-      questions = event[legacyField] as Array<QuestionnaireQuestion | string>;
-    } else {
+    if (!legacyField) {
       throw new PartifulError(
         'Event questionnaire is enabled but no questions were found.',
         3,
         'validation_error',
       );
     }
+    rawQuestions = event[legacyField] as Array<QuestionnaireQuestion | string>;
   }
 
-  const answers: Record<string, string> = {};
-  const missing: string[] = [];
-  for (const rawQuestion of questions) {
-    // Normalise bare-string legacy questions: treat the string as both id and text.
-    const question: QuestionnaireQuestion =
-      typeof rawQuestion === 'string'
-        ? { id: rawQuestion, text: rawQuestion, required: false }
-        : rawQuestion;
-    // Accept an answer supplied under the question id OR its exact text.
-    const val = answersByKey[question.id] ?? answersByKey[question.text] ?? undefined;
-    if (val === undefined || val === null || String(val).trim() === '') {
-      if (question.required) missing.push(question.text);
-      continue;
+  // For status-only edits, preserve the exact server-accepted response and version.
+  // Rebuilding under a newer host schema would drop answers or demand new ones.
+  if (existingResponse && Object.keys(answersByKey).length === 0) return existingResponse;
+
+  const normalizeQuestion = (question: QuestionnaireQuestion | string): QuestionnaireQuestion =>
+    typeof question === 'string'
+      ? { id: question, text: question, required: false }
+      : question;
+  const questions = rawQuestions.map(normalizeQuestion);
+
+  let questionnaireVersion = 0;
+  const versions = event.questionnaireVersions;
+  if (Array.isArray(versions) && versions.length > 0) {
+    const latestQuestions = (versions.at(-1) as { questions?: Array<QuestionnaireQuestion | string> } | undefined)?.questions;
+    const latest = Array.isArray(latestQuestions) ? latestQuestions.map(normalizeQuestion) : [];
+    const sameQuestion = (left: QuestionnaireQuestion, right: QuestionnaireQuestion): boolean =>
+      left.id === right.id
+      && left.text === right.text
+      && left.type === right.type
+      && Boolean(left.required) === Boolean(right.required);
+    if (latest.length !== questions.length || latest.some((question, index) => !sameQuestion(question, questions[index]!))) {
+      throw new PartifulError(
+        'The active questionnaire does not match its latest version history. Update answers in Partiful.',
+        3,
+        'validation_error',
+      );
     }
-    answers[question.id] = String(val);
+    questionnaireVersion = versions.length - 1;
+  } else {
+    throw new PartifulError(
+      'Event questionnaire version history is missing. Update answers in Partiful.',
+      3,
+      'validation_error',
+    );
   }
+
+  if (existingResponse && existingResponse.questionnaireVersion !== questionnaireVersion) {
+    throw new PartifulError(
+      'The event questionnaire changed after your existing response. Update answers in Partiful.',
+      3,
+      'validation_error',
+    );
+  }
+
+  const questionsByAlias = new Map<string, QuestionnaireQuestion[]>();
+  for (const question of questions) {
+    for (const alias of new Set([question.id, question.text])) {
+      const matches = questionsByAlias.get(alias) ?? [];
+      matches.push(question);
+      questionsByAlias.set(alias, matches);
+    }
+  }
+
+  const answers: Record<string, string> = { ...existingResponse?.answers };
+  const overriddenQuestionIds = new Set<string>();
+  for (const [key, rawValue] of Object.entries(answersByKey)) {
+    const matches = questionsByAlias.get(key) ?? [];
+    if (matches.length > 1) {
+      throw new PartifulError(
+        `Ambiguous questionnaire answer key "${key}". Update this questionnaire in Partiful.`,
+        3,
+        'validation_error',
+      );
+    }
+    const question = matches[0];
+    if (!question) {
+      throw new PartifulError(`Unknown questionnaire answer key: ${key}`, 3, 'validation_error');
+    }
+    if (overriddenQuestionIds.has(question.id)) {
+      throw new PartifulError(
+        `Multiple answers target the same question: ${question.text}`,
+        3,
+        'validation_error',
+      );
+    }
+    overriddenQuestionIds.add(question.id);
+    answers[question.id] = String(rawValue);
+  }
+
+  const missing = questions
+    .filter((question) => question.required && !String(answers[question.id] ?? '').trim())
+    .map((question) => question.text);
   if (missing.length > 0) {
     throw new PartifulError(
       `Missing answer(s) for required question(s): ${missing.join('; ')}`,
@@ -263,13 +358,7 @@ export function buildQuestionnaireResponse(
       'validation_error',
     );
   }
-  return {
-    // Version index into questionnaireVersions; current is the last entry.
-    questionnaireVersion: Array.isArray(event.questionnaireVersions)
-      ? Math.max(0, event.questionnaireVersions.length - 1)
-      : 0,
-    answers,
-  };
+  return { questionnaireVersion, answers };
 }
 
 /** Inputs for resolveDisplayName(). */

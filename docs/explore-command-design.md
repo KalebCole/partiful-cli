@@ -11,7 +11,7 @@ Wire callables are hidden — the CLI never says `addGuest`.
 | User verb | Hidden callable |
 |---|---|
 | `explore list` / `explore trending` / `explore regions` | `getDiscoverFeed`, `getDiscoverSections` |
-| `explore rsvp` | `addGuest` |
+| `explore rsvp set` | `addGuest` |
 | `explore interested` | `markEventInterest` |
 
 ---
@@ -27,7 +27,8 @@ Subcommands:
   list                 Browse the discovery feed (default region: nyc)
   trending             Trending carousels grouped by region
   regions              List available regions + their tags
-  rsvp <eventId>       RSVP yourself to a public event (going/maybe/declined)
+  rsvp get <eventId>   Read your current RSVP and questionnaire answers
+  rsvp set <eventId>   RSVP yourself to a public event (going/maybe/declined)
   interested <eventId> Mark yourself interested (softer than RSVP)
 ```
 
@@ -56,19 +57,24 @@ partiful explore regions [--format json|table]
   Lists region slugs + the tag list (id + friendly name) for --tag filtering.
 ```
 
-### `explore rsvp <eventId>`
-```
-partiful explore rsvp <eventId> [options]
+### `explore rsvp set <eventId>`
+```text
+partiful explore rsvp set <eventId> [options]
 
-  --status <s>       going | maybe | declined                   (default: going)
+  --status <s>       going | maybe | declined (preserves current status;
+                     defaults to going for a new RSVP)
   --plus-one <name>  Add a named plus-one (repeatable)
-  --count <n>        Total headcount incl. yourself + plus-ones  (default: 1)
+  --count <n>        Total headcount incl. yourself + plus-ones
   --message <msg>    Public comment posted on the event page
+  --answer <key=value>
+                     Host-questionnaire answer by question ID or exact text
+                     (repeatable)
   -y, --yes          Skip the confirmation prompt (agent flows)
-  --dry-run          Print the payload, don't write
+  --dry-run          Print the payload, don't write. Plain previews stay offline;
+                     previews with --answer read current guest and event state.
 
-  Refuses (exit 4, type unsupported_event) on ticketed / password-gated /
-  questionnaire events — use the Partiful app for those.
+  Refuses unsupported ticketed events. Supported host-questionnaire events
+  require complete valid answers and preserve omitted saved answers.
 ```
 
 ### `explore interested <eventId>`
@@ -124,7 +130,7 @@ partiful explore interested <eventId> [options]
 }
 ```
 
-### `explore rsvp` (success)
+### `explore rsvp set` (success)
 ```json
 {
   "eventId": "JKQD5kibarjDeBw4LN6W",
@@ -136,7 +142,7 @@ partiful explore interested <eventId> [options]
 }
 ```
 
-### `explore rsvp` (refused — ticketed)
+### `explore rsvp set` (refused — ticketed)
 ```json
 {
   "status": "error",
@@ -152,21 +158,22 @@ partiful explore interested <eventId> [options]
 
 ## Behavior notes for IMPLEMENT
 
-1. **Statelessness → read-before-write.** CLI won't have a `guestId` on a repeat
-   run. `explore rsvp` should call `getCurrentGuest {eventId}` first: if a record
-   exists, pass its `guestId` back to `addGuest` (update); else send
-   `guestId:null` (create). Same for `--status declined` (revert path).
+1. **Statelessness → read-before-write.** Live `explore rsvp set` calls
+   `getCurrentGuest {eventId}` first: if a record exists, it preserves omitted RSVP
+   fields and passes its `guestId` back to `addGuest` (update); otherwise it sends
+   `guestId:null` (create). Answer-aware dry-runs perform the same reads so they can
+   validate and merge questionnaire answers; plain dry-runs remain offline.
 2. **`addGuest` payload** (built by `wrapPayload`, hidden from user):
    `{eventId, rsvp:{name, count, plusOnes[], message, emailInvitationId:null,
    status, guestId, timezone, password:null}}`. `name` = `config.displayName`;
    `timezone` = config tz (default America/Los_Angeles).
 3. **Status mapping:** CLI `going|maybe|declined` → wire `GOING|MAYBE|DECLINED`.
-4. **Confirmation gate** (AGENTS.md destructive policy): `rsvp` + `interested`
+4. **Confirmation gate** (AGENTS.md destructive policy): `rsvp set` + `interested`
    write to a real host's guest list → prompt unless `-y`. `--dry-run` prints
    payload + target endpoint, no write.
-5. **Ticketed/password/questionnaire guard:** detect via `getEventInfo` /
-   `getEventRestrictions` before writing; refuse rather than create a broken
-   record. (These branches are UNTESTED against `addGuest` — see ticket 02/07.)
+5. **Unsupported-event guard:** detect ticketed events via `getEventInfo` before
+   writing and refuse rather than create a broken record. Supported host
+   questionnaires are validated and submitted with the RSVP.
 6. **File layout:** new `src/commands/explore.js`, `registerExploreCommands`,
    one command group, structured `{status, error:{code,type,message}}` errors,
    `jsonOutput`/`jsonError` like the rest.

@@ -2,7 +2,8 @@
  * RSVP / interest commands: a single shared implementation wired under both the
  * canonical `events *` verbs and the `explore *` aliases.
  *
- *   events rsvp <id>        (alias: explore rsvp <id>)        -> POST /addGuest
+ *   events rsvp set <id>    (alias: explore rsvp set <id>)    -> POST /addGuest
+ *   events rsvp get <id>    (alias: explore rsvp get <id>)    -> read current guest
  *   events interested <id>  (alias: explore interested <id>)  -> POST /markEventInterest
  *
  * The `explore *` verbs are thin forwards to the SAME handler; there is no
@@ -12,7 +13,7 @@
 
 import type { Command } from 'commander';
 import { loadConfig, getValidToken, wrapPayload, decodeJwtPayload } from '../lib/auth.js';
-import { apiRequest } from '../lib/http.js';
+import { apiRequest, firestoreGetDocument } from '../lib/http.js';
 import { jsonOutput, jsonError } from '../lib/output.js';
 import { PartifulError } from '../lib/errors.js';
 import { confirm } from '../lib/events.js';
@@ -22,7 +23,10 @@ import {
   buildInterestParams,
   isTicketedEvent,
   eventRequiresQuestionnaire,
+  buildQuestionnaireResponse,
+  parseQuestionnaireAnswers,
   resolveDisplayName,
+  type QuestionnaireResponse,
   type RsvpEvent,
 } from '../lib/rsvp.js';
 
@@ -42,6 +46,58 @@ function handleError(e: unknown): void {
   else jsonError((e as Error).message);
 }
 
+interface FirestoreValue {
+  stringValue?: string;
+  integerValue?: string;
+  mapValue?: { fields?: Record<string, FirestoreValue> };
+}
+
+interface FirestoreGuestDocument {
+  fields?: Record<string, FirestoreValue>;
+}
+
+function questionnaireResponseFromDocument(document: FirestoreGuestDocument): QuestionnaireResponse | null {
+  const responseFields = document.fields?.['questionnaireResponse']?.mapValue?.fields;
+  const versionValue = responseFields?.['questionnaireVersion']?.integerValue;
+  const answerFields = responseFields?.['answers']?.mapValue?.fields;
+  if (versionValue === undefined || answerFields === undefined) return null;
+
+  const questionnaireVersion = Number.parseInt(versionValue, 10);
+  if (!Number.isFinite(questionnaireVersion)) return null;
+
+  const answers: Record<string, string> = {};
+  for (const [questionId, value] of Object.entries(answerFields)) {
+    if (value.stringValue !== undefined) answers[questionId] = value.stringValue;
+  }
+  return { questionnaireVersion, answers };
+}
+
+function questionnaireResponsesEqual(
+  actual: QuestionnaireResponse | null,
+  expected: QuestionnaireResponse,
+): boolean {
+  if (actual === null || actual.questionnaireVersion !== expected.questionnaireVersion) return false;
+
+  const actualKeys = Object.keys(actual.answers);
+  const expectedKeys = Object.keys(expected.answers);
+  return actualKeys.length === expectedKeys.length
+    && expectedKeys.every((key) => Object.hasOwn(actual.answers, key)
+      && actual.answers[key] === expected.answers[key]);
+}
+
+async function fetchGuestDocument(
+  token: string,
+  eventId: string,
+  guestId: string,
+  verbose: boolean | undefined,
+): Promise<FirestoreGuestDocument> {
+  return await firestoreGetDocument(
+    `events/${eventId}/guests/${guestId}`,
+    token,
+    verbose ?? false,
+  ) as FirestoreGuestDocument;
+}
+
 /**
  * Read the caller's own guest record (read-before-write).
  *
@@ -53,7 +109,38 @@ function handleError(e: unknown): void {
  */
 async function fetchCurrentGuest(config: ReturnType<typeof loadConfig>, token: string, eventId: string, verbose: boolean | undefined): Promise<Record<string, unknown> | null> {
   const res = await apiRequest('POST', '/getCurrentGuest', token, makePayload(config, { eventId }), verbose) as { result?: { data?: { currentGuest?: Record<string, unknown> } } };
-  return res.result?.data?.currentGuest ?? null;
+  const currentGuest = res.result?.data?.currentGuest ?? null;
+  const guestId = currentGuest?.['id'];
+  if (!currentGuest || typeof guestId !== 'string') return currentGuest;
+
+  const document = await fetchGuestDocument(token, eventId, guestId, verbose);
+  const questionnaireResponse = questionnaireResponseFromDocument(document);
+  return questionnaireResponse
+    ? { ...currentGuest, questionnaireResponse }
+    : currentGuest;
+}
+
+/** Read the caller's RSVP, including questionnaire answers, without mutating it. */
+export async function currentGuestAction(eventId: string, _opts: Record<string, unknown>, cmd: Command): Promise<void> {
+  const globalOpts = cmd.optsWithGlobals<Record<string, unknown>>();
+  try {
+    const config = loadConfig();
+    const token = await getValidToken(config);
+    const guest = await fetchCurrentGuest(
+      config,
+      token,
+      eventId,
+      globalOpts['verbose'] as boolean | undefined,
+    );
+
+    jsonOutput({
+      eventId,
+      guest,
+      url: `https://partiful.com/e/${eventId}`,
+    });
+  } catch (e) {
+    handleError(e);
+  }
 }
 
 /**
@@ -75,7 +162,7 @@ function nameFromToken(token: string): string | null {
 }
 
 /**
- * Shared RSVP handler. Backs `events rsvp` and `explore rsvp`.
+ * Shared RSVP handler. Backs `events rsvp set` and `explore rsvp set`.
  * Exported for unit testing of the orchestration branches.
  */
 export async function rsvpAction(eventId: string, opts: Record<string, unknown>, cmd: Command): Promise<void> {
@@ -84,17 +171,21 @@ export async function rsvpAction(eventId: string, opts: Record<string, unknown>,
     const config = loadConfig();
     const token = await getValidToken(config);
 
-    // Read-before-write: decide create (guestId:null) vs update. Skipped on
-    // dry-run so the preview is fully offline.
+    const answerPairs = (opts['answer'] as string[] | undefined) ?? [];
+    const suppliedAnswers = parseQuestionnaireAnswers(answerPairs);
+
+    // Live writes and answer-aware previews use the same read-before-write state.
+    // Plain dry-runs remain offline for backward compatibility.
     let currentGuest: Record<string, unknown> | null = null;
     let event: RsvpEvent | null = null;
-    if (!globalOpts['dryRun']) {
+    const needsRemoteState = !globalOpts['dryRun'] || answerPairs.length > 0;
+    if (needsRemoteState) {
       [currentGuest, event] = await Promise.all([
         fetchCurrentGuest(config, token, eventId, globalOpts['verbose'] as boolean | undefined),
         fetchEvent(config, token, eventId, globalOpts['verbose'] as boolean | undefined),
       ]);
 
-      // Refuse ticketed/paid events cleanly (Stripe wall).
+      // Ticketed events cannot be represented by /addGuest, including previews.
       if (isTicketedEvent(event)) {
         jsonError(
           'This is a ticketed or paid event. Self-RSVP is not supported here; use the Partiful app to purchase a ticket.',
@@ -103,22 +194,18 @@ export async function rsvpAction(eventId: string, opts: Record<string, unknown>,
         );
         return;
       }
+    }
 
-      // Refuse questionnaire-gated events. The CLI cannot yet capture or submit
-      // questionnaire answers (live recon of the addGuest answer shape is still
-      // pending, see .wayfinder/tickets/07), so we refuse rather than silently
-      // submit an incomplete RSVP. When --answer support lands, gate this on it.
-      // NOTE: eventRequiresQuestionnaire field names are UNVERIFIED against a
-      // real /getEventInfo payload; confirm via CDP recon before trusting it as
-      // a positive-detection guarantee.
-      if (eventRequiresQuestionnaire(event)) {
-        jsonError(
-          'This event requires answering a host questionnaire before you can RSVP. The CLI cannot submit questionnaire answers yet; please RSVP in the Partiful app.',
-          3,
-          'validation_error'
-        );
-        return;
-      }
+    const existingResponse = currentGuest?.['questionnaireResponse'] as QuestionnaireResponse | undefined;
+    let questionnaireResponse: QuestionnaireResponse | null = existingResponse ?? null;
+    if (eventRequiresQuestionnaire(event)) {
+      questionnaireResponse = buildQuestionnaireResponse(event!, suppliedAnswers, existingResponse ?? null);
+    } else if (answerPairs.length > 0) {
+      throw new PartifulError(
+        'This event does not expose a host questionnaire, so --answer cannot be used.',
+        3,
+        'validation_error'
+      );
     }
 
     const name = resolveDisplayName({
@@ -128,16 +215,35 @@ export async function rsvpAction(eventId: string, opts: Record<string, unknown>,
       tokenName: nameFromToken(token),
     });
 
+    const suppliedPlusOnes = opts['plusOne'] as string[] | undefined;
+    const existingPlusOnes = currentGuest?.['plusOnes'];
+    const plusOnes = suppliedPlusOnes
+      ?? (Array.isArray(existingPlusOnes) ? existingPlusOnes as string[] : undefined);
+    const count = opts['count'] !== undefined
+      ? opts['count'] as number
+      : suppliedPlusOnes !== undefined
+        ? undefined
+        : currentGuest?.['count'] as number | undefined;
+    const message = opts['message'] !== undefined
+      ? opts['message'] as string
+      : currentGuest?.['rsvpMessage'] as string | null | undefined;
+    const currentStatus = currentGuest?.['status'];
+    const reusableCurrentStatus = typeof currentStatus === 'string'
+      && ['GOING', 'MAYBE', 'DECLINED'].includes(currentStatus.trim().toUpperCase())
+      ? currentStatus
+      : undefined;
+
     const params = buildRsvpParams({
       eventId,
       name: name ?? undefined,
-      status: opts['status'] as string | undefined,
-      plusOnes: opts['plusOne'] as string[] | undefined,
-      count: opts['count'] as number | undefined,
-      message: opts['message'] as string | undefined,
+      status: (opts['status'] as string | undefined) ?? reusableCurrentStatus,
+      plusOnes,
+      count,
+      message,
       password: opts['password'] as string | undefined,
       timezone: opts['timezone'] as string | undefined,
       guestId: (currentGuest?.['id'] as string | undefined) ?? null,
+      questionnaireResponse,
     });
 
     const payload = makePayload(config, params as unknown as Record<string, unknown>);
@@ -159,13 +265,43 @@ export async function rsvpAction(eventId: string, opts: Record<string, unknown>,
 
     const result = await apiRequest('POST', '/addGuest', token, payload, globalOpts['verbose'] as boolean | undefined) as { result?: { data?: { guest?: Record<string, unknown> } | Record<string, unknown> } };
     const guest = (result.result?.data as { guest?: Record<string, unknown> })?.guest ?? result.result?.data ?? {};
+    const guestId = (guest as Record<string, unknown>)['id'] ?? currentGuest?.['id'] ?? null;
+
+    let persistedStatus: string | null = null;
+    let persistedQuestionnaireResponse: QuestionnaireResponse | null = null;
+    let verificationError: string | null = null;
+    if (typeof guestId === 'string') {
+      try {
+        const document = await fetchGuestDocument(
+          token,
+          eventId,
+          guestId,
+          globalOpts['verbose'] as boolean | undefined,
+        );
+        persistedStatus = document.fields?.['status']?.stringValue ?? null;
+        persistedQuestionnaireResponse = questionnaireResponseFromDocument(document);
+      } catch (error) {
+        verificationError = (error as Error).message;
+      }
+    }
+
+    const expectedQuestionnaireResponse = params.rsvp.questionnaireResponse ?? null;
+    const verified = {
+      status: persistedStatus === params.rsvp.status,
+      questionnaireResponse: expectedQuestionnaireResponse === null
+        ? null
+        : questionnaireResponsesEqual(persistedQuestionnaireResponse, expectedQuestionnaireResponse),
+    };
 
     jsonOutput({
       eventId,
       status: params.rsvp.status,
-      guestId: (guest as Record<string, unknown>)['id'] ?? currentGuest?.['id'] ?? null,
+      guestId,
       count: params.rsvp.count,
       updated: Boolean(currentGuest),
+      questionnaireResponse: persistedQuestionnaireResponse,
+      verified,
+      ...(verificationError ? { verificationError } : {}),
       url: `https://partiful.com/e/${eventId}`,
     });
   } catch (e) {
@@ -205,19 +341,30 @@ async function interestedAction(eventId: string, opts: Record<string, unknown>, 
   }
 }
 
-/** Attach rsvp + interested subcommands to a parent command (events or explore). */
+/** Attach RSVP/interest subcommands to a parent command (events or explore). */
 function attachRsvpVerbs(parent: Command): void {
-  parent
+  const rsvp = parent
     .command('rsvp')
+    .description('Read or change your RSVP');
+
+  rsvp
+    .command('get')
+    .description('Read your RSVP status and questionnaire answers')
+    .argument('<eventId>', 'Event ID')
+    .action(currentGuestAction);
+
+  rsvp
+    .command('set')
     .description('RSVP to an event (going, maybe, or declined)')
     .argument('<eventId>', 'Event ID')
-    .option('--status <status>', `RSVP status: ${RSVP_STATUSES.join(', ')}`, 'going')
+    .option('--status <status>', `RSVP status: ${RSVP_STATUSES.join(', ')}`)
     .option('--name <name>', 'Display name to RSVP with (defaults to your profile name)')
     .option('--plus-one <name...>', 'Plus-one name (repeatable)')
     .option('--count <n>', 'Total headcount including plus-ones', (v: string) => parseInt(v, 10))
     .option('--message <text>', 'Optional public comment on the event')
     .option('--password <password>', 'Event password (if the event is password-gated)')
     .option('--timezone <tz>', 'IANA timezone for the RSVP')
+    .option('--answer <key=value...>', 'Host-questionnaire answers (question id or exact text)')
     .action(rsvpAction);
 
   parent

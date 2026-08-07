@@ -53,6 +53,14 @@ describe('schema api.<method> namespace', () => {
     expect(out.data.requestParams).toContain('eventId');
   });
 
+  it('`schema api.firestoreGetGuest` documents the current RSVP detail read path', () => {
+    const out = run(['schema', 'api.firestoreGetGuest']);
+    expect(out.data.transport).toBe('firestore');
+    expect(out.data.httpMethod).toBe('GET');
+    expect(out.data.requestParams).toEqual(expect.arrayContaining(['eventId', 'guestId']));
+    expect(out.data.path).toContain('/events/{eventId}/guests/{guestId}');
+  });
+
   it('unknown api method errors with not_found and lists available', () => {
     const { stdout, exitCode } = runRaw(['schema', 'api.nope']);
     expect(exitCode).toBe(4);

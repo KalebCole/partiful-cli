@@ -2,7 +2,7 @@
  * Unit tests for the RSVP / interest library (src/lib/rsvp.js).
  *
  * These cover the PURE, side-effect-free builders and guards that back the
- * `events rsvp` / `explore rsvp` and `events interested` / `explore interested`
+ * `events rsvp set` / `explore rsvp set` and `events interested` / `explore interested`
  * commands. All network/orchestration is tested separately via CLI dry-run
  * integration tests; here we pin the wire-payload shapes and the refusal guards.
  */
@@ -16,6 +16,7 @@ import {
   isTicketedEvent,
   eventRequiresQuestionnaire,
   buildQuestionnaireResponse,
+  parseQuestionnaireAnswers,
   resolveDisplayName,
 } from '../src/lib/rsvp.js';
 
@@ -86,6 +87,12 @@ describe('buildRsvpParams', () => {
   it('honours an explicit --count over the derived value', () => {
     const params = buildRsvpParams({ eventId: 'EV1', name: 'Kaleb', plusOnes: ['Maddie'], count: 5 });
     expect(params.rsvp.count).toBe(5);
+  });
+
+  it('rejects a count lower than self plus named plus-ones', () => {
+    expect(() => buildRsvpParams({
+      eventId: 'EV1', name: 'Kaleb', plusOnes: ['Maddie', 'Justin'], count: 2,
+    })).toThrow(/count.*plus-one/i);
   });
 
   it('carries message, password and timezone through', () => {
@@ -190,15 +197,14 @@ describe('resolveDisplayName', () => {
 // Event fields: questionnaireEnabled + questionnaire.questions[{id,type,text,required}].
 // Answer storage: guest.questionnaireResponse = { questionnaireVersion, answers:{id:val} }.
 describe('questionnaire (verified shape)', () => {
+  const questions = [
+    { id: '111', type: 'short_answer', text: 'Dietary restrictions?', required: true },
+    { id: '222', type: 'short_answer', text: 'Song request?', required: false },
+  ];
   const qEvent = {
     questionnaireEnabled: true,
-    questionnaireVersions: [{ questions: [] }],
-    questionnaire: {
-      questions: [
-        { id: '111', type: 'short_answer', text: 'Dietary restrictions?', required: true },
-        { id: '222', type: 'short_answer', text: 'Song request?', required: false },
-      ],
-    },
+    questionnaireVersions: [{ questions }],
+    questionnaire: { questions },
   };
 
   it('detects a questionnaire via questionnaireEnabled + questions[]', () => {
@@ -226,13 +232,129 @@ describe('questionnaire (verified shape)', () => {
     expect(resp.answers['111']).toBe('Vegan');
   });
 
+  it('merges supplied overrides with an existing response from the same version', () => {
+    const existing = {
+      questionnaireVersion: 0,
+      answers: { '111': 'None', '222': 'Jazz' },
+    };
+    const resp = buildQuestionnaireResponse(qEvent, { 'Dietary restrictions?': 'Vegan' }, existing);
+    expect(resp).toEqual({
+      questionnaireVersion: 0,
+      answers: { '111': 'Vegan', '222': 'Jazz' },
+    });
+  });
+
+  it('preserves an existing response unchanged when no overrides are supplied', () => {
+    const existing = {
+      questionnaireVersion: 0,
+      answers: { '111': 'None', '222': 'Jazz' },
+    };
+    expect(buildQuestionnaireResponse(qEvent, {}, existing)).toBe(existing);
+  });
+
+  it('preserves the exact existing version during a status-only update after a host edit', () => {
+    const oldQuestions = questions;
+    const newQuestions = [{ id: '333', text: 'New required question?', required: true }];
+    const changedEvent = {
+      questionnaireEnabled: true,
+      questionnaireVersions: [
+        { questions: oldQuestions },
+        { questions: newQuestions },
+      ],
+      questionnaire: { questions: newQuestions },
+    };
+    const existing = {
+      questionnaireVersion: 0,
+      answers: { '111': 'None', '222': 'Jazz' },
+    };
+    expect(buildQuestionnaireResponse(changedEvent, {}, existing)).toBe(existing);
+  });
+
+  it('rejects duplicate question text instead of applying one answer twice', () => {
+    const ambiguousQuestions = [
+      { id: '111', text: 'Anything else?', required: false },
+      { id: '222', text: 'Anything else?', required: false },
+    ];
+    const ambiguousEvent = {
+      ...qEvent,
+      questionnaireVersions: [{ questions: ambiguousQuestions }],
+      questionnaire: { questions: ambiguousQuestions },
+    };
+    expect(() => buildQuestionnaireResponse(ambiguousEvent, { 'Anything else?': 'No' }))
+      .toThrow(/ambiguous questionnaire answer key/i);
+  });
+
+  it('rejects ID and text aliases supplied for the same question', () => {
+    expect(() => buildQuestionnaireResponse(qEvent, {
+      '111': 'None',
+      'Dietary restrictions?': 'Vegan',
+    })).toThrow(/multiple answers.*same question/i);
+  });
+
+  it('rejects a key that is one question ID and another question text', () => {
+    const collidingQuestions = [
+      { id: 'shared', text: 'First question', required: false },
+      { id: 'second', text: 'shared', required: false },
+    ];
+    const event = {
+      questionnaireEnabled: true,
+      questionnaireVersions: [{ questions: collidingQuestions }],
+      questionnaire: { questions: collidingQuestions },
+    };
+    expect(() => buildQuestionnaireResponse(event, { shared: 'Answer' }))
+      .toThrow(/ambiguous questionnaire answer key/i);
+  });
+
+  it('rejects partial updates against a newer questionnaire version', () => {
+    const existing = { questionnaireVersion: 0, answers: { '111': 'Saved' } };
+    const changedEvent = {
+      ...qEvent,
+      questionnaireVersions: [
+        { questions: [{ id: 'old', text: 'Old question', required: false }] },
+        { questions },
+      ],
+    };
+    expect(() => buildQuestionnaireResponse(changedEvent, { '111': 'New' }, existing))
+      .toThrow(/questionnaire changed/i);
+  });
+
   it('omits optional questions left unanswered', () => {
     const resp = buildQuestionnaireResponse(qEvent, { '111': 'None' });
     expect(resp.answers).toEqual({ '111': 'None' });
   });
 
+  it('rejects supplied keys that match no question instead of silently dropping them', () => {
+    expect(() => buildQuestionnaireResponse(qEvent, { unknown: 'value', '111': 'None' }))
+      .toThrow(/unknown questionnaire answer key/i);
+  });
+
   it('throws when a required question is unanswered', () => {
     expect(() => buildQuestionnaireResponse(qEvent, { '222': 'Song' })).toThrow(/required question/i);
+  });
+
+  it('fails closed when verified questionnaire version history is missing', () => {
+    expect(() => buildQuestionnaireResponse({
+      questionnaireEnabled: true,
+      questionnaire: { questions },
+    }, { '111': 'None' })).toThrow(/version history/i);
+  });
+
+  it('fails closed when the latest version does not match the active questionnaire', () => {
+    expect(() => buildQuestionnaireResponse({
+      ...qEvent,
+      questionnaireVersions: [{ questions: [{ ...questions[0], text: 'Old question' }] }],
+    }, { '111': 'None' })).toThrow(/does not match/i);
+  });
+
+  it('uses the matching latest questionnaire version index', () => {
+    const response = buildQuestionnaireResponse({
+      ...qEvent,
+      questionnaireVersions: [
+        { questions: [{ id: 'old', text: 'Old question', required: false }] },
+        { questions },
+      ],
+    }, { '111': 'None' });
+    expect(response.questionnaireVersion).toBe(1);
   });
 
   it('returns null for a non-questionnaire event', () => {
@@ -248,6 +370,32 @@ describe('questionnaire (verified shape)', () => {
   it('leaves questionnaireResponse off the payload when not supplied', () => {
     const { rsvp } = buildRsvpParams({ eventId: 'e1', name: 'Kaleb' });
     expect(rsvp).not.toHaveProperty('questionnaireResponse');
+  });
+});
+
+describe('parseQuestionnaireAnswers', () => {
+  it('parses repeated key=value answers and preserves equals signs in values', () => {
+    expect(parseQuestionnaireAnswers(['111=Vegan', 'Song request?=A=B'])).toEqual({
+      '111': 'Vegan',
+      'Song request?': 'A=B',
+    });
+  });
+
+  it('rejects malformed or empty answer pairs', () => {
+    expect(() => parseQuestionnaireAnswers(['missing-separator'])).toThrow(/key=value/i);
+    expect(() => parseQuestionnaireAnswers(['=value'])).toThrow(/key/i);
+    expect(() => parseQuestionnaireAnswers(['111='])).toThrow(/value/i);
+  });
+
+  it('rejects a repeated answer key instead of silently taking the final value', () => {
+    expect(() => parseQuestionnaireAnswers(['111=None', '111=Vegan']))
+      .toThrow(/duplicate questionnaire answer key/i);
+  });
+
+  it('retains prototype-like keys so unknown-key validation cannot be bypassed', () => {
+    const parsed = parseQuestionnaireAnswers(['__proto__=value']);
+    expect(Object.hasOwn(parsed, '__proto__')).toBe(true);
+    expect(parsed.__proto__).toBe('value');
   });
 });
 
@@ -301,22 +449,34 @@ describe('buildQuestionnaireResponse — legacy questionnaire guard (Fix 2)', ()
     }
   });
 
-  it('returns a valid response object for legacy event with all required answers', () => {
-    const resp = buildQuestionnaireResponse(legacyEvent, { q1: 'Vegan' });
-    expect(resp).not.toBeNull();
-    expect(resp.answers).toHaveProperty('q1', 'Vegan');
-    expect(typeof resp.questionnaireVersion).toBe('number');
+  it('fails closed for a legacy event without version history', () => {
+    expect(() => buildQuestionnaireResponse(legacyEvent, { q1: 'Vegan' }))
+      .toThrow(/version history/i);
+  });
+
+  it('uses validated latest-version history for a legacy question field', () => {
+    const latestQuestions = legacyEvent.questions;
+    const event = {
+      ...legacyEvent,
+      questionnaireVersions: [
+        { questions: [{ id: 'old', text: 'Old?', required: false }] },
+        { questions: latestQuestions },
+      ],
+    };
+    expect(buildQuestionnaireResponse(event, { q1: 'Vegan' })).toEqual({
+      questionnaireVersion: 1,
+      answers: { q1: 'Vegan' },
+    });
   });
 
   it('still returns correct versioned answers for primary event.questionnaire shape', () => {
+    const questions = [
+      { id: '111', type: 'short_answer', text: 'Dietary restrictions?', required: true },
+    ];
     const primaryEvent = {
       questionnaireEnabled: true,
-      questionnaireVersions: [{ questions: [] }],
-      questionnaire: {
-        questions: [
-          { id: '111', type: 'short_answer', text: 'Dietary restrictions?', required: true },
-        ],
-      },
+      questionnaireVersions: [{ questions }],
+      questionnaire: { questions },
     };
     const resp = buildQuestionnaireResponse(primaryEvent, { '111': 'None' });
     expect(resp).toEqual({ questionnaireVersion: 0, answers: { '111': 'None' } });

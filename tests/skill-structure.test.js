@@ -86,7 +86,7 @@ describe('bundled Partiful skill', () => {
       ['+watch', '--help'],
       ['+export', '--help'],
       ['+share', '--help'],
-      ['events', 'rsvp', '--help'],
+      ['events', 'rsvp', 'set', '--help'],
       ['blasts', 'send', '--help'],
     ]) {
       const { stdout, exitCode } = runRaw(command);
@@ -94,7 +94,7 @@ describe('bundled Partiful skill', () => {
       expect(stdout).toContain('Usage: partiful');
     }
 
-    expect(runRaw(['events', 'rsvp', '--help']).stdout).toContain('--plus-one');
+    expect(runRaw(['events', 'rsvp', 'set', '--help']).stdout).toContain('--plus-one');
     expect(runRaw(['blasts', 'send', '--help']).stdout).toContain('--no-show-on-event-page');
   });
 

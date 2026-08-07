@@ -1,5 +1,14 @@
-import { describe, it, expect } from 'vitest';
-import { apiRequest, firestoreRequest, firestoreListDocuments, firestoreGetDocument } from '../src/lib/http.js';
+import { afterEach, describe, it, expect, vi } from 'vitest';
+import {
+  apiRequest,
+  firestoreGetDocument,
+  firestoreRequest,
+  firestoreListDocuments,
+} from '../src/lib/http.js';
+
+afterEach(() => {
+  vi.unstubAllGlobals();
+});
 
 describe('http module exports', () => {
   it('exports apiRequest as function', () => {
@@ -13,5 +22,27 @@ describe('http module exports', () => {
   });
   it('exports firestoreGetDocument as function', () => {
     expect(typeof firestoreGetDocument).toBe('function');
+  });
+
+  it('bounds Firestore document reads with an abort signal', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      text: async () => '{}',
+    });
+    vi.stubGlobal('fetch', fetchMock);
+
+    await firestoreGetDocument('events/EV1/guests/G7', 'token');
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      expect.any(String),
+      expect.objectContaining({
+        method: 'GET',
+        signal: expect.any(AbortSignal),
+        headers: expect.objectContaining({
+          Authorization: 'Bearer token',
+          Referer: 'https://partiful.com/',
+        }),
+      }),
+    );
   });
 });

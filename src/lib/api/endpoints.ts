@@ -478,6 +478,14 @@ export const apiEndpoints = {
     requestParams: ['eventId'],
     responseFields: fieldsOf(FirestoreDocumentSchema),
   },
+  firestoreGetGuest: {
+    method: 'GET',
+    host: HOST_FIRESTORE,
+    path: '/v1/projects/getpartiful/databases/(default)/documents/events/{eventId}/guests/{guestId}',
+    transport: 'firestore',
+    requestParams: ['eventId', 'guestId'],
+    responseFields: fieldsOf(FirestoreDocumentSchema),
+  },
   firestorePatchEvent: {
     method: 'PATCH',
     host: HOST_FIRESTORE,
@@ -532,6 +540,7 @@ export const responseSchemas = {
   markEventInterest: MarkEventInterestResponseSchema,
   getCurrentGuest: GetCurrentGuestResponseSchema,
   firestoreGetEvent: FirestoreDocumentSchema,
+  firestoreGetGuest: FirestoreDocumentSchema,
   firestorePatchEvent: FirestoreDocumentSchema,
   firestoreListDocuments: FirestoreListResponseSchema,
   refreshToken: RefreshTokenResponseSchema,
