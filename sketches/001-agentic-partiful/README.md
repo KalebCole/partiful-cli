@@ -19,3 +19,7 @@ open sketches/001-agentic-partiful/index.html
 ```
 
 All event data is synthetic. No command executes and no message sends.
+
+### Photo credit
+
+Picnic cover photo by [Simi Iluyomade](https://unsplash.com/@simisola) on [Unsplash](https://unsplash.com/photos/friends-laughing-together-on-picnic-blanket-tvbxqXI5mmo), used under the Unsplash License.
