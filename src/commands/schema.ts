@@ -88,6 +88,12 @@ const SCHEMAS: Record<string, CommandSchema> = {
     command: 'events rsvp <eventId>',
     parameters: RSVP_PARAMETERS,
   },
+  'events.my-rsvp': {
+    command: 'events my-rsvp <eventId>',
+    parameters: {
+      eventId: { type: 'string', required: true, positional: true, description: 'Event ID' },
+    },
+  },
   'events.interested': {
     command: 'events interested <eventId>',
     parameters: {
@@ -98,6 +104,12 @@ const SCHEMAS: Record<string, CommandSchema> = {
   'explore.rsvp': {
     command: 'explore rsvp <eventId>',
     parameters: RSVP_PARAMETERS,
+  },
+  'explore.my-rsvp': {
+    command: 'explore my-rsvp <eventId>',
+    parameters: {
+      eventId: { type: 'string', required: true, positional: true, description: 'Event ID' },
+    },
   },
   'explore.interested': {
     command: 'explore interested <eventId>',

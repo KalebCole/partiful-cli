@@ -8,11 +8,15 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 // --- module mocks -----------------------------------------------------------
 const apiRequest = vi.fn();
+const firestoreGetDocument = vi.fn();
 const jsonOutput = vi.fn();
 const jsonError = vi.fn();
 const confirm = vi.fn();
 
-vi.mock('../src/lib/http.js', () => ({ apiRequest: (...a) => apiRequest(...a) }));
+vi.mock('../src/lib/http.js', () => ({
+  apiRequest: (...a) => apiRequest(...a),
+  firestoreGetDocument: (...a) => firestoreGetDocument(...a),
+}));
 vi.mock('../src/lib/output.js', () => ({
   jsonOutput: (...a) => jsonOutput(...a),
   jsonError: (...a) => jsonError(...a),
@@ -26,13 +30,19 @@ vi.mock('../src/lib/auth.js', () => ({
 }));
 vi.mock('../src/lib/events.js', () => ({ confirm: (...a) => confirm(...a) }));
 
-const { rsvpAction } = await import('../src/commands/rsvp.js');
+const { currentGuestAction, rsvpAction } = await import('../src/commands/rsvp.js');
 
 // Commander-like cmd stub whose optsWithGlobals returns the given globals.
 const mkCmd = (globals = {}) => ({ optsWithGlobals: () => globals });
 
 // Route apiRequest by endpoint so each test can script the reads/writes.
-function routeApi({ event = null, currentGuest = null, addGuest = { id: 'NEW' }, throwOn = null } = {}) {
+function routeApi({
+  event = null,
+  currentGuest = null,
+  addGuest = { id: 'NEW' },
+  guestDocument = { fields: {} },
+  throwOn = null,
+} = {}) {
   apiRequest.mockImplementation(async (_m, endpoint) => {
     if (throwOn && endpoint === throwOn) throw new Error(`boom ${endpoint}`);
     if (endpoint === '/getEventInfo') return { result: { data: { event } } };
@@ -40,6 +50,29 @@ function routeApi({ event = null, currentGuest = null, addGuest = { id: 'NEW' },
     if (endpoint === '/addGuest') return { result: { data: { guest: addGuest } } };
     return { result: { data: {} } };
   });
+  firestoreGetDocument.mockResolvedValue(guestDocument);
+}
+
+function firestoreGuestDocument({ status = 'GOING', version = 1, answers = { Q1: 'Yes!' } } = {}) {
+  return {
+    fields: {
+      status: { stringValue: status },
+      questionnaireResponse: {
+        mapValue: {
+          fields: {
+            questionnaireVersion: { integerValue: String(version) },
+            answers: {
+              mapValue: {
+                fields: Object.fromEntries(
+                  Object.entries(answers).map(([id, answer]) => [id, { stringValue: answer }]),
+                ),
+              },
+            },
+          },
+        },
+      },
+    },
+  };
 }
 
 beforeEach(() => {
@@ -123,6 +156,50 @@ describe('rsvpAction questionnaire guard', () => {
 
     const addCall = apiRequest.mock.calls.find(c => c[1] === '/addGuest');
     expect(addCall[3].data.params.rsvp.questionnaireResponse).toEqual(existingResponse);
+  });
+
+  it('reads omitted questionnaire answers from the Firestore guest document and verifies them after write', async () => {
+    const persistedResponse = {
+      questionnaireVersion: 1,
+      answers: { q1: 'Saved', q2: 'Also saved' },
+    };
+    routeApi({
+      event: questionnaireEvent,
+      currentGuest: { id: 'G7', name: 'Kaleb', status: 'GOING' },
+      addGuest: { id: 'G7' },
+      guestDocument: {
+        fields: {
+          status: { stringValue: 'MAYBE' },
+          questionnaireResponse: {
+            mapValue: {
+              fields: {
+                questionnaireVersion: { integerValue: '1' },
+                answers: {
+                  mapValue: {
+                    fields: {
+                      q1: { stringValue: 'Saved' },
+                      q2: { stringValue: 'Also saved' },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    await rsvpAction('EV1', { status: 'maybe' }, mkCmd({ yes: true }));
+
+    expect(firestoreGetDocument).toHaveBeenCalledWith(
+      'events/EV1/guests/G7', 'tok', false,
+    );
+    const addCall = apiRequest.mock.calls.find(c => c[1] === '/addGuest');
+    expect(addCall[3].data.params.rsvp.questionnaireResponse).toEqual(persistedResponse);
+
+    const out = jsonOutput.mock.calls.at(-1)[0];
+    expect(out.questionnaireResponse).toEqual(persistedResponse);
+    expect(out.verified).toEqual({ status: true, questionnaireResponse: true });
   });
 
   it('preserves the existing response after the host removes the questionnaire', async () => {
@@ -272,6 +349,31 @@ describe('rsvpAction questionnaire guard', () => {
       expect.stringMatching(/does not expose a host questionnaire/i), 3, 'validation_error', null,
     );
     expect(apiRequest.mock.calls.some(c => c[1] === '/addGuest')).toBe(false);
+  });
+});
+
+describe('currentGuestAction', () => {
+  it('returns the caller RSVP with questionnaire answers from Firestore', async () => {
+    routeApi({
+      currentGuest: { id: 'G7', status: 'GOING', count: 1 },
+      guestDocument: firestoreGuestDocument(),
+    });
+
+    await currentGuestAction('EV1', {}, mkCmd());
+
+    expect(jsonOutput).toHaveBeenCalledWith({
+      eventId: 'EV1',
+      guest: {
+        id: 'G7',
+        status: 'GOING',
+        count: 1,
+        questionnaireResponse: {
+          questionnaireVersion: 1,
+          answers: { Q1: 'Yes!' },
+        },
+      },
+      url: 'https://partiful.com/e/EV1',
+    });
   });
 });
 

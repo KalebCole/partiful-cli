@@ -12,7 +12,7 @@
 
 import type { Command } from 'commander';
 import { loadConfig, getValidToken, wrapPayload, decodeJwtPayload } from '../lib/auth.js';
-import { apiRequest } from '../lib/http.js';
+import { apiRequest, firestoreGetDocument } from '../lib/http.js';
 import { jsonOutput, jsonError } from '../lib/output.js';
 import { PartifulError } from '../lib/errors.js';
 import { confirm } from '../lib/events.js';
@@ -45,6 +45,45 @@ function handleError(e: unknown): void {
   else jsonError((e as Error).message);
 }
 
+interface FirestoreValue {
+  stringValue?: string;
+  integerValue?: string;
+  mapValue?: { fields?: Record<string, FirestoreValue> };
+}
+
+interface FirestoreGuestDocument {
+  fields?: Record<string, FirestoreValue>;
+}
+
+function questionnaireResponseFromDocument(document: FirestoreGuestDocument): QuestionnaireResponse | null {
+  const responseFields = document.fields?.['questionnaireResponse']?.mapValue?.fields;
+  const versionValue = responseFields?.['questionnaireVersion']?.integerValue;
+  const answerFields = responseFields?.['answers']?.mapValue?.fields;
+  if (versionValue === undefined || answerFields === undefined) return null;
+
+  const questionnaireVersion = Number.parseInt(versionValue, 10);
+  if (!Number.isFinite(questionnaireVersion)) return null;
+
+  const answers: Record<string, string> = {};
+  for (const [questionId, value] of Object.entries(answerFields)) {
+    if (value.stringValue !== undefined) answers[questionId] = value.stringValue;
+  }
+  return { questionnaireVersion, answers };
+}
+
+async function fetchGuestDocument(
+  token: string,
+  eventId: string,
+  guestId: string,
+  verbose: boolean | undefined,
+): Promise<FirestoreGuestDocument> {
+  return await firestoreGetDocument(
+    `events/${eventId}/guests/${guestId}`,
+    token,
+    verbose ?? false,
+  ) as FirestoreGuestDocument;
+}
+
 /**
  * Read the caller's own guest record (read-before-write).
  *
@@ -56,7 +95,38 @@ function handleError(e: unknown): void {
  */
 async function fetchCurrentGuest(config: ReturnType<typeof loadConfig>, token: string, eventId: string, verbose: boolean | undefined): Promise<Record<string, unknown> | null> {
   const res = await apiRequest('POST', '/getCurrentGuest', token, makePayload(config, { eventId }), verbose) as { result?: { data?: { currentGuest?: Record<string, unknown> } } };
-  return res.result?.data?.currentGuest ?? null;
+  const currentGuest = res.result?.data?.currentGuest ?? null;
+  const guestId = currentGuest?.['id'];
+  if (!currentGuest || typeof guestId !== 'string') return currentGuest;
+
+  const document = await fetchGuestDocument(token, eventId, guestId, verbose);
+  const questionnaireResponse = questionnaireResponseFromDocument(document);
+  return questionnaireResponse
+    ? { ...currentGuest, questionnaireResponse }
+    : currentGuest;
+}
+
+/** Read the caller's RSVP, including questionnaire answers, without mutating it. */
+export async function currentGuestAction(eventId: string, _opts: Record<string, unknown>, cmd: Command): Promise<void> {
+  const globalOpts = cmd.optsWithGlobals<Record<string, unknown>>();
+  try {
+    const config = loadConfig();
+    const token = await getValidToken(config);
+    const guest = await fetchCurrentGuest(
+      config,
+      token,
+      eventId,
+      globalOpts['verbose'] as boolean | undefined,
+    );
+
+    jsonOutput({
+      eventId,
+      guest,
+      url: `https://partiful.com/e/${eventId}`,
+    });
+  } catch (e) {
+    handleError(e);
+  }
 }
 
 /**
@@ -181,13 +251,43 @@ export async function rsvpAction(eventId: string, opts: Record<string, unknown>,
 
     const result = await apiRequest('POST', '/addGuest', token, payload, globalOpts['verbose'] as boolean | undefined) as { result?: { data?: { guest?: Record<string, unknown> } | Record<string, unknown> } };
     const guest = (result.result?.data as { guest?: Record<string, unknown> })?.guest ?? result.result?.data ?? {};
+    const guestId = (guest as Record<string, unknown>)['id'] ?? currentGuest?.['id'] ?? null;
+
+    let persistedStatus: string | null = null;
+    let persistedQuestionnaireResponse: QuestionnaireResponse | null = null;
+    let verificationError: string | null = null;
+    if (typeof guestId === 'string') {
+      try {
+        const document = await fetchGuestDocument(
+          token,
+          eventId,
+          guestId,
+          globalOpts['verbose'] as boolean | undefined,
+        );
+        persistedStatus = document.fields?.['status']?.stringValue ?? null;
+        persistedQuestionnaireResponse = questionnaireResponseFromDocument(document);
+      } catch (error) {
+        verificationError = (error as Error).message;
+      }
+    }
+
+    const expectedQuestionnaireResponse = params.rsvp.questionnaireResponse ?? null;
+    const verified = {
+      status: persistedStatus === params.rsvp.status,
+      questionnaireResponse: expectedQuestionnaireResponse === null
+        ? null
+        : JSON.stringify(persistedQuestionnaireResponse) === JSON.stringify(expectedQuestionnaireResponse),
+    };
 
     jsonOutput({
       eventId,
       status: params.rsvp.status,
-      guestId: (guest as Record<string, unknown>)['id'] ?? currentGuest?.['id'] ?? null,
+      guestId,
       count: params.rsvp.count,
       updated: Boolean(currentGuest),
+      questionnaireResponse: persistedQuestionnaireResponse,
+      verified,
+      ...(verificationError ? { verificationError } : {}),
       url: `https://partiful.com/e/${eventId}`,
     });
   } catch (e) {
@@ -227,8 +327,14 @@ async function interestedAction(eventId: string, opts: Record<string, unknown>, 
   }
 }
 
-/** Attach rsvp + interested subcommands to a parent command (events or explore). */
+/** Attach RSVP/interest subcommands to a parent command (events or explore). */
 function attachRsvpVerbs(parent: Command): void {
+  parent
+    .command('my-rsvp')
+    .description('Read your RSVP status and questionnaire answers')
+    .argument('<eventId>', 'Event ID')
+    .action(currentGuestAction);
+
   parent
     .command('rsvp')
     .description('RSVP to an event (going, maybe, or declined)')

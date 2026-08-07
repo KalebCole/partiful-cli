@@ -164,6 +164,36 @@ export async function firestoreRequest(
   return text ? JSON.parse(text) : {};
 }
 
+/** Read one Firestore document by its path beneath /documents. */
+export async function firestoreGetDocument(
+  documentPath: string,
+  token: string,
+  verbose = false,
+): Promise<unknown> {
+  const encodedPath = documentPath.split('/').map(encodeURIComponent).join('/');
+  const fsPath = `/v1/projects/${FIRESTORE_PROJECT}/databases/(default)/documents/${encodedPath}`;
+
+  const resp = await withRetry(
+    () =>
+      fetch(`${FIRESTORE_BASE}${fsPath}`, {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Referer: 'https://partiful.com/',
+        },
+      }),
+    verbose,
+  );
+
+  if (!resp.ok) {
+    const text = await resp.text().catch(() => '');
+    throw classifyError(resp.status, 'Firestore GET document failed', text);
+  }
+
+  const text = await resp.text();
+  return text ? JSON.parse(text) : {};
+}
+
 export async function firestoreListDocuments(
   collectionPath: string,
   token: string,
