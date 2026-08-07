@@ -33,6 +33,19 @@ describe('schema api.<method> namespace', () => {
     expect(Array.isArray(out.data.responseFields)).toBe(true);
   });
 
+  it.each([
+    ['createCohostRequest', '/createCohostRequest', ['eventId', 'targetUserId']],
+    ['deleteCohostRequest', '/deleteCohostRequest', ['eventId', 'targetUserId']],
+    ['removeCohost', '/removeCohost', ['eventId', 'targetUserId']],
+    ['generateEventCohostLink', '/generateEventCohostLink', ['eventId']],
+    ['revokeEventCohostLink', '/revokeEventCohostLink', ['eventId']],
+  ])('exposes canonical cohost endpoint %s', (method, path, params) => {
+    const out = run(['schema', `api.${method}`]);
+    expect(out.data.path).toBe(path);
+    expect(out.data.transport).toBe('firebase-callable');
+    expect(out.data.requestParams).toEqual(params);
+  });
+
   it('`schema api.firestoreGetEvent` reflects firestore transport + GET', () => {
     const out = run(['schema', 'api.firestoreGetEvent']);
     expect(out.data.transport).toBe('firestore');

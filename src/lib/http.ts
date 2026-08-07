@@ -170,28 +170,25 @@ export async function firestoreGetDocument(
   documentPath: string,
   token: string,
   verbose = false,
-): Promise<unknown> {
-  const encodedPath = documentPath.split('/').map(encodeURIComponent).join('/');
-  const fsPath = `/v1/projects/${FIRESTORE_PROJECT}/databases/(default)/documents/${encodedPath}`;
-
+): Promise<unknown | null> {
+  const normalized = documentPath.split('/').filter(Boolean).map(encodeURIComponent).join('/');
+  const fsPath = `/v1/projects/${FIRESTORE_PROJECT}/databases/(default)/documents/${normalized}`;
   const resp = await withRetry(
-    () =>
-      fetch(`${FIRESTORE_BASE}${fsPath}`, {
-        method: 'GET',
-        signal: AbortSignal.timeout(FIRESTORE_GET_TIMEOUT_MS),
-        headers: {
-          Authorization: `Bearer ${token}`,
-          Referer: 'https://partiful.com/',
-        },
-      }),
+    () => fetch(`${FIRESTORE_BASE}${fsPath}`, {
+      method: 'GET',
+      signal: AbortSignal.timeout(FIRESTORE_GET_TIMEOUT_MS),
+      headers: {
+        Authorization: `Bearer ${token}`,
+        Referer: 'https://partiful.com/',
+      },
+    }),
     verbose,
   );
-
+  if (resp.status === 404) return null;
   if (!resp.ok) {
     const text = await resp.text().catch(() => '');
-    throw classifyError(resp.status, 'Firestore GET document failed', text);
+    throw classifyError(resp.status, 'Firestore document GET failed', text);
   }
-
   const text = await resp.text();
   return text ? JSON.parse(text) : {};
 }

@@ -20,6 +20,9 @@ describe('http module exports', () => {
   it('exports firestoreListDocuments as function', () => {
     expect(typeof firestoreListDocuments).toBe('function');
   });
+  it('exports firestoreGetDocument as function', () => {
+    expect(typeof firestoreGetDocument).toBe('function');
+  });
 
   it('bounds Firestore document reads with an abort signal', async () => {
     const fetchMock = vi.fn().mockResolvedValue({
