@@ -22,7 +22,16 @@ partiful events create \
   --dry-run
 ```
 
-`--title` and `--date` are required unless supplied by a template. Common options: `--end-date`, `--address`, `--capacity`, `--private`, `--theme`, `--effect`, `--poster`, `--poster-search`, `--image`, `--link`, `--link-text`, `--cohost`, `--template`, and `--var`.
+`--title` and `--date` are required unless supplied by a template. Common options: `--end-date`, `--address`, `--capacity`, `--rsvp-deadline`, `--private`, `--theme`, `--effect`, `--poster`, `--poster-search`, `--image`, `--link`, `--link-text`, `--cohost`, `--template`, and `--var`.
+
+`--rsvp-deadline` accepts the same natural-language or ISO-style dates as `--date`, interpreted in `--timezone`. Responses after the deadline are disabled. For updates, pass `--timezone` explicitly when the deadline is not Pacific time:
+
+```bash
+partiful events update <event-id> \
+  --rsvp-deadline "2026-08-20 12pm" \
+  --timezone "America/Los_Angeles" \
+  --dry-run
+```
 
 Add cohosts by unique Partiful contact name. This previews a post-create canonical cohost request, not a direct `cohostIds` write:
 
