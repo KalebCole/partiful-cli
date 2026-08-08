@@ -211,6 +211,9 @@ export function registerEventsCommands(program: Command): void {
           location: event['location'] ?? null,
           address: event['address'] ?? null,
           description: event['description'] ?? null,
+          guestLimit: event['guestLimit'] ?? null,
+          rsvpDeadline: event['rsvpDeadline'] ?? null,
+          allowResponsesAfterRsvpDeadline: event['allowResponsesAfterRsvpDeadline'] ?? null,
           status: event['status'],
           timezone: event['timezone'] ?? null,
           visibility: event['visibility'] ?? null,
@@ -233,6 +236,7 @@ export function registerEventsCommands(program: Command): void {
     .option('--address <address>', 'Street address')
     .option('--description <desc>', 'Event description')
     .option('--capacity <n>', 'Guest limit', parseInt)
+    .option('--rsvp-deadline <date>', 'Close RSVPs at this date/time')
     .option('--private', 'Make event private')
     .option('--timezone <tz>', 'Timezone', 'America/Los_Angeles')
     .option('--theme <theme>', 'Color theme', 'oxblood')
@@ -387,6 +391,8 @@ export function registerEventsCommands(program: Command): void {
     .option('--location <location>', 'New location')
     .option('--description <desc>', 'New description')
     .option('--capacity <n>', 'New guest limit', parseInt)
+    .option('--rsvp-deadline <date>', 'Close RSVPs at this date/time')
+    .option('--timezone <tz>', 'Timezone for natural-language dates', 'America/Los_Angeles')
     .option('--poster <posterId>', 'Set poster by ID')
     .option('--poster-search <query>', 'Search and set best matching poster')
     .option('--image <path>', 'Upload and set custom image')
@@ -411,6 +417,11 @@ export function registerEventsCommands(program: Command): void {
         if (opts['date']) { fields['startDate'] = { timestampValue: parseDateTime(opts['date'] as string).toISOString() }; updateFields.push('startDate'); }
         if (opts['endDate']) { fields['endDate'] = { timestampValue: parseDateTime(opts['endDate'] as string).toISOString() }; updateFields.push('endDate'); }
         if (opts['capacity']) { fields['guestLimit'] = { integerValue: String(opts['capacity']) }; updateFields.push('guestLimit'); }
+        if (opts['rsvpDeadline']) {
+          fields['rsvpDeadline'] = { timestampValue: parseDateTime(opts['rsvpDeadline'] as string, opts['timezone'] as string).toISOString() };
+          fields['allowResponsesAfterRsvpDeadline'] = { booleanValue: false };
+          updateFields.push('rsvpDeadline', 'allowResponsesAfterRsvpDeadline');
+        }
 
         // Links
         const links = buildLinks(opts['link'] as string[] | undefined, opts['linkText'] as string[] | undefined);
@@ -452,7 +463,7 @@ export function registerEventsCommands(program: Command): void {
         }
 
         if (updateFields.length === 0 && cohostIds.length === 0) {
-          jsonError('No fields to update. Use --title, --location, --description, --date, --end-date, --capacity, --link, --poster, --poster-search, --image, or --cohost', 3, 'validation_error');
+          jsonError('No update fields provided. Use --title, --location, --description, --date, --end-date, --capacity, --rsvp-deadline, --link, --poster, --poster-search, --image, or --cohost', 3, 'validation_error');
           return;
         }
 

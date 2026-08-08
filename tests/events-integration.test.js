@@ -36,6 +36,36 @@ describe('events integration', () => {
       expect(out.data.payload.data).toBeDefined();
     });
 
+    it('events create --rsvp-deadline encodes a closed-after-deadline policy', () => {
+      const out = run([
+        'events', 'create',
+        '--title', 'Sunset Picnic',
+        '--date', '2026-08-22 3pm',
+        '--timezone', 'America/Los_Angeles',
+        '--rsvp-deadline', '2026-08-20 12pm',
+        '--dry-run',
+      ]);
+      const event = out.data.payload.data.params.event;
+      expect(event.rsvpDeadline).toBe('2026-08-20T19:00:00.000Z');
+      expect(event.allowResponsesAfterRsvpDeadline).toBe(false);
+    });
+
+    it('events create rejects an RSVP deadline after the event starts', () => {
+      const { stdout, exitCode } = runRaw([
+        'events', 'create',
+        '--title', 'Bad Deadline',
+        '--date', '2026-08-22 3pm',
+        '--timezone', 'America/Los_Angeles',
+        '--rsvp-deadline', '2026-08-23 12pm',
+        '--dry-run',
+      ]);
+      expect(exitCode).not.toBe(0);
+      const out = JSON.parse(stdout.trim());
+      expect(out.status).toBe('error');
+      expect(out.error.type).toBe('validation_error');
+      expect(out.error.message).toContain('before the event starts');
+    });
+
     it('events cancel --dry-run --yes', () => {
       const out = run(['events', 'cancel', 'test-id', '--dry-run', '--yes']);
       expect(out.status).toBe('success');
@@ -200,6 +230,8 @@ describe('events integration', () => {
       expect(out.data.command).toBe('events create');
       expect(out.data.parameters['--title'].required).toBe(true);
       expect(out.data.parameters['--date'].required).toBe(true);
+      expect(out.data.parameters['--rsvp-deadline'].required).toBe(false);
+      expect(out.data.parameters['--rsvp-deadline'].type).toBe('string');
     });
 
     it('schema events.clone exposes date and shift alternatives', () => {
@@ -279,6 +311,20 @@ describe('events integration', () => {
       expect(linksField.arrayValue.values).toHaveLength(1);
       expect(linksField.arrayValue.values[0].mapValue.fields.url.stringValue).toBe('https://example.com');
       expect(linksField.arrayValue.values[0].mapValue.fields.text.stringValue).toBe('Example');
+    });
+
+    it('events update --rsvp-deadline encodes Firestore fields', () => {
+      const out = run([
+        'events', 'update', 'test-event-123',
+        '--rsvp-deadline', '2026-08-20 12pm',
+        '--timezone', 'America/Los_Angeles',
+        '--dry-run',
+      ]);
+      expect(out.status).toBe('success');
+      expect(out.data.fields).toContain('rsvpDeadline');
+      expect(out.data.fields).toContain('allowResponsesAfterRsvpDeadline');
+      expect(out.data.body.fields.rsvpDeadline.timestampValue).toBe('2026-08-20T19:00:00.000Z');
+      expect(out.data.body.fields.allowResponsesAfterRsvpDeadline.booleanValue).toBe(false);
     });
   });
 });

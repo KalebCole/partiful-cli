@@ -60,6 +60,7 @@ export interface EventOptions {
   address?: string;
   description?: string;
   capacity?: number;
+  rsvpDeadline?: string;
   poster?: string;
   posterSearch?: string;
   [extra: string]: unknown;
@@ -110,6 +111,14 @@ export function buildBaseEvent(opts: EventOptions): BuiltBaseEvent {
   if (opts.capacity) {
     event.guestLimit = opts.capacity;
     event.enableWaitlist = true;
+  }
+  if (opts.rsvpDeadline) {
+    const rsvpDeadline = parseDateTime(opts.rsvpDeadline, opts.timezone);
+    if (rsvpDeadline >= startDate) {
+      throw new ValidationError('RSVP deadline must be before the event starts.');
+    }
+    event.rsvpDeadline = rsvpDeadline.toISOString();
+    event.allowResponsesAfterRsvpDeadline = false;
   }
 
   return { event, startDate, endDate };
