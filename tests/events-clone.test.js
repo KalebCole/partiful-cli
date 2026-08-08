@@ -35,6 +35,14 @@ describe('resolveCloneStartDate', () => {
     expect(result.toISOString()).toBe('2026-03-08T17:00:00.000Z');
   });
 
+  it.each([
+    ['spring forward', '2026-03-01T17:00:00.000Z', '2026-03-08T16:00:00.000Z'],
+    ['fall back', '2026-10-25T16:00:00.000Z', '2026-11-01T17:00:00.000Z'],
+  ])('preserves event-local wall time across %s', (_label, source, expected) => {
+    expect(resolveCloneStartDate({ shift: '7' }, source, 'America/Los_Angeles').toISOString())
+      .toBe(expected);
+  });
+
   it('rejects invalid shifts and missing source dates', () => {
     expect(() => resolveCloneStartDate({ shift: '1.5' }, '2026-08-01T19:00:00Z', 'America/Los_Angeles'))
       .toThrow('--shift must be an integer number of days');
