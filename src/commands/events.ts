@@ -414,8 +414,8 @@ export function registerEventsCommands(program: Command): void {
         if (opts['title']) { fields['title'] = { stringValue: opts['title'] }; updateFields.push('title'); }
         if (opts['location']) { fields['location'] = { stringValue: opts['location'] }; updateFields.push('location'); }
         if (opts['description']) { fields['description'] = { stringValue: stripMarkdown(opts['description'] as string) }; updateFields.push('description'); }
-        if (opts['date']) { fields['startDate'] = { timestampValue: parseDateTime(opts['date'] as string).toISOString() }; updateFields.push('startDate'); }
-        if (opts['endDate']) { fields['endDate'] = { timestampValue: parseDateTime(opts['endDate'] as string).toISOString() }; updateFields.push('endDate'); }
+        if (opts['date']) { fields['startDate'] = { timestampValue: parseDateTime(opts['date'] as string, opts['timezone'] as string).toISOString() }; updateFields.push('startDate'); }
+        if (opts['endDate']) { fields['endDate'] = { timestampValue: parseDateTime(opts['endDate'] as string, opts['timezone'] as string).toISOString() }; updateFields.push('endDate'); }
         if (opts['capacity']) { fields['guestLimit'] = { integerValue: String(opts['capacity']) }; updateFields.push('guestLimit'); }
         if (opts['rsvpDeadline']) {
           fields['rsvpDeadline'] = { timestampValue: parseDateTime(opts['rsvpDeadline'] as string, opts['timezone'] as string).toISOString() };

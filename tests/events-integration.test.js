@@ -50,6 +50,21 @@ describe('events integration', () => {
       expect(event.allowResponsesAfterRsvpDeadline).toBe(false);
     });
 
+    it('events create applies a non-default timezone independent of process TZ', () => {
+      const out = run([
+        'events', 'create',
+        '--title', 'East Coast Party',
+        '--date', '2026-08-22 3pm',
+        '--timezone', 'America/New_York',
+        '--rsvp-deadline', '2026-08-20 12pm',
+        '--dry-run',
+      ], { env: { TZ: 'UTC' } });
+      const event = out.data.payload.data.params.event;
+      expect(event.startDate).toBe('2026-08-22T19:00:00.000Z');
+      expect(event.rsvpDeadline).toBe('2026-08-20T16:00:00.000Z');
+      expect(event.allowResponsesAfterRsvpDeadline).toBe(false);
+    });
+
     it('events create rejects an RSVP deadline after the event starts', () => {
       const { stdout, exitCode } = runRaw([
         'events', 'create',
@@ -234,6 +249,13 @@ describe('events integration', () => {
       expect(out.data.parameters['--rsvp-deadline'].type).toBe('string');
     });
 
+    it('schema events.update exposes RSVP deadline timezone parameters', () => {
+      const out = run(['schema', 'events.update']);
+      expect(out.status).toBe('success');
+      expect(out.data.parameters['--rsvp-deadline']).toMatchObject({ required: false, type: 'string' });
+      expect(out.data.parameters['--timezone']).toMatchObject({ required: false, type: 'string' });
+    });
+
     it('schema events.clone exposes date and shift alternatives', () => {
       const out = run(['schema', 'events.clone']);
       expect(out.status).toBe('success');
@@ -325,6 +347,18 @@ describe('events integration', () => {
       expect(out.data.fields).toContain('allowResponsesAfterRsvpDeadline');
       expect(out.data.body.fields.rsvpDeadline.timestampValue).toBe('2026-08-20T19:00:00.000Z');
       expect(out.data.body.fields.allowResponsesAfterRsvpDeadline.booleanValue).toBe(false);
+    });
+
+    it('events update applies timezone to all natural-language date fields', () => {
+      const out = run([
+        'events', 'update', 'test-event-123',
+        '--date', '2026-08-22 3pm',
+        '--end-date', '2026-08-22 6pm',
+        '--timezone', 'America/New_York',
+        '--dry-run',
+      ], { env: { TZ: 'UTC' } });
+      expect(out.data.body.fields.startDate.timestampValue).toBe('2026-08-22T19:00:00.000Z');
+      expect(out.data.body.fields.endDate.timestampValue).toBe('2026-08-22T22:00:00.000Z');
     });
   });
 });
