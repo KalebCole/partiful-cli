@@ -50,15 +50,17 @@ Get approval before cancellation. Verify event ID, title, date, timezone, and ta
 ## Clone, Share Links, Templates, and Bulk Work
 
 ```bash
-partiful +clone <event-id> --date "2026-09-01T19:00" --dry-run
-partiful +share <event-id>
+partiful events clone <event-id> --dry-run
+partiful events clone <event-id> --shift 14 --dry-run
+partiful events clone <event-id> --date "2026-09-01T19:00" --dry-run
+partiful events get <event-id>
 partiful template list
 partiful template save --name <name> --title "Game Night" --location "My Place"
 partiful events create --template <name> --date "2026-09-01T19:00"
 partiful bulk --help
 ```
 
-`+clone`, `+share`, and `+export` are top-level helper commands, not subcommands under `events`. Cloning copies event details, not guests. `+share` returns the event's shareable URL. Templates are assembled from explicit fields rather than imported from an event. Inspect `partiful template --help`, `partiful bulk --help`, or schema output before less common flows. Preview bulk operations and get approval before execution.
+`events clone` copies event details, not guests. Without `--date`, it shifts the source date forward seven days; use `--shift` to choose a different number of days. `events get` includes the shareable URL. `+export` remains a top-level helper command. Templates are assembled from explicit fields rather than imported from an event. Inspect `partiful events clone --help`, `partiful template --help`, `partiful bulk --help`, or schema output before less common flows. Preview bulk operations and get approval before execution.
 
 ## Verify
 

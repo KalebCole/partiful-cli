@@ -68,30 +68,34 @@ describe('bundled Partiful skill', () => {
     }
   });
 
-  it('documents helper commands at their real top-level paths', () => {
+  it('documents commands at their canonical paths', () => {
     const references = fs.readdirSync(path.join(skillRoot, 'references'))
       .map((file) => fs.readFileSync(path.join(skillRoot, 'references', file), 'utf8'))
       .join('\n');
 
-    expect(references).toContain('partiful +clone');
+    expect(references).toContain('partiful events clone');
     expect(references).toContain('partiful +watch');
     expect(references).toContain('partiful +export');
-    expect(references).toContain('partiful +share');
+    expect(references).not.toContain('partiful +clone');
+    expect(references).not.toContain('partiful +share');
     expect(references).toContain('--plus-one');
     expect(references).toContain('--no-show-on-event-page');
     expect(references).not.toMatch(/partiful (?:events|guests) \+(?:clone|watch|export|share)/);
 
     for (const command of [
-      ['+clone', '--help'],
+      ['events', 'clone', '--help'],
       ['+watch', '--help'],
       ['+export', '--help'],
-      ['+share', '--help'],
       ['events', 'rsvp', 'set', '--help'],
       ['blasts', 'send', '--help'],
     ]) {
       const { stdout, exitCode } = runRaw(command);
       expect(exitCode, `${command.join(' ')} should resolve`).toBe(0);
       expect(stdout).toContain('Usage: partiful');
+    }
+
+    for (const removedCommand of [['+clone', 'event-id'], ['+share', 'event-id']]) {
+      expect(runRaw(removedCommand).exitCode, `${removedCommand[0]} should be removed`).not.toBe(0);
     }
 
     expect(runRaw(['events', 'rsvp', 'set', '--help']).stdout).toContain('--plus-one');

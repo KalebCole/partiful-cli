@@ -186,14 +186,13 @@ partiful schema events.create       # Show params for events create
 partiful doctor                     # Check auth, connectivity, setup
 ```
 
-### Helper commands
-
-Helpers use the `+` prefix:
+### Clone and helper commands
 
 ```bash
 # Clone an event to next week
-partiful +clone <eventId>
-partiful +clone <eventId> --date "May 1 8pm" --title "Game Night v2"
+partiful events clone <eventId>
+partiful events clone <eventId> --shift 14
+partiful events clone <eventId> --date "May 1 8pm" --title "Game Night v2"
 
 # Watch RSVPs in real-time (NDJSON stream)
 partiful +watch <eventId> --interval 15 --duration 30
@@ -202,8 +201,8 @@ partiful +watch <eventId> --interval 15 --duration 30
 partiful +export <eventId> --format json --output party.json
 partiful +export <eventId> --format csv
 
-# Get shareable link
-partiful +share <eventId>
+# Event details include the shareable URL
+partiful events get <eventId>
 ```
 
 ## Global Flags
