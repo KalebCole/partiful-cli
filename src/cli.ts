@@ -6,10 +6,8 @@ import { registerGuestsCommands } from './commands/guests.js';
 import { registerContactsCommands } from './commands/contacts.js';
 import { registerCohostsCommands } from './commands/cohosts.js';
 import { registerBlastsCommands } from './commands/blasts.js';
-import { registerCloneHelper } from './helpers/clone.js';
 import { registerWatchHelper } from './helpers/watch.js';
 import { registerExportHelper } from './helpers/export.js';
-import { registerShareHelper } from './helpers/share.js';
 import { registerSchemaCommand } from './commands/schema.js';
 import { registerPosterCommands } from './commands/posters.js';
 import { registerDoctorCommands } from './commands/doctor.js';
@@ -44,10 +42,8 @@ export function run(): void {
   registerContactsCommands(program);
   registerCohostsCommands(program);
   registerBlastsCommands(program);
-  registerCloneHelper(program);
   registerWatchHelper(program);
   registerExportHelper(program);
-  registerShareHelper(program);
   registerSchemaCommand(program);
   registerPosterCommands(program);
   registerDoctorCommands(program);
@@ -75,7 +71,7 @@ export function run(): void {
     list: ['events', 'list'],
     get: ['events', 'get'],
     cancel: ['events', 'cancel'],
-    clone: ['events', '+clone'],
+    clone: ['events', 'clone'],
   };
 
   // Find first non-option token (skip --format <val>, -o <val>, etc.)

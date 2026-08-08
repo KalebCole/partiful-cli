@@ -47,6 +47,84 @@ function handleError(e: unknown): void {
   else jsonError((e as Error).message);
 }
 
+function zonedParts(date: Date, timezone: string): Record<string, number> {
+  const parts = new Intl.DateTimeFormat('en-CA', {
+    timeZone: timezone,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hourCycle: 'h23',
+  }).formatToParts(date);
+
+  return Object.fromEntries(
+    parts
+      .filter((part) => part.type !== 'literal')
+      .map((part) => [part.type, Number(part.value)]),
+  );
+}
+
+function addCalendarDays(date: Date, days: number, timezone: string): Date {
+  const source = zonedParts(date, timezone);
+  const targetWallTime = Date.UTC(
+    source['year']!,
+    source['month']! - 1,
+    source['day']! + days,
+    source['hour']!,
+    source['minute']!,
+    source['second']!,
+    date.getUTCMilliseconds(),
+  );
+  let target = new Date(targetWallTime);
+
+  // Convert the target wall-clock time back to its UTC instant. Recalculate
+  // because the timezone offset may change across daylight saving boundaries.
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    const rendered = zonedParts(target, timezone);
+    const renderedWallTime = Date.UTC(
+      rendered['year']!,
+      rendered['month']! - 1,
+      rendered['day']!,
+      rendered['hour']!,
+      rendered['minute']!,
+      rendered['second']!,
+      target.getUTCMilliseconds(),
+    );
+    const correction = targetWallTime - renderedWallTime;
+    if (correction === 0) break;
+    target = new Date(target.getTime() + correction);
+  }
+
+  return target;
+}
+
+export function resolveCloneStartDate(
+  opts: { date?: unknown; shift?: unknown },
+  sourceStartDate: unknown,
+  timezone: string,
+): Date {
+  if (typeof opts.date === 'string' && opts.date) {
+    return parseDateTime(opts.date, timezone);
+  }
+
+  if (typeof sourceStartDate !== 'string' || !sourceStartDate) {
+    throw new Error('Source event has no start date and --date was not provided');
+  }
+
+  const shift = opts.shift === undefined ? 7 : Number(opts.shift);
+  if (!Number.isInteger(shift)) {
+    throw new Error('--shift must be an integer number of days');
+  }
+
+  const sourceDate = new Date(sourceStartDate);
+  if (Number.isNaN(sourceDate.getTime())) {
+    throw new Error('Source event has an invalid start date');
+  }
+  return addCalendarDays(sourceDate, shift, timezone);
+}
+
 export function registerEventsCommands(program: Command): void {
   const events = program.command('events').description('Manage events');
 
@@ -426,7 +504,8 @@ export function registerEventsCommands(program: Command): void {
     .command('clone')
     .description('Clone an existing event with a new date')
     .argument('<eventId>', 'Source event ID')
-    .requiredOption('--date <date>', 'New event date (required)')
+    .option('--date <date>', 'New event date')
+    .option('--shift <days>', 'Shift source date by N days (default 7)')
     .option('--end-date <endDate>', 'End date/time (overrides duration preservation)')
     .option('--title <title>', 'Override title')
     .option('--location <location>', 'Override location name')
@@ -468,7 +547,7 @@ export function registerEventsCommands(program: Command): void {
 
         // 2. Parse new date and preserve duration
         const tz = (opts['timezone'] ?? src['timezone'] ?? 'America/Los_Angeles') as string;
-        const newStart = parseDateTime(opts['date'] as string, tz);
+        const newStart = resolveCloneStartDate(opts, src['startDate'], tz);
         let newEnd: Date | null = null;
 
         if (opts['endDate']) {
@@ -482,7 +561,7 @@ export function registerEventsCommands(program: Command): void {
         const srcDisplaySettings = src['displaySettings'] as Record<string, unknown> | undefined;
         const cloneOpts = {
           title: (opts['title'] ?? src['title'] ?? 'Untitled Event') as string,
-          date: opts['date'] as string,
+          date: newStart.toISOString(),
           timezone: tz,
           theme: (opts['theme'] ?? srcDisplaySettings?.['theme'] ?? 'oxblood') as string,
           effect: (opts['effect'] ?? srcDisplaySettings?.['effect'] ?? 'sunbeams') as string,

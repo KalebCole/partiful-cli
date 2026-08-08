@@ -202,6 +202,14 @@ describe('events integration', () => {
       expect(out.data.parameters['--date'].required).toBe(true);
     });
 
+    it('schema events.clone exposes date and shift alternatives', () => {
+      const out = run(['schema', 'events.clone']);
+      expect(out.status).toBe('success');
+      expect(out.data.command).toBe('events clone <eventId>');
+      expect(out.data.parameters['--date'].required).toBe(false);
+      expect(out.data.parameters['--shift'].default).toBe(7);
+    });
+
     it('schema unknown path returns error', () => {
       const { stdout, exitCode } = runRaw(['schema', 'nonexistent']);
       expect(exitCode).not.toBe(0);
@@ -302,11 +310,11 @@ describe('events clone', () => {
     expect(event.title).toBe('Override Title');
   });
 
-  it('events clone without --date shows error', () => {
-    const { stdout, exitCode } = runRaw([
-      'events', 'clone', 'test-event-123',
+  it('legacy clone alias resolves to events clone', () => {
+    const { exitCode } = runRaw([
+      'clone', 'test-event-123', '--date', '2026-06-01 7pm', '--dry-run',
     ]);
-    expect(exitCode).not.toBe(0);
+    expect(exitCode).toBe(0);
   });
 });
 
