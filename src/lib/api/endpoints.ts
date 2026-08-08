@@ -78,6 +78,8 @@ export interface EventDraft {
   description?: string;
   guestLimit?: number;
   enableWaitlist?: boolean;
+  rsvpDeadline?: string;
+  allowResponsesAfterRsvpDeadline?: boolean;
   links?: EventLink[];
   image?: unknown;
   [extra: string]: unknown;

@@ -29,6 +29,18 @@ describe('parseDateTime', () => {
     expect(d instanceof Date).toBe(true);
     expect(d.getHours()).toBe(19);
   });
+
+  it('interprets naive dates in the requested timezone', () => {
+    expect(parseDateTime('2026-08-20 12pm', 'America/Los_Angeles').toISOString())
+      .toBe('2026-08-20T19:00:00.000Z');
+    expect(parseDateTime('2026-08-20 12pm', 'America/New_York').toISOString())
+      .toBe('2026-08-20T16:00:00.000Z');
+  });
+
+  it('preserves dates with an explicit UTC offset', () => {
+    expect(parseDateTime('2026-08-20T12:00:00-04:00', 'America/Los_Angeles').toISOString())
+      .toBe('2026-08-20T16:00:00.000Z');
+  });
 });
 
 describe('parseTimeString', () => {
