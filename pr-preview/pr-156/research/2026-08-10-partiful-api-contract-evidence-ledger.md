@@ -18,8 +18,9 @@
 
 The recovered 27 operations remain in the remote inventory. `createTextBlast`,
 `getLoginToken`, and `signInWithCustomToken` have dated live observations.
-`sendAuthCodeTrusted` and `lookupFirebaseUser` have reviewed repository
-research. The remaining operations are TypeScript-derived inferences:
+`sendAuthCodeTrusted` is a TypeScript-derived inference.
+`lookupFirebaseUser` is a TypeScript-derived inference. The remaining
+operations are TypeScript-derived inferences:
 
 - callable: `createEvent`, `cancelEvent`, `getEventInfo`, `getContacts`,
   `addInvitedGuestsAsHost`, cohost lifecycle operations, both home-page
@@ -32,9 +33,10 @@ the JSON ledger, including operation, parameter, content-type, security,
 schema, constraint, and response claims. Unless a claim is specifically
 observed, callable result payloads, status codes, error bodies, permission
 rules, and limits are **explicit unknown**. Consequently, this proposal uses
-OpenAPI `default` responses rather than inventing a success status.
+schema-free OpenAPI `default` responses rather than inventing a success status
+or applying a success body to errors.
 
-The 876 material claims are audited by
+The 819 material claims are audited by
 `tests/remote-api-contract.test.js`. Each ledger citation resolves either to a
 JSON Pointer in the committed non-authoritative historical artifact or to a
 heading in the committed stable source index. This keeps the audit independent
