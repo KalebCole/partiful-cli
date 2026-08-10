@@ -1,0 +1,45 @@
+name: Deploy PR preview
+
+on:
+  pull_request:
+    types:
+      - opened
+      - reopened
+      - synchronize
+      - closed
+    paths:
+      - docs/**
+      - .github/workflows/pages.yml
+      - .github/workflows/pages-preview.yml
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: pages-publish
+  cancel-in-progress: false
+
+jobs:
+  deploy-preview:
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+
+      - name: Deploy preview
+        id: preview
+        uses: rossjrw/pr-preview-action@ffa7509e91a3ec8dfc2e5536c4d5c1acdf7a6de9 # v1
+        with:
+          source-dir: docs
+          preview-branch: gh-pages
+          umbrella-dir: pr-preview
+          wait-for-pages-deployment: true
+          comment: true
+          qr-code: false
+
+      - name: Add preview URL to job summary
+        if: steps.preview.outputs.deployment-action == 'deploy'
+        run: |
+          echo "Preview: ${{ steps.preview.outputs.preview-url }}" >> "$GITHUB_STEP_SUMMARY"
