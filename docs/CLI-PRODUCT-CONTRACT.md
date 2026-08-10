@@ -210,8 +210,10 @@ remote mutation:
 ```
 
 The plan contains normalized inputs, current preconditions, an effect summary,
-and an opaque short-lived `planToken`. Secrets and personal data are redacted.
-There is no separate `--dry-run` flag: omitting `--apply` is the only dry-run
+and an opaque short-lived `planToken`. The token is internally bound to the
+signed-in account. The account identifier remains private and does not appear
+in the token, plan, or an error. Secrets and personal data are redacted. There
+is no separate `--dry-run` flag: omitting `--apply` is the only dry-run
 behavior.
 
 ### Standard mutation
@@ -244,10 +246,10 @@ observed preconditions. Execution repeats the same input with:
 ```
 
 Tokens are single-use and expire after five minutes. A changed input, changed
-remote precondition, expired token, or reused token returns
-`safety.plan_stale`. `--apply` without `--confirm` on a consequential action
-returns `safety.confirmation_required`. There is no `--yes` bypass and no
-interactive mutation prompt.
+remote precondition, different signed-in account, expired token, or reused
+token returns `safety.plan_stale`. `--apply` without `--confirm` on a
+consequential action returns `safety.confirmation_required`. There is no
+`--yes` bypass and no interactive mutation prompt.
 
 ## Authentication
 
@@ -419,6 +421,11 @@ No match returns `resource.not_found`. More than one safe match returns
 `match.ambiguous` and performs no action. If display information cannot safely
 disambiguate the contacts, the CLI refuses the invitation.
 
+The mutation plan binds the resolved private contact identity, not only the
+name supplied through `--contact`. Applying the plan cannot resolve the name
+again or select a different person. The bound identity does not appear in
+output.
+
 Applied success returns:
 
 ```json
@@ -435,7 +442,7 @@ Applied success returns:
 
 #### `partiful rsvp get <event-id>`
 
-Returns:
+Returns the shared `Rsvp` shape:
 
 ```json
 {
@@ -443,7 +450,9 @@ Returns:
   "status": "going",
   "partySize": 1,
   "plusOnes": [],
-  "message": null
+  "message": null,
+  "timezone": "America/Los_Angeles",
+  "questionnaireResponse": null
 }
 ```
 
@@ -458,14 +467,15 @@ Accepts structured input or equivalent flags:
   "plusOnes": [],
   "message": null,
   "timezone": "America/Los_Angeles",
-  "questionnaire": null
+  "questionnaireResponse": null
 }
 ```
 
 `status` is `going`, `not-going`, or `interested`. Exact transport mappings
 for these product values are an implementation gate. `timezone` is required
-and identifies the attendee's IANA timezone. Applied success returns the
-complete current RSVP shape.
+and identifies the attendee's IANA timezone. `questionnaireResponse` is either
+`null` or `{"questionnaireVersion","answers"}`. Applied success returns the
+shared `Rsvp` shape.
 
 ### Contacts
 
@@ -497,7 +507,8 @@ partiful cohosts link revoke <event-id>
 ```
 
 All are host-only consequential actions. Contact commands use the same
-privacy-safe match rules as guest invitations.
+privacy-safe match rules and resolved-identity plan binding as guest
+invitations.
 The machine-readable schema paths for the subresource commands are
 `cohosts.link.create` and `cohosts.link.revoke`.
 

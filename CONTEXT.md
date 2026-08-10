@@ -34,7 +34,7 @@ inputs, preconditions, and expected effects.
 
 **Plan token**:  
 An opaque, short-lived value that binds execution or confirmation to one exact
-mutation plan.
+mutation plan and signed-in account without exposing the account identifier.
 
 **Consequential action**:  
 A mutation that contacts a person, removes access, exposes access, or cancels
