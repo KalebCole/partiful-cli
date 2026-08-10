@@ -1,9 +1,16 @@
 name: Deploy PR preview
 
 on:
+  workflow_dispatch:
+    inputs:
+      pr-number:
+        description: Pull request number to deploy
+        required: true
+        type: number
   pull_request:
     types:
       - opened
+      - ready_for_review
       - reopened
       - synchronize
       - closed
@@ -19,16 +26,20 @@ concurrency:
 
 jobs:
   deploy-preview:
-    if: github.event.pull_request.head.repo.full_name == github.repository
+    if: github.event_name == 'workflow_dispatch' || github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          ref: ${{ github.event_name == 'workflow_dispatch' && format('refs/pull/{0}/merge', inputs.pr-number) || github.sha }}
 
       - name: Deploy preview
         id: preview
         uses: rossjrw/pr-preview-action@ffa7509e91a3ec8dfc2e5536c4d5c1acdf7a6de9 # v1
         with:
+          action: ${{ github.event_name == 'workflow_dispatch' && 'deploy' || 'auto' }}
+          pr-number: ${{ github.event_name == 'workflow_dispatch' && inputs.pr-number || github.event.pull_request.number }}
           source-dir: docs
           preview-branch: gh-pages
           umbrella-dir: pr-preview
