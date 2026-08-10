@@ -10,10 +10,7 @@ const materialMapKeys = new Set([
   'properties',
   'responses',
   'content',
-  'schemas',
-  'parameters',
-  'requestBodies',
-  'securitySchemes',
+  'security',
 ]);
 const hosts = {
   firebaseCallable: 'https://api.partiful.com',
@@ -41,6 +38,7 @@ function materialClaimPointers(value, pointer, parentKey = '') {
     return ignoredKeys.has(parentKey) ? [] : [pointer];
   }
   if (Array.isArray(value)) {
+    if (value.length === 0) return [pointer];
     return value.flatMap((item, index) =>
       materialClaimPointers(item, `${pointer}/${index}`, parentKey),
     );
@@ -53,6 +51,16 @@ function materialClaimPointers(value, pointer, parentKey = '') {
       ...(ignoredKeys.has(key) ? [] : materialClaimPointers(child, childPointer, key)),
     ];
   });
+}
+
+function jsonPointerValue(value, pointer) {
+  for (const rawSegment of pointer.replace(/^\//, '').split('/')) {
+    if (!rawSegment) continue;
+    const segment = rawSegment.replaceAll('~1', '/').replaceAll('~0', '~');
+    if (value === null || typeof value !== 'object' || !(segment in value)) return undefined;
+    value = value[segment];
+  }
+  return value;
 }
 
 function markdownSlug(value) {
@@ -80,13 +88,7 @@ function citationResolves(citation) {
     } catch {
       return false;
     }
-    for (const rawSegment of fragment.replace(/^\//, '').split('/')) {
-      if (!rawSegment) continue;
-      const segment = rawSegment.replaceAll('~1', '/').replaceAll('~0', '~');
-      if (value === null || typeof value !== 'object' || !(segment in value)) return false;
-      value = value[segment];
-    }
-    return true;
+    return jsonPointerValue(value, fragment) !== undefined;
   }
 
   if (sourcePath.endsWith('.md')) {
@@ -109,7 +111,7 @@ describe('remote API contract', () => {
     expect(new Set(ids).size).toBe(ids.length);
   });
 
-  it('covers all 379 material OpenAPI claims with a resolving citation', () => {
+  it('covers all material OpenAPI claims with resolving and semantically supporting citations', () => {
     const allowed = new Set(evidence.allowedClassifications);
     for (const { operation } of operations()) {
       const operationEvidence = evidence.operations[operation.operationId];
@@ -129,12 +131,23 @@ describe('remote API contract', () => {
       ...materialClaimPointers(spec.paths, '#/paths', 'paths'),
       ...materialClaimPointers(spec.components, '#/components', 'components'),
     ]);
-    expect(pointers).toHaveLength(379);
+    expect(pointers).toHaveLength(876);
     for (const pointer of pointers) {
       const claim = evidence.claims[pointer];
       expect(claim, pointer).toBeDefined();
       expect(allowed.has(claim.classification), pointer).toBe(true);
       expect(citationResolves(claim.citation), pointer).toBe(true);
+      if (claim.citation.startsWith('spec/research/historical-27-operation-draft.json#')) {
+        const sourcePointer = claim.citation.slice(
+          'spec/research/historical-27-operation-draft.json'.length,
+        );
+        const historical = JSON.parse(
+          fs.readFileSync('spec/research/historical-27-operation-draft.json', 'utf8'),
+        );
+        expect(jsonPointerValue(historical, sourcePointer), pointer).toEqual(
+          jsonPointerValue(spec, pointer),
+        );
+      }
     }
   });
 
@@ -165,13 +178,73 @@ describe('remote API contract', () => {
   });
 
   it('uses the observed nested text-blast message and excludes the superseded shape', () => {
-    const params = spec.components.schemas.TextBlastRequest.properties.data.properties.params;
-    expect(params.properties.message.$ref).toBe('#/components/schemas/TextBlastMessage');
+    const params = spec.paths['/createTextBlast'].post.requestBody
+      .content['application/json'].schema.properties.data.properties.params;
+    expect(params.properties.message).toMatchObject({
+      type: 'object',
+      required: expect.arrayContaining(['text', 'to', 'showOnEventPage']),
+    });
     expect(params.properties).not.toHaveProperty('recipientStatuses');
-    expect(spec.components.schemas.TextBlastMessage.required).toEqual(
-      expect.arrayContaining(['text', 'to', 'showOnEventPage']),
-    );
     expect(evidence.contradictions.find(({ id }) => id === 'text-blast-message-shape')?.status).toBe('resolved');
+  });
+
+  it('separates unknown response status from the response body evidence', () => {
+    for (const { path, method, operation } of operations()) {
+      const base = `#/paths/${escapePointerSegment(path)}/${method}/responses/default`;
+      expect(evidence.claims[base].citation).toBe(evidence.sources.unknownStatusDecision);
+      const bodyPointer = `${base}/content/application~1json`;
+      expect(evidence.claims[bodyPointer].citation, operation.operationId)
+        .not.toBe(evidence.sources.unknownStatusDecision);
+    }
+  });
+
+  it('uses each Markdown decision source only for its stated claim category', () => {
+    for (const [pointer, claim] of Object.entries(evidence.claims)) {
+      if (claim.citation === evidence.sources.unknownStatusDecision) {
+        expect(pointer).toMatch(/\/responses\/default$/);
+      }
+      if (claim.citation === evidence.sources.textBlast) {
+        expect(pointer).toContain('~1createTextBlast/post/requestBody');
+      }
+      if (claim.citation === evidence.sources.updateMask) {
+        expect(pointer).toMatch(/updateMask\.fieldPaths|parameters\/1\/(?:style|explode)$/);
+      }
+      if (claim.citation === evidence.sources.posterCatalog) {
+        expect(pointer).toContain('~1posters.json');
+      }
+      if (claim.citation === evidence.sources.posterInterface) {
+        expect(pointer).toContain('/schemas/Poster');
+      }
+    }
+  });
+
+  it('covers every security assignment, including empty scopes', () => {
+    for (const { path, method, operation } of operations()) {
+      if (!operation.security) continue;
+      expect(operation.security.length, operation.operationId).toBeGreaterThan(0);
+      for (let index = 0; index < operation.security.length; index++) {
+        for (const [scheme, scopes] of Object.entries(operation.security[index])) {
+          const pointer = `#/paths/${escapePointerSegment(path)}/${method}/security/${index}/${scheme}`;
+          expect(Array.isArray(scopes), pointer).toBe(true);
+          expect(evidence.claims[pointer], pointer).toBeDefined();
+        }
+      }
+    }
+  });
+
+  it('models update masks as repeated query values and leaves undocumented localId absent', () => {
+    const patch = spec.paths[
+      '/v1/projects/getpartiful/databases/(default)/documents/events/{eventId}'
+    ].patch;
+    const updateMask = patch.parameters.find(({ name }) => name === 'updateMask.fieldPaths');
+    expect(updateMask).toMatchObject({
+      in: 'query',
+      schema: { type: 'array', items: { type: 'string' } },
+      style: 'form',
+      explode: true,
+    });
+    expect(spec.components.schemas.FirebaseSignInResponse.properties ?? {})
+      .not.toHaveProperty('localId');
   });
 
   it('does not treat the event-image observation as poster-catalog evidence', () => {

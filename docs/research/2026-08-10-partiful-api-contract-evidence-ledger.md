@@ -34,7 +34,7 @@ observed, callable result payloads, status codes, error bodies, permission
 rules, and limits are **explicit unknown**. Consequently, this proposal uses
 OpenAPI `default` responses rather than inventing a success status.
 
-The 379 material claims are audited by
+The 876 material claims are audited by
 `tests/remote-api-contract.test.js`. Each ledger citation resolves either to a
 JSON Pointer in the committed non-authoritative historical artifact or to a
 heading in the committed stable source index. This keeps the audit independent

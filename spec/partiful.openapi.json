@@ -16,11 +16,73 @@
       "post": {
         "operationId": "createEvent",
         "requestBody": {
-          "$ref": "#/components/requestBodies/CallableRequest"
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "data"
+                ],
+                "properties": {
+                  "data": {
+                    "type": "object",
+                    "required": [
+                      "params",
+                      "amplitudeDeviceId"
+                    ],
+                    "properties": {
+                      "params": {
+                        "type": "object",
+                        "properties": {
+                          "event": {
+                            "$ref": "#/components/schemas/EventDraft"
+                          },
+                          "cohostIds": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          }
+                        },
+                        "additionalProperties": false,
+                        "required": [
+                          "event",
+                          "cohostIds"
+                        ]
+                      },
+                      "amplitudeDeviceId": {
+                        "type": "string"
+                      },
+                      "amplitudeSessionId": {
+                        "type": "integer",
+                        "format": "int64"
+                      },
+                      "userId": {
+                        "type": [
+                          "string",
+                          "null"
+                        ]
+                      }
+                    },
+                    "additionalProperties": false
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
         },
         "responses": {
           "default": {
-            "$ref": "#/components/responses/CallableResponse"
+            "description": "Response status is unknown; body shape follows cited research where present.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CallableResponse"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -34,11 +96,66 @@
       "post": {
         "operationId": "cancelEvent",
         "requestBody": {
-          "$ref": "#/components/requestBodies/CallableRequest"
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "data"
+                ],
+                "properties": {
+                  "data": {
+                    "type": "object",
+                    "required": [
+                      "params",
+                      "amplitudeDeviceId"
+                    ],
+                    "properties": {
+                      "params": {
+                        "type": "object",
+                        "properties": {
+                          "eventId": {
+                            "type": "string"
+                          }
+                        },
+                        "additionalProperties": false,
+                        "required": [
+                          "eventId"
+                        ]
+                      },
+                      "amplitudeDeviceId": {
+                        "type": "string"
+                      },
+                      "amplitudeSessionId": {
+                        "type": "integer",
+                        "format": "int64"
+                      },
+                      "userId": {
+                        "type": [
+                          "string",
+                          "null"
+                        ]
+                      }
+                    },
+                    "additionalProperties": false
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
         },
         "responses": {
           "default": {
-            "$ref": "#/components/responses/CallableResponse"
+            "description": "Response status is unknown; body shape follows cited research where present.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CallableResponse"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -52,11 +169,66 @@
       "post": {
         "operationId": "getEventInfo",
         "requestBody": {
-          "$ref": "#/components/requestBodies/CallableRequest"
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "data"
+                ],
+                "properties": {
+                  "data": {
+                    "type": "object",
+                    "required": [
+                      "params",
+                      "amplitudeDeviceId"
+                    ],
+                    "properties": {
+                      "params": {
+                        "type": "object",
+                        "properties": {
+                          "eventId": {
+                            "type": "string"
+                          }
+                        },
+                        "additionalProperties": false,
+                        "required": [
+                          "eventId"
+                        ]
+                      },
+                      "amplitudeDeviceId": {
+                        "type": "string"
+                      },
+                      "amplitudeSessionId": {
+                        "type": "integer",
+                        "format": "int64"
+                      },
+                      "userId": {
+                        "type": [
+                          "string",
+                          "null"
+                        ]
+                      }
+                    },
+                    "additionalProperties": false
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
         },
         "responses": {
           "default": {
-            "$ref": "#/components/responses/CallableResponse"
+            "description": "Response status is unknown; body shape follows cited research where present.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CallableResponse"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -70,11 +242,59 @@
       "post": {
         "operationId": "getContacts",
         "requestBody": {
-          "$ref": "#/components/requestBodies/CallableRequest"
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "data"
+                ],
+                "properties": {
+                  "data": {
+                    "type": "object",
+                    "required": [
+                      "params",
+                      "amplitudeDeviceId"
+                    ],
+                    "properties": {
+                      "params": {
+                        "type": "object",
+                        "properties": {},
+                        "additionalProperties": false
+                      },
+                      "amplitudeDeviceId": {
+                        "type": "string"
+                      },
+                      "amplitudeSessionId": {
+                        "type": "integer",
+                        "format": "int64"
+                      },
+                      "userId": {
+                        "type": [
+                          "string",
+                          "null"
+                        ]
+                      }
+                    },
+                    "additionalProperties": false
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
         },
         "responses": {
           "default": {
-            "$ref": "#/components/responses/CallableResponse"
+            "description": "Response status is unknown; body shape follows cited research where present.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CallableResponse"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -88,11 +308,98 @@
       "post": {
         "operationId": "createTextBlast",
         "requestBody": {
-          "$ref": "#/components/requestBodies/TextBlastRequest"
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "data"
+                ],
+                "properties": {
+                  "data": {
+                    "type": "object",
+                    "required": [
+                      "params",
+                      "amplitudeDeviceId"
+                    ],
+                    "properties": {
+                      "params": {
+                        "type": "object",
+                        "required": [
+                          "eventId",
+                          "message"
+                        ],
+                        "properties": {
+                          "eventId": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "object",
+                            "required": [
+                              "text",
+                              "to",
+                              "showOnEventPage"
+                            ],
+                            "properties": {
+                              "text": {
+                                "type": "string",
+                                "maxLength": 480
+                              },
+                              "to": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string"
+                                }
+                              },
+                              "showOnEventPage": {
+                                "type": "boolean"
+                              },
+                              "images": {
+                                "type": "array",
+                                "maxItems": 1,
+                                "items": {
+                                  "type": "object",
+                                  "additionalProperties": true
+                                }
+                              }
+                            },
+                            "additionalProperties": true
+                          }
+                        },
+                        "additionalProperties": true
+                      },
+                      "amplitudeDeviceId": {
+                        "type": "string"
+                      },
+                      "amplitudeSessionId": {
+                        "type": "integer"
+                      },
+                      "userId": {
+                        "type": [
+                          "string",
+                          "null"
+                        ]
+                      }
+                    },
+                    "additionalProperties": true
+                  }
+                },
+                "additionalProperties": true
+              }
+            }
+          }
         },
         "responses": {
           "default": {
-            "$ref": "#/components/responses/CallableResponse"
+            "description": "Response status is unknown; body shape follows cited research where present.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CallableResponse"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -106,11 +413,74 @@
       "post": {
         "operationId": "addInvitedGuestsAsHost",
         "requestBody": {
-          "$ref": "#/components/requestBodies/CallableRequest"
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "data"
+                ],
+                "properties": {
+                  "data": {
+                    "type": "object",
+                    "required": [
+                      "params",
+                      "amplitudeDeviceId"
+                    ],
+                    "properties": {
+                      "params": {
+                        "type": "object",
+                        "properties": {
+                          "eventId": {
+                            "type": "string"
+                          },
+                          "guests": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "additionalProperties": true
+                            }
+                          }
+                        },
+                        "additionalProperties": false,
+                        "required": [
+                          "eventId",
+                          "guests"
+                        ]
+                      },
+                      "amplitudeDeviceId": {
+                        "type": "string"
+                      },
+                      "amplitudeSessionId": {
+                        "type": "integer",
+                        "format": "int64"
+                      },
+                      "userId": {
+                        "type": [
+                          "string",
+                          "null"
+                        ]
+                      }
+                    },
+                    "additionalProperties": false
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
         },
         "responses": {
           "default": {
-            "$ref": "#/components/responses/CallableResponse"
+            "description": "Response status is unknown; body shape follows cited research where present.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CallableResponse"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -124,11 +494,70 @@
       "post": {
         "operationId": "createCohostRequest",
         "requestBody": {
-          "$ref": "#/components/requestBodies/CallableRequest"
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "data"
+                ],
+                "properties": {
+                  "data": {
+                    "type": "object",
+                    "required": [
+                      "params",
+                      "amplitudeDeviceId"
+                    ],
+                    "properties": {
+                      "params": {
+                        "type": "object",
+                        "properties": {
+                          "eventId": {
+                            "type": "string"
+                          },
+                          "targetUserId": {
+                            "type": "string"
+                          }
+                        },
+                        "additionalProperties": false,
+                        "required": [
+                          "eventId",
+                          "targetUserId"
+                        ]
+                      },
+                      "amplitudeDeviceId": {
+                        "type": "string"
+                      },
+                      "amplitudeSessionId": {
+                        "type": "integer",
+                        "format": "int64"
+                      },
+                      "userId": {
+                        "type": [
+                          "string",
+                          "null"
+                        ]
+                      }
+                    },
+                    "additionalProperties": false
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
         },
         "responses": {
           "default": {
-            "$ref": "#/components/responses/CallableResponse"
+            "description": "Response status is unknown; body shape follows cited research where present.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CallableResponse"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -142,11 +571,70 @@
       "post": {
         "operationId": "deleteCohostRequest",
         "requestBody": {
-          "$ref": "#/components/requestBodies/CallableRequest"
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "data"
+                ],
+                "properties": {
+                  "data": {
+                    "type": "object",
+                    "required": [
+                      "params",
+                      "amplitudeDeviceId"
+                    ],
+                    "properties": {
+                      "params": {
+                        "type": "object",
+                        "properties": {
+                          "eventId": {
+                            "type": "string"
+                          },
+                          "targetUserId": {
+                            "type": "string"
+                          }
+                        },
+                        "additionalProperties": false,
+                        "required": [
+                          "eventId",
+                          "targetUserId"
+                        ]
+                      },
+                      "amplitudeDeviceId": {
+                        "type": "string"
+                      },
+                      "amplitudeSessionId": {
+                        "type": "integer",
+                        "format": "int64"
+                      },
+                      "userId": {
+                        "type": [
+                          "string",
+                          "null"
+                        ]
+                      }
+                    },
+                    "additionalProperties": false
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
         },
         "responses": {
           "default": {
-            "$ref": "#/components/responses/CallableResponse"
+            "description": "Response status is unknown; body shape follows cited research where present.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CallableResponse"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -160,11 +648,70 @@
       "post": {
         "operationId": "removeCohost",
         "requestBody": {
-          "$ref": "#/components/requestBodies/CallableRequest"
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "data"
+                ],
+                "properties": {
+                  "data": {
+                    "type": "object",
+                    "required": [
+                      "params",
+                      "amplitudeDeviceId"
+                    ],
+                    "properties": {
+                      "params": {
+                        "type": "object",
+                        "properties": {
+                          "eventId": {
+                            "type": "string"
+                          },
+                          "targetUserId": {
+                            "type": "string"
+                          }
+                        },
+                        "additionalProperties": false,
+                        "required": [
+                          "eventId",
+                          "targetUserId"
+                        ]
+                      },
+                      "amplitudeDeviceId": {
+                        "type": "string"
+                      },
+                      "amplitudeSessionId": {
+                        "type": "integer",
+                        "format": "int64"
+                      },
+                      "userId": {
+                        "type": [
+                          "string",
+                          "null"
+                        ]
+                      }
+                    },
+                    "additionalProperties": false
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
         },
         "responses": {
           "default": {
-            "$ref": "#/components/responses/CallableResponse"
+            "description": "Response status is unknown; body shape follows cited research where present.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CallableResponse"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -178,11 +725,66 @@
       "post": {
         "operationId": "generateEventCohostLink",
         "requestBody": {
-          "$ref": "#/components/requestBodies/CallableRequest"
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "data"
+                ],
+                "properties": {
+                  "data": {
+                    "type": "object",
+                    "required": [
+                      "params",
+                      "amplitudeDeviceId"
+                    ],
+                    "properties": {
+                      "params": {
+                        "type": "object",
+                        "properties": {
+                          "eventId": {
+                            "type": "string"
+                          }
+                        },
+                        "additionalProperties": false,
+                        "required": [
+                          "eventId"
+                        ]
+                      },
+                      "amplitudeDeviceId": {
+                        "type": "string"
+                      },
+                      "amplitudeSessionId": {
+                        "type": "integer",
+                        "format": "int64"
+                      },
+                      "userId": {
+                        "type": [
+                          "string",
+                          "null"
+                        ]
+                      }
+                    },
+                    "additionalProperties": false
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
         },
         "responses": {
           "default": {
-            "$ref": "#/components/responses/CallableResponse"
+            "description": "Response status is unknown; body shape follows cited research where present.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CallableResponse"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -196,11 +798,66 @@
       "post": {
         "operationId": "revokeEventCohostLink",
         "requestBody": {
-          "$ref": "#/components/requestBodies/CallableRequest"
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "data"
+                ],
+                "properties": {
+                  "data": {
+                    "type": "object",
+                    "required": [
+                      "params",
+                      "amplitudeDeviceId"
+                    ],
+                    "properties": {
+                      "params": {
+                        "type": "object",
+                        "properties": {
+                          "eventId": {
+                            "type": "string"
+                          }
+                        },
+                        "additionalProperties": false,
+                        "required": [
+                          "eventId"
+                        ]
+                      },
+                      "amplitudeDeviceId": {
+                        "type": "string"
+                      },
+                      "amplitudeSessionId": {
+                        "type": "integer",
+                        "format": "int64"
+                      },
+                      "userId": {
+                        "type": [
+                          "string",
+                          "null"
+                        ]
+                      }
+                    },
+                    "additionalProperties": false
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
         },
         "responses": {
           "default": {
-            "$ref": "#/components/responses/CallableResponse"
+            "description": "Response status is unknown; body shape follows cited research where present.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CallableResponse"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -214,11 +871,59 @@
       "post": {
         "operationId": "getMyUpcomingEventsForHomePage",
         "requestBody": {
-          "$ref": "#/components/requestBodies/CallableRequest"
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "data"
+                ],
+                "properties": {
+                  "data": {
+                    "type": "object",
+                    "required": [
+                      "params",
+                      "amplitudeDeviceId"
+                    ],
+                    "properties": {
+                      "params": {
+                        "type": "object",
+                        "properties": {},
+                        "additionalProperties": false
+                      },
+                      "amplitudeDeviceId": {
+                        "type": "string"
+                      },
+                      "amplitudeSessionId": {
+                        "type": "integer",
+                        "format": "int64"
+                      },
+                      "userId": {
+                        "type": [
+                          "string",
+                          "null"
+                        ]
+                      }
+                    },
+                    "additionalProperties": false
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
         },
         "responses": {
           "default": {
-            "$ref": "#/components/responses/CallableResponse"
+            "description": "Response status is unknown; body shape follows cited research where present.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CallableResponse"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -232,11 +937,59 @@
       "post": {
         "operationId": "getMyPastEventsForHomePage",
         "requestBody": {
-          "$ref": "#/components/requestBodies/CallableRequest"
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "data"
+                ],
+                "properties": {
+                  "data": {
+                    "type": "object",
+                    "required": [
+                      "params",
+                      "amplitudeDeviceId"
+                    ],
+                    "properties": {
+                      "params": {
+                        "type": "object",
+                        "properties": {},
+                        "additionalProperties": false
+                      },
+                      "amplitudeDeviceId": {
+                        "type": "string"
+                      },
+                      "amplitudeSessionId": {
+                        "type": "integer",
+                        "format": "int64"
+                      },
+                      "userId": {
+                        "type": [
+                          "string",
+                          "null"
+                        ]
+                      }
+                    },
+                    "additionalProperties": false
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
         },
         "responses": {
           "default": {
-            "$ref": "#/components/responses/CallableResponse"
+            "description": "Response status is unknown; body shape follows cited research where present.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CallableResponse"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -250,11 +1003,70 @@
       "post": {
         "operationId": "addGuest",
         "requestBody": {
-          "$ref": "#/components/requestBodies/CallableRequest"
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "data"
+                ],
+                "properties": {
+                  "data": {
+                    "type": "object",
+                    "required": [
+                      "params",
+                      "amplitudeDeviceId"
+                    ],
+                    "properties": {
+                      "params": {
+                        "type": "object",
+                        "properties": {
+                          "eventId": {
+                            "type": "string"
+                          },
+                          "rsvp": {
+                            "$ref": "#/components/schemas/RsvpDraft"
+                          }
+                        },
+                        "additionalProperties": false,
+                        "required": [
+                          "eventId",
+                          "rsvp"
+                        ]
+                      },
+                      "amplitudeDeviceId": {
+                        "type": "string"
+                      },
+                      "amplitudeSessionId": {
+                        "type": "integer",
+                        "format": "int64"
+                      },
+                      "userId": {
+                        "type": [
+                          "string",
+                          "null"
+                        ]
+                      }
+                    },
+                    "additionalProperties": false
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
         },
         "responses": {
           "default": {
-            "$ref": "#/components/responses/CallableResponse"
+            "description": "Response status is unknown; body shape follows cited research where present.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CallableResponse"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -268,11 +1080,74 @@
       "post": {
         "operationId": "markEventInterest",
         "requestBody": {
-          "$ref": "#/components/requestBodies/CallableRequest"
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "data"
+                ],
+                "properties": {
+                  "data": {
+                    "type": "object",
+                    "required": [
+                      "params",
+                      "amplitudeDeviceId"
+                    ],
+                    "properties": {
+                      "params": {
+                        "type": "object",
+                        "properties": {
+                          "eventId": {
+                            "type": "string"
+                          },
+                          "interested": {
+                            "type": "boolean"
+                          },
+                          "source": {
+                            "type": "string"
+                          }
+                        },
+                        "additionalProperties": false,
+                        "required": [
+                          "eventId",
+                          "interested",
+                          "source"
+                        ]
+                      },
+                      "amplitudeDeviceId": {
+                        "type": "string"
+                      },
+                      "amplitudeSessionId": {
+                        "type": "integer",
+                        "format": "int64"
+                      },
+                      "userId": {
+                        "type": [
+                          "string",
+                          "null"
+                        ]
+                      }
+                    },
+                    "additionalProperties": false
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
         },
         "responses": {
           "default": {
-            "$ref": "#/components/responses/CallableResponse"
+            "description": "Response status is unknown; body shape follows cited research where present.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CallableResponse"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -286,11 +1161,66 @@
       "post": {
         "operationId": "getCurrentGuest",
         "requestBody": {
-          "$ref": "#/components/requestBodies/CallableRequest"
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "data"
+                ],
+                "properties": {
+                  "data": {
+                    "type": "object",
+                    "required": [
+                      "params",
+                      "amplitudeDeviceId"
+                    ],
+                    "properties": {
+                      "params": {
+                        "type": "object",
+                        "properties": {
+                          "eventId": {
+                            "type": "string"
+                          }
+                        },
+                        "additionalProperties": false,
+                        "required": [
+                          "eventId"
+                        ]
+                      },
+                      "amplitudeDeviceId": {
+                        "type": "string"
+                      },
+                      "amplitudeSessionId": {
+                        "type": "integer",
+                        "format": "int64"
+                      },
+                      "userId": {
+                        "type": [
+                          "string",
+                          "null"
+                        ]
+                      }
+                    },
+                    "additionalProperties": false
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
         },
         "responses": {
           "default": {
-            "$ref": "#/components/responses/CallableResponse"
+            "description": "Response status is unknown; body shape follows cited research where present.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CallableResponse"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -305,12 +1235,24 @@
         "operationId": "firestoreGetEvent",
         "parameters": [
           {
-            "$ref": "#/components/parameters/EventId"
+            "name": "eventId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
           "default": {
-            "$ref": "#/components/responses/FirestoreDocument"
+            "description": "Response status is unknown; body shape follows cited research where present.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FirestoreDocument"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -328,18 +1270,47 @@
         "operationId": "firestorePatchEvent",
         "parameters": [
           {
-            "$ref": "#/components/parameters/EventId"
+            "name": "eventId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
           },
           {
-            "$ref": "#/components/parameters/UpdateMask"
+            "name": "updateMask.fieldPaths",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "style": "form",
+            "explode": true
           }
         ],
         "requestBody": {
-          "$ref": "#/components/requestBodies/FirestoreWrite"
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FirestoreWriteDocument"
+              }
+            }
+          }
         },
         "responses": {
           "default": {
-            "$ref": "#/components/responses/FirestoreDocument"
+            "description": "Response status is unknown; body shape follows cited research where present.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FirestoreDocument"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -359,15 +1330,32 @@
         "operationId": "firestoreGetGuest",
         "parameters": [
           {
-            "$ref": "#/components/parameters/EventId"
+            "name": "eventId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
           },
           {
-            "$ref": "#/components/parameters/GuestId"
+            "name": "guestId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
           "default": {
-            "$ref": "#/components/responses/FirestoreDocument"
+            "description": "Response status is unknown; body shape follows cited research where present.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FirestoreDocument"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -387,18 +1375,42 @@
         "operationId": "firestoreListDocuments",
         "parameters": [
           {
-            "$ref": "#/components/parameters/CollectionPath"
+            "name": "collectionPath",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Slash-delimited document collection path; custom client preserves path segments."
           },
           {
-            "$ref": "#/components/parameters/PageSize"
+            "name": "pageSize",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 100
+            }
           },
           {
-            "$ref": "#/components/parameters/PageToken"
+            "name": "pageToken",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
           "default": {
-            "$ref": "#/components/responses/FirestoreList"
+            "description": "Response status is unknown; body shape follows cited research where present.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FirestoreListResponse"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -417,11 +1429,41 @@
       "post": {
         "operationId": "refreshToken",
         "requestBody": {
-          "$ref": "#/components/requestBodies/RefreshToken"
+          "required": true,
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "grant_type",
+                  "refresh_token"
+                ],
+                "properties": {
+                  "grant_type": {
+                    "type": "string",
+                    "enum": [
+                      "refresh_token"
+                    ]
+                  },
+                  "refresh_token": {
+                    "type": "string"
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
         },
         "responses": {
           "default": {
-            "$ref": "#/components/responses/RefreshToken"
+            "description": "Response status is unknown; body shape follows cited research where present.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RefreshTokenResponse"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -440,11 +1482,86 @@
       "post": {
         "operationId": "sendAuthCodeTrusted",
         "requestBody": {
-          "$ref": "#/components/requestBodies/CallableRequest"
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "data"
+                ],
+                "properties": {
+                  "data": {
+                    "type": "object",
+                    "required": [
+                      "params",
+                      "amplitudeDeviceId"
+                    ],
+                    "properties": {
+                      "params": {
+                        "type": "object",
+                        "required": [
+                          "displayName",
+                          "phoneNumber",
+                          "silent",
+                          "channelPreference",
+                          "captchaToken",
+                          "useAppleBusinessUpdates"
+                        ],
+                        "properties": {
+                          "displayName": {
+                            "type": "string"
+                          },
+                          "phoneNumber": {
+                            "type": "string"
+                          },
+                          "silent": {
+                            "type": "boolean"
+                          },
+                          "channelPreference": {
+                            "type": "string",
+                            "enum": [
+                              "sms"
+                            ]
+                          },
+                          "captchaToken": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          },
+                          "useAppleBusinessUpdates": {
+                            "type": "boolean"
+                          }
+                        },
+                        "additionalProperties": false
+                      },
+                      "amplitudeDeviceId": {
+                        "type": "string"
+                      },
+                      "amplitudeSessionId": {
+                        "type": "integer",
+                        "format": "int64"
+                      }
+                    },
+                    "additionalProperties": false
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
         },
         "responses": {
           "default": {
-            "$ref": "#/components/responses/CallableResponse"
+            "description": "Response status is unknown; body shape follows cited research where present.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CallableResponse"
+                }
+              }
+            }
           }
         }
       }
@@ -453,11 +1570,76 @@
       "post": {
         "operationId": "getLoginToken",
         "requestBody": {
-          "$ref": "#/components/requestBodies/CallableRequest"
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "data"
+                ],
+                "properties": {
+                  "data": {
+                    "type": "object",
+                    "required": [
+                      "params",
+                      "amplitudeDeviceId"
+                    ],
+                    "properties": {
+                      "params": {
+                        "type": "object",
+                        "required": [
+                          "phoneNumber",
+                          "authCode",
+                          "affiliateId",
+                          "utms"
+                        ],
+                        "properties": {
+                          "phoneNumber": {
+                            "type": "string"
+                          },
+                          "authCode": {
+                            "type": "string"
+                          },
+                          "affiliateId": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          },
+                          "utms": {
+                            "type": "object",
+                            "additionalProperties": true
+                          }
+                        },
+                        "additionalProperties": false
+                      },
+                      "amplitudeDeviceId": {
+                        "type": "string"
+                      },
+                      "amplitudeSessionId": {
+                        "type": "integer",
+                        "format": "int64"
+                      }
+                    },
+                    "additionalProperties": false
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
         },
         "responses": {
           "default": {
-            "$ref": "#/components/responses/CallableResponse"
+            "description": "Response status is unknown; body shape follows cited research where present.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CallableResponse"
+                }
+              }
+            }
           }
         }
       }
@@ -466,11 +1648,38 @@
       "post": {
         "operationId": "signInWithCustomToken",
         "requestBody": {
-          "$ref": "#/components/requestBodies/CustomToken"
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "token",
+                  "returnSecureToken"
+                ],
+                "properties": {
+                  "token": {
+                    "type": "string"
+                  },
+                  "returnSecureToken": {
+                    "type": "boolean"
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
         },
         "responses": {
           "default": {
-            "$ref": "#/components/responses/FirebaseSignIn"
+            "description": "Response status is unknown; body shape follows cited research where present.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FirebaseSignInResponse"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -489,11 +1698,34 @@
       "post": {
         "operationId": "lookupFirebaseUser",
         "requestBody": {
-          "$ref": "#/components/requestBodies/FirebaseLookup"
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "idToken"
+                ],
+                "properties": {
+                  "idToken": {
+                    "type": "string"
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
         },
         "responses": {
           "default": {
-            "$ref": "#/components/responses/FirebaseLookup"
+            "description": "Response status is unknown; body shape follows cited research where present.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FirebaseLookupResponse"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -515,17 +1747,45 @@
           {
             "name": "uploadType",
             "in": "query",
+            "required": true,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "enum": [
+                "event_poster"
+              ]
             }
           }
         ],
         "requestBody": {
-          "$ref": "#/components/requestBodies/UploadPhoto"
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "file"
+                ],
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary"
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
         },
         "responses": {
           "default": {
-            "$ref": "#/components/responses/UploadPhoto"
+            "description": "Response status is unknown; body shape follows cited research where present.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UploadPhotoResponse"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -545,7 +1805,17 @@
         "operationId": "getPosterCatalog",
         "responses": {
           "default": {
-            "$ref": "#/components/responses/PosterCatalog"
+            "description": "Response status is unknown; body shape follows cited research where present.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Poster"
+                  }
+                }
+              }
+            }
           }
         },
         "servers": [
@@ -568,321 +1838,136 @@
         "name": "key"
       }
     },
-    "parameters": {
-      "EventId": {
-        "name": "eventId",
-        "in": "path",
-        "required": true,
-        "schema": {
-          "type": "string"
-        }
-      },
-      "GuestId": {
-        "name": "guestId",
-        "in": "path",
-        "required": true,
-        "schema": {
-          "type": "string"
-        }
-      },
-      "CollectionPath": {
-        "name": "collectionPath",
-        "in": "path",
-        "required": true,
-        "schema": {
-          "type": "string"
-        }
-      },
-      "UpdateMask": {
-        "name": "updateMask.fieldPaths",
-        "in": "query",
-        "schema": {
-          "type": "string"
-        }
-      },
-      "PageSize": {
-        "name": "pageSize",
-        "in": "query",
-        "schema": {
-          "type": "integer",
-          "minimum": 1
-        }
-      },
-      "PageToken": {
-        "name": "pageToken",
-        "in": "query",
-        "schema": {
-          "type": "string"
-        }
-      }
-    },
-    "requestBodies": {
-      "CallableRequest": {
-        "required": true,
-        "content": {
-          "application/json": {
-            "schema": {
-              "$ref": "#/components/schemas/CallableRequest"
-            }
-          }
-        }
-      },
-      "TextBlastRequest": {
-        "required": true,
-        "content": {
-          "application/json": {
-            "schema": {
-              "$ref": "#/components/schemas/TextBlastRequest"
-            }
-          }
-        }
-      },
-      "FirestoreWrite": {
-        "required": true,
-        "content": {
-          "application/json": {
-            "schema": {
-              "$ref": "#/components/schemas/FirestoreWriteDocument"
-            }
-          }
-        }
-      },
-      "RefreshToken": {
-        "required": true,
-        "content": {
-          "application/x-www-form-urlencoded": {
-            "schema": {
-              "$ref": "#/components/schemas/RefreshTokenRequest"
-            }
-          }
-        }
-      },
-      "CustomToken": {
-        "required": true,
-        "content": {
-          "application/json": {
-            "schema": {
-              "$ref": "#/components/schemas/CustomTokenRequest"
-            }
-          }
-        }
-      },
-      "FirebaseLookup": {
-        "required": true,
-        "content": {
-          "application/json": {
-            "schema": {
-              "$ref": "#/components/schemas/FirebaseLookupRequest"
-            }
-          }
-        }
-      },
-      "UploadPhoto": {
-        "required": true,
-        "content": {
-          "multipart/form-data": {
-            "schema": {
-              "type": "object",
-              "required": [
-                "file"
-              ],
-              "properties": {
-                "file": {
-                  "type": "string",
-                  "format": "binary"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "responses": {
-      "CallableResponse": {
-        "description": "Callable response envelope",
-        "content": {
-          "application/json": {
-            "schema": {
-              "$ref": "#/components/schemas/CallableResponse"
-            }
-          }
-        }
-      },
-      "FirestoreDocument": {
-        "description": "Firestore document",
-        "content": {
-          "application/json": {
-            "schema": {
-              "$ref": "#/components/schemas/FirestoreDocument"
-            }
-          }
-        }
-      },
-      "FirestoreList": {
-        "description": "Firestore document list",
-        "content": {
-          "application/json": {
-            "schema": {
-              "$ref": "#/components/schemas/FirestoreListResponse"
-            }
-          }
-        }
-      },
-      "RefreshToken": {
-        "description": "Firebase token refresh response",
-        "content": {
-          "application/json": {
-            "schema": {
-              "$ref": "#/components/schemas/RefreshTokenResponse"
-            }
-          }
-        }
-      },
-      "FirebaseSignIn": {
-        "description": "Firebase custom-token sign-in response",
-        "content": {
-          "application/json": {
-            "schema": {
-              "$ref": "#/components/schemas/FirebaseSignInResponse"
-            }
-          }
-        }
-      },
-      "FirebaseLookup": {
-        "description": "Firebase user lookup response",
-        "content": {
-          "application/json": {
-            "schema": {
-              "$ref": "#/components/schemas/FirebaseLookupResponse"
-            }
-          }
-        }
-      },
-      "UploadPhoto": {
-        "description": "Photo upload response",
-        "content": {
-          "application/json": {
-            "schema": {
-              "$ref": "#/components/schemas/UploadPhotoResponse"
-            }
-          }
-        }
-      },
-      "PosterCatalog": {
-        "description": "Poster catalog",
-        "content": {
-          "application/json": {
-            "schema": {
-              "type": "array",
-              "items": {
-                "$ref": "#/components/schemas/Poster"
-              }
-            }
-          }
-        }
-      }
-    },
     "schemas": {
-      "CallableRequest": {
+      "EventDraft": {
         "type": "object",
         "required": [
-          "data"
+          "title",
+          "startDate",
+          "timezone",
+          "displaySettings"
         ],
         "properties": {
-          "data": {
-            "type": "object",
-            "required": [
-              "params",
-              "amplitudeDeviceId"
-            ],
-            "properties": {
-              "params": {
-                "type": "object",
-                "additionalProperties": true
-              },
-              "amplitudeDeviceId": {
-                "type": "string"
-              },
-              "amplitudeSessionId": {
-                "type": "integer"
-              },
-              "userId": {
-                "type": [
-                  "string",
-                  "null"
-                ]
-              }
-            },
-            "additionalProperties": true
-          }
-        },
-        "additionalProperties": true
-      },
-      "TextBlastRequest": {
-        "type": "object",
-        "required": [
-          "data"
-        ],
-        "properties": {
-          "data": {
-            "type": "object",
-            "required": [
-              "params"
-            ],
-            "properties": {
-              "params": {
-                "type": "object",
-                "required": [
-                  "eventId",
-                  "message"
-                ],
-                "properties": {
-                  "eventId": {
-                    "type": "string"
-                  },
-                  "message": {
-                    "$ref": "#/components/schemas/TextBlastMessage"
-                  }
-                },
-                "additionalProperties": true
-              }
-            },
-            "additionalProperties": true
-          }
-        },
-        "additionalProperties": true
-      },
-      "TextBlastMessage": {
-        "type": "object",
-        "required": [
-          "text",
-          "to",
-          "showOnEventPage"
-        ],
-        "properties": {
-          "text": {
-            "type": "string",
-            "maxLength": 480
+          "title": {
+            "type": "string"
           },
-          "to": {
+          "startDate": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "endDate": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "timezone": {
+            "type": "string"
+          },
+          "displaySettings": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "visibility": {
+            "type": "string",
+            "enum": [
+              "public",
+              "private"
+            ]
+          },
+          "location": {
+            "type": "string"
+          },
+          "address": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "guestLimit": {
+            "type": "integer"
+          },
+          "links": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "image": {}
+        },
+        "additionalProperties": true
+      },
+      "RsvpDraft": {
+        "type": "object",
+        "required": [
+          "name",
+          "count",
+          "plusOnes",
+          "status",
+          "timezone"
+        ],
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "count": {
+            "type": "integer"
+          },
+          "plusOnes": {
             "type": "array",
             "items": {
               "type": "string"
             }
           },
-          "showOnEventPage": {
-            "type": "boolean"
+          "message": {
+            "type": [
+              "string",
+              "null"
+            ]
           },
-          "images": {
-            "type": "array",
-            "maxItems": 1,
-            "items": {
-              "type": "object",
-              "additionalProperties": true
-            }
+          "emailInvitationId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "status": {
+            "type": "string"
+          },
+          "guestId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "timezone": {
+            "type": "string"
+          },
+          "password": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "questionnaireResponse": {
+            "type": "object",
+            "properties": {
+              "questionnaireVersion": {
+                "type": "integer"
+              },
+              "answers": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "string"
+                }
+              }
+            },
+            "required": [
+              "questionnaireVersion",
+              "answers"
+            ]
           }
         },
-        "additionalProperties": true
+        "additionalProperties": false
       },
       "CallableResponse": {
         "type": "object",
@@ -897,14 +1982,8 @@
         },
         "additionalProperties": true
       },
-      "FirestoreWriteDocument": {
+      "FirestoreValue": {
         "type": "object",
-        "properties": {
-          "fields": {
-            "type": "object",
-            "additionalProperties": true
-          }
-        },
         "additionalProperties": true
       },
       "FirestoreDocument": {
@@ -915,16 +1994,35 @@
           },
           "fields": {
             "type": "object",
-            "additionalProperties": true
+            "additionalProperties": {
+              "$ref": "#/components/schemas/FirestoreValue"
+            }
           },
           "createTime": {
-            "type": "string"
+            "type": "string",
+            "format": "date-time"
           },
           "updateTime": {
-            "type": "string"
+            "type": "string",
+            "format": "date-time"
           }
         },
         "additionalProperties": true
+      },
+      "FirestoreWriteDocument": {
+        "type": "object",
+        "required": [
+          "fields"
+        ],
+        "properties": {
+          "fields": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/FirestoreValue"
+            }
+          }
+        },
+        "additionalProperties": false
       },
       "FirestoreListResponse": {
         "type": "object",
@@ -941,92 +2039,36 @@
         },
         "additionalProperties": true
       },
-      "RefreshTokenRequest": {
-        "type": "object",
-        "required": [
-          "grant_type",
-          "refresh_token"
-        ],
-        "properties": {
-          "grant_type": {
-            "const": "refresh_token"
-          },
-          "refresh_token": {
-            "type": "string"
-          }
-        }
-      },
       "RefreshTokenResponse": {
         "type": "object",
-        "properties": {
-          "id_token": {
-            "type": "string"
-          },
-          "refresh_token": {
-            "type": "string"
-          },
-          "expires_in": {
-            "type": "string"
-          },
-          "user_id": {
-            "type": "string"
-          }
-        },
         "additionalProperties": true
-      },
-      "CustomTokenRequest": {
-        "type": "object",
-        "required": [
-          "token",
-          "returnSecureToken"
-        ],
-        "properties": {
-          "token": {
-            "type": "string"
-          },
-          "returnSecureToken": {
-            "const": true
-          }
-        }
       },
       "FirebaseSignInResponse": {
         "type": "object",
-        "properties": {
-          "idToken": {
-            "type": "string"
-          },
-          "refreshToken": {
-            "type": "string"
-          },
-          "expiresIn": {
-            "type": "string"
-          },
-          "localId": {
-            "type": "string"
-          }
-        },
         "additionalProperties": true
-      },
-      "FirebaseLookupRequest": {
-        "type": "object",
-        "required": [
-          "idToken"
-        ],
-        "properties": {
-          "idToken": {
-            "type": "string"
-          }
-        }
       },
       "FirebaseLookupResponse": {
         "type": "object",
+        "additionalProperties": true
+      },
+      "UploadData": {
+        "type": "object",
+        "required": [
+          "url"
+        ],
         "properties": {
-          "users": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "additionalProperties": true
-            }
+          "url": {
+            "type": "string",
+            "format": "uri"
+          },
+          "contentType": {
+            "type": "string"
+          },
+          "height": {
+            "type": "integer"
+          },
+          "width": {
+            "type": "integer"
           }
         },
         "additionalProperties": true
@@ -1035,10 +2077,13 @@
         "type": "object",
         "properties": {
           "uploadData": {
+            "$ref": "#/components/schemas/UploadData"
+          },
+          "result": {
             "type": "object",
             "properties": {
-              "url": {
-                "type": "string"
+              "uploadData": {
+                "$ref": "#/components/schemas/UploadData"
               }
             },
             "additionalProperties": true
@@ -1056,16 +2101,32 @@
             "type": "string"
           },
           "url": {
+            "type": "string",
+            "format": "uri"
+          },
+          "blurHash": {
             "type": "string"
           },
           "contentType": {
             "type": "string"
           },
+          "height": {
+            "type": "integer"
+          },
           "width": {
             "type": "integer"
           },
-          "height": {
-            "type": "integer"
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "categories": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           }
         },
         "additionalProperties": true

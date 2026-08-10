@@ -17,6 +17,16 @@ only and are not part of `spec/partiful.openapi.json`.
 No safe live observation in this reconstruction establishes an HTTP success
 status for every operation. The proposal therefore uses OpenAPI `default`
 responses and records each response-status claim as `explicit-unknown`.
+This decision supports only the response **status key**. Response content and
+schema claims separately cite their actual wire-shape source.
+
+## Update-mask serialization
+
+The historical draft's `firestorePatchEvent` parameter is an array of strings,
+and `9e6ed15:src/lib/http.ts#L132-L134` repeats
+`updateMask.fieldPaths` once for every field. The proposal represents it as a
+form-style, exploded query array; this is a TypeScript-derived transport
+inference, not a live observation.
 
 ## Dated text-blast observation
 
