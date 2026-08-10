@@ -1,0 +1,64 @@
+{
+  "contractRevision": "2026-08-10.1",
+  "contractPath": "spec/partiful.openapi.json",
+  "allowedClassifications": ["dated-live-observation", "reviewed-first-party-repository-research", "typescript-derived-inference", "explicit-unknown"],
+  "sources": {
+    "draft": "Historical draft 17e9800753ada577408074bbbcadbae8cc8eacf0; research input only.",
+    "typescript": "Reviewed TypeScript endpoint registry and transport code in src/lib/; research input only.",
+    "textBlastLive": "docs/research/2026-03-24-text-blast-endpoint.md: browser interception, 2026-03-24.",
+    "authLive": "docs/research/2026-03-24-auth-flow-endpoints.md: browser interception and bundle analysis, 2026-03-24.",
+    "imageLive": "docs/research/2026-03-24-event-image-schema.md: browser interception, 2026-03-24."
+  },
+  "operations": [
+    ["createEvent","typescript-derived-inference"], ["cancelEvent","typescript-derived-inference"], ["getEventInfo","typescript-derived-inference"], ["getContacts","typescript-derived-inference"], ["createTextBlast","dated-live-observation"], ["addInvitedGuestsAsHost","typescript-derived-inference"], ["createCohostRequest","typescript-derived-inference"], ["deleteCohostRequest","typescript-derived-inference"], ["removeCohost","typescript-derived-inference"], ["generateEventCohostLink","typescript-derived-inference"], ["revokeEventCohostLink","typescript-derived-inference"], ["getMyUpcomingEventsForHomePage","typescript-derived-inference"], ["getMyPastEventsForHomePage","typescript-derived-inference"], ["addGuest","typescript-derived-inference"], ["markEventInterest","typescript-derived-inference"], ["getCurrentGuest","typescript-derived-inference"], ["firestoreGetEvent","typescript-derived-inference"], ["firestorePatchEvent","typescript-derived-inference"], ["firestoreGetGuest","typescript-derived-inference"], ["firestoreListDocuments","typescript-derived-inference"], ["refreshToken","typescript-derived-inference"], ["sendAuthCodeTrusted","reviewed-first-party-repository-research"], ["getLoginToken","dated-live-observation"], ["signInWithCustomToken","dated-live-observation"], ["lookupFirebaseUser","reviewed-first-party-repository-research"], ["uploadEventPhoto","typescript-derived-inference"], ["getPosterCatalog","typescript-derived-inference"]
+  ],
+  "schemaClaims": {
+    "CallableRequest": {"classification":"typescript-derived-inference","source":"typescript","scope":"Envelope shape only; callable-specific params are unknown unless separately stated."},
+    "TextBlastRequest": {"classification":"dated-live-observation","source":"textBlastLive","scope":"eventId and nested message shape."},
+    "TextBlastMessage": {"classification":"dated-live-observation","source":"textBlastLive","scope":"text, to, showOnEventPage, optional images; 480-character and one-image limits observed in client research."},
+    "CallableResponse": {"classification":"typescript-derived-inference","source":"typescript","scope":"Envelope only; inner payloads are explicit unknown."},
+    "FirestoreWriteDocument": {"classification":"typescript-derived-inference","source":"typescript","scope":"Wire wrapper; valid event field names and value variants are explicit unknown."},
+    "FirestoreDocument": {"classification":"typescript-derived-inference","source":"typescript","scope":"Non-exhaustive Firestore document wrapper."},
+    "FirestoreListResponse": {"classification":"typescript-derived-inference","source":"typescript","scope":"Non-exhaustive list wrapper."},
+    "RefreshTokenRequest": {"classification":"typescript-derived-inference","source":"typescript","scope":"Form field names and fixed grant type."},
+    "RefreshTokenResponse": {"classification":"typescript-derived-inference","source":"typescript","scope":"Known token fields; no value examples are retained."},
+    "CustomTokenRequest": {"classification":"dated-live-observation","source":"authLive","scope":"Custom-token exchange fields."},
+    "FirebaseSignInResponse": {"classification":"dated-live-observation","source":"authLive","scope":"Known response fields."},
+    "FirebaseLookupRequest": {"classification":"reviewed-first-party-repository-research","source":"typescript","scope":"Request field."},
+    "FirebaseLookupResponse": {"classification":"explicit-unknown","source":"draft","scope":"Only the outer users array is represented; member fields are not claimed."},
+    "UploadPhotoResponse": {"classification":"typescript-derived-inference","source":"typescript","scope":"Only uploadData.url is used by reviewed code; other response fields are unknown."},
+    "Poster": {"classification":"dated-live-observation","source":"imageLive","scope":"Observed catalog fields; other catalog fields remain open."}
+  },
+  "operationClaims": {
+    "default": {"request":"typescript-derived-inference","response":"explicit-unknown","source":"draft"},
+    "createTextBlast": {"request":"dated-live-observation","response":"explicit-unknown","source":"textBlastLive"},
+    "getLoginToken": {"request":"dated-live-observation","response":"dated-live-observation","source":"authLive"},
+    "signInWithCustomToken": {"request":"dated-live-observation","response":"dated-live-observation","source":"authLive"},
+    "sendAuthCodeTrusted": {"request":"reviewed-first-party-repository-research","response":"explicit-unknown","source":"typescript"},
+    "lookupFirebaseUser": {"request":"reviewed-first-party-repository-research","response":"explicit-unknown","source":"typescript"},
+    "getPosterCatalog": {"request":"explicit-unknown","response":"dated-live-observation","source":"imageLive"}
+  },
+  "contradictions": [
+    {
+      "id": "text-blast-message-shape",
+      "status": "resolved",
+      "historicalDraft": "message string with optional recipientStatuses",
+      "primaryEvidence": "Nested message object with text, to, showOnEventPage, and optional images.",
+      "decision": "The contract uses the dated browser-interception shape. recipientStatuses is deliberately absent."
+    },
+    {
+      "id": "upload-host",
+      "status": "resolved",
+      "historicalDraft": "Cloud Functions uploadPhoto endpoint",
+      "typescript": "Same host and path with multipart file and uploadType query parameter",
+      "decision": "No conflict found; retained as TypeScript-derived inference because no safe upload probe was performed."
+    }
+  ],
+  "unresolvedUncertainty": [
+    "Callable-specific parameter sets and result payloads outside createTextBlast and documented auth calls.",
+    "Complete Firestore typed-value grammar, authorization rules, pagination limits, and update-mask semantics.",
+    "Upload accepted media types, size limits, response variants, and whether uploadType values remain stable.",
+    "Poster catalog freshness, complete schema, and cache behavior.",
+    "Status codes and error bodies for every operation."
+  ]
+}

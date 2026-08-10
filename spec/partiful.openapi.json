@@ -1,0 +1,87 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Partiful remote API contract",
+    "version": "1.0.0",
+    "description": "Versioned, remote-only transport snapshot. Evidence classifications and uncertainty are recorded in spec/partiful.api-evidence.json."
+  },
+  "servers": [{ "url": "https://api.partiful.com", "description": "Partiful callable service" }],
+  "paths": {
+    "/createEvent": { "post": { "operationId": "createEvent", "requestBody": { "$ref": "#/components/requestBodies/CallableRequest" }, "responses": { "200": { "$ref": "#/components/responses/CallableResponse" } }, "security": [{ "firebaseBearer": [] }] } },
+    "/cancelEvent": { "post": { "operationId": "cancelEvent", "requestBody": { "$ref": "#/components/requestBodies/CallableRequest" }, "responses": { "200": { "$ref": "#/components/responses/CallableResponse" } }, "security": [{ "firebaseBearer": [] }] } },
+    "/getEventInfo": { "post": { "operationId": "getEventInfo", "requestBody": { "$ref": "#/components/requestBodies/CallableRequest" }, "responses": { "200": { "$ref": "#/components/responses/CallableResponse" } }, "security": [{ "firebaseBearer": [] }] } },
+    "/getContacts": { "post": { "operationId": "getContacts", "requestBody": { "$ref": "#/components/requestBodies/CallableRequest" }, "responses": { "200": { "$ref": "#/components/responses/CallableResponse" } }, "security": [{ "firebaseBearer": [] }] } },
+    "/createTextBlast": { "post": { "operationId": "createTextBlast", "requestBody": { "$ref": "#/components/requestBodies/TextBlastRequest" }, "responses": { "200": { "$ref": "#/components/responses/CallableResponse" } }, "security": [{ "firebaseBearer": [] }] } },
+    "/addInvitedGuestsAsHost": { "post": { "operationId": "addInvitedGuestsAsHost", "requestBody": { "$ref": "#/components/requestBodies/CallableRequest" }, "responses": { "200": { "$ref": "#/components/responses/CallableResponse" } }, "security": [{ "firebaseBearer": [] }] } },
+    "/createCohostRequest": { "post": { "operationId": "createCohostRequest", "requestBody": { "$ref": "#/components/requestBodies/CallableRequest" }, "responses": { "200": { "$ref": "#/components/responses/CallableResponse" } }, "security": [{ "firebaseBearer": [] }] } },
+    "/deleteCohostRequest": { "post": { "operationId": "deleteCohostRequest", "requestBody": { "$ref": "#/components/requestBodies/CallableRequest" }, "responses": { "200": { "$ref": "#/components/responses/CallableResponse" } }, "security": [{ "firebaseBearer": [] }] } },
+    "/removeCohost": { "post": { "operationId": "removeCohost", "requestBody": { "$ref": "#/components/requestBodies/CallableRequest" }, "responses": { "200": { "$ref": "#/components/responses/CallableResponse" } }, "security": [{ "firebaseBearer": [] }] } },
+    "/generateEventCohostLink": { "post": { "operationId": "generateEventCohostLink", "requestBody": { "$ref": "#/components/requestBodies/CallableRequest" }, "responses": { "200": { "$ref": "#/components/responses/CallableResponse" } }, "security": [{ "firebaseBearer": [] }] } },
+    "/revokeEventCohostLink": { "post": { "operationId": "revokeEventCohostLink", "requestBody": { "$ref": "#/components/requestBodies/CallableRequest" }, "responses": { "200": { "$ref": "#/components/responses/CallableResponse" } }, "security": [{ "firebaseBearer": [] }] } },
+    "/getMyUpcomingEventsForHomePage": { "post": { "operationId": "getMyUpcomingEventsForHomePage", "requestBody": { "$ref": "#/components/requestBodies/CallableRequest" }, "responses": { "200": { "$ref": "#/components/responses/CallableResponse" } }, "security": [{ "firebaseBearer": [] }] } },
+    "/getMyPastEventsForHomePage": { "post": { "operationId": "getMyPastEventsForHomePage", "requestBody": { "$ref": "#/components/requestBodies/CallableRequest" }, "responses": { "200": { "$ref": "#/components/responses/CallableResponse" } }, "security": [{ "firebaseBearer": [] }] } },
+    "/addGuest": { "post": { "operationId": "addGuest", "requestBody": { "$ref": "#/components/requestBodies/CallableRequest" }, "responses": { "200": { "$ref": "#/components/responses/CallableResponse" } }, "security": [{ "firebaseBearer": [] }] } },
+    "/markEventInterest": { "post": { "operationId": "markEventInterest", "requestBody": { "$ref": "#/components/requestBodies/CallableRequest" }, "responses": { "200": { "$ref": "#/components/responses/CallableResponse" } }, "security": [{ "firebaseBearer": [] }] } },
+    "/getCurrentGuest": { "post": { "operationId": "getCurrentGuest", "requestBody": { "$ref": "#/components/requestBodies/CallableRequest" }, "responses": { "200": { "$ref": "#/components/responses/CallableResponse" } }, "security": [{ "firebaseBearer": [] }] } },
+    "/v1/projects/getpartiful/databases/(default)/documents/events/{eventId}": {
+      "get": { "operationId": "firestoreGetEvent", "parameters": [{ "$ref": "#/components/parameters/EventId" }], "responses": { "200": { "$ref": "#/components/responses/FirestoreDocument" } }, "security": [{ "firebaseBearer": [] }], "servers": [{ "url": "https://firestore.googleapis.com" }] },
+      "patch": { "operationId": "firestorePatchEvent", "parameters": [{ "$ref": "#/components/parameters/EventId" }, { "$ref": "#/components/parameters/UpdateMask" }], "requestBody": { "$ref": "#/components/requestBodies/FirestoreWrite" }, "responses": { "200": { "$ref": "#/components/responses/FirestoreDocument" } }, "security": [{ "firebaseBearer": [] }], "servers": [{ "url": "https://firestore.googleapis.com" }] }
+    },
+    "/v1/projects/getpartiful/databases/(default)/documents/events/{eventId}/guests/{guestId}": { "get": { "operationId": "firestoreGetGuest", "parameters": [{ "$ref": "#/components/parameters/EventId" }, { "$ref": "#/components/parameters/GuestId" }], "responses": { "200": { "$ref": "#/components/responses/FirestoreDocument" } }, "security": [{ "firebaseBearer": [] }], "servers": [{ "url": "https://firestore.googleapis.com" }] } },
+    "/v1/projects/getpartiful/databases/(default)/documents/{collectionPath}": { "get": { "operationId": "firestoreListDocuments", "parameters": [{ "$ref": "#/components/parameters/CollectionPath" }, { "$ref": "#/components/parameters/PageSize" }, { "$ref": "#/components/parameters/PageToken" }], "responses": { "200": { "$ref": "#/components/responses/FirestoreList" } }, "security": [{ "firebaseBearer": [] }], "servers": [{ "url": "https://firestore.googleapis.com" }] } },
+    "/v1/token": { "post": { "operationId": "refreshToken", "requestBody": { "$ref": "#/components/requestBodies/RefreshToken" }, "responses": { "200": { "$ref": "#/components/responses/RefreshToken" } }, "security": [{ "firebaseApiKey": [] }], "servers": [{ "url": "https://securetoken.googleapis.com" }] } },
+    "/sendAuthCodeTrusted": { "post": { "operationId": "sendAuthCodeTrusted", "requestBody": { "$ref": "#/components/requestBodies/CallableRequest" }, "responses": { "200": { "$ref": "#/components/responses/CallableResponse" } } } },
+    "/getLoginToken": { "post": { "operationId": "getLoginToken", "requestBody": { "$ref": "#/components/requestBodies/CallableRequest" }, "responses": { "200": { "$ref": "#/components/responses/CallableResponse" } } } },
+    "/v1/accounts:signInWithCustomToken": { "post": { "operationId": "signInWithCustomToken", "requestBody": { "$ref": "#/components/requestBodies/CustomToken" }, "responses": { "200": { "$ref": "#/components/responses/FirebaseSignIn" } }, "security": [{ "firebaseApiKey": [] }], "servers": [{ "url": "https://identitytoolkit.googleapis.com" }] } },
+    "/v1/accounts:lookup": { "post": { "operationId": "lookupFirebaseUser", "requestBody": { "$ref": "#/components/requestBodies/FirebaseLookup" }, "responses": { "200": { "$ref": "#/components/responses/FirebaseLookup" } }, "security": [{ "firebaseApiKey": [] }], "servers": [{ "url": "https://identitytoolkit.googleapis.com" }] } },
+    "/uploadPhoto": { "post": { "operationId": "uploadEventPhoto", "parameters": [{ "name": "uploadType", "in": "query", "schema": { "type": "string" } }], "requestBody": { "$ref": "#/components/requestBodies/UploadPhoto" }, "responses": { "200": { "$ref": "#/components/responses/UploadPhoto" } }, "security": [{ "firebaseBearer": [] }], "servers": [{ "url": "https://us-central1-getpartiful.cloudfunctions.net" }] } },
+    "/posters.json": { "get": { "operationId": "getPosterCatalog", "responses": { "200": { "$ref": "#/components/responses/PosterCatalog" } }, "servers": [{ "url": "https://assets.getpartiful.com" }] } }
+  },
+  "components": {
+    "securitySchemes": { "firebaseBearer": { "type": "http", "scheme": "bearer" }, "firebaseApiKey": { "type": "apiKey", "in": "query", "name": "key" } },
+    "parameters": {
+      "EventId": { "name": "eventId", "in": "path", "required": true, "schema": { "type": "string" } },
+      "GuestId": { "name": "guestId", "in": "path", "required": true, "schema": { "type": "string" } },
+      "CollectionPath": { "name": "collectionPath", "in": "path", "required": true, "schema": { "type": "string" } },
+      "UpdateMask": { "name": "updateMask.fieldPaths", "in": "query", "schema": { "type": "string" } },
+      "PageSize": { "name": "pageSize", "in": "query", "schema": { "type": "integer", "minimum": 1 } },
+      "PageToken": { "name": "pageToken", "in": "query", "schema": { "type": "string" } }
+    },
+    "requestBodies": {
+      "CallableRequest": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/CallableRequest" } } } },
+      "TextBlastRequest": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/TextBlastRequest" } } } },
+      "FirestoreWrite": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/FirestoreWriteDocument" } } } },
+      "RefreshToken": { "required": true, "content": { "application/x-www-form-urlencoded": { "schema": { "$ref": "#/components/schemas/RefreshTokenRequest" } } } },
+      "CustomToken": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/CustomTokenRequest" } } } },
+      "FirebaseLookup": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/FirebaseLookupRequest" } } } },
+      "UploadPhoto": { "required": true, "content": { "multipart/form-data": { "schema": { "type": "object", "required": ["file"], "properties": { "file": { "type": "string", "format": "binary" } } } } } }
+    },
+    "responses": {
+      "CallableResponse": { "description": "Callable response envelope", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/CallableResponse" } } } },
+      "FirestoreDocument": { "description": "Firestore document", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/FirestoreDocument" } } } },
+      "FirestoreList": { "description": "Firestore document list", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/FirestoreListResponse" } } } },
+      "RefreshToken": { "description": "Firebase token refresh response", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/RefreshTokenResponse" } } } },
+      "FirebaseSignIn": { "description": "Firebase custom-token sign-in response", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/FirebaseSignInResponse" } } } },
+      "FirebaseLookup": { "description": "Firebase user lookup response", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/FirebaseLookupResponse" } } } },
+      "UploadPhoto": { "description": "Photo upload response", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/UploadPhotoResponse" } } } },
+      "PosterCatalog": { "description": "Poster catalog", "content": { "application/json": { "schema": { "type": "array", "items": { "$ref": "#/components/schemas/Poster" } } } } }
+    },
+    "schemas": {
+      "CallableRequest": { "type": "object", "required": ["data"], "properties": { "data": { "type": "object", "required": ["params", "amplitudeDeviceId"], "properties": { "params": { "type": "object", "additionalProperties": true }, "amplitudeDeviceId": { "type": "string" }, "amplitudeSessionId": { "type": "integer" }, "userId": { "type": ["string", "null"] } }, "additionalProperties": true } }, "additionalProperties": true },
+      "TextBlastRequest": { "type": "object", "required": ["data"], "properties": { "data": { "type": "object", "required": ["params"], "properties": { "params": { "type": "object", "required": ["eventId", "message"], "properties": { "eventId": { "type": "string" }, "message": { "$ref": "#/components/schemas/TextBlastMessage" } }, "additionalProperties": true } }, "additionalProperties": true } }, "additionalProperties": true },
+      "TextBlastMessage": { "type": "object", "required": ["text", "to", "showOnEventPage"], "properties": { "text": { "type": "string", "maxLength": 480 }, "to": { "type": "array", "items": { "type": "string" } }, "showOnEventPage": { "type": "boolean" }, "images": { "type": "array", "maxItems": 1, "items": { "type": "object", "additionalProperties": true } } }, "additionalProperties": true },
+      "CallableResponse": { "type": "object", "properties": { "result": { "type": "object", "properties": { "data": {} }, "additionalProperties": true } }, "additionalProperties": true },
+      "FirestoreWriteDocument": { "type": "object", "properties": { "fields": { "type": "object", "additionalProperties": true } }, "additionalProperties": true },
+      "FirestoreDocument": { "type": "object", "properties": { "name": { "type": "string" }, "fields": { "type": "object", "additionalProperties": true }, "createTime": { "type": "string" }, "updateTime": { "type": "string" } }, "additionalProperties": true },
+      "FirestoreListResponse": { "type": "object", "properties": { "documents": { "type": "array", "items": { "$ref": "#/components/schemas/FirestoreDocument" } }, "nextPageToken": { "type": "string" } }, "additionalProperties": true },
+      "RefreshTokenRequest": { "type": "object", "required": ["grant_type", "refresh_token"], "properties": { "grant_type": { "const": "refresh_token" }, "refresh_token": { "type": "string" } } },
+      "RefreshTokenResponse": { "type": "object", "properties": { "id_token": { "type": "string" }, "refresh_token": { "type": "string" }, "expires_in": { "type": "string" }, "user_id": { "type": "string" } }, "additionalProperties": true },
+      "CustomTokenRequest": { "type": "object", "required": ["token", "returnSecureToken"], "properties": { "token": { "type": "string" }, "returnSecureToken": { "const": true } } },
+      "FirebaseSignInResponse": { "type": "object", "properties": { "idToken": { "type": "string" }, "refreshToken": { "type": "string" }, "expiresIn": { "type": "string" }, "localId": { "type": "string" } }, "additionalProperties": true },
+      "FirebaseLookupRequest": { "type": "object", "required": ["idToken"], "properties": { "idToken": { "type": "string" } } },
+      "FirebaseLookupResponse": { "type": "object", "properties": { "users": { "type": "array", "items": { "type": "object", "additionalProperties": true } } }, "additionalProperties": true },
+      "UploadPhotoResponse": { "type": "object", "properties": { "uploadData": { "type": "object", "properties": { "url": { "type": "string" } }, "additionalProperties": true } }, "additionalProperties": true },
+      "Poster": { "type": "object", "properties": { "id": { "type": "string" }, "name": { "type": "string" }, "url": { "type": "string" }, "contentType": { "type": "string" }, "width": { "type": "integer" }, "height": { "type": "integer" } }, "additionalProperties": true }
+    }
+  }
+}
