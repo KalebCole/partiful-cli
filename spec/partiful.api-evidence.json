@@ -1,42 +1,297 @@
 {
   "contractRevision": "2026-08-10.1",
   "contractPath": "spec/partiful.openapi.json",
-  "allowedClassifications": ["dated-live-observation", "reviewed-first-party-repository-research", "typescript-derived-inference", "explicit-unknown"],
-  "sources": {
-    "draft": "Historical draft 17e9800753ada577408074bbbcadbae8cc8eacf0; research input only.",
-    "typescript": "Reviewed TypeScript endpoint registry and transport code in src/lib/; research input only.",
-    "textBlastLive": "docs/research/2026-03-24-text-blast-endpoint.md: browser interception, 2026-03-24.",
-    "authLive": "docs/research/2026-03-24-auth-flow-endpoints.md: browser interception and bundle analysis, 2026-03-24.",
-    "imageLive": "docs/research/2026-03-24-event-image-schema.md: browser interception, 2026-03-24."
-  },
-  "operations": [
-    ["createEvent","typescript-derived-inference"], ["cancelEvent","typescript-derived-inference"], ["getEventInfo","typescript-derived-inference"], ["getContacts","typescript-derived-inference"], ["createTextBlast","dated-live-observation"], ["addInvitedGuestsAsHost","typescript-derived-inference"], ["createCohostRequest","typescript-derived-inference"], ["deleteCohostRequest","typescript-derived-inference"], ["removeCohost","typescript-derived-inference"], ["generateEventCohostLink","typescript-derived-inference"], ["revokeEventCohostLink","typescript-derived-inference"], ["getMyUpcomingEventsForHomePage","typescript-derived-inference"], ["getMyPastEventsForHomePage","typescript-derived-inference"], ["addGuest","typescript-derived-inference"], ["markEventInterest","typescript-derived-inference"], ["getCurrentGuest","typescript-derived-inference"], ["firestoreGetEvent","typescript-derived-inference"], ["firestorePatchEvent","typescript-derived-inference"], ["firestoreGetGuest","typescript-derived-inference"], ["firestoreListDocuments","typescript-derived-inference"], ["refreshToken","typescript-derived-inference"], ["sendAuthCodeTrusted","reviewed-first-party-repository-research"], ["getLoginToken","dated-live-observation"], ["signInWithCustomToken","dated-live-observation"], ["lookupFirebaseUser","reviewed-first-party-repository-research"], ["uploadEventPhoto","typescript-derived-inference"], ["getPosterCatalog","typescript-derived-inference"]
+  "allowedClassifications": [
+    "dated-live-observation",
+    "reviewed-first-party-repository-research",
+    "typescript-derived-inference",
+    "explicit-unknown"
   ],
-  "schemaClaims": {
-    "CallableRequest": {"classification":"typescript-derived-inference","source":"typescript","scope":"Envelope shape only; callable-specific params are unknown unless separately stated."},
-    "TextBlastRequest": {"classification":"dated-live-observation","source":"textBlastLive","scope":"eventId and nested message shape."},
-    "TextBlastMessage": {"classification":"dated-live-observation","source":"textBlastLive","scope":"text, to, showOnEventPage, optional images; 480-character and one-image limits observed in client research."},
-    "CallableResponse": {"classification":"typescript-derived-inference","source":"typescript","scope":"Envelope only; inner payloads are explicit unknown."},
-    "FirestoreWriteDocument": {"classification":"typescript-derived-inference","source":"typescript","scope":"Wire wrapper; valid event field names and value variants are explicit unknown."},
-    "FirestoreDocument": {"classification":"typescript-derived-inference","source":"typescript","scope":"Non-exhaustive Firestore document wrapper."},
-    "FirestoreListResponse": {"classification":"typescript-derived-inference","source":"typescript","scope":"Non-exhaustive list wrapper."},
-    "RefreshTokenRequest": {"classification":"typescript-derived-inference","source":"typescript","scope":"Form field names and fixed grant type."},
-    "RefreshTokenResponse": {"classification":"typescript-derived-inference","source":"typescript","scope":"Known token fields; no value examples are retained."},
-    "CustomTokenRequest": {"classification":"dated-live-observation","source":"authLive","scope":"Custom-token exchange fields."},
-    "FirebaseSignInResponse": {"classification":"dated-live-observation","source":"authLive","scope":"Known response fields."},
-    "FirebaseLookupRequest": {"classification":"reviewed-first-party-repository-research","source":"typescript","scope":"Request field."},
-    "FirebaseLookupResponse": {"classification":"explicit-unknown","source":"draft","scope":"Only the outer users array is represented; member fields are not claimed."},
-    "UploadPhotoResponse": {"classification":"typescript-derived-inference","source":"typescript","scope":"Only uploadData.url is used by reviewed code; other response fields are unknown."},
-    "Poster": {"classification":"dated-live-observation","source":"imageLive","scope":"Observed catalog fields; other catalog fields remain open."}
+  "sources": {
+    "historicalDraft": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json",
+    "endpointRegistry": "9e6ed15:src/lib/api/endpoints.ts#L1-L560",
+    "httpTransport": "9e6ed15:src/lib/http.ts#L1-L245",
+    "authTransport": "9e6ed15:src/lib/auth.ts#L1-L150",
+    "authCommands": "9e6ed15:src/commands/auth.ts#L145-L340",
+    "uploadTransport": "9e6ed15:src/lib/upload.ts#L35-L115",
+    "posterTransport": "9e6ed15:src/lib/posters.ts#L25-L45",
+    "textBlastObservation": "docs/research/2026-03-24-text-blast-endpoint.md#request-payload",
+    "authObservation": "docs/research/2026-03-24-auth-flow-endpoints.md#auth-endpoints",
+    "eventImageObservation": "docs/research/2026-03-24-event-image-schema.md#image-field-in-createevent-payload"
+  },
+  "operations": {
+    "createEvent": {
+      "classification": "typescript-derived-inference",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1createEvent/post"
+    },
+    "cancelEvent": {
+      "classification": "typescript-derived-inference",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1cancelEvent/post"
+    },
+    "getEventInfo": {
+      "classification": "typescript-derived-inference",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1getEventInfo/post"
+    },
+    "getContacts": {
+      "classification": "typescript-derived-inference",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1getContacts/post"
+    },
+    "createTextBlast": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-03-24-text-blast-endpoint.md#request-payload"
+    },
+    "addInvitedGuestsAsHost": {
+      "classification": "typescript-derived-inference",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1addInvitedGuestsAsHost/post"
+    },
+    "createCohostRequest": {
+      "classification": "typescript-derived-inference",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1createCohostRequest/post"
+    },
+    "deleteCohostRequest": {
+      "classification": "typescript-derived-inference",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1deleteCohostRequest/post"
+    },
+    "removeCohost": {
+      "classification": "typescript-derived-inference",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1removeCohost/post"
+    },
+    "generateEventCohostLink": {
+      "classification": "typescript-derived-inference",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1generateEventCohostLink/post"
+    },
+    "revokeEventCohostLink": {
+      "classification": "typescript-derived-inference",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1revokeEventCohostLink/post"
+    },
+    "getMyUpcomingEventsForHomePage": {
+      "classification": "typescript-derived-inference",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1getMyUpcomingEventsForHomePage/post"
+    },
+    "getMyPastEventsForHomePage": {
+      "classification": "typescript-derived-inference",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1getMyPastEventsForHomePage/post"
+    },
+    "addGuest": {
+      "classification": "typescript-derived-inference",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1addGuest/post"
+    },
+    "markEventInterest": {
+      "classification": "typescript-derived-inference",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1markEventInterest/post"
+    },
+    "getCurrentGuest": {
+      "classification": "typescript-derived-inference",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1getCurrentGuest/post"
+    },
+    "firestoreGetEvent": {
+      "classification": "typescript-derived-inference",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1events~1{eventId}/get"
+    },
+    "firestorePatchEvent": {
+      "classification": "typescript-derived-inference",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1events~1{eventId}/patch"
+    },
+    "firestoreGetGuest": {
+      "classification": "typescript-derived-inference",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1events~1{eventId}~1guests~1{guestId}/get"
+    },
+    "firestoreListDocuments": {
+      "classification": "typescript-derived-inference",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1{collectionPath}/get"
+    },
+    "refreshToken": {
+      "classification": "typescript-derived-inference",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1v1~1token/post"
+    },
+    "sendAuthCodeTrusted": {
+      "classification": "reviewed-first-party-repository-research",
+      "citation": "9e6ed15:src/commands/auth.ts#L145-L340"
+    },
+    "getLoginToken": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-03-24-auth-flow-endpoints.md#auth-endpoints"
+    },
+    "signInWithCustomToken": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-03-24-auth-flow-endpoints.md#auth-endpoints"
+    },
+    "lookupFirebaseUser": {
+      "classification": "reviewed-first-party-repository-research",
+      "citation": "9e6ed15:src/commands/auth.ts#L145-L340"
+    },
+    "uploadEventPhoto": {
+      "classification": "typescript-derived-inference",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1uploadPhoto/post"
+    },
+    "getPosterCatalog": {
+      "classification": "typescript-derived-inference",
+      "citation": "9e6ed15:src/lib/posters.ts#L25-L45"
+    }
   },
   "operationClaims": {
-    "default": {"request":"typescript-derived-inference","response":"explicit-unknown","source":"draft"},
-    "createTextBlast": {"request":"dated-live-observation","response":"explicit-unknown","source":"textBlastLive"},
-    "getLoginToken": {"request":"dated-live-observation","response":"dated-live-observation","source":"authLive"},
-    "signInWithCustomToken": {"request":"dated-live-observation","response":"dated-live-observation","source":"authLive"},
-    "sendAuthCodeTrusted": {"request":"reviewed-first-party-repository-research","response":"explicit-unknown","source":"typescript"},
-    "lookupFirebaseUser": {"request":"reviewed-first-party-repository-research","response":"explicit-unknown","source":"typescript"},
-    "getPosterCatalog": {"request":"explicit-unknown","response":"dated-live-observation","source":"imageLive"}
+    "createEvent": {
+      "request": "typescript-derived-inference",
+      "response": "explicit-unknown",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1createEvent/post",
+      "status": "explicit-unknown"
+    },
+    "cancelEvent": {
+      "request": "typescript-derived-inference",
+      "response": "explicit-unknown",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1cancelEvent/post",
+      "status": "explicit-unknown"
+    },
+    "getEventInfo": {
+      "request": "typescript-derived-inference",
+      "response": "explicit-unknown",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1getEventInfo/post",
+      "status": "explicit-unknown"
+    },
+    "getContacts": {
+      "request": "typescript-derived-inference",
+      "response": "explicit-unknown",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1getContacts/post",
+      "status": "explicit-unknown"
+    },
+    "createTextBlast": {
+      "request": "dated-live-observation",
+      "response": "explicit-unknown",
+      "citation": "docs/research/2026-03-24-text-blast-endpoint.md#request-payload",
+      "status": "explicit-unknown"
+    },
+    "addInvitedGuestsAsHost": {
+      "request": "typescript-derived-inference",
+      "response": "explicit-unknown",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1addInvitedGuestsAsHost/post",
+      "status": "explicit-unknown"
+    },
+    "createCohostRequest": {
+      "request": "typescript-derived-inference",
+      "response": "explicit-unknown",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1createCohostRequest/post",
+      "status": "explicit-unknown"
+    },
+    "deleteCohostRequest": {
+      "request": "typescript-derived-inference",
+      "response": "explicit-unknown",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1deleteCohostRequest/post",
+      "status": "explicit-unknown"
+    },
+    "removeCohost": {
+      "request": "typescript-derived-inference",
+      "response": "explicit-unknown",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1removeCohost/post",
+      "status": "explicit-unknown"
+    },
+    "generateEventCohostLink": {
+      "request": "typescript-derived-inference",
+      "response": "explicit-unknown",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1generateEventCohostLink/post",
+      "status": "explicit-unknown"
+    },
+    "revokeEventCohostLink": {
+      "request": "typescript-derived-inference",
+      "response": "explicit-unknown",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1revokeEventCohostLink/post",
+      "status": "explicit-unknown"
+    },
+    "getMyUpcomingEventsForHomePage": {
+      "request": "typescript-derived-inference",
+      "response": "explicit-unknown",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1getMyUpcomingEventsForHomePage/post",
+      "status": "explicit-unknown"
+    },
+    "getMyPastEventsForHomePage": {
+      "request": "typescript-derived-inference",
+      "response": "explicit-unknown",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1getMyPastEventsForHomePage/post",
+      "status": "explicit-unknown"
+    },
+    "addGuest": {
+      "request": "typescript-derived-inference",
+      "response": "explicit-unknown",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1addGuest/post",
+      "status": "explicit-unknown"
+    },
+    "markEventInterest": {
+      "request": "typescript-derived-inference",
+      "response": "explicit-unknown",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1markEventInterest/post",
+      "status": "explicit-unknown"
+    },
+    "getCurrentGuest": {
+      "request": "typescript-derived-inference",
+      "response": "explicit-unknown",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1getCurrentGuest/post",
+      "status": "explicit-unknown"
+    },
+    "firestoreGetEvent": {
+      "request": "typescript-derived-inference",
+      "response": "explicit-unknown",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1events~1{eventId}/get",
+      "status": "explicit-unknown"
+    },
+    "firestorePatchEvent": {
+      "request": "typescript-derived-inference",
+      "response": "explicit-unknown",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1events~1{eventId}/patch",
+      "status": "explicit-unknown"
+    },
+    "firestoreGetGuest": {
+      "request": "typescript-derived-inference",
+      "response": "explicit-unknown",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1events~1{eventId}~1guests~1{guestId}/get",
+      "status": "explicit-unknown"
+    },
+    "firestoreListDocuments": {
+      "request": "typescript-derived-inference",
+      "response": "explicit-unknown",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1{collectionPath}/get",
+      "status": "explicit-unknown"
+    },
+    "refreshToken": {
+      "request": "typescript-derived-inference",
+      "response": "explicit-unknown",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1v1~1token/post",
+      "status": "explicit-unknown"
+    },
+    "sendAuthCodeTrusted": {
+      "request": "reviewed-first-party-repository-research",
+      "response": "explicit-unknown",
+      "citation": "9e6ed15:src/commands/auth.ts#L145-L340",
+      "status": "explicit-unknown"
+    },
+    "getLoginToken": {
+      "request": "dated-live-observation",
+      "response": "explicit-unknown",
+      "citation": "docs/research/2026-03-24-auth-flow-endpoints.md#auth-endpoints",
+      "status": "explicit-unknown"
+    },
+    "signInWithCustomToken": {
+      "request": "dated-live-observation",
+      "response": "explicit-unknown",
+      "citation": "docs/research/2026-03-24-auth-flow-endpoints.md#auth-endpoints",
+      "status": "explicit-unknown"
+    },
+    "lookupFirebaseUser": {
+      "request": "reviewed-first-party-repository-research",
+      "response": "explicit-unknown",
+      "citation": "9e6ed15:src/commands/auth.ts#L145-L340",
+      "status": "explicit-unknown"
+    },
+    "uploadEventPhoto": {
+      "request": "typescript-derived-inference",
+      "response": "explicit-unknown",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1uploadPhoto/post",
+      "status": "explicit-unknown"
+    },
+    "getPosterCatalog": {
+      "request": "explicit-unknown",
+      "response": "typescript-derived-inference",
+      "citation": "9e6ed15:src/lib/posters.ts#L25-L45",
+      "status": "explicit-unknown"
+    }
   },
   "contradictions": [
     {
@@ -59,6 +314,1526 @@
     "Complete Firestore typed-value grammar, authorization rules, pagination limits, and update-mask semantics.",
     "Upload accepted media types, size limits, response variants, and whether uploadType values remain stable.",
     "Poster catalog freshness, complete schema, and cache behavior.",
-    "Status codes and error bodies for every operation."
-  ]
+    "Status codes and error bodies for every operation.",
+    "The poster event-image observation does not establish the /posters.json response; that operation is TypeScript-derived inference only."
+  ],
+  "status": "proposed-pending-owner-approval",
+  "claims": {
+    "#/paths/~1createEvent/post/operationId": {
+      "classification": "typescript-derived-inference",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1createEvent/post/operationId"
+    },
+    "#/paths/~1createEvent/post/requestBody/$ref": {
+      "classification": "typescript-derived-inference",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1createEvent/post/requestBody/$ref"
+    },
+    "#/paths/~1createEvent/post/responses/default": {
+      "classification": "explicit-unknown",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1createEvent/post/responses/default"
+    },
+    "#/paths/~1createEvent/post/responses/default/$ref": {
+      "classification": "explicit-unknown",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1createEvent/post/responses/default/$ref"
+    },
+    "#/paths/~1cancelEvent/post/operationId": {
+      "classification": "typescript-derived-inference",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1cancelEvent/post/operationId"
+    },
+    "#/paths/~1cancelEvent/post/requestBody/$ref": {
+      "classification": "typescript-derived-inference",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1cancelEvent/post/requestBody/$ref"
+    },
+    "#/paths/~1cancelEvent/post/responses/default": {
+      "classification": "explicit-unknown",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1cancelEvent/post/responses/default"
+    },
+    "#/paths/~1cancelEvent/post/responses/default/$ref": {
+      "classification": "explicit-unknown",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1cancelEvent/post/responses/default/$ref"
+    },
+    "#/paths/~1getEventInfo/post/operationId": {
+      "classification": "typescript-derived-inference",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1getEventInfo/post/operationId"
+    },
+    "#/paths/~1getEventInfo/post/requestBody/$ref": {
+      "classification": "typescript-derived-inference",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1getEventInfo/post/requestBody/$ref"
+    },
+    "#/paths/~1getEventInfo/post/responses/default": {
+      "classification": "explicit-unknown",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1getEventInfo/post/responses/default"
+    },
+    "#/paths/~1getEventInfo/post/responses/default/$ref": {
+      "classification": "explicit-unknown",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1getEventInfo/post/responses/default/$ref"
+    },
+    "#/paths/~1getContacts/post/operationId": {
+      "classification": "typescript-derived-inference",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1getContacts/post/operationId"
+    },
+    "#/paths/~1getContacts/post/requestBody/$ref": {
+      "classification": "typescript-derived-inference",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1getContacts/post/requestBody/$ref"
+    },
+    "#/paths/~1getContacts/post/responses/default": {
+      "classification": "explicit-unknown",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1getContacts/post/responses/default"
+    },
+    "#/paths/~1getContacts/post/responses/default/$ref": {
+      "classification": "explicit-unknown",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1getContacts/post/responses/default/$ref"
+    },
+    "#/paths/~1createTextBlast/post/operationId": {
+      "classification": "typescript-derived-inference",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1createTextBlast/post/operationId"
+    },
+    "#/paths/~1createTextBlast/post/requestBody/$ref": {
+      "classification": "typescript-derived-inference",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1createTextBlast/post/requestBody/$ref"
+    },
+    "#/paths/~1createTextBlast/post/responses/default": {
+      "classification": "explicit-unknown",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1createTextBlast/post/responses/default"
+    },
+    "#/paths/~1createTextBlast/post/responses/default/$ref": {
+      "classification": "explicit-unknown",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1createTextBlast/post/responses/default/$ref"
+    },
+    "#/paths/~1addInvitedGuestsAsHost/post/operationId": {
+      "classification": "typescript-derived-inference",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1addInvitedGuestsAsHost/post/operationId"
+    },
+    "#/paths/~1addInvitedGuestsAsHost/post/requestBody/$ref": {
+      "classification": "typescript-derived-inference",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1addInvitedGuestsAsHost/post/requestBody/$ref"
+    },
+    "#/paths/~1addInvitedGuestsAsHost/post/responses/default": {
+      "classification": "explicit-unknown",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1addInvitedGuestsAsHost/post/responses/default"
+    },
+    "#/paths/~1addInvitedGuestsAsHost/post/responses/default/$ref": {
+      "classification": "explicit-unknown",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1addInvitedGuestsAsHost/post/responses/default/$ref"
+    },
+    "#/paths/~1createCohostRequest/post/operationId": {
+      "classification": "typescript-derived-inference",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1createCohostRequest/post/operationId"
+    },
+    "#/paths/~1createCohostRequest/post/requestBody/$ref": {
+      "classification": "typescript-derived-inference",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1createCohostRequest/post/requestBody/$ref"
+    },
+    "#/paths/~1createCohostRequest/post/responses/default": {
+      "classification": "explicit-unknown",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1createCohostRequest/post/responses/default"
+    },
+    "#/paths/~1createCohostRequest/post/responses/default/$ref": {
+      "classification": "explicit-unknown",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1createCohostRequest/post/responses/default/$ref"
+    },
+    "#/paths/~1deleteCohostRequest/post/operationId": {
+      "classification": "typescript-derived-inference",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1deleteCohostRequest/post/operationId"
+    },
+    "#/paths/~1deleteCohostRequest/post/requestBody/$ref": {
+      "classification": "typescript-derived-inference",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1deleteCohostRequest/post/requestBody/$ref"
+    },
+    "#/paths/~1deleteCohostRequest/post/responses/default": {
+      "classification": "explicit-unknown",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1deleteCohostRequest/post/responses/default"
+    },
+    "#/paths/~1deleteCohostRequest/post/responses/default/$ref": {
+      "classification": "explicit-unknown",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1deleteCohostRequest/post/responses/default/$ref"
+    },
+    "#/paths/~1removeCohost/post/operationId": {
+      "classification": "typescript-derived-inference",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1removeCohost/post/operationId"
+    },
+    "#/paths/~1removeCohost/post/requestBody/$ref": {
+      "classification": "typescript-derived-inference",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1removeCohost/post/requestBody/$ref"
+    },
+    "#/paths/~1removeCohost/post/responses/default": {
+      "classification": "explicit-unknown",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1removeCohost/post/responses/default"
+    },
+    "#/paths/~1removeCohost/post/responses/default/$ref": {
+      "classification": "explicit-unknown",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1removeCohost/post/responses/default/$ref"
+    },
+    "#/paths/~1generateEventCohostLink/post/operationId": {
+      "classification": "typescript-derived-inference",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1generateEventCohostLink/post/operationId"
+    },
+    "#/paths/~1generateEventCohostLink/post/requestBody/$ref": {
+      "classification": "typescript-derived-inference",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1generateEventCohostLink/post/requestBody/$ref"
+    },
+    "#/paths/~1generateEventCohostLink/post/responses/default": {
+      "classification": "explicit-unknown",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1generateEventCohostLink/post/responses/default"
+    },
+    "#/paths/~1generateEventCohostLink/post/responses/default/$ref": {
+      "classification": "explicit-unknown",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1generateEventCohostLink/post/responses/default/$ref"
+    },
+    "#/paths/~1revokeEventCohostLink/post/operationId": {
+      "classification": "typescript-derived-inference",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1revokeEventCohostLink/post/operationId"
+    },
+    "#/paths/~1revokeEventCohostLink/post/requestBody/$ref": {
+      "classification": "typescript-derived-inference",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1revokeEventCohostLink/post/requestBody/$ref"
+    },
+    "#/paths/~1revokeEventCohostLink/post/responses/default": {
+      "classification": "explicit-unknown",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1revokeEventCohostLink/post/responses/default"
+    },
+    "#/paths/~1revokeEventCohostLink/post/responses/default/$ref": {
+      "classification": "explicit-unknown",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1revokeEventCohostLink/post/responses/default/$ref"
+    },
+    "#/paths/~1getMyUpcomingEventsForHomePage/post/operationId": {
+      "classification": "typescript-derived-inference",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1getMyUpcomingEventsForHomePage/post/operationId"
+    },
+    "#/paths/~1getMyUpcomingEventsForHomePage/post/requestBody/$ref": {
+      "classification": "typescript-derived-inference",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1getMyUpcomingEventsForHomePage/post/requestBody/$ref"
+    },
+    "#/paths/~1getMyUpcomingEventsForHomePage/post/responses/default": {
+      "classification": "explicit-unknown",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1getMyUpcomingEventsForHomePage/post/responses/default"
+    },
+    "#/paths/~1getMyUpcomingEventsForHomePage/post/responses/default/$ref": {
+      "classification": "explicit-unknown",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1getMyUpcomingEventsForHomePage/post/responses/default/$ref"
+    },
+    "#/paths/~1getMyPastEventsForHomePage/post/operationId": {
+      "classification": "typescript-derived-inference",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1getMyPastEventsForHomePage/post/operationId"
+    },
+    "#/paths/~1getMyPastEventsForHomePage/post/requestBody/$ref": {
+      "classification": "typescript-derived-inference",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1getMyPastEventsForHomePage/post/requestBody/$ref"
+    },
+    "#/paths/~1getMyPastEventsForHomePage/post/responses/default": {
+      "classification": "explicit-unknown",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1getMyPastEventsForHomePage/post/responses/default"
+    },
+    "#/paths/~1getMyPastEventsForHomePage/post/responses/default/$ref": {
+      "classification": "explicit-unknown",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1getMyPastEventsForHomePage/post/responses/default/$ref"
+    },
+    "#/paths/~1addGuest/post/operationId": {
+      "classification": "typescript-derived-inference",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1addGuest/post/operationId"
+    },
+    "#/paths/~1addGuest/post/requestBody/$ref": {
+      "classification": "typescript-derived-inference",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1addGuest/post/requestBody/$ref"
+    },
+    "#/paths/~1addGuest/post/responses/default": {
+      "classification": "explicit-unknown",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1addGuest/post/responses/default"
+    },
+    "#/paths/~1addGuest/post/responses/default/$ref": {
+      "classification": "explicit-unknown",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1addGuest/post/responses/default/$ref"
+    },
+    "#/paths/~1markEventInterest/post/operationId": {
+      "classification": "typescript-derived-inference",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1markEventInterest/post/operationId"
+    },
+    "#/paths/~1markEventInterest/post/requestBody/$ref": {
+      "classification": "typescript-derived-inference",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1markEventInterest/post/requestBody/$ref"
+    },
+    "#/paths/~1markEventInterest/post/responses/default": {
+      "classification": "explicit-unknown",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1markEventInterest/post/responses/default"
+    },
+    "#/paths/~1markEventInterest/post/responses/default/$ref": {
+      "classification": "explicit-unknown",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1markEventInterest/post/responses/default/$ref"
+    },
+    "#/paths/~1getCurrentGuest/post/operationId": {
+      "classification": "typescript-derived-inference",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1getCurrentGuest/post/operationId"
+    },
+    "#/paths/~1getCurrentGuest/post/requestBody/$ref": {
+      "classification": "typescript-derived-inference",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1getCurrentGuest/post/requestBody/$ref"
+    },
+    "#/paths/~1getCurrentGuest/post/responses/default": {
+      "classification": "explicit-unknown",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1getCurrentGuest/post/responses/default"
+    },
+    "#/paths/~1getCurrentGuest/post/responses/default/$ref": {
+      "classification": "explicit-unknown",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1getCurrentGuest/post/responses/default/$ref"
+    },
+    "#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1events~1{eventId}/get/operationId": {
+      "classification": "typescript-derived-inference",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1events~1{eventId}/get/operationId"
+    },
+    "#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1events~1{eventId}/get/parameters/0/$ref": {
+      "classification": "typescript-derived-inference",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1events~1{eventId}/get/parameters/0/$ref"
+    },
+    "#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1events~1{eventId}/get/responses/default": {
+      "classification": "explicit-unknown",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1events~1{eventId}/get/responses/default"
+    },
+    "#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1events~1{eventId}/get/responses/default/$ref": {
+      "classification": "explicit-unknown",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1events~1{eventId}/get/responses/default/$ref"
+    },
+    "#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1events~1{eventId}/get/servers/0/url": {
+      "classification": "typescript-derived-inference",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1events~1{eventId}/get/servers/0/url"
+    },
+    "#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1events~1{eventId}/patch/operationId": {
+      "classification": "typescript-derived-inference",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1events~1{eventId}/patch/operationId"
+    },
+    "#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1events~1{eventId}/patch/parameters/0/$ref": {
+      "classification": "typescript-derived-inference",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1events~1{eventId}/patch/parameters/0/$ref"
+    },
+    "#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1events~1{eventId}/patch/parameters/1/$ref": {
+      "classification": "typescript-derived-inference",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1events~1{eventId}/patch/parameters/1/$ref"
+    },
+    "#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1events~1{eventId}/patch/requestBody/$ref": {
+      "classification": "typescript-derived-inference",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1events~1{eventId}/patch/requestBody/$ref"
+    },
+    "#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1events~1{eventId}/patch/responses/default": {
+      "classification": "explicit-unknown",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1events~1{eventId}/patch/responses/default"
+    },
+    "#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1events~1{eventId}/patch/responses/default/$ref": {
+      "classification": "explicit-unknown",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1events~1{eventId}/patch/responses/default/$ref"
+    },
+    "#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1events~1{eventId}/patch/servers/0/url": {
+      "classification": "typescript-derived-inference",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1events~1{eventId}/patch/servers/0/url"
+    },
+    "#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1events~1{eventId}~1guests~1{guestId}/get/operationId": {
+      "classification": "typescript-derived-inference",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1events~1{eventId}~1guests~1{guestId}/get/operationId"
+    },
+    "#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1events~1{eventId}~1guests~1{guestId}/get/parameters/0/$ref": {
+      "classification": "typescript-derived-inference",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1events~1{eventId}~1guests~1{guestId}/get/parameters/0/$ref"
+    },
+    "#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1events~1{eventId}~1guests~1{guestId}/get/parameters/1/$ref": {
+      "classification": "typescript-derived-inference",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1events~1{eventId}~1guests~1{guestId}/get/parameters/1/$ref"
+    },
+    "#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1events~1{eventId}~1guests~1{guestId}/get/responses/default": {
+      "classification": "explicit-unknown",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1events~1{eventId}~1guests~1{guestId}/get/responses/default"
+    },
+    "#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1events~1{eventId}~1guests~1{guestId}/get/responses/default/$ref": {
+      "classification": "explicit-unknown",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1events~1{eventId}~1guests~1{guestId}/get/responses/default/$ref"
+    },
+    "#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1events~1{eventId}~1guests~1{guestId}/get/servers/0/url": {
+      "classification": "typescript-derived-inference",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1events~1{eventId}~1guests~1{guestId}/get/servers/0/url"
+    },
+    "#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1{collectionPath}/get/operationId": {
+      "classification": "typescript-derived-inference",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1{collectionPath}/get/operationId"
+    },
+    "#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1{collectionPath}/get/parameters/0/$ref": {
+      "classification": "typescript-derived-inference",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1{collectionPath}/get/parameters/0/$ref"
+    },
+    "#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1{collectionPath}/get/parameters/1/$ref": {
+      "classification": "typescript-derived-inference",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1{collectionPath}/get/parameters/1/$ref"
+    },
+    "#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1{collectionPath}/get/parameters/2/$ref": {
+      "classification": "typescript-derived-inference",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1{collectionPath}/get/parameters/2/$ref"
+    },
+    "#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1{collectionPath}/get/responses/default": {
+      "classification": "explicit-unknown",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1{collectionPath}/get/responses/default"
+    },
+    "#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1{collectionPath}/get/responses/default/$ref": {
+      "classification": "explicit-unknown",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1{collectionPath}/get/responses/default/$ref"
+    },
+    "#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1{collectionPath}/get/servers/0/url": {
+      "classification": "typescript-derived-inference",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1{collectionPath}/get/servers/0/url"
+    },
+    "#/paths/~1v1~1token/post/operationId": {
+      "classification": "typescript-derived-inference",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1v1~1token/post/operationId"
+    },
+    "#/paths/~1v1~1token/post/requestBody/$ref": {
+      "classification": "typescript-derived-inference",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1v1~1token/post/requestBody/$ref"
+    },
+    "#/paths/~1v1~1token/post/responses/default": {
+      "classification": "explicit-unknown",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1v1~1token/post/responses/default"
+    },
+    "#/paths/~1v1~1token/post/responses/default/$ref": {
+      "classification": "explicit-unknown",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1v1~1token/post/responses/default/$ref"
+    },
+    "#/paths/~1v1~1token/post/servers/0/url": {
+      "classification": "typescript-derived-inference",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1v1~1token/post/servers/0/url"
+    },
+    "#/paths/~1sendAuthCodeTrusted/post/operationId": {
+      "classification": "typescript-derived-inference",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1sendAuthCodeTrusted/post/operationId"
+    },
+    "#/paths/~1sendAuthCodeTrusted/post/requestBody/$ref": {
+      "classification": "typescript-derived-inference",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1sendAuthCodeTrusted/post/requestBody/$ref"
+    },
+    "#/paths/~1sendAuthCodeTrusted/post/responses/default": {
+      "classification": "explicit-unknown",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1sendAuthCodeTrusted/post/responses/default"
+    },
+    "#/paths/~1sendAuthCodeTrusted/post/responses/default/$ref": {
+      "classification": "explicit-unknown",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1sendAuthCodeTrusted/post/responses/default/$ref"
+    },
+    "#/paths/~1getLoginToken/post/operationId": {
+      "classification": "typescript-derived-inference",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1getLoginToken/post/operationId"
+    },
+    "#/paths/~1getLoginToken/post/requestBody/$ref": {
+      "classification": "typescript-derived-inference",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1getLoginToken/post/requestBody/$ref"
+    },
+    "#/paths/~1getLoginToken/post/responses/default": {
+      "classification": "explicit-unknown",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1getLoginToken/post/responses/default"
+    },
+    "#/paths/~1getLoginToken/post/responses/default/$ref": {
+      "classification": "explicit-unknown",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1getLoginToken/post/responses/default/$ref"
+    },
+    "#/paths/~1v1~1accounts:signInWithCustomToken/post/operationId": {
+      "classification": "typescript-derived-inference",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1v1~1accounts:signInWithCustomToken/post/operationId"
+    },
+    "#/paths/~1v1~1accounts:signInWithCustomToken/post/requestBody/$ref": {
+      "classification": "typescript-derived-inference",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1v1~1accounts:signInWithCustomToken/post/requestBody/$ref"
+    },
+    "#/paths/~1v1~1accounts:signInWithCustomToken/post/responses/default": {
+      "classification": "explicit-unknown",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1v1~1accounts:signInWithCustomToken/post/responses/default"
+    },
+    "#/paths/~1v1~1accounts:signInWithCustomToken/post/responses/default/$ref": {
+      "classification": "explicit-unknown",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1v1~1accounts:signInWithCustomToken/post/responses/default/$ref"
+    },
+    "#/paths/~1v1~1accounts:signInWithCustomToken/post/servers/0/url": {
+      "classification": "typescript-derived-inference",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1v1~1accounts:signInWithCustomToken/post/servers/0/url"
+    },
+    "#/paths/~1v1~1accounts:lookup/post/operationId": {
+      "classification": "typescript-derived-inference",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1v1~1accounts:lookup/post/operationId"
+    },
+    "#/paths/~1v1~1accounts:lookup/post/requestBody/$ref": {
+      "classification": "typescript-derived-inference",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1v1~1accounts:lookup/post/requestBody/$ref"
+    },
+    "#/paths/~1v1~1accounts:lookup/post/responses/default": {
+      "classification": "explicit-unknown",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1v1~1accounts:lookup/post/responses/default"
+    },
+    "#/paths/~1v1~1accounts:lookup/post/responses/default/$ref": {
+      "classification": "explicit-unknown",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1v1~1accounts:lookup/post/responses/default/$ref"
+    },
+    "#/paths/~1v1~1accounts:lookup/post/servers/0/url": {
+      "classification": "typescript-derived-inference",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1v1~1accounts:lookup/post/servers/0/url"
+    },
+    "#/paths/~1uploadPhoto/post/operationId": {
+      "classification": "typescript-derived-inference",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1uploadPhoto/post/operationId"
+    },
+    "#/paths/~1uploadPhoto/post/parameters/0/name": {
+      "classification": "typescript-derived-inference",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1uploadPhoto/post/parameters/0/name"
+    },
+    "#/paths/~1uploadPhoto/post/parameters/0/in": {
+      "classification": "typescript-derived-inference",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1uploadPhoto/post/parameters/0/in"
+    },
+    "#/paths/~1uploadPhoto/post/parameters/0/schema": {
+      "classification": "typescript-derived-inference",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1uploadPhoto/post/parameters/0/schema"
+    },
+    "#/paths/~1uploadPhoto/post/parameters/0/schema/type": {
+      "classification": "typescript-derived-inference",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1uploadPhoto/post/parameters/0/schema/type"
+    },
+    "#/paths/~1uploadPhoto/post/requestBody/$ref": {
+      "classification": "typescript-derived-inference",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1uploadPhoto/post/requestBody/$ref"
+    },
+    "#/paths/~1uploadPhoto/post/responses/default": {
+      "classification": "explicit-unknown",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1uploadPhoto/post/responses/default"
+    },
+    "#/paths/~1uploadPhoto/post/responses/default/$ref": {
+      "classification": "explicit-unknown",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1uploadPhoto/post/responses/default/$ref"
+    },
+    "#/paths/~1uploadPhoto/post/servers/0/url": {
+      "classification": "typescript-derived-inference",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1uploadPhoto/post/servers/0/url"
+    },
+    "#/paths/~1posters.json/get/operationId": {
+      "classification": "typescript-derived-inference",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1posters.json/get/operationId"
+    },
+    "#/paths/~1posters.json/get/responses/default": {
+      "classification": "explicit-unknown",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1posters.json/get/responses/default"
+    },
+    "#/paths/~1posters.json/get/responses/default/$ref": {
+      "classification": "explicit-unknown",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1posters.json/get/responses/default/$ref"
+    },
+    "#/paths/~1posters.json/get/servers/0/url": {
+      "classification": "typescript-derived-inference",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1posters.json/get/servers/0/url"
+    },
+    "#/components/securitySchemes/firebaseBearer": {
+      "classification": "typescript-derived-inference",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/components/securitySchemes/firebaseBearer"
+    },
+    "#/components/securitySchemes/firebaseBearer/type": {
+      "classification": "typescript-derived-inference",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/components/securitySchemes/firebaseBearer/type"
+    },
+    "#/components/securitySchemes/firebaseBearer/scheme": {
+      "classification": "typescript-derived-inference",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/components/securitySchemes/firebaseBearer/scheme"
+    },
+    "#/components/securitySchemes/firebaseApiKey": {
+      "classification": "typescript-derived-inference",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/components/securitySchemes/firebaseApiKey"
+    },
+    "#/components/securitySchemes/firebaseApiKey/type": {
+      "classification": "typescript-derived-inference",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/components/securitySchemes/firebaseApiKey/type"
+    },
+    "#/components/securitySchemes/firebaseApiKey/in": {
+      "classification": "typescript-derived-inference",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/components/securitySchemes/firebaseApiKey/in"
+    },
+    "#/components/securitySchemes/firebaseApiKey/name": {
+      "classification": "typescript-derived-inference",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/components/securitySchemes/firebaseApiKey/name"
+    },
+    "#/components/parameters/EventId": {
+      "classification": "typescript-derived-inference",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/components/parameters/EventId"
+    },
+    "#/components/parameters/EventId/name": {
+      "classification": "typescript-derived-inference",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/components/parameters/EventId/name"
+    },
+    "#/components/parameters/EventId/in": {
+      "classification": "typescript-derived-inference",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/components/parameters/EventId/in"
+    },
+    "#/components/parameters/EventId/required": {
+      "classification": "typescript-derived-inference",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/components/parameters/EventId/required"
+    },
+    "#/components/parameters/EventId/schema/type": {
+      "classification": "typescript-derived-inference",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/components/parameters/EventId/schema/type"
+    },
+    "#/components/parameters/GuestId": {
+      "classification": "typescript-derived-inference",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/components/parameters/GuestId"
+    },
+    "#/components/parameters/GuestId/name": {
+      "classification": "typescript-derived-inference",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/components/parameters/GuestId/name"
+    },
+    "#/components/parameters/GuestId/in": {
+      "classification": "typescript-derived-inference",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/components/parameters/GuestId/in"
+    },
+    "#/components/parameters/GuestId/required": {
+      "classification": "typescript-derived-inference",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/components/parameters/GuestId/required"
+    },
+    "#/components/parameters/GuestId/schema/type": {
+      "classification": "typescript-derived-inference",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/components/parameters/GuestId/schema/type"
+    },
+    "#/components/parameters/CollectionPath": {
+      "classification": "typescript-derived-inference",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/components/parameters/CollectionPath"
+    },
+    "#/components/parameters/CollectionPath/name": {
+      "classification": "typescript-derived-inference",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/components/parameters/CollectionPath/name"
+    },
+    "#/components/parameters/CollectionPath/in": {
+      "classification": "typescript-derived-inference",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/components/parameters/CollectionPath/in"
+    },
+    "#/components/parameters/CollectionPath/required": {
+      "classification": "typescript-derived-inference",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/components/parameters/CollectionPath/required"
+    },
+    "#/components/parameters/CollectionPath/schema/type": {
+      "classification": "typescript-derived-inference",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/components/parameters/CollectionPath/schema/type"
+    },
+    "#/components/parameters/UpdateMask": {
+      "classification": "typescript-derived-inference",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/components/parameters/UpdateMask"
+    },
+    "#/components/parameters/UpdateMask/name": {
+      "classification": "typescript-derived-inference",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/components/parameters/UpdateMask/name"
+    },
+    "#/components/parameters/UpdateMask/in": {
+      "classification": "typescript-derived-inference",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/components/parameters/UpdateMask/in"
+    },
+    "#/components/parameters/UpdateMask/schema/type": {
+      "classification": "typescript-derived-inference",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/components/parameters/UpdateMask/schema/type"
+    },
+    "#/components/parameters/PageSize": {
+      "classification": "typescript-derived-inference",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/components/parameters/PageSize"
+    },
+    "#/components/parameters/PageSize/name": {
+      "classification": "typescript-derived-inference",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/components/parameters/PageSize/name"
+    },
+    "#/components/parameters/PageSize/in": {
+      "classification": "typescript-derived-inference",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/components/parameters/PageSize/in"
+    },
+    "#/components/parameters/PageSize/schema/type": {
+      "classification": "typescript-derived-inference",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/components/parameters/PageSize/schema/type"
+    },
+    "#/components/parameters/PageSize/schema/minimum": {
+      "classification": "typescript-derived-inference",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/components/parameters/PageSize/schema/minimum"
+    },
+    "#/components/parameters/PageToken": {
+      "classification": "typescript-derived-inference",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/components/parameters/PageToken"
+    },
+    "#/components/parameters/PageToken/name": {
+      "classification": "typescript-derived-inference",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/components/parameters/PageToken/name"
+    },
+    "#/components/parameters/PageToken/in": {
+      "classification": "typescript-derived-inference",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/components/parameters/PageToken/in"
+    },
+    "#/components/parameters/PageToken/schema/type": {
+      "classification": "typescript-derived-inference",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/components/parameters/PageToken/schema/type"
+    },
+    "#/components/requestBodies/CallableRequest": {
+      "classification": "typescript-derived-inference",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/components/requestBodies/CallableRequest"
+    },
+    "#/components/requestBodies/CallableRequest/required": {
+      "classification": "typescript-derived-inference",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/components/requestBodies/CallableRequest/required"
+    },
+    "#/components/requestBodies/CallableRequest/content/application~1json": {
+      "classification": "typescript-derived-inference",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/components/requestBodies/CallableRequest/content/application~1json"
+    },
+    "#/components/requestBodies/CallableRequest/content/application~1json/schema/$ref": {
+      "classification": "typescript-derived-inference",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/components/requestBodies/CallableRequest/content/application~1json/schema/$ref"
+    },
+    "#/components/requestBodies/TextBlastRequest": {
+      "classification": "typescript-derived-inference",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/components/requestBodies/TextBlastRequest"
+    },
+    "#/components/requestBodies/TextBlastRequest/required": {
+      "classification": "typescript-derived-inference",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/components/requestBodies/TextBlastRequest/required"
+    },
+    "#/components/requestBodies/TextBlastRequest/content/application~1json": {
+      "classification": "typescript-derived-inference",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/components/requestBodies/TextBlastRequest/content/application~1json"
+    },
+    "#/components/requestBodies/TextBlastRequest/content/application~1json/schema/$ref": {
+      "classification": "typescript-derived-inference",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/components/requestBodies/TextBlastRequest/content/application~1json/schema/$ref"
+    },
+    "#/components/requestBodies/FirestoreWrite": {
+      "classification": "typescript-derived-inference",
+      "citation": "9e6ed15:src/lib/http.ts#L1-L245"
+    },
+    "#/components/requestBodies/FirestoreWrite/required": {
+      "classification": "typescript-derived-inference",
+      "citation": "9e6ed15:src/lib/http.ts#L1-L245"
+    },
+    "#/components/requestBodies/FirestoreWrite/content/application~1json": {
+      "classification": "typescript-derived-inference",
+      "citation": "9e6ed15:src/lib/http.ts#L1-L245"
+    },
+    "#/components/requestBodies/FirestoreWrite/content/application~1json/schema/$ref": {
+      "classification": "typescript-derived-inference",
+      "citation": "9e6ed15:src/lib/http.ts#L1-L245"
+    },
+    "#/components/requestBodies/RefreshToken": {
+      "classification": "typescript-derived-inference",
+      "citation": "9e6ed15:src/lib/auth.ts#L1-L150"
+    },
+    "#/components/requestBodies/RefreshToken/required": {
+      "classification": "typescript-derived-inference",
+      "citation": "9e6ed15:src/lib/auth.ts#L1-L150"
+    },
+    "#/components/requestBodies/RefreshToken/content/application~1x-www-form-urlencoded": {
+      "classification": "typescript-derived-inference",
+      "citation": "9e6ed15:src/lib/auth.ts#L1-L150"
+    },
+    "#/components/requestBodies/RefreshToken/content/application~1x-www-form-urlencoded/schema/$ref": {
+      "classification": "typescript-derived-inference",
+      "citation": "9e6ed15:src/lib/auth.ts#L1-L150"
+    },
+    "#/components/requestBodies/CustomToken": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-03-24-auth-flow-endpoints.md#auth-endpoints"
+    },
+    "#/components/requestBodies/CustomToken/required": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-03-24-auth-flow-endpoints.md#auth-endpoints"
+    },
+    "#/components/requestBodies/CustomToken/content/application~1json": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-03-24-auth-flow-endpoints.md#auth-endpoints"
+    },
+    "#/components/requestBodies/CustomToken/content/application~1json/schema/$ref": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-03-24-auth-flow-endpoints.md#auth-endpoints"
+    },
+    "#/components/requestBodies/FirebaseLookup": {
+      "classification": "reviewed-first-party-repository-research",
+      "citation": "9e6ed15:src/commands/auth.ts#L145-L340"
+    },
+    "#/components/requestBodies/FirebaseLookup/required": {
+      "classification": "reviewed-first-party-repository-research",
+      "citation": "9e6ed15:src/commands/auth.ts#L145-L340"
+    },
+    "#/components/requestBodies/FirebaseLookup/content/application~1json": {
+      "classification": "reviewed-first-party-repository-research",
+      "citation": "9e6ed15:src/commands/auth.ts#L145-L340"
+    },
+    "#/components/requestBodies/FirebaseLookup/content/application~1json/schema/$ref": {
+      "classification": "reviewed-first-party-repository-research",
+      "citation": "9e6ed15:src/commands/auth.ts#L145-L340"
+    },
+    "#/components/requestBodies/UploadPhoto": {
+      "classification": "typescript-derived-inference",
+      "citation": "9e6ed15:src/lib/upload.ts#L35-L115"
+    },
+    "#/components/requestBodies/UploadPhoto/required": {
+      "classification": "typescript-derived-inference",
+      "citation": "9e6ed15:src/lib/upload.ts#L35-L115"
+    },
+    "#/components/requestBodies/UploadPhoto/content/multipart~1form-data": {
+      "classification": "typescript-derived-inference",
+      "citation": "9e6ed15:src/lib/upload.ts#L35-L115"
+    },
+    "#/components/requestBodies/UploadPhoto/content/multipart~1form-data/schema/type": {
+      "classification": "typescript-derived-inference",
+      "citation": "9e6ed15:src/lib/upload.ts#L35-L115"
+    },
+    "#/components/requestBodies/UploadPhoto/content/multipart~1form-data/schema/required/0": {
+      "classification": "typescript-derived-inference",
+      "citation": "9e6ed15:src/lib/upload.ts#L35-L115"
+    },
+    "#/components/requestBodies/UploadPhoto/content/multipart~1form-data/schema/properties/file": {
+      "classification": "typescript-derived-inference",
+      "citation": "9e6ed15:src/lib/upload.ts#L35-L115"
+    },
+    "#/components/requestBodies/UploadPhoto/content/multipart~1form-data/schema/properties/file/type": {
+      "classification": "typescript-derived-inference",
+      "citation": "9e6ed15:src/lib/upload.ts#L35-L115"
+    },
+    "#/components/requestBodies/UploadPhoto/content/multipart~1form-data/schema/properties/file/format": {
+      "classification": "typescript-derived-inference",
+      "citation": "9e6ed15:src/lib/upload.ts#L35-L115"
+    },
+    "#/components/responses/CallableResponse": {
+      "classification": "typescript-derived-inference",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/components/responses/CallableResponse"
+    },
+    "#/components/responses/CallableResponse/content/application~1json": {
+      "classification": "typescript-derived-inference",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/components/responses/CallableResponse/content/application~1json"
+    },
+    "#/components/responses/CallableResponse/content/application~1json/schema/$ref": {
+      "classification": "typescript-derived-inference",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/components/responses/CallableResponse/content/application~1json/schema/$ref"
+    },
+    "#/components/responses/FirestoreDocument": {
+      "classification": "typescript-derived-inference",
+      "citation": "9e6ed15:src/lib/http.ts#L1-L245"
+    },
+    "#/components/responses/FirestoreDocument/content/application~1json": {
+      "classification": "typescript-derived-inference",
+      "citation": "9e6ed15:src/lib/http.ts#L1-L245"
+    },
+    "#/components/responses/FirestoreDocument/content/application~1json/schema/$ref": {
+      "classification": "typescript-derived-inference",
+      "citation": "9e6ed15:src/lib/http.ts#L1-L245"
+    },
+    "#/components/responses/FirestoreList": {
+      "classification": "typescript-derived-inference",
+      "citation": "9e6ed15:src/lib/http.ts#L1-L245"
+    },
+    "#/components/responses/FirestoreList/content/application~1json": {
+      "classification": "typescript-derived-inference",
+      "citation": "9e6ed15:src/lib/http.ts#L1-L245"
+    },
+    "#/components/responses/FirestoreList/content/application~1json/schema/$ref": {
+      "classification": "typescript-derived-inference",
+      "citation": "9e6ed15:src/lib/http.ts#L1-L245"
+    },
+    "#/components/responses/RefreshToken": {
+      "classification": "typescript-derived-inference",
+      "citation": "9e6ed15:src/lib/auth.ts#L1-L150"
+    },
+    "#/components/responses/RefreshToken/content/application~1json": {
+      "classification": "typescript-derived-inference",
+      "citation": "9e6ed15:src/lib/auth.ts#L1-L150"
+    },
+    "#/components/responses/RefreshToken/content/application~1json/schema/$ref": {
+      "classification": "typescript-derived-inference",
+      "citation": "9e6ed15:src/lib/auth.ts#L1-L150"
+    },
+    "#/components/responses/FirebaseSignIn": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-03-24-auth-flow-endpoints.md#auth-endpoints"
+    },
+    "#/components/responses/FirebaseSignIn/content/application~1json": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-03-24-auth-flow-endpoints.md#auth-endpoints"
+    },
+    "#/components/responses/FirebaseSignIn/content/application~1json/schema/$ref": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-03-24-auth-flow-endpoints.md#auth-endpoints"
+    },
+    "#/components/responses/FirebaseLookup": {
+      "classification": "reviewed-first-party-repository-research",
+      "citation": "9e6ed15:src/commands/auth.ts#L145-L340"
+    },
+    "#/components/responses/FirebaseLookup/content/application~1json": {
+      "classification": "reviewed-first-party-repository-research",
+      "citation": "9e6ed15:src/commands/auth.ts#L145-L340"
+    },
+    "#/components/responses/FirebaseLookup/content/application~1json/schema/$ref": {
+      "classification": "reviewed-first-party-repository-research",
+      "citation": "9e6ed15:src/commands/auth.ts#L145-L340"
+    },
+    "#/components/responses/UploadPhoto": {
+      "classification": "typescript-derived-inference",
+      "citation": "9e6ed15:src/lib/upload.ts#L35-L115"
+    },
+    "#/components/responses/UploadPhoto/content/application~1json": {
+      "classification": "typescript-derived-inference",
+      "citation": "9e6ed15:src/lib/upload.ts#L35-L115"
+    },
+    "#/components/responses/UploadPhoto/content/application~1json/schema/$ref": {
+      "classification": "typescript-derived-inference",
+      "citation": "9e6ed15:src/lib/upload.ts#L35-L115"
+    },
+    "#/components/responses/PosterCatalog": {
+      "classification": "typescript-derived-inference",
+      "citation": "9e6ed15:src/lib/posters.ts#L25-L45"
+    },
+    "#/components/responses/PosterCatalog/content/application~1json": {
+      "classification": "typescript-derived-inference",
+      "citation": "9e6ed15:src/lib/posters.ts#L25-L45"
+    },
+    "#/components/responses/PosterCatalog/content/application~1json/schema/type": {
+      "classification": "typescript-derived-inference",
+      "citation": "9e6ed15:src/lib/posters.ts#L25-L45"
+    },
+    "#/components/responses/PosterCatalog/content/application~1json/schema/items/$ref": {
+      "classification": "typescript-derived-inference",
+      "citation": "9e6ed15:src/lib/posters.ts#L25-L45"
+    },
+    "#/components/schemas/CallableRequest": {
+      "classification": "typescript-derived-inference",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/components/schemas/CallableRequest"
+    },
+    "#/components/schemas/CallableRequest/type": {
+      "classification": "typescript-derived-inference",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/components/schemas/CallableRequest/type"
+    },
+    "#/components/schemas/CallableRequest/required/0": {
+      "classification": "typescript-derived-inference",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/components/schemas/CallableRequest/required/0"
+    },
+    "#/components/schemas/CallableRequest/properties/data": {
+      "classification": "typescript-derived-inference",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/components/schemas/CallableRequest/properties/data"
+    },
+    "#/components/schemas/CallableRequest/properties/data/type": {
+      "classification": "typescript-derived-inference",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/components/schemas/CallableRequest/properties/data/type"
+    },
+    "#/components/schemas/CallableRequest/properties/data/required/0": {
+      "classification": "typescript-derived-inference",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/components/schemas/CallableRequest/properties/data/required/0"
+    },
+    "#/components/schemas/CallableRequest/properties/data/required/1": {
+      "classification": "typescript-derived-inference",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/components/schemas/CallableRequest/properties/data/required/1"
+    },
+    "#/components/schemas/CallableRequest/properties/data/properties/params": {
+      "classification": "typescript-derived-inference",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/components/schemas/CallableRequest/properties/data/properties/params"
+    },
+    "#/components/schemas/CallableRequest/properties/data/properties/params/type": {
+      "classification": "typescript-derived-inference",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/components/schemas/CallableRequest/properties/data/properties/params/type"
+    },
+    "#/components/schemas/CallableRequest/properties/data/properties/params/additionalProperties": {
+      "classification": "typescript-derived-inference",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/components/schemas/CallableRequest/properties/data/properties/params/additionalProperties"
+    },
+    "#/components/schemas/CallableRequest/properties/data/properties/amplitudeDeviceId": {
+      "classification": "typescript-derived-inference",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/components/schemas/CallableRequest/properties/data/properties/amplitudeDeviceId"
+    },
+    "#/components/schemas/CallableRequest/properties/data/properties/amplitudeDeviceId/type": {
+      "classification": "typescript-derived-inference",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/components/schemas/CallableRequest/properties/data/properties/amplitudeDeviceId/type"
+    },
+    "#/components/schemas/CallableRequest/properties/data/properties/amplitudeSessionId": {
+      "classification": "typescript-derived-inference",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/components/schemas/CallableRequest/properties/data/properties/amplitudeSessionId"
+    },
+    "#/components/schemas/CallableRequest/properties/data/properties/amplitudeSessionId/type": {
+      "classification": "typescript-derived-inference",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/components/schemas/CallableRequest/properties/data/properties/amplitudeSessionId/type"
+    },
+    "#/components/schemas/CallableRequest/properties/data/properties/userId": {
+      "classification": "typescript-derived-inference",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/components/schemas/CallableRequest/properties/data/properties/userId"
+    },
+    "#/components/schemas/CallableRequest/properties/data/properties/userId/type/0": {
+      "classification": "typescript-derived-inference",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/components/schemas/CallableRequest/properties/data/properties/userId/type/0"
+    },
+    "#/components/schemas/CallableRequest/properties/data/properties/userId/type/1": {
+      "classification": "typescript-derived-inference",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/components/schemas/CallableRequest/properties/data/properties/userId/type/1"
+    },
+    "#/components/schemas/CallableRequest/properties/data/additionalProperties": {
+      "classification": "typescript-derived-inference",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/components/schemas/CallableRequest/properties/data/additionalProperties"
+    },
+    "#/components/schemas/CallableRequest/additionalProperties": {
+      "classification": "typescript-derived-inference",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/components/schemas/CallableRequest/additionalProperties"
+    },
+    "#/components/schemas/TextBlastRequest": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-03-24-text-blast-endpoint.md#request-payload"
+    },
+    "#/components/schemas/TextBlastRequest/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-03-24-text-blast-endpoint.md#request-payload"
+    },
+    "#/components/schemas/TextBlastRequest/required/0": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-03-24-text-blast-endpoint.md#request-payload"
+    },
+    "#/components/schemas/TextBlastRequest/properties/data": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-03-24-text-blast-endpoint.md#request-payload"
+    },
+    "#/components/schemas/TextBlastRequest/properties/data/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-03-24-text-blast-endpoint.md#request-payload"
+    },
+    "#/components/schemas/TextBlastRequest/properties/data/required/0": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-03-24-text-blast-endpoint.md#request-payload"
+    },
+    "#/components/schemas/TextBlastRequest/properties/data/properties/params": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-03-24-text-blast-endpoint.md#request-payload"
+    },
+    "#/components/schemas/TextBlastRequest/properties/data/properties/params/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-03-24-text-blast-endpoint.md#request-payload"
+    },
+    "#/components/schemas/TextBlastRequest/properties/data/properties/params/required/0": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-03-24-text-blast-endpoint.md#request-payload"
+    },
+    "#/components/schemas/TextBlastRequest/properties/data/properties/params/required/1": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-03-24-text-blast-endpoint.md#request-payload"
+    },
+    "#/components/schemas/TextBlastRequest/properties/data/properties/params/properties/eventId": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-03-24-text-blast-endpoint.md#request-payload"
+    },
+    "#/components/schemas/TextBlastRequest/properties/data/properties/params/properties/eventId/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-03-24-text-blast-endpoint.md#request-payload"
+    },
+    "#/components/schemas/TextBlastRequest/properties/data/properties/params/properties/message": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-03-24-text-blast-endpoint.md#request-payload"
+    },
+    "#/components/schemas/TextBlastRequest/properties/data/properties/params/properties/message/$ref": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-03-24-text-blast-endpoint.md#request-payload"
+    },
+    "#/components/schemas/TextBlastRequest/properties/data/properties/params/additionalProperties": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-03-24-text-blast-endpoint.md#request-payload"
+    },
+    "#/components/schemas/TextBlastRequest/properties/data/additionalProperties": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-03-24-text-blast-endpoint.md#request-payload"
+    },
+    "#/components/schemas/TextBlastRequest/additionalProperties": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-03-24-text-blast-endpoint.md#request-payload"
+    },
+    "#/components/schemas/TextBlastMessage": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-03-24-text-blast-endpoint.md#request-payload"
+    },
+    "#/components/schemas/TextBlastMessage/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-03-24-text-blast-endpoint.md#request-payload"
+    },
+    "#/components/schemas/TextBlastMessage/required/0": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-03-24-text-blast-endpoint.md#request-payload"
+    },
+    "#/components/schemas/TextBlastMessage/required/1": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-03-24-text-blast-endpoint.md#request-payload"
+    },
+    "#/components/schemas/TextBlastMessage/required/2": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-03-24-text-blast-endpoint.md#request-payload"
+    },
+    "#/components/schemas/TextBlastMessage/properties/text": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-03-24-text-blast-endpoint.md#request-payload"
+    },
+    "#/components/schemas/TextBlastMessage/properties/text/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-03-24-text-blast-endpoint.md#request-payload"
+    },
+    "#/components/schemas/TextBlastMessage/properties/text/maxLength": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-03-24-text-blast-endpoint.md#request-payload"
+    },
+    "#/components/schemas/TextBlastMessage/properties/to": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-03-24-text-blast-endpoint.md#request-payload"
+    },
+    "#/components/schemas/TextBlastMessage/properties/to/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-03-24-text-blast-endpoint.md#request-payload"
+    },
+    "#/components/schemas/TextBlastMessage/properties/to/items/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-03-24-text-blast-endpoint.md#request-payload"
+    },
+    "#/components/schemas/TextBlastMessage/properties/showOnEventPage": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-03-24-text-blast-endpoint.md#request-payload"
+    },
+    "#/components/schemas/TextBlastMessage/properties/showOnEventPage/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-03-24-text-blast-endpoint.md#request-payload"
+    },
+    "#/components/schemas/TextBlastMessage/properties/images": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-03-24-text-blast-endpoint.md#request-payload"
+    },
+    "#/components/schemas/TextBlastMessage/properties/images/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-03-24-text-blast-endpoint.md#request-payload"
+    },
+    "#/components/schemas/TextBlastMessage/properties/images/maxItems": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-03-24-text-blast-endpoint.md#request-payload"
+    },
+    "#/components/schemas/TextBlastMessage/properties/images/items/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-03-24-text-blast-endpoint.md#request-payload"
+    },
+    "#/components/schemas/TextBlastMessage/properties/images/items/additionalProperties": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-03-24-text-blast-endpoint.md#request-payload"
+    },
+    "#/components/schemas/TextBlastMessage/additionalProperties": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-03-24-text-blast-endpoint.md#request-payload"
+    },
+    "#/components/schemas/CallableResponse": {
+      "classification": "typescript-derived-inference",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/components/schemas/CallableResponse"
+    },
+    "#/components/schemas/CallableResponse/type": {
+      "classification": "typescript-derived-inference",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/components/schemas/CallableResponse/type"
+    },
+    "#/components/schemas/CallableResponse/properties/result": {
+      "classification": "typescript-derived-inference",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/components/schemas/CallableResponse/properties/result"
+    },
+    "#/components/schemas/CallableResponse/properties/result/type": {
+      "classification": "typescript-derived-inference",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/components/schemas/CallableResponse/properties/result/type"
+    },
+    "#/components/schemas/CallableResponse/properties/result/properties/data": {
+      "classification": "typescript-derived-inference",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/components/schemas/CallableResponse/properties/result/properties/data"
+    },
+    "#/components/schemas/CallableResponse/properties/result/additionalProperties": {
+      "classification": "typescript-derived-inference",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/components/schemas/CallableResponse/properties/result/additionalProperties"
+    },
+    "#/components/schemas/CallableResponse/additionalProperties": {
+      "classification": "typescript-derived-inference",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/components/schemas/CallableResponse/additionalProperties"
+    },
+    "#/components/schemas/FirestoreWriteDocument": {
+      "classification": "typescript-derived-inference",
+      "citation": "9e6ed15:src/lib/http.ts#L1-L245"
+    },
+    "#/components/schemas/FirestoreWriteDocument/type": {
+      "classification": "typescript-derived-inference",
+      "citation": "9e6ed15:src/lib/http.ts#L1-L245"
+    },
+    "#/components/schemas/FirestoreWriteDocument/properties/fields": {
+      "classification": "typescript-derived-inference",
+      "citation": "9e6ed15:src/lib/http.ts#L1-L245"
+    },
+    "#/components/schemas/FirestoreWriteDocument/properties/fields/type": {
+      "classification": "typescript-derived-inference",
+      "citation": "9e6ed15:src/lib/http.ts#L1-L245"
+    },
+    "#/components/schemas/FirestoreWriteDocument/properties/fields/additionalProperties": {
+      "classification": "typescript-derived-inference",
+      "citation": "9e6ed15:src/lib/http.ts#L1-L245"
+    },
+    "#/components/schemas/FirestoreWriteDocument/additionalProperties": {
+      "classification": "typescript-derived-inference",
+      "citation": "9e6ed15:src/lib/http.ts#L1-L245"
+    },
+    "#/components/schemas/FirestoreDocument": {
+      "classification": "typescript-derived-inference",
+      "citation": "9e6ed15:src/lib/http.ts#L1-L245"
+    },
+    "#/components/schemas/FirestoreDocument/type": {
+      "classification": "typescript-derived-inference",
+      "citation": "9e6ed15:src/lib/http.ts#L1-L245"
+    },
+    "#/components/schemas/FirestoreDocument/properties/name": {
+      "classification": "typescript-derived-inference",
+      "citation": "9e6ed15:src/lib/http.ts#L1-L245"
+    },
+    "#/components/schemas/FirestoreDocument/properties/name/type": {
+      "classification": "typescript-derived-inference",
+      "citation": "9e6ed15:src/lib/http.ts#L1-L245"
+    },
+    "#/components/schemas/FirestoreDocument/properties/fields": {
+      "classification": "typescript-derived-inference",
+      "citation": "9e6ed15:src/lib/http.ts#L1-L245"
+    },
+    "#/components/schemas/FirestoreDocument/properties/fields/type": {
+      "classification": "typescript-derived-inference",
+      "citation": "9e6ed15:src/lib/http.ts#L1-L245"
+    },
+    "#/components/schemas/FirestoreDocument/properties/fields/additionalProperties": {
+      "classification": "typescript-derived-inference",
+      "citation": "9e6ed15:src/lib/http.ts#L1-L245"
+    },
+    "#/components/schemas/FirestoreDocument/properties/createTime": {
+      "classification": "typescript-derived-inference",
+      "citation": "9e6ed15:src/lib/http.ts#L1-L245"
+    },
+    "#/components/schemas/FirestoreDocument/properties/createTime/type": {
+      "classification": "typescript-derived-inference",
+      "citation": "9e6ed15:src/lib/http.ts#L1-L245"
+    },
+    "#/components/schemas/FirestoreDocument/properties/updateTime": {
+      "classification": "typescript-derived-inference",
+      "citation": "9e6ed15:src/lib/http.ts#L1-L245"
+    },
+    "#/components/schemas/FirestoreDocument/properties/updateTime/type": {
+      "classification": "typescript-derived-inference",
+      "citation": "9e6ed15:src/lib/http.ts#L1-L245"
+    },
+    "#/components/schemas/FirestoreDocument/additionalProperties": {
+      "classification": "typescript-derived-inference",
+      "citation": "9e6ed15:src/lib/http.ts#L1-L245"
+    },
+    "#/components/schemas/FirestoreListResponse": {
+      "classification": "typescript-derived-inference",
+      "citation": "9e6ed15:src/lib/http.ts#L1-L245"
+    },
+    "#/components/schemas/FirestoreListResponse/type": {
+      "classification": "typescript-derived-inference",
+      "citation": "9e6ed15:src/lib/http.ts#L1-L245"
+    },
+    "#/components/schemas/FirestoreListResponse/properties/documents": {
+      "classification": "typescript-derived-inference",
+      "citation": "9e6ed15:src/lib/http.ts#L1-L245"
+    },
+    "#/components/schemas/FirestoreListResponse/properties/documents/type": {
+      "classification": "typescript-derived-inference",
+      "citation": "9e6ed15:src/lib/http.ts#L1-L245"
+    },
+    "#/components/schemas/FirestoreListResponse/properties/documents/items/$ref": {
+      "classification": "typescript-derived-inference",
+      "citation": "9e6ed15:src/lib/http.ts#L1-L245"
+    },
+    "#/components/schemas/FirestoreListResponse/properties/nextPageToken": {
+      "classification": "typescript-derived-inference",
+      "citation": "9e6ed15:src/lib/http.ts#L1-L245"
+    },
+    "#/components/schemas/FirestoreListResponse/properties/nextPageToken/type": {
+      "classification": "typescript-derived-inference",
+      "citation": "9e6ed15:src/lib/http.ts#L1-L245"
+    },
+    "#/components/schemas/FirestoreListResponse/additionalProperties": {
+      "classification": "typescript-derived-inference",
+      "citation": "9e6ed15:src/lib/http.ts#L1-L245"
+    },
+    "#/components/schemas/RefreshTokenRequest": {
+      "classification": "typescript-derived-inference",
+      "citation": "9e6ed15:src/lib/auth.ts#L1-L150"
+    },
+    "#/components/schemas/RefreshTokenRequest/type": {
+      "classification": "typescript-derived-inference",
+      "citation": "9e6ed15:src/lib/auth.ts#L1-L150"
+    },
+    "#/components/schemas/RefreshTokenRequest/required/0": {
+      "classification": "typescript-derived-inference",
+      "citation": "9e6ed15:src/lib/auth.ts#L1-L150"
+    },
+    "#/components/schemas/RefreshTokenRequest/required/1": {
+      "classification": "typescript-derived-inference",
+      "citation": "9e6ed15:src/lib/auth.ts#L1-L150"
+    },
+    "#/components/schemas/RefreshTokenRequest/properties/grant_type": {
+      "classification": "typescript-derived-inference",
+      "citation": "9e6ed15:src/lib/auth.ts#L1-L150"
+    },
+    "#/components/schemas/RefreshTokenRequest/properties/grant_type/const": {
+      "classification": "typescript-derived-inference",
+      "citation": "9e6ed15:src/lib/auth.ts#L1-L150"
+    },
+    "#/components/schemas/RefreshTokenRequest/properties/refresh_token": {
+      "classification": "typescript-derived-inference",
+      "citation": "9e6ed15:src/lib/auth.ts#L1-L150"
+    },
+    "#/components/schemas/RefreshTokenRequest/properties/refresh_token/type": {
+      "classification": "typescript-derived-inference",
+      "citation": "9e6ed15:src/lib/auth.ts#L1-L150"
+    },
+    "#/components/schemas/RefreshTokenResponse": {
+      "classification": "typescript-derived-inference",
+      "citation": "9e6ed15:src/lib/auth.ts#L1-L150"
+    },
+    "#/components/schemas/RefreshTokenResponse/type": {
+      "classification": "typescript-derived-inference",
+      "citation": "9e6ed15:src/lib/auth.ts#L1-L150"
+    },
+    "#/components/schemas/RefreshTokenResponse/properties/id_token": {
+      "classification": "typescript-derived-inference",
+      "citation": "9e6ed15:src/lib/auth.ts#L1-L150"
+    },
+    "#/components/schemas/RefreshTokenResponse/properties/id_token/type": {
+      "classification": "typescript-derived-inference",
+      "citation": "9e6ed15:src/lib/auth.ts#L1-L150"
+    },
+    "#/components/schemas/RefreshTokenResponse/properties/refresh_token": {
+      "classification": "typescript-derived-inference",
+      "citation": "9e6ed15:src/lib/auth.ts#L1-L150"
+    },
+    "#/components/schemas/RefreshTokenResponse/properties/refresh_token/type": {
+      "classification": "typescript-derived-inference",
+      "citation": "9e6ed15:src/lib/auth.ts#L1-L150"
+    },
+    "#/components/schemas/RefreshTokenResponse/properties/expires_in": {
+      "classification": "typescript-derived-inference",
+      "citation": "9e6ed15:src/lib/auth.ts#L1-L150"
+    },
+    "#/components/schemas/RefreshTokenResponse/properties/expires_in/type": {
+      "classification": "typescript-derived-inference",
+      "citation": "9e6ed15:src/lib/auth.ts#L1-L150"
+    },
+    "#/components/schemas/RefreshTokenResponse/properties/user_id": {
+      "classification": "typescript-derived-inference",
+      "citation": "9e6ed15:src/lib/auth.ts#L1-L150"
+    },
+    "#/components/schemas/RefreshTokenResponse/properties/user_id/type": {
+      "classification": "typescript-derived-inference",
+      "citation": "9e6ed15:src/lib/auth.ts#L1-L150"
+    },
+    "#/components/schemas/RefreshTokenResponse/additionalProperties": {
+      "classification": "typescript-derived-inference",
+      "citation": "9e6ed15:src/lib/auth.ts#L1-L150"
+    },
+    "#/components/schemas/CustomTokenRequest": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-03-24-auth-flow-endpoints.md#auth-endpoints"
+    },
+    "#/components/schemas/CustomTokenRequest/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-03-24-auth-flow-endpoints.md#auth-endpoints"
+    },
+    "#/components/schemas/CustomTokenRequest/required/0": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-03-24-auth-flow-endpoints.md#auth-endpoints"
+    },
+    "#/components/schemas/CustomTokenRequest/required/1": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-03-24-auth-flow-endpoints.md#auth-endpoints"
+    },
+    "#/components/schemas/CustomTokenRequest/properties/token": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-03-24-auth-flow-endpoints.md#auth-endpoints"
+    },
+    "#/components/schemas/CustomTokenRequest/properties/token/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-03-24-auth-flow-endpoints.md#auth-endpoints"
+    },
+    "#/components/schemas/CustomTokenRequest/properties/returnSecureToken": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-03-24-auth-flow-endpoints.md#auth-endpoints"
+    },
+    "#/components/schemas/CustomTokenRequest/properties/returnSecureToken/const": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-03-24-auth-flow-endpoints.md#auth-endpoints"
+    },
+    "#/components/schemas/FirebaseSignInResponse": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-03-24-auth-flow-endpoints.md#auth-endpoints"
+    },
+    "#/components/schemas/FirebaseSignInResponse/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-03-24-auth-flow-endpoints.md#auth-endpoints"
+    },
+    "#/components/schemas/FirebaseSignInResponse/properties/idToken": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-03-24-auth-flow-endpoints.md#auth-endpoints"
+    },
+    "#/components/schemas/FirebaseSignInResponse/properties/idToken/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-03-24-auth-flow-endpoints.md#auth-endpoints"
+    },
+    "#/components/schemas/FirebaseSignInResponse/properties/refreshToken": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-03-24-auth-flow-endpoints.md#auth-endpoints"
+    },
+    "#/components/schemas/FirebaseSignInResponse/properties/refreshToken/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-03-24-auth-flow-endpoints.md#auth-endpoints"
+    },
+    "#/components/schemas/FirebaseSignInResponse/properties/expiresIn": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-03-24-auth-flow-endpoints.md#auth-endpoints"
+    },
+    "#/components/schemas/FirebaseSignInResponse/properties/expiresIn/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-03-24-auth-flow-endpoints.md#auth-endpoints"
+    },
+    "#/components/schemas/FirebaseSignInResponse/properties/localId": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-03-24-auth-flow-endpoints.md#auth-endpoints"
+    },
+    "#/components/schemas/FirebaseSignInResponse/properties/localId/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-03-24-auth-flow-endpoints.md#auth-endpoints"
+    },
+    "#/components/schemas/FirebaseSignInResponse/additionalProperties": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-03-24-auth-flow-endpoints.md#auth-endpoints"
+    },
+    "#/components/schemas/FirebaseLookupRequest": {
+      "classification": "reviewed-first-party-repository-research",
+      "citation": "9e6ed15:src/commands/auth.ts#L145-L340"
+    },
+    "#/components/schemas/FirebaseLookupRequest/type": {
+      "classification": "reviewed-first-party-repository-research",
+      "citation": "9e6ed15:src/commands/auth.ts#L145-L340"
+    },
+    "#/components/schemas/FirebaseLookupRequest/required/0": {
+      "classification": "reviewed-first-party-repository-research",
+      "citation": "9e6ed15:src/commands/auth.ts#L145-L340"
+    },
+    "#/components/schemas/FirebaseLookupRequest/properties/idToken": {
+      "classification": "reviewed-first-party-repository-research",
+      "citation": "9e6ed15:src/commands/auth.ts#L145-L340"
+    },
+    "#/components/schemas/FirebaseLookupRequest/properties/idToken/type": {
+      "classification": "reviewed-first-party-repository-research",
+      "citation": "9e6ed15:src/commands/auth.ts#L145-L340"
+    },
+    "#/components/schemas/FirebaseLookupResponse": {
+      "classification": "reviewed-first-party-repository-research",
+      "citation": "9e6ed15:src/commands/auth.ts#L145-L340"
+    },
+    "#/components/schemas/FirebaseLookupResponse/type": {
+      "classification": "reviewed-first-party-repository-research",
+      "citation": "9e6ed15:src/commands/auth.ts#L145-L340"
+    },
+    "#/components/schemas/FirebaseLookupResponse/properties/users": {
+      "classification": "reviewed-first-party-repository-research",
+      "citation": "9e6ed15:src/commands/auth.ts#L145-L340"
+    },
+    "#/components/schemas/FirebaseLookupResponse/properties/users/type": {
+      "classification": "reviewed-first-party-repository-research",
+      "citation": "9e6ed15:src/commands/auth.ts#L145-L340"
+    },
+    "#/components/schemas/FirebaseLookupResponse/properties/users/items/type": {
+      "classification": "reviewed-first-party-repository-research",
+      "citation": "9e6ed15:src/commands/auth.ts#L145-L340"
+    },
+    "#/components/schemas/FirebaseLookupResponse/properties/users/items/additionalProperties": {
+      "classification": "reviewed-first-party-repository-research",
+      "citation": "9e6ed15:src/commands/auth.ts#L145-L340"
+    },
+    "#/components/schemas/FirebaseLookupResponse/additionalProperties": {
+      "classification": "reviewed-first-party-repository-research",
+      "citation": "9e6ed15:src/commands/auth.ts#L145-L340"
+    },
+    "#/components/schemas/UploadPhotoResponse": {
+      "classification": "typescript-derived-inference",
+      "citation": "9e6ed15:src/lib/upload.ts#L35-L115"
+    },
+    "#/components/schemas/UploadPhotoResponse/type": {
+      "classification": "typescript-derived-inference",
+      "citation": "9e6ed15:src/lib/upload.ts#L35-L115"
+    },
+    "#/components/schemas/UploadPhotoResponse/properties/uploadData": {
+      "classification": "typescript-derived-inference",
+      "citation": "9e6ed15:src/lib/upload.ts#L35-L115"
+    },
+    "#/components/schemas/UploadPhotoResponse/properties/uploadData/type": {
+      "classification": "typescript-derived-inference",
+      "citation": "9e6ed15:src/lib/upload.ts#L35-L115"
+    },
+    "#/components/schemas/UploadPhotoResponse/properties/uploadData/properties/url": {
+      "classification": "typescript-derived-inference",
+      "citation": "9e6ed15:src/lib/upload.ts#L35-L115"
+    },
+    "#/components/schemas/UploadPhotoResponse/properties/uploadData/properties/url/type": {
+      "classification": "typescript-derived-inference",
+      "citation": "9e6ed15:src/lib/upload.ts#L35-L115"
+    },
+    "#/components/schemas/UploadPhotoResponse/properties/uploadData/additionalProperties": {
+      "classification": "typescript-derived-inference",
+      "citation": "9e6ed15:src/lib/upload.ts#L35-L115"
+    },
+    "#/components/schemas/UploadPhotoResponse/additionalProperties": {
+      "classification": "typescript-derived-inference",
+      "citation": "9e6ed15:src/lib/upload.ts#L35-L115"
+    },
+    "#/components/schemas/Poster": {
+      "classification": "typescript-derived-inference",
+      "citation": "9e6ed15:src/lib/posters.ts#L25-L45"
+    },
+    "#/components/schemas/Poster/type": {
+      "classification": "typescript-derived-inference",
+      "citation": "9e6ed15:src/lib/posters.ts#L25-L45"
+    },
+    "#/components/schemas/Poster/properties/id": {
+      "classification": "typescript-derived-inference",
+      "citation": "9e6ed15:src/lib/posters.ts#L25-L45"
+    },
+    "#/components/schemas/Poster/properties/id/type": {
+      "classification": "typescript-derived-inference",
+      "citation": "9e6ed15:src/lib/posters.ts#L25-L45"
+    },
+    "#/components/schemas/Poster/properties/name": {
+      "classification": "typescript-derived-inference",
+      "citation": "9e6ed15:src/lib/posters.ts#L25-L45"
+    },
+    "#/components/schemas/Poster/properties/name/type": {
+      "classification": "typescript-derived-inference",
+      "citation": "9e6ed15:src/lib/posters.ts#L25-L45"
+    },
+    "#/components/schemas/Poster/properties/url": {
+      "classification": "typescript-derived-inference",
+      "citation": "9e6ed15:src/lib/posters.ts#L25-L45"
+    },
+    "#/components/schemas/Poster/properties/url/type": {
+      "classification": "typescript-derived-inference",
+      "citation": "9e6ed15:src/lib/posters.ts#L25-L45"
+    },
+    "#/components/schemas/Poster/properties/contentType": {
+      "classification": "typescript-derived-inference",
+      "citation": "9e6ed15:src/lib/posters.ts#L25-L45"
+    },
+    "#/components/schemas/Poster/properties/contentType/type": {
+      "classification": "typescript-derived-inference",
+      "citation": "9e6ed15:src/lib/posters.ts#L25-L45"
+    },
+    "#/components/schemas/Poster/properties/width": {
+      "classification": "typescript-derived-inference",
+      "citation": "9e6ed15:src/lib/posters.ts#L25-L45"
+    },
+    "#/components/schemas/Poster/properties/width/type": {
+      "classification": "typescript-derived-inference",
+      "citation": "9e6ed15:src/lib/posters.ts#L25-L45"
+    },
+    "#/components/schemas/Poster/properties/height": {
+      "classification": "typescript-derived-inference",
+      "citation": "9e6ed15:src/lib/posters.ts#L25-L45"
+    },
+    "#/components/schemas/Poster/properties/height/type": {
+      "classification": "typescript-derived-inference",
+      "citation": "9e6ed15:src/lib/posters.ts#L25-L45"
+    },
+    "#/components/schemas/Poster/additionalProperties": {
+      "classification": "typescript-derived-inference",
+      "citation": "9e6ed15:src/lib/posters.ts#L25-L45"
+    },
+    "#/servers/0/url": {
+      "classification": "typescript-derived-inference",
+      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/servers/0/url"
+    }
+  }
 }

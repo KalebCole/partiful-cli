@@ -3,6 +3,16 @@ import evidence from '../spec/partiful.api-evidence.json';
 import spec from '../spec/partiful.openapi.json';
 
 const methods = new Set(['get', 'post', 'put', 'patch', 'delete']);
+const ignoredKeys = new Set(['description', 'summary', 'title']);
+const materialMapKeys = new Set([
+  'properties',
+  'responses',
+  'content',
+  'schemas',
+  'parameters',
+  'requestBodies',
+  'securitySchemes',
+]);
 const hosts = {
   firebaseCallable: 'https://api.partiful.com',
   firestore: 'https://firestore.googleapis.com',
@@ -20,28 +30,63 @@ function operations() {
   );
 }
 
+function escapePointerSegment(value) {
+  return value.replaceAll('~', '~0').replaceAll('/', '~1');
+}
+
+function materialClaimPointers(value, pointer, parentKey = '') {
+  if (value === null || typeof value !== 'object') {
+    return ignoredKeys.has(parentKey) ? [] : [pointer];
+  }
+  if (Array.isArray(value)) {
+    return value.flatMap((item, index) =>
+      materialClaimPointers(item, `${pointer}/${index}`, parentKey),
+    );
+  }
+  return Object.entries(value).flatMap(([key, child]) => {
+    const childPointer = `${pointer}/${escapePointerSegment(key)}`;
+    const namedClaim = materialMapKeys.has(parentKey) ? [childPointer] : [];
+    return [
+      ...namedClaim,
+      ...(ignoredKeys.has(key) ? [] : materialClaimPointers(child, childPointer, key)),
+    ];
+  });
+}
+
 describe('remote API contract', () => {
-  it('is a versioned OpenAPI 3.1 document with unique operation IDs', () => {
+  it('is a proposed, consistently versioned OpenAPI 3.1 document with unique operation IDs', () => {
     expect(spec.openapi).toBe('3.1.0');
-    expect(spec.info.version).toBe('1.0.0');
+    expect(spec.info.version).toBe(evidence.contractRevision);
+    expect(evidence.status).toBe('proposed-pending-owner-approval');
+    expect(spec.info.description).toContain('Proposed');
     const ids = operations().map(({ operation }) => operation.operationId);
     expect(ids).toHaveLength(27);
     expect(new Set(ids).size).toBe(ids.length);
   });
 
-  it('covers every operation and material schema with allowed evidence', () => {
+  it('covers every operation and material OpenAPI claim with a precise citation', () => {
     const allowed = new Set(evidence.allowedClassifications);
-    const operationEvidence = new Map(evidence.operations);
     for (const { operation } of operations()) {
-      expect(allowed.has(operationEvidence.get(operation.operationId))).toBe(true);
-      const claim = evidence.operationClaims[operation.operationId] ?? evidence.operationClaims.default;
+      const operationEvidence = evidence.operations[operation.operationId];
+      expect(operationEvidence, operation.operationId).toBeDefined();
+      expect(allowed.has(operationEvidence.classification)).toBe(true);
+      expect(operationEvidence.citation).toMatch(/(#|#L)/);
+      const claim = evidence.operationClaims[operation.operationId];
+      expect(claim, operation.operationId).toBeDefined();
       expect(allowed.has(claim.request)).toBe(true);
       expect(allowed.has(claim.response)).toBe(true);
     }
-    for (const schemaName of Object.keys(spec.components.schemas)) {
-      const claim = evidence.schemaClaims[schemaName];
-      expect(claim, schemaName).toBeDefined();
-      expect(allowed.has(claim.classification), schemaName).toBe(true);
+    const pointers = [
+      ...materialClaimPointers(spec.servers, '#/servers', 'servers'),
+      ...materialClaimPointers(spec.paths, '#/paths', 'paths'),
+      ...materialClaimPointers(spec.components, '#/components', 'components'),
+    ];
+    expect(pointers.length).toBeGreaterThan(0);
+    for (const pointer of pointers) {
+      const claim = evidence.claims[pointer];
+      expect(claim, pointer).toBeDefined();
+      expect(allowed.has(claim.classification), pointer).toBe(true);
+      expect(claim.citation, pointer).toMatch(/(#|#L)/);
     }
   });
 
@@ -64,6 +109,13 @@ describe('remote API contract', () => {
     }
   });
 
+  it('does not assert an unknown status code as a success response', () => {
+    for (const { operation } of operations()) {
+      expect(Object.keys(operation.responses)).toEqual(['default']);
+      expect(evidence.operationClaims[operation.operationId].status).toBe('explicit-unknown');
+    }
+  });
+
   it('uses the observed nested text-blast message and excludes the superseded shape', () => {
     const params = spec.components.schemas.TextBlastRequest.properties.data.properties.params;
     expect(params.properties.message.$ref).toBe('#/components/schemas/TextBlastMessage');
@@ -72,5 +124,16 @@ describe('remote API contract', () => {
       expect.arrayContaining(['text', 'to', 'showOnEventPage']),
     );
     expect(evidence.contradictions.find(({ id }) => id === 'text-blast-message-shape')?.status).toBe('resolved');
+  });
+
+  it('does not treat the event-image observation as poster-catalog evidence', () => {
+    const posterOperation = evidence.operations.getPosterCatalog;
+    expect(posterOperation.classification).toBe('typescript-derived-inference');
+    expect(posterOperation.citation).toBe(evidence.sources.posterTransport);
+    for (const [pointer, claim] of Object.entries(evidence.claims)) {
+      if (pointer.includes('/posters.json') || pointer.includes('/Poster')) {
+        expect(claim.citation).not.toBe(evidence.sources.eventImageObservation);
+      }
+    }
   });
 });
