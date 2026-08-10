@@ -17,8 +17,10 @@ only and are not part of `spec/partiful.openapi.json`.
 No safe live observation in this reconstruction establishes an HTTP success
 status for every operation. The proposal therefore uses OpenAPI `default`
 responses and records each response-status claim as `explicit-unknown`.
-This decision supports only the response **status key**. Response content and
-schema claims separately cite their actual wire-shape source.
+This decision supports both the response **status key** and the explicit
+unknown response/body classification. The proposal deliberately attaches no
+content schema to `default`; reusable response shapes remain unattached
+research evidence until an applicable status/class is observed.
 
 ## Update-mask serialization
 

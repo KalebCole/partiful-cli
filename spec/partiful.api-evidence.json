@@ -129,191 +129,218 @@
   "operationClaims": {
     "createEvent": {
       "request": "typescript-derived-inference",
-      "response": "typescript-derived-inference",
+      "requestCitation": "spec/research/historical-27-operation-draft.json#/paths/~1createEvent/post",
+      "response": "explicit-unknown",
+      "responseCitation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision",
       "status": "explicit-unknown",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1createEvent/post",
       "statusCitation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision"
     },
     "cancelEvent": {
       "request": "typescript-derived-inference",
-      "response": "typescript-derived-inference",
+      "requestCitation": "spec/research/historical-27-operation-draft.json#/paths/~1cancelEvent/post",
+      "response": "explicit-unknown",
+      "responseCitation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision",
       "status": "explicit-unknown",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1cancelEvent/post",
       "statusCitation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision"
     },
     "getEventInfo": {
       "request": "typescript-derived-inference",
-      "response": "typescript-derived-inference",
+      "requestCitation": "spec/research/historical-27-operation-draft.json#/paths/~1getEventInfo/post",
+      "response": "explicit-unknown",
+      "responseCitation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision",
       "status": "explicit-unknown",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1getEventInfo/post",
       "statusCitation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision"
     },
     "getContacts": {
       "request": "typescript-derived-inference",
-      "response": "typescript-derived-inference",
+      "requestCitation": "spec/research/historical-27-operation-draft.json#/paths/~1getContacts/post",
+      "response": "explicit-unknown",
+      "responseCitation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision",
       "status": "explicit-unknown",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1getContacts/post",
       "statusCitation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision"
     },
     "createTextBlast": {
       "request": "dated-live-observation",
-      "response": "typescript-derived-inference",
+      "requestCitation": "docs/research/2026-08-10-contract-evidence-sources.md#dated-text-blast-observation",
+      "response": "explicit-unknown",
+      "responseCitation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision",
       "status": "explicit-unknown",
-      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#dated-text-blast-observation",
       "statusCitation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision"
     },
     "addInvitedGuestsAsHost": {
       "request": "typescript-derived-inference",
-      "response": "typescript-derived-inference",
+      "requestCitation": "spec/research/historical-27-operation-draft.json#/paths/~1addInvitedGuestsAsHost/post",
+      "response": "explicit-unknown",
+      "responseCitation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision",
       "status": "explicit-unknown",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1addInvitedGuestsAsHost/post",
       "statusCitation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision"
     },
     "createCohostRequest": {
       "request": "typescript-derived-inference",
-      "response": "typescript-derived-inference",
+      "requestCitation": "spec/research/historical-27-operation-draft.json#/paths/~1createCohostRequest/post",
+      "response": "explicit-unknown",
+      "responseCitation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision",
       "status": "explicit-unknown",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1createCohostRequest/post",
       "statusCitation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision"
     },
     "deleteCohostRequest": {
       "request": "typescript-derived-inference",
-      "response": "typescript-derived-inference",
+      "requestCitation": "spec/research/historical-27-operation-draft.json#/paths/~1deleteCohostRequest/post",
+      "response": "explicit-unknown",
+      "responseCitation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision",
       "status": "explicit-unknown",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1deleteCohostRequest/post",
       "statusCitation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision"
     },
     "removeCohost": {
       "request": "typescript-derived-inference",
-      "response": "typescript-derived-inference",
+      "requestCitation": "spec/research/historical-27-operation-draft.json#/paths/~1removeCohost/post",
+      "response": "explicit-unknown",
+      "responseCitation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision",
       "status": "explicit-unknown",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1removeCohost/post",
       "statusCitation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision"
     },
     "generateEventCohostLink": {
       "request": "typescript-derived-inference",
-      "response": "typescript-derived-inference",
+      "requestCitation": "spec/research/historical-27-operation-draft.json#/paths/~1generateEventCohostLink/post",
+      "response": "explicit-unknown",
+      "responseCitation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision",
       "status": "explicit-unknown",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1generateEventCohostLink/post",
       "statusCitation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision"
     },
     "revokeEventCohostLink": {
       "request": "typescript-derived-inference",
-      "response": "typescript-derived-inference",
+      "requestCitation": "spec/research/historical-27-operation-draft.json#/paths/~1revokeEventCohostLink/post",
+      "response": "explicit-unknown",
+      "responseCitation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision",
       "status": "explicit-unknown",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1revokeEventCohostLink/post",
       "statusCitation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision"
     },
     "getMyUpcomingEventsForHomePage": {
       "request": "typescript-derived-inference",
-      "response": "typescript-derived-inference",
+      "requestCitation": "spec/research/historical-27-operation-draft.json#/paths/~1getMyUpcomingEventsForHomePage/post",
+      "response": "explicit-unknown",
+      "responseCitation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision",
       "status": "explicit-unknown",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1getMyUpcomingEventsForHomePage/post",
       "statusCitation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision"
     },
     "getMyPastEventsForHomePage": {
       "request": "typescript-derived-inference",
-      "response": "typescript-derived-inference",
+      "requestCitation": "spec/research/historical-27-operation-draft.json#/paths/~1getMyPastEventsForHomePage/post",
+      "response": "explicit-unknown",
+      "responseCitation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision",
       "status": "explicit-unknown",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1getMyPastEventsForHomePage/post",
       "statusCitation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision"
     },
     "addGuest": {
       "request": "typescript-derived-inference",
-      "response": "typescript-derived-inference",
+      "requestCitation": "spec/research/historical-27-operation-draft.json#/paths/~1addGuest/post",
+      "response": "explicit-unknown",
+      "responseCitation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision",
       "status": "explicit-unknown",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1addGuest/post",
       "statusCitation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision"
     },
     "markEventInterest": {
       "request": "typescript-derived-inference",
-      "response": "typescript-derived-inference",
+      "requestCitation": "spec/research/historical-27-operation-draft.json#/paths/~1markEventInterest/post",
+      "response": "explicit-unknown",
+      "responseCitation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision",
       "status": "explicit-unknown",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1markEventInterest/post",
       "statusCitation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision"
     },
     "getCurrentGuest": {
       "request": "typescript-derived-inference",
-      "response": "typescript-derived-inference",
+      "requestCitation": "spec/research/historical-27-operation-draft.json#/paths/~1getCurrentGuest/post",
+      "response": "explicit-unknown",
+      "responseCitation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision",
       "status": "explicit-unknown",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1getCurrentGuest/post",
       "statusCitation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision"
     },
     "firestoreGetEvent": {
       "request": "typescript-derived-inference",
-      "response": "typescript-derived-inference",
+      "requestCitation": "spec/research/historical-27-operation-draft.json#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1events~1{eventId}/get",
+      "response": "explicit-unknown",
+      "responseCitation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision",
       "status": "explicit-unknown",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1events~1{eventId}/get",
       "statusCitation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision"
     },
     "firestorePatchEvent": {
       "request": "typescript-derived-inference",
-      "response": "typescript-derived-inference",
+      "requestCitation": "spec/research/historical-27-operation-draft.json#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1events~1{eventId}/patch",
+      "response": "explicit-unknown",
+      "responseCitation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision",
       "status": "explicit-unknown",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1events~1{eventId}/patch",
       "statusCitation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision"
     },
     "firestoreGetGuest": {
       "request": "typescript-derived-inference",
-      "response": "typescript-derived-inference",
+      "requestCitation": "spec/research/historical-27-operation-draft.json#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1events~1{eventId}~1guests~1{guestId}/get",
+      "response": "explicit-unknown",
+      "responseCitation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision",
       "status": "explicit-unknown",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1events~1{eventId}~1guests~1{guestId}/get",
       "statusCitation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision"
     },
     "firestoreListDocuments": {
       "request": "typescript-derived-inference",
-      "response": "typescript-derived-inference",
+      "requestCitation": "spec/research/historical-27-operation-draft.json#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1{collectionPath}/get",
+      "response": "explicit-unknown",
+      "responseCitation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision",
       "status": "explicit-unknown",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1{collectionPath}/get",
       "statusCitation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision"
     },
     "refreshToken": {
       "request": "typescript-derived-inference",
-      "response": "typescript-derived-inference",
+      "requestCitation": "spec/research/historical-27-operation-draft.json#/paths/~1v1~1token/post",
+      "response": "explicit-unknown",
+      "responseCitation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision",
       "status": "explicit-unknown",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1v1~1token/post",
       "statusCitation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision"
     },
     "sendAuthCodeTrusted": {
       "request": "typescript-derived-inference",
-      "response": "typescript-derived-inference",
+      "requestCitation": "spec/research/historical-27-operation-draft.json#/paths/~1sendAuthCodeTrusted/post",
+      "response": "explicit-unknown",
+      "responseCitation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision",
       "status": "explicit-unknown",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1sendAuthCodeTrusted/post",
       "statusCitation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision"
     },
     "getLoginToken": {
       "request": "dated-live-observation",
-      "response": "typescript-derived-inference",
+      "requestCitation": "docs/research/2026-08-10-contract-evidence-sources.md#dated-authentication-observation",
+      "response": "explicit-unknown",
+      "responseCitation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision",
       "status": "explicit-unknown",
-      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#dated-authentication-observation",
       "statusCitation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision"
     },
     "signInWithCustomToken": {
       "request": "dated-live-observation",
-      "response": "typescript-derived-inference",
+      "requestCitation": "docs/research/2026-08-10-contract-evidence-sources.md#dated-authentication-observation",
+      "response": "explicit-unknown",
+      "responseCitation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision",
       "status": "explicit-unknown",
-      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#dated-authentication-observation",
       "statusCitation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision"
     },
     "lookupFirebaseUser": {
       "request": "typescript-derived-inference",
-      "response": "typescript-derived-inference",
+      "requestCitation": "spec/research/historical-27-operation-draft.json#/paths/~1v1~1accounts:lookup/post",
+      "response": "explicit-unknown",
+      "responseCitation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision",
       "status": "explicit-unknown",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1v1~1accounts:lookup/post",
       "statusCitation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision"
     },
     "uploadEventPhoto": {
       "request": "typescript-derived-inference",
-      "response": "typescript-derived-inference",
+      "requestCitation": "spec/research/historical-27-operation-draft.json#/paths/~1uploadPhoto/post",
+      "response": "explicit-unknown",
+      "responseCitation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision",
       "status": "explicit-unknown",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1uploadPhoto/post",
       "statusCitation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision"
     },
     "getPosterCatalog": {
       "request": "typescript-derived-inference",
-      "response": "typescript-derived-inference",
+      "requestCitation": "docs/research/2026-08-10-contract-evidence-sources.md#poster-catalog-fetch",
+      "response": "explicit-unknown",
+      "responseCitation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision",
       "status": "explicit-unknown",
-      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#poster-catalog-fetch",
       "statusCitation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision"
     }
   },
@@ -468,14 +495,6 @@
       "classification": "explicit-unknown",
       "citation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision"
     },
-    "#/paths/~1createEvent/post/responses/default/content/application~1json": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1createEvent/post/responses/200/content/application~1json"
-    },
-    "#/paths/~1createEvent/post/responses/default/content/application~1json/schema/$ref": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1createEvent/post/responses/200/content/application~1json/schema/$ref"
-    },
     "#/paths/~1createEvent/post/security/0/firebaseBearer": {
       "classification": "typescript-derived-inference",
       "citation": "spec/research/historical-27-operation-draft.json#/paths/~1createEvent/post/security/0/firebaseBearer"
@@ -583,14 +602,6 @@
     "#/paths/~1cancelEvent/post/responses/default": {
       "classification": "explicit-unknown",
       "citation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision"
-    },
-    "#/paths/~1cancelEvent/post/responses/default/content/application~1json": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1cancelEvent/post/responses/200/content/application~1json"
-    },
-    "#/paths/~1cancelEvent/post/responses/default/content/application~1json/schema/$ref": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1cancelEvent/post/responses/200/content/application~1json/schema/$ref"
     },
     "#/paths/~1cancelEvent/post/security/0/firebaseBearer": {
       "classification": "typescript-derived-inference",
@@ -700,14 +711,6 @@
       "classification": "explicit-unknown",
       "citation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision"
     },
-    "#/paths/~1getEventInfo/post/responses/default/content/application~1json": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1getEventInfo/post/responses/200/content/application~1json"
-    },
-    "#/paths/~1getEventInfo/post/responses/default/content/application~1json/schema/$ref": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1getEventInfo/post/responses/200/content/application~1json/schema/$ref"
-    },
     "#/paths/~1getEventInfo/post/security/0/firebaseBearer": {
       "classification": "typescript-derived-inference",
       "citation": "spec/research/historical-27-operation-draft.json#/paths/~1getEventInfo/post/security/0/firebaseBearer"
@@ -803,14 +806,6 @@
     "#/paths/~1getContacts/post/responses/default": {
       "classification": "explicit-unknown",
       "citation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision"
-    },
-    "#/paths/~1getContacts/post/responses/default/content/application~1json": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1getContacts/post/responses/200/content/application~1json"
-    },
-    "#/paths/~1getContacts/post/responses/default/content/application~1json/schema/$ref": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1getContacts/post/responses/200/content/application~1json/schema/$ref"
     },
     "#/paths/~1getContacts/post/security/0/firebaseBearer": {
       "classification": "typescript-derived-inference",
@@ -976,11 +971,7 @@
       "classification": "dated-live-observation",
       "citation": "docs/research/2026-08-10-contract-evidence-sources.md#dated-text-blast-observation"
     },
-    "#/paths/~1createTextBlast/post/requestBody/content/application~1json/schema/properties/data/properties/userId/type/0": {
-      "classification": "dated-live-observation",
-      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#dated-text-blast-observation"
-    },
-    "#/paths/~1createTextBlast/post/requestBody/content/application~1json/schema/properties/data/properties/userId/type/1": {
+    "#/paths/~1createTextBlast/post/requestBody/content/application~1json/schema/properties/data/properties/userId/type": {
       "classification": "dated-live-observation",
       "citation": "docs/research/2026-08-10-contract-evidence-sources.md#dated-text-blast-observation"
     },
@@ -995,14 +986,6 @@
     "#/paths/~1createTextBlast/post/responses/default": {
       "classification": "explicit-unknown",
       "citation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision"
-    },
-    "#/paths/~1createTextBlast/post/responses/default/content/application~1json": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1createTextBlast/post/responses/200/content/application~1json"
-    },
-    "#/paths/~1createTextBlast/post/responses/default/content/application~1json/schema/$ref": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1createTextBlast/post/responses/200/content/application~1json/schema/$ref"
     },
     "#/paths/~1createTextBlast/post/security/0/firebaseBearer": {
       "classification": "typescript-derived-inference",
@@ -1132,14 +1115,6 @@
       "classification": "explicit-unknown",
       "citation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision"
     },
-    "#/paths/~1addInvitedGuestsAsHost/post/responses/default/content/application~1json": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1addInvitedGuestsAsHost/post/responses/200/content/application~1json"
-    },
-    "#/paths/~1addInvitedGuestsAsHost/post/responses/default/content/application~1json/schema/$ref": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1addInvitedGuestsAsHost/post/responses/200/content/application~1json/schema/$ref"
-    },
     "#/paths/~1addInvitedGuestsAsHost/post/security/0/firebaseBearer": {
       "classification": "typescript-derived-inference",
       "citation": "spec/research/historical-27-operation-draft.json#/paths/~1addInvitedGuestsAsHost/post/security/0/firebaseBearer"
@@ -1259,14 +1234,6 @@
     "#/paths/~1createCohostRequest/post/responses/default": {
       "classification": "explicit-unknown",
       "citation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision"
-    },
-    "#/paths/~1createCohostRequest/post/responses/default/content/application~1json": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1createCohostRequest/post/responses/200/content/application~1json"
-    },
-    "#/paths/~1createCohostRequest/post/responses/default/content/application~1json/schema/$ref": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1createCohostRequest/post/responses/200/content/application~1json/schema/$ref"
     },
     "#/paths/~1createCohostRequest/post/security/0/firebaseBearer": {
       "classification": "typescript-derived-inference",
@@ -1388,14 +1355,6 @@
       "classification": "explicit-unknown",
       "citation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision"
     },
-    "#/paths/~1deleteCohostRequest/post/responses/default/content/application~1json": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1deleteCohostRequest/post/responses/200/content/application~1json"
-    },
-    "#/paths/~1deleteCohostRequest/post/responses/default/content/application~1json/schema/$ref": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1deleteCohostRequest/post/responses/200/content/application~1json/schema/$ref"
-    },
     "#/paths/~1deleteCohostRequest/post/security/0/firebaseBearer": {
       "classification": "typescript-derived-inference",
       "citation": "spec/research/historical-27-operation-draft.json#/paths/~1deleteCohostRequest/post/security/0/firebaseBearer"
@@ -1516,14 +1475,6 @@
       "classification": "explicit-unknown",
       "citation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision"
     },
-    "#/paths/~1removeCohost/post/responses/default/content/application~1json": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1removeCohost/post/responses/200/content/application~1json"
-    },
-    "#/paths/~1removeCohost/post/responses/default/content/application~1json/schema/$ref": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1removeCohost/post/responses/200/content/application~1json/schema/$ref"
-    },
     "#/paths/~1removeCohost/post/security/0/firebaseBearer": {
       "classification": "typescript-derived-inference",
       "citation": "spec/research/historical-27-operation-draft.json#/paths/~1removeCohost/post/security/0/firebaseBearer"
@@ -1631,14 +1582,6 @@
     "#/paths/~1generateEventCohostLink/post/responses/default": {
       "classification": "explicit-unknown",
       "citation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision"
-    },
-    "#/paths/~1generateEventCohostLink/post/responses/default/content/application~1json": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1generateEventCohostLink/post/responses/200/content/application~1json"
-    },
-    "#/paths/~1generateEventCohostLink/post/responses/default/content/application~1json/schema/$ref": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1generateEventCohostLink/post/responses/200/content/application~1json/schema/$ref"
     },
     "#/paths/~1generateEventCohostLink/post/security/0/firebaseBearer": {
       "classification": "typescript-derived-inference",
@@ -1748,14 +1691,6 @@
       "classification": "explicit-unknown",
       "citation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision"
     },
-    "#/paths/~1revokeEventCohostLink/post/responses/default/content/application~1json": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1revokeEventCohostLink/post/responses/200/content/application~1json"
-    },
-    "#/paths/~1revokeEventCohostLink/post/responses/default/content/application~1json/schema/$ref": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1revokeEventCohostLink/post/responses/200/content/application~1json/schema/$ref"
-    },
     "#/paths/~1revokeEventCohostLink/post/security/0/firebaseBearer": {
       "classification": "typescript-derived-inference",
       "citation": "spec/research/historical-27-operation-draft.json#/paths/~1revokeEventCohostLink/post/security/0/firebaseBearer"
@@ -1852,14 +1787,6 @@
       "classification": "explicit-unknown",
       "citation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision"
     },
-    "#/paths/~1getMyUpcomingEventsForHomePage/post/responses/default/content/application~1json": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1getMyUpcomingEventsForHomePage/post/responses/200/content/application~1json"
-    },
-    "#/paths/~1getMyUpcomingEventsForHomePage/post/responses/default/content/application~1json/schema/$ref": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1getMyUpcomingEventsForHomePage/post/responses/200/content/application~1json/schema/$ref"
-    },
     "#/paths/~1getMyUpcomingEventsForHomePage/post/security/0/firebaseBearer": {
       "classification": "typescript-derived-inference",
       "citation": "spec/research/historical-27-operation-draft.json#/paths/~1getMyUpcomingEventsForHomePage/post/security/0/firebaseBearer"
@@ -1955,14 +1882,6 @@
     "#/paths/~1getMyPastEventsForHomePage/post/responses/default": {
       "classification": "explicit-unknown",
       "citation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision"
-    },
-    "#/paths/~1getMyPastEventsForHomePage/post/responses/default/content/application~1json": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1getMyPastEventsForHomePage/post/responses/200/content/application~1json"
-    },
-    "#/paths/~1getMyPastEventsForHomePage/post/responses/default/content/application~1json/schema/$ref": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1getMyPastEventsForHomePage/post/responses/200/content/application~1json/schema/$ref"
     },
     "#/paths/~1getMyPastEventsForHomePage/post/security/0/firebaseBearer": {
       "classification": "typescript-derived-inference",
@@ -2083,14 +2002,6 @@
     "#/paths/~1addGuest/post/responses/default": {
       "classification": "explicit-unknown",
       "citation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision"
-    },
-    "#/paths/~1addGuest/post/responses/default/content/application~1json": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1addGuest/post/responses/200/content/application~1json"
-    },
-    "#/paths/~1addGuest/post/responses/default/content/application~1json/schema/$ref": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1addGuest/post/responses/200/content/application~1json/schema/$ref"
     },
     "#/paths/~1addGuest/post/security/0/firebaseBearer": {
       "classification": "typescript-derived-inference",
@@ -2224,14 +2135,6 @@
       "classification": "explicit-unknown",
       "citation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision"
     },
-    "#/paths/~1markEventInterest/post/responses/default/content/application~1json": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1markEventInterest/post/responses/200/content/application~1json"
-    },
-    "#/paths/~1markEventInterest/post/responses/default/content/application~1json/schema/$ref": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1markEventInterest/post/responses/200/content/application~1json/schema/$ref"
-    },
     "#/paths/~1markEventInterest/post/security/0/firebaseBearer": {
       "classification": "typescript-derived-inference",
       "citation": "spec/research/historical-27-operation-draft.json#/paths/~1markEventInterest/post/security/0/firebaseBearer"
@@ -2340,14 +2243,6 @@
       "classification": "explicit-unknown",
       "citation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision"
     },
-    "#/paths/~1getCurrentGuest/post/responses/default/content/application~1json": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1getCurrentGuest/post/responses/200/content/application~1json"
-    },
-    "#/paths/~1getCurrentGuest/post/responses/default/content/application~1json/schema/$ref": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1getCurrentGuest/post/responses/200/content/application~1json/schema/$ref"
-    },
     "#/paths/~1getCurrentGuest/post/security/0/firebaseBearer": {
       "classification": "typescript-derived-inference",
       "citation": "spec/research/historical-27-operation-draft.json#/paths/~1getCurrentGuest/post/security/0/firebaseBearer"
@@ -2375,14 +2270,6 @@
     "#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1events~1{eventId}/get/responses/default": {
       "classification": "explicit-unknown",
       "citation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision"
-    },
-    "#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1events~1{eventId}/get/responses/default/content/application~1json": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1events~1{eventId}/get/responses/200/content/application~1json"
-    },
-    "#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1events~1{eventId}/get/responses/default/content/application~1json/schema/$ref": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1events~1{eventId}/get/responses/200/content/application~1json/schema/$ref"
     },
     "#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1events~1{eventId}/get/security/0/firebaseBearer": {
       "classification": "typescript-derived-inference",
@@ -2456,14 +2343,6 @@
       "classification": "explicit-unknown",
       "citation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision"
     },
-    "#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1events~1{eventId}/patch/responses/default/content/application~1json": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1events~1{eventId}/patch/responses/200/content/application~1json"
-    },
-    "#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1events~1{eventId}/patch/responses/default/content/application~1json/schema/$ref": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1events~1{eventId}/patch/responses/200/content/application~1json/schema/$ref"
-    },
     "#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1events~1{eventId}/patch/security/0/firebaseBearer": {
       "classification": "typescript-derived-inference",
       "citation": "spec/research/historical-27-operation-draft.json#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1events~1{eventId}/patch/security/0/firebaseBearer"
@@ -2512,14 +2391,6 @@
       "classification": "explicit-unknown",
       "citation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision"
     },
-    "#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1events~1{eventId}~1guests~1{guestId}/get/responses/default/content/application~1json": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1events~1{eventId}~1guests~1{guestId}/get/responses/200/content/application~1json"
-    },
-    "#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1events~1{eventId}~1guests~1{guestId}/get/responses/default/content/application~1json/schema/$ref": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1events~1{eventId}~1guests~1{guestId}/get/responses/200/content/application~1json/schema/$ref"
-    },
     "#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1events~1{eventId}~1guests~1{guestId}/get/security/0/firebaseBearer": {
       "classification": "typescript-derived-inference",
       "citation": "spec/research/historical-27-operation-draft.json#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1events~1{eventId}~1guests~1{guestId}/get/security/0/firebaseBearer"
@@ -2564,10 +2435,6 @@
       "classification": "typescript-derived-inference",
       "citation": "spec/research/historical-27-operation-draft.json#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1{collectionPath}/get/parameters/1/schema/type"
     },
-    "#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1{collectionPath}/get/parameters/1/schema/default": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1{collectionPath}/get/parameters/1/schema/default"
-    },
     "#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1{collectionPath}/get/parameters/2/name": {
       "classification": "typescript-derived-inference",
       "citation": "spec/research/historical-27-operation-draft.json#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1{collectionPath}/get/parameters/2/name"
@@ -2587,14 +2454,6 @@
     "#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1{collectionPath}/get/responses/default": {
       "classification": "explicit-unknown",
       "citation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision"
-    },
-    "#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1{collectionPath}/get/responses/default/content/application~1json": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1{collectionPath}/get/responses/200/content/application~1json"
-    },
-    "#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1{collectionPath}/get/responses/default/content/application~1json/schema/$ref": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1{collectionPath}/get/responses/200/content/application~1json/schema/$ref"
     },
     "#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1{collectionPath}/get/security/0/firebaseBearer": {
       "classification": "typescript-derived-inference",
@@ -2655,14 +2514,6 @@
     "#/paths/~1v1~1token/post/responses/default": {
       "classification": "explicit-unknown",
       "citation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision"
-    },
-    "#/paths/~1v1~1token/post/responses/default/content/application~1json": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1v1~1token/post/responses/200/content/application~1json"
-    },
-    "#/paths/~1v1~1token/post/responses/default/content/application~1json/schema/$ref": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1v1~1token/post/responses/200/content/application~1json/schema/$ref"
     },
     "#/paths/~1v1~1token/post/security/0/firebaseApiKey": {
       "classification": "typescript-derived-inference",
@@ -2832,14 +2683,6 @@
       "classification": "explicit-unknown",
       "citation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision"
     },
-    "#/paths/~1sendAuthCodeTrusted/post/responses/default/content/application~1json": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1sendAuthCodeTrusted/post/responses/200/content/application~1json"
-    },
-    "#/paths/~1sendAuthCodeTrusted/post/responses/default/content/application~1json/schema/$ref": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1sendAuthCodeTrusted/post/responses/200/content/application~1json/schema/$ref"
-    },
     "#/paths/~1getLoginToken/post/operationId": {
       "classification": "typescript-derived-inference",
       "citation": "spec/research/historical-27-operation-draft.json#/paths/~1getLoginToken/post/operationId"
@@ -2976,14 +2819,6 @@
       "classification": "explicit-unknown",
       "citation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision"
     },
-    "#/paths/~1getLoginToken/post/responses/default/content/application~1json": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1getLoginToken/post/responses/200/content/application~1json"
-    },
-    "#/paths/~1getLoginToken/post/responses/default/content/application~1json/schema/$ref": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1getLoginToken/post/responses/200/content/application~1json/schema/$ref"
-    },
     "#/paths/~1v1~1accounts:signInWithCustomToken/post/operationId": {
       "classification": "typescript-derived-inference",
       "citation": "spec/research/historical-27-operation-draft.json#/paths/~1v1~1accounts:signInWithCustomToken/post/operationId"
@@ -3032,14 +2867,6 @@
       "classification": "explicit-unknown",
       "citation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision"
     },
-    "#/paths/~1v1~1accounts:signInWithCustomToken/post/responses/default/content/application~1json": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1v1~1accounts:signInWithCustomToken/post/responses/200/content/application~1json"
-    },
-    "#/paths/~1v1~1accounts:signInWithCustomToken/post/responses/default/content/application~1json/schema/$ref": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1v1~1accounts:signInWithCustomToken/post/responses/200/content/application~1json/schema/$ref"
-    },
     "#/paths/~1v1~1accounts:signInWithCustomToken/post/security/0/firebaseApiKey": {
       "classification": "typescript-derived-inference",
       "citation": "spec/research/historical-27-operation-draft.json#/paths/~1v1~1accounts:signInWithCustomToken/post/security/0/firebaseApiKey"
@@ -3083,14 +2910,6 @@
     "#/paths/~1v1~1accounts:lookup/post/responses/default": {
       "classification": "explicit-unknown",
       "citation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision"
-    },
-    "#/paths/~1v1~1accounts:lookup/post/responses/default/content/application~1json": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1v1~1accounts:lookup/post/responses/200/content/application~1json"
-    },
-    "#/paths/~1v1~1accounts:lookup/post/responses/default/content/application~1json/schema/$ref": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1v1~1accounts:lookup/post/responses/200/content/application~1json/schema/$ref"
     },
     "#/paths/~1v1~1accounts:lookup/post/security/0/firebaseApiKey": {
       "classification": "typescript-derived-inference",
@@ -3160,14 +2979,6 @@
       "classification": "explicit-unknown",
       "citation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision"
     },
-    "#/paths/~1uploadPhoto/post/responses/default/content/application~1json": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1uploadPhoto/post/responses/200/content/application~1json"
-    },
-    "#/paths/~1uploadPhoto/post/responses/default/content/application~1json/schema/$ref": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1uploadPhoto/post/responses/200/content/application~1json/schema/$ref"
-    },
     "#/paths/~1uploadPhoto/post/security/0/firebaseBearer": {
       "classification": "typescript-derived-inference",
       "citation": "spec/research/historical-27-operation-draft.json#/paths/~1uploadPhoto/post/security/0/firebaseBearer"
@@ -3183,18 +2994,6 @@
     "#/paths/~1posters.json/get/responses/default": {
       "classification": "explicit-unknown",
       "citation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision"
-    },
-    "#/paths/~1posters.json/get/responses/default/content/application~1json": {
-      "classification": "typescript-derived-inference",
-      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#poster-catalog-fetch"
-    },
-    "#/paths/~1posters.json/get/responses/default/content/application~1json/schema/type": {
-      "classification": "typescript-derived-inference",
-      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#poster-catalog-fetch"
-    },
-    "#/paths/~1posters.json/get/responses/default/content/application~1json/schema/items/$ref": {
-      "classification": "typescript-derived-inference",
-      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#poster-catalog-fetch"
     },
     "#/paths/~1posters.json/get/servers/0/url": {
       "classification": "typescript-derived-inference",

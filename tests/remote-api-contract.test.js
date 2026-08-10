@@ -4,6 +4,9 @@ import path from 'node:path';
 import evidence from '../spec/partiful.api-evidence.json';
 import spec from '../spec/partiful.openapi.json';
 
+const historicalDraftPath = 'spec/research/historical-27-operation-draft.json';
+const historicalDraft = JSON.parse(fs.readFileSync(historicalDraftPath, 'utf8'));
+const sourceCache = new Map([[historicalDraftPath, historicalDraft]]);
 const methods = new Set(['get', 'post', 'put', 'patch', 'delete']);
 const ignoredKeys = new Set(['description', 'summary', 'title']);
 const materialMapKeys = new Set([
@@ -54,7 +57,7 @@ function materialClaimPointers(value, pointer, parentKey = '') {
 }
 
 function jsonPointerValue(value, pointer) {
-  for (const rawSegment of pointer.replace(/^\//, '').split('/')) {
+  for (const rawSegment of pointer.replace(/^#/, '').replace(/^\//, '').split('/')) {
     if (!rawSegment) continue;
     const segment = rawSegment.replaceAll('~1', '/').replaceAll('~0', '~');
     if (value === null || typeof value !== 'object' || !(segment in value)) return undefined;
@@ -82,11 +85,14 @@ function citationResolves(citation) {
   if (!fs.existsSync(source)) return false;
 
   if (sourcePath.endsWith('.json')) {
-    let value;
-    try {
-      value = JSON.parse(fs.readFileSync(source, 'utf8'));
-    } catch {
-      return false;
+    let value = sourceCache.get(sourcePath);
+    if (!value) {
+      try {
+        value = JSON.parse(fs.readFileSync(source, 'utf8'));
+        sourceCache.set(sourcePath, value);
+      } catch {
+        return false;
+      }
     }
     return jsonPointerValue(value, fragment) !== undefined;
   }
@@ -122,8 +128,9 @@ describe('remote API contract', () => {
       expect(claim, operation.operationId).toBeDefined();
       expect(allowed.has(claim.request)).toBe(true);
       expect(allowed.has(claim.response)).toBe(true);
+      expect(citationResolves(claim.requestCitation), operation.operationId).toBe(true);
+      expect(citationResolves(claim.responseCitation), operation.operationId).toBe(true);
       expect(claim.status).toBe('explicit-unknown');
-      expect(citationResolves(claim.citation), operation.operationId).toBe(true);
       expect(citationResolves(claim.statusCitation), operation.operationId).toBe(true);
     }
     const pointers = new Set([
@@ -131,22 +138,21 @@ describe('remote API contract', () => {
       ...materialClaimPointers(spec.paths, '#/paths', 'paths'),
       ...materialClaimPointers(spec.components, '#/components', 'components'),
     ]);
-    expect(pointers).toHaveLength(876);
+    expect(pointers).toHaveLength(819);
     for (const pointer of pointers) {
       const claim = evidence.claims[pointer];
       expect(claim, pointer).toBeDefined();
       expect(allowed.has(claim.classification), pointer).toBe(true);
       expect(citationResolves(claim.citation), pointer).toBe(true);
-      if (claim.citation.startsWith('spec/research/historical-27-operation-draft.json#')) {
+      if (claim.citation.startsWith(`${historicalDraftPath}#`)) {
         const sourcePointer = claim.citation.slice(
-          'spec/research/historical-27-operation-draft.json'.length,
+          historicalDraftPath.length,
         );
-        const historical = JSON.parse(
-          fs.readFileSync('spec/research/historical-27-operation-draft.json', 'utf8'),
-        );
-        expect(jsonPointerValue(historical, sourcePointer), pointer).toEqual(
-          jsonPointerValue(spec, pointer),
-        );
+        const sourceValue = jsonPointerValue(historicalDraft, sourcePointer);
+        const canonicalValue = jsonPointerValue(spec, pointer);
+        expect(sourceValue, `${pointer} source value`).not.toBeUndefined();
+        expect(canonicalValue, `${pointer} canonical value`).not.toBeUndefined();
+        expect(sourceValue, pointer).toEqual(canonicalValue);
       }
     }
   });
@@ -178,23 +184,26 @@ describe('remote API contract', () => {
   });
 
   it('uses the observed nested text-blast message and excludes the superseded shape', () => {
-    const params = spec.paths['/createTextBlast'].post.requestBody
-      .content['application/json'].schema.properties.data.properties.params;
+    const data = spec.paths['/createTextBlast'].post.requestBody
+      .content['application/json'].schema.properties.data;
+    const params = data.properties.params;
     expect(params.properties.message).toMatchObject({
       type: 'object',
       required: expect.arrayContaining(['text', 'to', 'showOnEventPage']),
     });
+    expect(data.properties.userId).toMatchObject({ type: 'string' });
     expect(params.properties).not.toHaveProperty('recipientStatuses');
     expect(evidence.contradictions.find(({ id }) => id === 'text-blast-message-shape')?.status).toBe('resolved');
   });
 
-  it('separates unknown response status from the response body evidence', () => {
+  it('keeps unknown default responses free of success-body schemas', () => {
     for (const { path, method, operation } of operations()) {
       const base = `#/paths/${escapePointerSegment(path)}/${method}/responses/default`;
       expect(evidence.claims[base].citation).toBe(evidence.sources.unknownStatusDecision);
-      const bodyPointer = `${base}/content/application~1json`;
-      expect(evidence.claims[bodyPointer].citation, operation.operationId)
-        .not.toBe(evidence.sources.unknownStatusDecision);
+      expect(operation.responses.default).not.toHaveProperty('content');
+      const operationClaim = evidence.operationClaims[operation.operationId];
+      expect(operationClaim.response).toBe('explicit-unknown');
+      expect(operationClaim.responseCitation).toBe(evidence.sources.unknownStatusDecision);
     }
   });
 
@@ -245,6 +254,31 @@ describe('remote API contract', () => {
     });
     expect(spec.components.schemas.FirebaseSignInResponse.properties ?? {})
       .not.toHaveProperty('localId');
+  });
+
+  it('does not claim client defaults or client-specific behavior as remote facts', () => {
+    const list = spec.paths[
+      '/v1/projects/getpartiful/databases/(default)/documents/{collectionPath}'
+    ].get;
+    expect(list.parameters.find(({ name }) => name === 'pageSize').schema)
+      .not.toHaveProperty('default');
+    expect(JSON.stringify(spec).toLowerCase()).not.toContain('custom client');
+  });
+
+  it('keeps the human operation summary aligned with machine classifications', () => {
+    const ledger = fs.readFileSync(
+      'docs/research/2026-08-10-partiful-api-contract-evidence-ledger.md',
+      'utf8',
+    );
+    for (const operationId of ['sendAuthCodeTrusted', 'lookupFirebaseUser']) {
+      expect(evidence.operations[operationId].classification).toBe('typescript-derived-inference');
+      expect(ledger).toContain('`' + operationId + '` is a TypeScript-derived inference');
+    }
+  });
+
+  it('rejects missing and mismatched historical evidence values', () => {
+    expect(jsonPointerValue(historicalDraft, '#/not-a-real-pointer')).toBeUndefined();
+    expect(jsonPointerValue(historicalDraft, '#/openapi')).not.toEqual(spec.info.version);
   });
 
   it('does not treat the event-image observation as poster-catalog evidence', () => {

@@ -75,14 +75,7 @@
         },
         "responses": {
           "default": {
-            "description": "Response status is unknown; body shape follows cited research where present.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/CallableResponse"
-                }
-              }
-            }
+            "description": "Response status and body are unknown."
           }
         },
         "security": [
@@ -148,14 +141,7 @@
         },
         "responses": {
           "default": {
-            "description": "Response status is unknown; body shape follows cited research where present.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/CallableResponse"
-                }
-              }
-            }
+            "description": "Response status and body are unknown."
           }
         },
         "security": [
@@ -221,14 +207,7 @@
         },
         "responses": {
           "default": {
-            "description": "Response status is unknown; body shape follows cited research where present.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/CallableResponse"
-                }
-              }
-            }
+            "description": "Response status and body are unknown."
           }
         },
         "security": [
@@ -287,14 +266,7 @@
         },
         "responses": {
           "default": {
-            "description": "Response status is unknown; body shape follows cited research where present.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/CallableResponse"
-                }
-              }
-            }
+            "description": "Response status and body are unknown."
           }
         },
         "security": [
@@ -376,10 +348,7 @@
                         "type": "integer"
                       },
                       "userId": {
-                        "type": [
-                          "string",
-                          "null"
-                        ]
+                        "type": "string"
                       }
                     },
                     "additionalProperties": true
@@ -392,14 +361,7 @@
         },
         "responses": {
           "default": {
-            "description": "Response status is unknown; body shape follows cited research where present.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/CallableResponse"
-                }
-              }
-            }
+            "description": "Response status and body are unknown."
           }
         },
         "security": [
@@ -473,14 +435,7 @@
         },
         "responses": {
           "default": {
-            "description": "Response status is unknown; body shape follows cited research where present.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/CallableResponse"
-                }
-              }
-            }
+            "description": "Response status and body are unknown."
           }
         },
         "security": [
@@ -550,14 +505,7 @@
         },
         "responses": {
           "default": {
-            "description": "Response status is unknown; body shape follows cited research where present.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/CallableResponse"
-                }
-              }
-            }
+            "description": "Response status and body are unknown."
           }
         },
         "security": [
@@ -627,14 +575,7 @@
         },
         "responses": {
           "default": {
-            "description": "Response status is unknown; body shape follows cited research where present.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/CallableResponse"
-                }
-              }
-            }
+            "description": "Response status and body are unknown."
           }
         },
         "security": [
@@ -704,14 +645,7 @@
         },
         "responses": {
           "default": {
-            "description": "Response status is unknown; body shape follows cited research where present.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/CallableResponse"
-                }
-              }
-            }
+            "description": "Response status and body are unknown."
           }
         },
         "security": [
@@ -777,14 +711,7 @@
         },
         "responses": {
           "default": {
-            "description": "Response status is unknown; body shape follows cited research where present.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/CallableResponse"
-                }
-              }
-            }
+            "description": "Response status and body are unknown."
           }
         },
         "security": [
@@ -850,14 +777,7 @@
         },
         "responses": {
           "default": {
-            "description": "Response status is unknown; body shape follows cited research where present.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/CallableResponse"
-                }
-              }
-            }
+            "description": "Response status and body are unknown."
           }
         },
         "security": [
@@ -916,14 +836,7 @@
         },
         "responses": {
           "default": {
-            "description": "Response status is unknown; body shape follows cited research where present.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/CallableResponse"
-                }
-              }
-            }
+            "description": "Response status and body are unknown."
           }
         },
         "security": [
@@ -982,14 +895,7 @@
         },
         "responses": {
           "default": {
-            "description": "Response status is unknown; body shape follows cited research where present.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/CallableResponse"
-                }
-              }
-            }
+            "description": "Response status and body are unknown."
           }
         },
         "security": [
@@ -1059,14 +965,7 @@
         },
         "responses": {
           "default": {
-            "description": "Response status is unknown; body shape follows cited research where present.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/CallableResponse"
-                }
-              }
-            }
+            "description": "Response status and body are unknown."
           }
         },
         "security": [
@@ -1140,14 +1039,7 @@
         },
         "responses": {
           "default": {
-            "description": "Response status is unknown; body shape follows cited research where present.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/CallableResponse"
-                }
-              }
-            }
+            "description": "Response status and body are unknown."
           }
         },
         "security": [
@@ -1213,14 +1105,7 @@
         },
         "responses": {
           "default": {
-            "description": "Response status is unknown; body shape follows cited research where present.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/CallableResponse"
-                }
-              }
-            }
+            "description": "Response status and body are unknown."
           }
         },
         "security": [
@@ -1245,14 +1130,7 @@
         ],
         "responses": {
           "default": {
-            "description": "Response status is unknown; body shape follows cited research where present.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/FirestoreDocument"
-                }
-              }
-            }
+            "description": "Response status and body are unknown."
           }
         },
         "security": [
@@ -1303,14 +1181,7 @@
         },
         "responses": {
           "default": {
-            "description": "Response status is unknown; body shape follows cited research where present.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/FirestoreDocument"
-                }
-              }
-            }
+            "description": "Response status and body are unknown."
           }
         },
         "security": [
@@ -1348,14 +1219,7 @@
         ],
         "responses": {
           "default": {
-            "description": "Response status is unknown; body shape follows cited research where present.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/FirestoreDocument"
-                }
-              }
-            }
+            "description": "Response status and body are unknown."
           }
         },
         "security": [
@@ -1380,16 +1244,14 @@
             "required": true,
             "schema": {
               "type": "string"
-            },
-            "description": "Slash-delimited document collection path; custom client preserves path segments."
+            }
           },
           {
             "name": "pageSize",
             "in": "query",
             "required": false,
             "schema": {
-              "type": "integer",
-              "default": 100
+              "type": "integer"
             }
           },
           {
@@ -1403,14 +1265,7 @@
         ],
         "responses": {
           "default": {
-            "description": "Response status is unknown; body shape follows cited research where present.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/FirestoreListResponse"
-                }
-              }
-            }
+            "description": "Response status and body are unknown."
           }
         },
         "security": [
@@ -1456,14 +1311,7 @@
         },
         "responses": {
           "default": {
-            "description": "Response status is unknown; body shape follows cited research where present.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/RefreshTokenResponse"
-                }
-              }
-            }
+            "description": "Response status and body are unknown."
           }
         },
         "security": [
@@ -1554,14 +1402,7 @@
         },
         "responses": {
           "default": {
-            "description": "Response status is unknown; body shape follows cited research where present.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/CallableResponse"
-                }
-              }
-            }
+            "description": "Response status and body are unknown."
           }
         }
       }
@@ -1632,14 +1473,7 @@
         },
         "responses": {
           "default": {
-            "description": "Response status is unknown; body shape follows cited research where present.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/CallableResponse"
-                }
-              }
-            }
+            "description": "Response status and body are unknown."
           }
         }
       }
@@ -1672,14 +1506,7 @@
         },
         "responses": {
           "default": {
-            "description": "Response status is unknown; body shape follows cited research where present.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/FirebaseSignInResponse"
-                }
-              }
-            }
+            "description": "Response status and body are unknown."
           }
         },
         "security": [
@@ -1718,14 +1545,7 @@
         },
         "responses": {
           "default": {
-            "description": "Response status is unknown; body shape follows cited research where present.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/FirebaseLookupResponse"
-                }
-              }
-            }
+            "description": "Response status and body are unknown."
           }
         },
         "security": [
@@ -1778,14 +1598,7 @@
         },
         "responses": {
           "default": {
-            "description": "Response status is unknown; body shape follows cited research where present.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/UploadPhotoResponse"
-                }
-              }
-            }
+            "description": "Response status and body are unknown."
           }
         },
         "security": [
@@ -1805,17 +1618,7 @@
         "operationId": "getPosterCatalog",
         "responses": {
           "default": {
-            "description": "Response status is unknown; body shape follows cited research where present.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/Poster"
-                  }
-                }
-              }
-            }
+            "description": "Response status and body are unknown."
           }
         },
         "servers": [
