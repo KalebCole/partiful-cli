@@ -7,10 +7,6 @@ on:
       - reopened
       - synchronize
       - closed
-    paths:
-      - docs/**
-      - .github/workflows/pages.yml
-      - .github/workflows/pages-preview.yml
 
 permissions:
   contents: write
@@ -19,6 +15,7 @@ permissions:
 concurrency:
   group: pages-publish
   cancel-in-progress: false
+  queue: max
 
 jobs:
   deploy-preview:
