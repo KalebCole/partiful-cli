@@ -194,7 +194,7 @@
     .truth-intro { display:grid; grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr); gap:80px; align-items:start; margin-bottom:74px; }
     .truth-intro h2, .install-copy h2, .proof-copy h2, .closing h2 { margin:0; font-size:clamp(45px,6.5vw,82px); line-height:.94; letter-spacing:-.035em; }
     .truth-intro > p { max-width:610px; margin:8px 0 0; font-size:clamp(18px,2vw,23px); line-height:1.5; }
-    .boundary-map { display:grid; grid-template-columns:repeat(3,1fr); border-top:1px solid var(--line); }
+    .boundary-map { display:grid; grid-template-columns:repeat(2,1fr); border-top:1px solid var(--line); }
     .boundary { min-width:0; padding:30px 30px 36px 0; border-bottom:1px solid var(--line); }
     .boundary + .boundary { padding-left:30px; border-left:1px solid var(--line); }
     .boundary-mark { width:46px; height:46px; margin-bottom:26px; display:grid; place-items:center; border-radius:50%; color:white; background:var(--ink); }
@@ -367,14 +367,14 @@
                     </div>
                     <button class="approval-action" id="invite-action" type="button">Approve sending 4 invites</button>
                   </article>
-                  <div class="chat-message agent" id="invite-receipt" hidden><strong>Partiful accepted 4 invite requests.</strong> I started a bounded RSVP watch and will check again when the agent runtime wakes me.</div>
+                  <div class="chat-message agent" id="invite-receipt" hidden><strong>Partiful accepted 4 invite requests.</strong> I started a bounded RSVP watch and will check again before the text blast.</div>
                   <article class="chat-approval" id="reminder-approval" hidden>
                     <h3>Schedule text blast</h3>
-                    <p>I’ll check RSVPs once more before the surrounding agent runtime invokes the approved send this Saturday at 3:00 PM.</p>
+                    <p>I’ll check RSVPs once more before sending the approved text blast this Saturday at 3:00 PM.</p>
                     <div class="approval-detail"><strong>Message</strong>“Picnic tonight at 6:30! Bring a blanket and a layer for sunset. See you at Sunset Hill Park.”</div>
                     <button class="approval-action" id="reminder-action" type="button">Approve reminder</button>
                   </article>
-                  <div class="chat-message agent" id="reminder-receipt" tabindex="-1" hidden><strong>Covered.</strong> The surrounding agent runtime will wake me Saturday at 3:00 PM. I’ll recheck the guest list, then invoke the approved blast.</div>
+                  <div class="chat-message agent" id="reminder-receipt" tabindex="-1" hidden><strong>Covered.</strong> I’ll check the guest list again Saturday at 3:00 PM, then send the approved text blast.</div>
                 </div>
               </section>
               <aside class="phone-preview" aria-label="Display-only event preview">
@@ -420,7 +420,7 @@
             <div class="life-row"><span class="life-no">1</span><div><h3>Start with the outcome</h3><p>Your agent researches the plan before touching the guest list.</p></div><span class="life-code">events create</span></div>
             <div class="life-row"><span class="life-no">2</span><div><h3>Make it feel real</h3><p>Create the event, choose a poster, and return the share link.</p></div><span class="life-code">posters search</span></div>
             <div class="life-row"><span class="life-no">3</span><div><h3>Bring your people</h3><p>Resolve contacts by name, preview the group, then invite.</p></div><span class="life-code">guests invite</span></div>
-            <div class="life-row"><span class="life-no">4</span><div><h3>Keep the energy up</h3><p>Poll RSVP changes, then let the surrounding runtime invoke approved blasts when it wakes.</p></div><span class="life-code">+watch · blasts send</span></div>
+            <div class="life-row"><span class="life-no">4</span><div><h3>Keep the energy up</h3><p>Poll RSVP changes, review the guest list, and send approved text blasts.</p></div><span class="life-code">+watch · blasts send</span></div>
           </div>
         </div>
       </section>
@@ -428,8 +428,8 @@
       <section class="truth-section" id="how-it-works" aria-labelledby="truth-title">
         <div class="shell">
           <div class="truth-intro">
-            <h2 id="truth-title">Three layers. One party.</h2>
-            <p>The CLI does the deterministic work. The bundled skill teaches an agent how to use it safely. The agent runtime supplies research, memory, and future wake-ups.</p>
+            <h2 id="truth-title">Two parts. One party.</h2>
+            <p>The CLI does the deterministic work. The bundled skill teaches your agent how to use it safely.</p>
           </div>
           <div class="boundary-map">
             <article class="boundary">
@@ -444,12 +444,7 @@
               <p>Gives supported agents the command map, privacy boundaries, confirmation rules, and the two-step flow for inviting a contact by name.</p>
               <code>partiful skill install</code>
             </article>
-            <article class="boundary">
-              <span class="boundary-mark" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3v4M12 17v4M3 12h4M17 12h4"/><circle cx="12" cy="12" r="5"/></svg></span>
-              <h3>Agent runtime</h3>
-              <p>Handles natural-language intent, external research, durable scheduling, memory, and future execution. These are not native CLI commands.</p>
-              <code>orchestration layer</code>
-            </article>
+
           </div>
         </div>
       </section>
@@ -732,8 +727,8 @@
     reminderAction.addEventListener('click', async () => {
       reminderAction.disabled = true;
       reminderAction.textContent = 'Recording approval…';
-      chatStatus.textContent = 'Recording runtime schedule';
-      setPhoneStage('scheduling', 'Recording your reminder', 'The surrounding runtime will wake the agent Saturday');
+      chatStatus.textContent = 'Scheduling approved text blast';
+      setPhoneStage('scheduling', 'Scheduling your text blast', 'Saturday at 3:00 PM · RSVP check first');
       steps[5].classList.remove('approval');
       steps[5].classList.add('running');
       await wait(420);
@@ -741,12 +736,12 @@
       steps[5].classList.add('done');
       steps[5].querySelector('span').textContent = 'Approved for Saturday at 3:00 PM';
       reminderAction.textContent = 'Reminder approved';
-      phoneEventSummary.textContent = 'Runtime reminder set · 4 RSVPs to recheck';
+      phoneEventSummary.textContent = 'Text blast scheduled · 4 RSVPs to recheck';
       phoneHost.textContent = 'Hosted by you · 2 going · 2 awaiting';
-      setPhoneStage('monitoring', 'Runtime reminder scheduled', 'Saturday at 3:00 PM · bounded RSVP check on wake');
+      setPhoneStage('monitoring', 'Text blast scheduled', 'Saturday at 3:00 PM · bounded RSVP check first');
       await wait(900);
       revealChat('reminder-receipt');
-      chatStatus.textContent = 'Ready for the next runtime wake-up';
+      chatStatus.textContent = 'Ready for Saturday’s RSVP check';
       document.getElementById('reminder-receipt').focus({ preventScroll:true });
     });
 

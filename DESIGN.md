@@ -2,11 +2,10 @@
 
 ## Product story
 
-The site presents Partiful CLI as the deterministic tool layer inside a larger agent workflow. The story always separates three owners:
+The site presents Partiful CLI as the deterministic tool an agent can use to manage a Partiful event. The story separates two parts:
 
 1. **Partiful CLI** performs event, guest, RSVP, blast, poster, schema, and diagnostic operations.
 2. **Bundled skill** gives supported agents command guidance, privacy boundaries, and confirmation rules.
-3. **Agent runtime** owns natural-language orchestration, external research, durable scheduling, memory, and future execution.
 
 Never imply that an accepted invite or blast request proves delivery. Describe `+watch` as bounded polling, not durable monitoring.
 
