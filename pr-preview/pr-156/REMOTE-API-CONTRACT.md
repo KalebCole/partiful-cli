@@ -1,18 +1,19 @@
 # Remote API contract
 
-`spec/partiful.openapi.json` is revision `2026-08-10.1` of the reviewed remote
-transport snapshot. It describes only network operations and wire shapes. It
-does not prescribe commands, output, credentials, mutation safeguards, or
-implementation architecture.
+`spec/partiful.openapi.json` is proposed revision `2026-08-10.1` of the remote
+transport snapshot. It is pending explicit owner approval. It describes only
+network operations and wire shapes. It does not prescribe commands, output,
+credentials, mutation safeguards, or implementation architecture.
 
 ## Authority and change process
 
-Live, privacy-safe observations outrank this snapshot. The owner must review a
-proposed change, update the contract and `spec/partiful.api-evidence.json`, and
-run `npm test -- tests/remote-api-contract.test.js`. TypeScript, historical
-drafts, tests, and endpoint notes are research evidence, never automatic
-authority. The CLI product contract is separate and remains the authority for
-user-facing behavior.
+Live, privacy-safe observations outrank this proposed snapshot. The owner must
+explicitly approve it before it becomes a reviewed contract. A proposed change
+must update the contract and `spec/partiful.api-evidence.json`, then run
+`npm test -- tests/remote-api-contract.test.js`. TypeScript, historical drafts,
+tests, and endpoint notes are research evidence, never automatic authority.
+The CLI product contract is separate and remains the authority for user-facing
+behavior.
 
 The evidence ledger records the classification and source for each operation,
 each request/response claim, and each component schema. `explicit-unknown`
