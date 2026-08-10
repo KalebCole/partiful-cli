@@ -106,22 +106,28 @@ if [[ $# -gt 0 ]]; then
     scan_line "$file" "$lineno" "$line"
   done < "$file"
 else
-  # Scan staged git diff (added lines only)
-  git diff --cached --diff-filter=ACMR --name-only 2>/dev/null | while IFS= read -r file; do
-    # Skip binary files
-    if file "$file" | grep -q "binary"; then
+  # Scan staged git diff (added lines only). Process substitution keeps
+  # scan_line's `found=1` in this shell instead of losing it in a pipeline
+  # subshell.
+  while IFS= read -r file; do
+    # Git reports binary entries with "-" counts in --numstat. This is more
+    # reliable than matching the human-oriented output of `file`.
+    numstat=$(git diff --cached --numstat -- "$file" 2>/dev/null || true)
+    IFS=$'\t' read -r added_count _ <<< "$numstat"
+    if [[ "$added_count" == "-" ]]; then
       continue
     fi
     # Skip test files
     if should_skip_file "$file"; then
       continue
     fi
-    # Only scan added/modified lines (+ lines in diff)
-    git diff --cached -U0 -- "$file" 2>/dev/null | grep '^+' | grep -v '^+++' | while IFS= read -r diffline; do
+    # No added lines is expected for mode-only changes. The final `|| true`
+    # prevents grep's no-match status from aborting the hook under pipefail.
+    while IFS= read -r diffline; do
       line="${diffline:1}" # strip leading +
       scan_line "$file" "staged" "$line"
-    done
-  done
+    done < <(git diff --cached -U0 -- "$file" 2>/dev/null | grep '^+' | grep -v '^+++' || true)
+  done < <(git diff --cached --diff-filter=ACMR --name-only 2>/dev/null)
 fi
 
 if [[ $found -gt 0 ]]; then
