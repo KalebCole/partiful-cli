@@ -44,8 +44,17 @@ jobs:
           preview-branch: gh-pages
           umbrella-dir: pr-preview
           wait-for-pages-deployment: true
-          comment: true
+          comment: ${{ github.event_name != 'workflow_dispatch' }}
           qr-code: false
+
+      - name: Comment on manually deployed preview
+        if: github.event_name == 'workflow_dispatch' && steps.preview.outputs.deployment-action == 'deploy'
+        uses: marocchino/sticky-pull-request-comment@67d0dec7b07ed060a405f9b2a64b8ab319fdd7db
+        with:
+          number: ${{ inputs.pr-number }}
+          header: pr-preview
+          message: |
+            Preview ready: ${{ steps.preview.outputs.preview-url }}
 
       - name: Add preview URL to job summary
         if: steps.preview.outputs.deployment-action == 'deploy'
