@@ -1,6 +1,6 @@
 # Partiful remote API contract evidence ledger
 
-**Proposed contract revision:** `2026-08-10.1` (pending explicit owner approval)
+**Owner-reviewed contract revision:** `2026-08-10.1`
 **Contract:** `spec/partiful.openapi.json`
 **Machine-readable ledger:** `spec/partiful.api-evidence.json`
 **Stable citation sources:** `docs/research/2026-08-10-contract-evidence-sources.md`
@@ -58,7 +58,7 @@ nested `message` object with `text`, `to`, `showOnEventPage`, and optional
 
 ## Open questions
 
-No authenticated live probe was performed for this proposed revision: `partiful doctor`
+No authenticated live probe was performed for this reviewed revision: `partiful doctor`
 reported no local credentials. Mutation probes were deliberately omitted.
 Future safe observations should update both ledgers, preserve synthetic-only
 examples, and receive owner review before changing the revision.
