@@ -369,7 +369,7 @@
     "The poster event-image observation does not establish the /posters.json response; that operation is TypeScript-derived inference only.",
     "HTTP success status codes and error bodies are explicit unknown; response body claims are tracked separately."
   ],
-  "status": "proposed-pending-owner-approval",
+  "status": "owner-reviewed",
   "claims": {
     "#/servers/0/url": {
       "classification": "typescript-derived-inference",

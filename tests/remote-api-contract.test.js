@@ -107,11 +107,11 @@ function citationResolves(citation) {
 }
 
 describe('remote API contract', () => {
-  it('is a proposed, consistently versioned OpenAPI 3.1 document with unique operation IDs', () => {
+  it('is an owner-reviewed, consistently versioned OpenAPI 3.1 document with unique operation IDs', () => {
     expect(spec.openapi).toBe('3.1.0');
     expect(spec.info.version).toBe(evidence.contractRevision);
-    expect(evidence.status).toBe('proposed-pending-owner-approval');
-    expect(spec.info.description).toContain('Proposed');
+    expect(evidence.status).toBe('owner-reviewed');
+    expect(spec.info.description).toContain('Owner-reviewed');
     const ids = operations().map(({ operation }) => operation.operationId);
     expect(ids).toHaveLength(27);
     expect(new Set(ids).size).toBe(ids.length);
