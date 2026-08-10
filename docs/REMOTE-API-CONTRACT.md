@@ -25,9 +25,10 @@ human-readable companion to the machine-readable ledger.
 ## Historical provenance
 
 The 27-operation historical draft in commit
-`17e9800753ada577408074bbbcadbae8cc8eacf0` was recovered as research input;
-it was not copied as an approved contract. Its product extensions were
-excluded. The nested `createTextBlast.message` object comes instead from the
-dated observation recorded in
+`17e9800753ada577408074bbbcadbae8cc8eacf0` is preserved at
+`spec/research/historical-27-operation-draft.json` as a non-authoritative,
+stable research artifact. It was not copied as an approved contract and its
+product extensions are excluded from the canonical contract. The nested
+`createTextBlast.message` object comes instead from the dated observation recorded in
 `docs/research/2026-03-24-text-blast-endpoint.md`; the historical string
 message/`recipientStatuses` representation is superseded.

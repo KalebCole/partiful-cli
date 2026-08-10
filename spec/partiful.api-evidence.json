@@ -8,289 +8,315 @@
     "explicit-unknown"
   ],
   "sources": {
-    "historicalDraft": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json",
-    "endpointRegistry": "9e6ed15:src/lib/api/endpoints.ts#L1-L560",
-    "httpTransport": "9e6ed15:src/lib/http.ts#L1-L245",
-    "authTransport": "9e6ed15:src/lib/auth.ts#L1-L150",
-    "authCommands": "9e6ed15:src/commands/auth.ts#L145-L340",
-    "uploadTransport": "9e6ed15:src/lib/upload.ts#L35-L115",
-    "posterTransport": "9e6ed15:src/lib/posters.ts#L25-L45",
-    "textBlastObservation": "docs/research/2026-03-24-text-blast-endpoint.md#request-payload",
-    "authObservation": "docs/research/2026-03-24-auth-flow-endpoints.md#auth-endpoints",
-    "eventImageObservation": "docs/research/2026-03-24-event-image-schema.md#image-field-in-createevent-payload"
+    "historicalDraft": "spec/research/historical-27-operation-draft.json",
+    "unknownStatusDecision": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision",
+    "textBlast": "docs/research/2026-08-10-contract-evidence-sources.md#dated-text-blast-observation",
+    "authObservation": "docs/research/2026-08-10-contract-evidence-sources.md#dated-authentication-observation",
+    "callableAuth": "docs/research/2026-08-10-contract-evidence-sources.md#typescript-callable-and-auth-research",
+    "firestore": "docs/research/2026-08-10-contract-evidence-sources.md#typescript-firestore-research",
+    "upload": "docs/research/2026-08-10-contract-evidence-sources.md#typescript-upload-research",
+    "posterInterface": "docs/research/2026-08-10-contract-evidence-sources.md#poster-interface",
+    "posterCatalog": "docs/research/2026-08-10-contract-evidence-sources.md#poster-catalog-fetch"
   },
   "operations": {
     "createEvent": {
       "classification": "typescript-derived-inference",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1createEvent/post"
+      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1createEvent/post"
     },
     "cancelEvent": {
       "classification": "typescript-derived-inference",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1cancelEvent/post"
+      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1cancelEvent/post"
     },
     "getEventInfo": {
       "classification": "typescript-derived-inference",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1getEventInfo/post"
+      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1getEventInfo/post"
     },
     "getContacts": {
       "classification": "typescript-derived-inference",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1getContacts/post"
+      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1getContacts/post"
     },
     "createTextBlast": {
       "classification": "dated-live-observation",
-      "citation": "docs/research/2026-03-24-text-blast-endpoint.md#request-payload"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#dated-text-blast-observation"
     },
     "addInvitedGuestsAsHost": {
       "classification": "typescript-derived-inference",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1addInvitedGuestsAsHost/post"
+      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1addInvitedGuestsAsHost/post"
     },
     "createCohostRequest": {
       "classification": "typescript-derived-inference",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1createCohostRequest/post"
+      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1createCohostRequest/post"
     },
     "deleteCohostRequest": {
       "classification": "typescript-derived-inference",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1deleteCohostRequest/post"
+      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1deleteCohostRequest/post"
     },
     "removeCohost": {
       "classification": "typescript-derived-inference",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1removeCohost/post"
+      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1removeCohost/post"
     },
     "generateEventCohostLink": {
       "classification": "typescript-derived-inference",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1generateEventCohostLink/post"
+      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1generateEventCohostLink/post"
     },
     "revokeEventCohostLink": {
       "classification": "typescript-derived-inference",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1revokeEventCohostLink/post"
+      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1revokeEventCohostLink/post"
     },
     "getMyUpcomingEventsForHomePage": {
       "classification": "typescript-derived-inference",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1getMyUpcomingEventsForHomePage/post"
+      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1getMyUpcomingEventsForHomePage/post"
     },
     "getMyPastEventsForHomePage": {
       "classification": "typescript-derived-inference",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1getMyPastEventsForHomePage/post"
+      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1getMyPastEventsForHomePage/post"
     },
     "addGuest": {
       "classification": "typescript-derived-inference",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1addGuest/post"
+      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1addGuest/post"
     },
     "markEventInterest": {
       "classification": "typescript-derived-inference",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1markEventInterest/post"
+      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1markEventInterest/post"
     },
     "getCurrentGuest": {
       "classification": "typescript-derived-inference",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1getCurrentGuest/post"
+      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1getCurrentGuest/post"
     },
     "firestoreGetEvent": {
       "classification": "typescript-derived-inference",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1events~1{eventId}/get"
+      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1events~1{eventId}/get"
     },
     "firestorePatchEvent": {
       "classification": "typescript-derived-inference",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1events~1{eventId}/patch"
+      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1events~1{eventId}/patch"
     },
     "firestoreGetGuest": {
       "classification": "typescript-derived-inference",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1events~1{eventId}~1guests~1{guestId}/get"
+      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1events~1{eventId}~1guests~1{guestId}/get"
     },
     "firestoreListDocuments": {
       "classification": "typescript-derived-inference",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1{collectionPath}/get"
+      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1{collectionPath}/get"
     },
     "refreshToken": {
       "classification": "typescript-derived-inference",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1v1~1token/post"
+      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1v1~1token/post"
     },
     "sendAuthCodeTrusted": {
       "classification": "reviewed-first-party-repository-research",
-      "citation": "9e6ed15:src/commands/auth.ts#L145-L340"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#typescript-callable-and-auth-research"
     },
     "getLoginToken": {
       "classification": "dated-live-observation",
-      "citation": "docs/research/2026-03-24-auth-flow-endpoints.md#auth-endpoints"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#dated-authentication-observation"
     },
     "signInWithCustomToken": {
       "classification": "dated-live-observation",
-      "citation": "docs/research/2026-03-24-auth-flow-endpoints.md#auth-endpoints"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#dated-authentication-observation"
     },
     "lookupFirebaseUser": {
       "classification": "reviewed-first-party-repository-research",
-      "citation": "9e6ed15:src/commands/auth.ts#L145-L340"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#typescript-callable-and-auth-research"
     },
     "uploadEventPhoto": {
       "classification": "typescript-derived-inference",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1uploadPhoto/post"
+      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1uploadPhoto/post"
     },
     "getPosterCatalog": {
       "classification": "typescript-derived-inference",
-      "citation": "9e6ed15:src/lib/posters.ts#L25-L45"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#poster-catalog-fetch"
     }
   },
   "operationClaims": {
     "createEvent": {
       "request": "typescript-derived-inference",
       "response": "explicit-unknown",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1createEvent/post",
-      "status": "explicit-unknown"
+      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1createEvent/post",
+      "status": "explicit-unknown",
+      "statusCitation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision"
     },
     "cancelEvent": {
       "request": "typescript-derived-inference",
       "response": "explicit-unknown",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1cancelEvent/post",
-      "status": "explicit-unknown"
+      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1cancelEvent/post",
+      "status": "explicit-unknown",
+      "statusCitation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision"
     },
     "getEventInfo": {
       "request": "typescript-derived-inference",
       "response": "explicit-unknown",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1getEventInfo/post",
-      "status": "explicit-unknown"
+      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1getEventInfo/post",
+      "status": "explicit-unknown",
+      "statusCitation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision"
     },
     "getContacts": {
       "request": "typescript-derived-inference",
       "response": "explicit-unknown",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1getContacts/post",
-      "status": "explicit-unknown"
+      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1getContacts/post",
+      "status": "explicit-unknown",
+      "statusCitation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision"
     },
     "createTextBlast": {
       "request": "dated-live-observation",
       "response": "explicit-unknown",
-      "citation": "docs/research/2026-03-24-text-blast-endpoint.md#request-payload",
-      "status": "explicit-unknown"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#dated-text-blast-observation",
+      "status": "explicit-unknown",
+      "statusCitation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision"
     },
     "addInvitedGuestsAsHost": {
       "request": "typescript-derived-inference",
       "response": "explicit-unknown",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1addInvitedGuestsAsHost/post",
-      "status": "explicit-unknown"
+      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1addInvitedGuestsAsHost/post",
+      "status": "explicit-unknown",
+      "statusCitation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision"
     },
     "createCohostRequest": {
       "request": "typescript-derived-inference",
       "response": "explicit-unknown",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1createCohostRequest/post",
-      "status": "explicit-unknown"
+      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1createCohostRequest/post",
+      "status": "explicit-unknown",
+      "statusCitation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision"
     },
     "deleteCohostRequest": {
       "request": "typescript-derived-inference",
       "response": "explicit-unknown",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1deleteCohostRequest/post",
-      "status": "explicit-unknown"
+      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1deleteCohostRequest/post",
+      "status": "explicit-unknown",
+      "statusCitation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision"
     },
     "removeCohost": {
       "request": "typescript-derived-inference",
       "response": "explicit-unknown",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1removeCohost/post",
-      "status": "explicit-unknown"
+      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1removeCohost/post",
+      "status": "explicit-unknown",
+      "statusCitation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision"
     },
     "generateEventCohostLink": {
       "request": "typescript-derived-inference",
       "response": "explicit-unknown",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1generateEventCohostLink/post",
-      "status": "explicit-unknown"
+      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1generateEventCohostLink/post",
+      "status": "explicit-unknown",
+      "statusCitation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision"
     },
     "revokeEventCohostLink": {
       "request": "typescript-derived-inference",
       "response": "explicit-unknown",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1revokeEventCohostLink/post",
-      "status": "explicit-unknown"
+      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1revokeEventCohostLink/post",
+      "status": "explicit-unknown",
+      "statusCitation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision"
     },
     "getMyUpcomingEventsForHomePage": {
       "request": "typescript-derived-inference",
       "response": "explicit-unknown",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1getMyUpcomingEventsForHomePage/post",
-      "status": "explicit-unknown"
+      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1getMyUpcomingEventsForHomePage/post",
+      "status": "explicit-unknown",
+      "statusCitation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision"
     },
     "getMyPastEventsForHomePage": {
       "request": "typescript-derived-inference",
       "response": "explicit-unknown",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1getMyPastEventsForHomePage/post",
-      "status": "explicit-unknown"
+      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1getMyPastEventsForHomePage/post",
+      "status": "explicit-unknown",
+      "statusCitation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision"
     },
     "addGuest": {
       "request": "typescript-derived-inference",
       "response": "explicit-unknown",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1addGuest/post",
-      "status": "explicit-unknown"
+      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1addGuest/post",
+      "status": "explicit-unknown",
+      "statusCitation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision"
     },
     "markEventInterest": {
       "request": "typescript-derived-inference",
       "response": "explicit-unknown",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1markEventInterest/post",
-      "status": "explicit-unknown"
+      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1markEventInterest/post",
+      "status": "explicit-unknown",
+      "statusCitation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision"
     },
     "getCurrentGuest": {
       "request": "typescript-derived-inference",
       "response": "explicit-unknown",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1getCurrentGuest/post",
-      "status": "explicit-unknown"
+      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1getCurrentGuest/post",
+      "status": "explicit-unknown",
+      "statusCitation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision"
     },
     "firestoreGetEvent": {
       "request": "typescript-derived-inference",
       "response": "explicit-unknown",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1events~1{eventId}/get",
-      "status": "explicit-unknown"
+      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1events~1{eventId}/get",
+      "status": "explicit-unknown",
+      "statusCitation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision"
     },
     "firestorePatchEvent": {
       "request": "typescript-derived-inference",
       "response": "explicit-unknown",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1events~1{eventId}/patch",
-      "status": "explicit-unknown"
+      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1events~1{eventId}/patch",
+      "status": "explicit-unknown",
+      "statusCitation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision"
     },
     "firestoreGetGuest": {
       "request": "typescript-derived-inference",
       "response": "explicit-unknown",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1events~1{eventId}~1guests~1{guestId}/get",
-      "status": "explicit-unknown"
+      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1events~1{eventId}~1guests~1{guestId}/get",
+      "status": "explicit-unknown",
+      "statusCitation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision"
     },
     "firestoreListDocuments": {
       "request": "typescript-derived-inference",
       "response": "explicit-unknown",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1{collectionPath}/get",
-      "status": "explicit-unknown"
+      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1{collectionPath}/get",
+      "status": "explicit-unknown",
+      "statusCitation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision"
     },
     "refreshToken": {
       "request": "typescript-derived-inference",
       "response": "explicit-unknown",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1v1~1token/post",
-      "status": "explicit-unknown"
+      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1v1~1token/post",
+      "status": "explicit-unknown",
+      "statusCitation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision"
     },
     "sendAuthCodeTrusted": {
       "request": "reviewed-first-party-repository-research",
       "response": "explicit-unknown",
-      "citation": "9e6ed15:src/commands/auth.ts#L145-L340",
-      "status": "explicit-unknown"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#typescript-callable-and-auth-research",
+      "status": "explicit-unknown",
+      "statusCitation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision"
     },
     "getLoginToken": {
       "request": "dated-live-observation",
       "response": "explicit-unknown",
-      "citation": "docs/research/2026-03-24-auth-flow-endpoints.md#auth-endpoints",
-      "status": "explicit-unknown"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#dated-authentication-observation",
+      "status": "explicit-unknown",
+      "statusCitation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision"
     },
     "signInWithCustomToken": {
       "request": "dated-live-observation",
       "response": "explicit-unknown",
-      "citation": "docs/research/2026-03-24-auth-flow-endpoints.md#auth-endpoints",
-      "status": "explicit-unknown"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#dated-authentication-observation",
+      "status": "explicit-unknown",
+      "statusCitation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision"
     },
     "lookupFirebaseUser": {
       "request": "reviewed-first-party-repository-research",
       "response": "explicit-unknown",
-      "citation": "9e6ed15:src/commands/auth.ts#L145-L340",
-      "status": "explicit-unknown"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#typescript-callable-and-auth-research",
+      "status": "explicit-unknown",
+      "statusCitation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision"
     },
     "uploadEventPhoto": {
       "request": "typescript-derived-inference",
       "response": "explicit-unknown",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1uploadPhoto/post",
-      "status": "explicit-unknown"
+      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1uploadPhoto/post",
+      "status": "explicit-unknown",
+      "statusCitation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision"
     },
     "getPosterCatalog": {
       "request": "explicit-unknown",
       "response": "typescript-derived-inference",
-      "citation": "9e6ed15:src/lib/posters.ts#L25-L45",
-      "status": "explicit-unknown"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#poster-catalog-fetch",
+      "status": "explicit-unknown",
+      "statusCitation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision"
     }
   },
   "contradictions": [
@@ -321,1519 +347,1519 @@
   "claims": {
     "#/paths/~1createEvent/post/operationId": {
       "classification": "typescript-derived-inference",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1createEvent/post/operationId"
+      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1createEvent/post/operationId"
     },
     "#/paths/~1createEvent/post/requestBody/$ref": {
       "classification": "typescript-derived-inference",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1createEvent/post/requestBody/$ref"
+      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1createEvent/post/requestBody"
     },
     "#/paths/~1createEvent/post/responses/default": {
       "classification": "explicit-unknown",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1createEvent/post/responses/default"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision"
     },
     "#/paths/~1createEvent/post/responses/default/$ref": {
       "classification": "explicit-unknown",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1createEvent/post/responses/default/$ref"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision"
     },
     "#/paths/~1cancelEvent/post/operationId": {
       "classification": "typescript-derived-inference",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1cancelEvent/post/operationId"
+      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1cancelEvent/post/operationId"
     },
     "#/paths/~1cancelEvent/post/requestBody/$ref": {
       "classification": "typescript-derived-inference",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1cancelEvent/post/requestBody/$ref"
+      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1cancelEvent/post/requestBody"
     },
     "#/paths/~1cancelEvent/post/responses/default": {
       "classification": "explicit-unknown",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1cancelEvent/post/responses/default"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision"
     },
     "#/paths/~1cancelEvent/post/responses/default/$ref": {
       "classification": "explicit-unknown",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1cancelEvent/post/responses/default/$ref"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision"
     },
     "#/paths/~1getEventInfo/post/operationId": {
       "classification": "typescript-derived-inference",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1getEventInfo/post/operationId"
+      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1getEventInfo/post/operationId"
     },
     "#/paths/~1getEventInfo/post/requestBody/$ref": {
       "classification": "typescript-derived-inference",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1getEventInfo/post/requestBody/$ref"
+      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1getEventInfo/post/requestBody"
     },
     "#/paths/~1getEventInfo/post/responses/default": {
       "classification": "explicit-unknown",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1getEventInfo/post/responses/default"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision"
     },
     "#/paths/~1getEventInfo/post/responses/default/$ref": {
       "classification": "explicit-unknown",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1getEventInfo/post/responses/default/$ref"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision"
     },
     "#/paths/~1getContacts/post/operationId": {
       "classification": "typescript-derived-inference",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1getContacts/post/operationId"
+      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1getContacts/post/operationId"
     },
     "#/paths/~1getContacts/post/requestBody/$ref": {
       "classification": "typescript-derived-inference",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1getContacts/post/requestBody/$ref"
+      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1getContacts/post/requestBody"
     },
     "#/paths/~1getContacts/post/responses/default": {
       "classification": "explicit-unknown",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1getContacts/post/responses/default"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision"
     },
     "#/paths/~1getContacts/post/responses/default/$ref": {
       "classification": "explicit-unknown",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1getContacts/post/responses/default/$ref"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision"
     },
     "#/paths/~1createTextBlast/post/operationId": {
       "classification": "typescript-derived-inference",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1createTextBlast/post/operationId"
+      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1createTextBlast/post/operationId"
     },
     "#/paths/~1createTextBlast/post/requestBody/$ref": {
       "classification": "typescript-derived-inference",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1createTextBlast/post/requestBody/$ref"
+      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1createTextBlast/post/requestBody"
     },
     "#/paths/~1createTextBlast/post/responses/default": {
       "classification": "explicit-unknown",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1createTextBlast/post/responses/default"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision"
     },
     "#/paths/~1createTextBlast/post/responses/default/$ref": {
       "classification": "explicit-unknown",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1createTextBlast/post/responses/default/$ref"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision"
     },
     "#/paths/~1addInvitedGuestsAsHost/post/operationId": {
       "classification": "typescript-derived-inference",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1addInvitedGuestsAsHost/post/operationId"
+      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1addInvitedGuestsAsHost/post/operationId"
     },
     "#/paths/~1addInvitedGuestsAsHost/post/requestBody/$ref": {
       "classification": "typescript-derived-inference",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1addInvitedGuestsAsHost/post/requestBody/$ref"
+      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1addInvitedGuestsAsHost/post/requestBody"
     },
     "#/paths/~1addInvitedGuestsAsHost/post/responses/default": {
       "classification": "explicit-unknown",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1addInvitedGuestsAsHost/post/responses/default"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision"
     },
     "#/paths/~1addInvitedGuestsAsHost/post/responses/default/$ref": {
       "classification": "explicit-unknown",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1addInvitedGuestsAsHost/post/responses/default/$ref"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision"
     },
     "#/paths/~1createCohostRequest/post/operationId": {
       "classification": "typescript-derived-inference",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1createCohostRequest/post/operationId"
+      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1createCohostRequest/post/operationId"
     },
     "#/paths/~1createCohostRequest/post/requestBody/$ref": {
       "classification": "typescript-derived-inference",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1createCohostRequest/post/requestBody/$ref"
+      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1createCohostRequest/post/requestBody"
     },
     "#/paths/~1createCohostRequest/post/responses/default": {
       "classification": "explicit-unknown",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1createCohostRequest/post/responses/default"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision"
     },
     "#/paths/~1createCohostRequest/post/responses/default/$ref": {
       "classification": "explicit-unknown",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1createCohostRequest/post/responses/default/$ref"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision"
     },
     "#/paths/~1deleteCohostRequest/post/operationId": {
       "classification": "typescript-derived-inference",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1deleteCohostRequest/post/operationId"
+      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1deleteCohostRequest/post/operationId"
     },
     "#/paths/~1deleteCohostRequest/post/requestBody/$ref": {
       "classification": "typescript-derived-inference",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1deleteCohostRequest/post/requestBody/$ref"
+      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1deleteCohostRequest/post/requestBody"
     },
     "#/paths/~1deleteCohostRequest/post/responses/default": {
       "classification": "explicit-unknown",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1deleteCohostRequest/post/responses/default"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision"
     },
     "#/paths/~1deleteCohostRequest/post/responses/default/$ref": {
       "classification": "explicit-unknown",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1deleteCohostRequest/post/responses/default/$ref"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision"
     },
     "#/paths/~1removeCohost/post/operationId": {
       "classification": "typescript-derived-inference",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1removeCohost/post/operationId"
+      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1removeCohost/post/operationId"
     },
     "#/paths/~1removeCohost/post/requestBody/$ref": {
       "classification": "typescript-derived-inference",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1removeCohost/post/requestBody/$ref"
+      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1removeCohost/post/requestBody"
     },
     "#/paths/~1removeCohost/post/responses/default": {
       "classification": "explicit-unknown",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1removeCohost/post/responses/default"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision"
     },
     "#/paths/~1removeCohost/post/responses/default/$ref": {
       "classification": "explicit-unknown",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1removeCohost/post/responses/default/$ref"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision"
     },
     "#/paths/~1generateEventCohostLink/post/operationId": {
       "classification": "typescript-derived-inference",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1generateEventCohostLink/post/operationId"
+      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1generateEventCohostLink/post/operationId"
     },
     "#/paths/~1generateEventCohostLink/post/requestBody/$ref": {
       "classification": "typescript-derived-inference",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1generateEventCohostLink/post/requestBody/$ref"
+      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1generateEventCohostLink/post/requestBody"
     },
     "#/paths/~1generateEventCohostLink/post/responses/default": {
       "classification": "explicit-unknown",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1generateEventCohostLink/post/responses/default"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision"
     },
     "#/paths/~1generateEventCohostLink/post/responses/default/$ref": {
       "classification": "explicit-unknown",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1generateEventCohostLink/post/responses/default/$ref"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision"
     },
     "#/paths/~1revokeEventCohostLink/post/operationId": {
       "classification": "typescript-derived-inference",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1revokeEventCohostLink/post/operationId"
+      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1revokeEventCohostLink/post/operationId"
     },
     "#/paths/~1revokeEventCohostLink/post/requestBody/$ref": {
       "classification": "typescript-derived-inference",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1revokeEventCohostLink/post/requestBody/$ref"
+      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1revokeEventCohostLink/post/requestBody"
     },
     "#/paths/~1revokeEventCohostLink/post/responses/default": {
       "classification": "explicit-unknown",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1revokeEventCohostLink/post/responses/default"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision"
     },
     "#/paths/~1revokeEventCohostLink/post/responses/default/$ref": {
       "classification": "explicit-unknown",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1revokeEventCohostLink/post/responses/default/$ref"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision"
     },
     "#/paths/~1getMyUpcomingEventsForHomePage/post/operationId": {
       "classification": "typescript-derived-inference",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1getMyUpcomingEventsForHomePage/post/operationId"
+      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1getMyUpcomingEventsForHomePage/post/operationId"
     },
     "#/paths/~1getMyUpcomingEventsForHomePage/post/requestBody/$ref": {
       "classification": "typescript-derived-inference",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1getMyUpcomingEventsForHomePage/post/requestBody/$ref"
+      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1getMyUpcomingEventsForHomePage/post/requestBody"
     },
     "#/paths/~1getMyUpcomingEventsForHomePage/post/responses/default": {
       "classification": "explicit-unknown",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1getMyUpcomingEventsForHomePage/post/responses/default"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision"
     },
     "#/paths/~1getMyUpcomingEventsForHomePage/post/responses/default/$ref": {
       "classification": "explicit-unknown",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1getMyUpcomingEventsForHomePage/post/responses/default/$ref"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision"
     },
     "#/paths/~1getMyPastEventsForHomePage/post/operationId": {
       "classification": "typescript-derived-inference",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1getMyPastEventsForHomePage/post/operationId"
+      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1getMyPastEventsForHomePage/post/operationId"
     },
     "#/paths/~1getMyPastEventsForHomePage/post/requestBody/$ref": {
       "classification": "typescript-derived-inference",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1getMyPastEventsForHomePage/post/requestBody/$ref"
+      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1getMyPastEventsForHomePage/post/requestBody"
     },
     "#/paths/~1getMyPastEventsForHomePage/post/responses/default": {
       "classification": "explicit-unknown",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1getMyPastEventsForHomePage/post/responses/default"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision"
     },
     "#/paths/~1getMyPastEventsForHomePage/post/responses/default/$ref": {
       "classification": "explicit-unknown",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1getMyPastEventsForHomePage/post/responses/default/$ref"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision"
     },
     "#/paths/~1addGuest/post/operationId": {
       "classification": "typescript-derived-inference",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1addGuest/post/operationId"
+      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1addGuest/post/operationId"
     },
     "#/paths/~1addGuest/post/requestBody/$ref": {
       "classification": "typescript-derived-inference",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1addGuest/post/requestBody/$ref"
+      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1addGuest/post/requestBody"
     },
     "#/paths/~1addGuest/post/responses/default": {
       "classification": "explicit-unknown",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1addGuest/post/responses/default"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision"
     },
     "#/paths/~1addGuest/post/responses/default/$ref": {
       "classification": "explicit-unknown",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1addGuest/post/responses/default/$ref"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision"
     },
     "#/paths/~1markEventInterest/post/operationId": {
       "classification": "typescript-derived-inference",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1markEventInterest/post/operationId"
+      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1markEventInterest/post/operationId"
     },
     "#/paths/~1markEventInterest/post/requestBody/$ref": {
       "classification": "typescript-derived-inference",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1markEventInterest/post/requestBody/$ref"
+      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1markEventInterest/post/requestBody"
     },
     "#/paths/~1markEventInterest/post/responses/default": {
       "classification": "explicit-unknown",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1markEventInterest/post/responses/default"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision"
     },
     "#/paths/~1markEventInterest/post/responses/default/$ref": {
       "classification": "explicit-unknown",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1markEventInterest/post/responses/default/$ref"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision"
     },
     "#/paths/~1getCurrentGuest/post/operationId": {
       "classification": "typescript-derived-inference",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1getCurrentGuest/post/operationId"
+      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1getCurrentGuest/post/operationId"
     },
     "#/paths/~1getCurrentGuest/post/requestBody/$ref": {
       "classification": "typescript-derived-inference",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1getCurrentGuest/post/requestBody/$ref"
+      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1getCurrentGuest/post/requestBody"
     },
     "#/paths/~1getCurrentGuest/post/responses/default": {
       "classification": "explicit-unknown",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1getCurrentGuest/post/responses/default"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision"
     },
     "#/paths/~1getCurrentGuest/post/responses/default/$ref": {
       "classification": "explicit-unknown",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1getCurrentGuest/post/responses/default/$ref"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision"
     },
     "#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1events~1{eventId}/get/operationId": {
       "classification": "typescript-derived-inference",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1events~1{eventId}/get/operationId"
+      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1events~1{eventId}/get/operationId"
     },
     "#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1events~1{eventId}/get/parameters/0/$ref": {
       "classification": "typescript-derived-inference",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1events~1{eventId}/get/parameters/0/$ref"
+      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1events~1{eventId}/get/parameters/0"
     },
     "#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1events~1{eventId}/get/responses/default": {
       "classification": "explicit-unknown",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1events~1{eventId}/get/responses/default"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision"
     },
     "#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1events~1{eventId}/get/responses/default/$ref": {
       "classification": "explicit-unknown",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1events~1{eventId}/get/responses/default/$ref"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision"
     },
     "#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1events~1{eventId}/get/servers/0/url": {
       "classification": "typescript-derived-inference",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1events~1{eventId}/get/servers/0/url"
+      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1events~1{eventId}/get/servers/0/url"
     },
     "#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1events~1{eventId}/patch/operationId": {
       "classification": "typescript-derived-inference",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1events~1{eventId}/patch/operationId"
+      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1events~1{eventId}/patch/operationId"
     },
     "#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1events~1{eventId}/patch/parameters/0/$ref": {
       "classification": "typescript-derived-inference",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1events~1{eventId}/patch/parameters/0/$ref"
+      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1events~1{eventId}/patch/parameters/0"
     },
     "#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1events~1{eventId}/patch/parameters/1/$ref": {
       "classification": "typescript-derived-inference",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1events~1{eventId}/patch/parameters/1/$ref"
+      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1events~1{eventId}/patch/parameters/1"
     },
     "#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1events~1{eventId}/patch/requestBody/$ref": {
       "classification": "typescript-derived-inference",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1events~1{eventId}/patch/requestBody/$ref"
+      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1events~1{eventId}/patch/requestBody"
     },
     "#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1events~1{eventId}/patch/responses/default": {
       "classification": "explicit-unknown",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1events~1{eventId}/patch/responses/default"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision"
     },
     "#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1events~1{eventId}/patch/responses/default/$ref": {
       "classification": "explicit-unknown",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1events~1{eventId}/patch/responses/default/$ref"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision"
     },
     "#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1events~1{eventId}/patch/servers/0/url": {
       "classification": "typescript-derived-inference",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1events~1{eventId}/patch/servers/0/url"
+      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1events~1{eventId}/patch/servers/0/url"
     },
     "#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1events~1{eventId}~1guests~1{guestId}/get/operationId": {
       "classification": "typescript-derived-inference",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1events~1{eventId}~1guests~1{guestId}/get/operationId"
+      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1events~1{eventId}~1guests~1{guestId}/get/operationId"
     },
     "#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1events~1{eventId}~1guests~1{guestId}/get/parameters/0/$ref": {
       "classification": "typescript-derived-inference",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1events~1{eventId}~1guests~1{guestId}/get/parameters/0/$ref"
+      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1events~1{eventId}~1guests~1{guestId}/get/parameters/0"
     },
     "#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1events~1{eventId}~1guests~1{guestId}/get/parameters/1/$ref": {
       "classification": "typescript-derived-inference",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1events~1{eventId}~1guests~1{guestId}/get/parameters/1/$ref"
+      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1events~1{eventId}~1guests~1{guestId}/get/parameters/1"
     },
     "#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1events~1{eventId}~1guests~1{guestId}/get/responses/default": {
       "classification": "explicit-unknown",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1events~1{eventId}~1guests~1{guestId}/get/responses/default"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision"
     },
     "#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1events~1{eventId}~1guests~1{guestId}/get/responses/default/$ref": {
       "classification": "explicit-unknown",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1events~1{eventId}~1guests~1{guestId}/get/responses/default/$ref"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision"
     },
     "#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1events~1{eventId}~1guests~1{guestId}/get/servers/0/url": {
       "classification": "typescript-derived-inference",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1events~1{eventId}~1guests~1{guestId}/get/servers/0/url"
+      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1events~1{eventId}~1guests~1{guestId}/get/servers/0/url"
     },
     "#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1{collectionPath}/get/operationId": {
       "classification": "typescript-derived-inference",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1{collectionPath}/get/operationId"
+      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1{collectionPath}/get/operationId"
     },
     "#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1{collectionPath}/get/parameters/0/$ref": {
       "classification": "typescript-derived-inference",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1{collectionPath}/get/parameters/0/$ref"
+      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1{collectionPath}/get/parameters/0"
     },
     "#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1{collectionPath}/get/parameters/1/$ref": {
       "classification": "typescript-derived-inference",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1{collectionPath}/get/parameters/1/$ref"
+      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1{collectionPath}/get/parameters/1"
     },
     "#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1{collectionPath}/get/parameters/2/$ref": {
       "classification": "typescript-derived-inference",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1{collectionPath}/get/parameters/2/$ref"
+      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1{collectionPath}/get/parameters/2"
     },
     "#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1{collectionPath}/get/responses/default": {
       "classification": "explicit-unknown",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1{collectionPath}/get/responses/default"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision"
     },
     "#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1{collectionPath}/get/responses/default/$ref": {
       "classification": "explicit-unknown",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1{collectionPath}/get/responses/default/$ref"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision"
     },
     "#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1{collectionPath}/get/servers/0/url": {
       "classification": "typescript-derived-inference",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1{collectionPath}/get/servers/0/url"
+      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1{collectionPath}/get/servers/0/url"
     },
     "#/paths/~1v1~1token/post/operationId": {
       "classification": "typescript-derived-inference",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1v1~1token/post/operationId"
+      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1v1~1token/post/operationId"
     },
     "#/paths/~1v1~1token/post/requestBody/$ref": {
       "classification": "typescript-derived-inference",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1v1~1token/post/requestBody/$ref"
+      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1v1~1token/post/requestBody"
     },
     "#/paths/~1v1~1token/post/responses/default": {
       "classification": "explicit-unknown",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1v1~1token/post/responses/default"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision"
     },
     "#/paths/~1v1~1token/post/responses/default/$ref": {
       "classification": "explicit-unknown",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1v1~1token/post/responses/default/$ref"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision"
     },
     "#/paths/~1v1~1token/post/servers/0/url": {
       "classification": "typescript-derived-inference",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1v1~1token/post/servers/0/url"
+      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1v1~1token/post/servers/0/url"
     },
     "#/paths/~1sendAuthCodeTrusted/post/operationId": {
       "classification": "typescript-derived-inference",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1sendAuthCodeTrusted/post/operationId"
+      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1sendAuthCodeTrusted/post/operationId"
     },
     "#/paths/~1sendAuthCodeTrusted/post/requestBody/$ref": {
       "classification": "typescript-derived-inference",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1sendAuthCodeTrusted/post/requestBody/$ref"
+      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1sendAuthCodeTrusted/post/requestBody"
     },
     "#/paths/~1sendAuthCodeTrusted/post/responses/default": {
       "classification": "explicit-unknown",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1sendAuthCodeTrusted/post/responses/default"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision"
     },
     "#/paths/~1sendAuthCodeTrusted/post/responses/default/$ref": {
       "classification": "explicit-unknown",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1sendAuthCodeTrusted/post/responses/default/$ref"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision"
     },
     "#/paths/~1getLoginToken/post/operationId": {
       "classification": "typescript-derived-inference",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1getLoginToken/post/operationId"
+      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1getLoginToken/post/operationId"
     },
     "#/paths/~1getLoginToken/post/requestBody/$ref": {
       "classification": "typescript-derived-inference",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1getLoginToken/post/requestBody/$ref"
+      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1getLoginToken/post/requestBody"
     },
     "#/paths/~1getLoginToken/post/responses/default": {
       "classification": "explicit-unknown",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1getLoginToken/post/responses/default"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision"
     },
     "#/paths/~1getLoginToken/post/responses/default/$ref": {
       "classification": "explicit-unknown",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1getLoginToken/post/responses/default/$ref"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision"
     },
     "#/paths/~1v1~1accounts:signInWithCustomToken/post/operationId": {
       "classification": "typescript-derived-inference",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1v1~1accounts:signInWithCustomToken/post/operationId"
+      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1v1~1accounts:signInWithCustomToken/post/operationId"
     },
     "#/paths/~1v1~1accounts:signInWithCustomToken/post/requestBody/$ref": {
       "classification": "typescript-derived-inference",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1v1~1accounts:signInWithCustomToken/post/requestBody/$ref"
+      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1v1~1accounts:signInWithCustomToken/post/requestBody"
     },
     "#/paths/~1v1~1accounts:signInWithCustomToken/post/responses/default": {
       "classification": "explicit-unknown",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1v1~1accounts:signInWithCustomToken/post/responses/default"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision"
     },
     "#/paths/~1v1~1accounts:signInWithCustomToken/post/responses/default/$ref": {
       "classification": "explicit-unknown",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1v1~1accounts:signInWithCustomToken/post/responses/default/$ref"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision"
     },
     "#/paths/~1v1~1accounts:signInWithCustomToken/post/servers/0/url": {
       "classification": "typescript-derived-inference",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1v1~1accounts:signInWithCustomToken/post/servers/0/url"
+      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1v1~1accounts:signInWithCustomToken/post/servers/0/url"
     },
     "#/paths/~1v1~1accounts:lookup/post/operationId": {
       "classification": "typescript-derived-inference",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1v1~1accounts:lookup/post/operationId"
+      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1v1~1accounts:lookup/post/operationId"
     },
     "#/paths/~1v1~1accounts:lookup/post/requestBody/$ref": {
       "classification": "typescript-derived-inference",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1v1~1accounts:lookup/post/requestBody/$ref"
+      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1v1~1accounts:lookup/post/requestBody"
     },
     "#/paths/~1v1~1accounts:lookup/post/responses/default": {
       "classification": "explicit-unknown",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1v1~1accounts:lookup/post/responses/default"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision"
     },
     "#/paths/~1v1~1accounts:lookup/post/responses/default/$ref": {
       "classification": "explicit-unknown",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1v1~1accounts:lookup/post/responses/default/$ref"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision"
     },
     "#/paths/~1v1~1accounts:lookup/post/servers/0/url": {
       "classification": "typescript-derived-inference",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1v1~1accounts:lookup/post/servers/0/url"
+      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1v1~1accounts:lookup/post/servers/0/url"
     },
     "#/paths/~1uploadPhoto/post/operationId": {
       "classification": "typescript-derived-inference",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1uploadPhoto/post/operationId"
+      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1uploadPhoto/post/operationId"
     },
     "#/paths/~1uploadPhoto/post/parameters/0/name": {
       "classification": "typescript-derived-inference",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1uploadPhoto/post/parameters/0/name"
+      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1uploadPhoto/post/parameters/0/name"
     },
     "#/paths/~1uploadPhoto/post/parameters/0/in": {
       "classification": "typescript-derived-inference",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1uploadPhoto/post/parameters/0/in"
+      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1uploadPhoto/post/parameters/0/in"
     },
     "#/paths/~1uploadPhoto/post/parameters/0/schema": {
       "classification": "typescript-derived-inference",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1uploadPhoto/post/parameters/0/schema"
+      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1uploadPhoto/post/parameters/0/schema"
     },
     "#/paths/~1uploadPhoto/post/parameters/0/schema/type": {
       "classification": "typescript-derived-inference",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1uploadPhoto/post/parameters/0/schema/type"
+      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1uploadPhoto/post/parameters/0/schema/type"
     },
     "#/paths/~1uploadPhoto/post/requestBody/$ref": {
       "classification": "typescript-derived-inference",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1uploadPhoto/post/requestBody/$ref"
+      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1uploadPhoto/post/requestBody"
     },
     "#/paths/~1uploadPhoto/post/responses/default": {
       "classification": "explicit-unknown",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1uploadPhoto/post/responses/default"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision"
     },
     "#/paths/~1uploadPhoto/post/responses/default/$ref": {
       "classification": "explicit-unknown",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1uploadPhoto/post/responses/default/$ref"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision"
     },
     "#/paths/~1uploadPhoto/post/servers/0/url": {
       "classification": "typescript-derived-inference",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1uploadPhoto/post/servers/0/url"
+      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1uploadPhoto/post/servers/0/url"
     },
     "#/paths/~1posters.json/get/operationId": {
       "classification": "typescript-derived-inference",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1posters.json/get/operationId"
+      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1posters.json/get/operationId"
     },
     "#/paths/~1posters.json/get/responses/default": {
       "classification": "explicit-unknown",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1posters.json/get/responses/default"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision"
     },
     "#/paths/~1posters.json/get/responses/default/$ref": {
       "classification": "explicit-unknown",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1posters.json/get/responses/default/$ref"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision"
     },
     "#/paths/~1posters.json/get/servers/0/url": {
       "classification": "typescript-derived-inference",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/paths/~1posters.json/get/servers/0/url"
+      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1posters.json/get/servers/0/url"
     },
     "#/components/securitySchemes/firebaseBearer": {
       "classification": "typescript-derived-inference",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/components/securitySchemes/firebaseBearer"
+      "citation": "spec/research/historical-27-operation-draft.json#/components/securitySchemes/firebaseBearer"
     },
     "#/components/securitySchemes/firebaseBearer/type": {
       "classification": "typescript-derived-inference",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/components/securitySchemes/firebaseBearer/type"
+      "citation": "spec/research/historical-27-operation-draft.json#/components/securitySchemes/firebaseBearer/type"
     },
     "#/components/securitySchemes/firebaseBearer/scheme": {
       "classification": "typescript-derived-inference",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/components/securitySchemes/firebaseBearer/scheme"
+      "citation": "spec/research/historical-27-operation-draft.json#/components/securitySchemes/firebaseBearer/scheme"
     },
     "#/components/securitySchemes/firebaseApiKey": {
       "classification": "typescript-derived-inference",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/components/securitySchemes/firebaseApiKey"
+      "citation": "spec/research/historical-27-operation-draft.json#/components/securitySchemes/firebaseApiKey"
     },
     "#/components/securitySchemes/firebaseApiKey/type": {
       "classification": "typescript-derived-inference",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/components/securitySchemes/firebaseApiKey/type"
+      "citation": "spec/research/historical-27-operation-draft.json#/components/securitySchemes/firebaseApiKey/type"
     },
     "#/components/securitySchemes/firebaseApiKey/in": {
       "classification": "typescript-derived-inference",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/components/securitySchemes/firebaseApiKey/in"
+      "citation": "spec/research/historical-27-operation-draft.json#/components/securitySchemes/firebaseApiKey/in"
     },
     "#/components/securitySchemes/firebaseApiKey/name": {
       "classification": "typescript-derived-inference",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/components/securitySchemes/firebaseApiKey/name"
+      "citation": "spec/research/historical-27-operation-draft.json#/components/securitySchemes/firebaseApiKey/name"
     },
     "#/components/parameters/EventId": {
       "classification": "typescript-derived-inference",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/components/parameters/EventId"
+      "citation": "spec/research/historical-27-operation-draft.json#/components"
     },
     "#/components/parameters/EventId/name": {
       "classification": "typescript-derived-inference",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/components/parameters/EventId/name"
+      "citation": "spec/research/historical-27-operation-draft.json#/components"
     },
     "#/components/parameters/EventId/in": {
       "classification": "typescript-derived-inference",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/components/parameters/EventId/in"
+      "citation": "spec/research/historical-27-operation-draft.json#/components"
     },
     "#/components/parameters/EventId/required": {
       "classification": "typescript-derived-inference",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/components/parameters/EventId/required"
+      "citation": "spec/research/historical-27-operation-draft.json#/components"
     },
     "#/components/parameters/EventId/schema/type": {
       "classification": "typescript-derived-inference",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/components/parameters/EventId/schema/type"
+      "citation": "spec/research/historical-27-operation-draft.json#/components"
     },
     "#/components/parameters/GuestId": {
       "classification": "typescript-derived-inference",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/components/parameters/GuestId"
+      "citation": "spec/research/historical-27-operation-draft.json#/components"
     },
     "#/components/parameters/GuestId/name": {
       "classification": "typescript-derived-inference",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/components/parameters/GuestId/name"
+      "citation": "spec/research/historical-27-operation-draft.json#/components"
     },
     "#/components/parameters/GuestId/in": {
       "classification": "typescript-derived-inference",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/components/parameters/GuestId/in"
+      "citation": "spec/research/historical-27-operation-draft.json#/components"
     },
     "#/components/parameters/GuestId/required": {
       "classification": "typescript-derived-inference",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/components/parameters/GuestId/required"
+      "citation": "spec/research/historical-27-operation-draft.json#/components"
     },
     "#/components/parameters/GuestId/schema/type": {
       "classification": "typescript-derived-inference",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/components/parameters/GuestId/schema/type"
+      "citation": "spec/research/historical-27-operation-draft.json#/components"
     },
     "#/components/parameters/CollectionPath": {
       "classification": "typescript-derived-inference",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/components/parameters/CollectionPath"
+      "citation": "spec/research/historical-27-operation-draft.json#/components"
     },
     "#/components/parameters/CollectionPath/name": {
       "classification": "typescript-derived-inference",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/components/parameters/CollectionPath/name"
+      "citation": "spec/research/historical-27-operation-draft.json#/components"
     },
     "#/components/parameters/CollectionPath/in": {
       "classification": "typescript-derived-inference",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/components/parameters/CollectionPath/in"
+      "citation": "spec/research/historical-27-operation-draft.json#/components"
     },
     "#/components/parameters/CollectionPath/required": {
       "classification": "typescript-derived-inference",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/components/parameters/CollectionPath/required"
+      "citation": "spec/research/historical-27-operation-draft.json#/components"
     },
     "#/components/parameters/CollectionPath/schema/type": {
       "classification": "typescript-derived-inference",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/components/parameters/CollectionPath/schema/type"
+      "citation": "spec/research/historical-27-operation-draft.json#/components"
     },
     "#/components/parameters/UpdateMask": {
       "classification": "typescript-derived-inference",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/components/parameters/UpdateMask"
+      "citation": "spec/research/historical-27-operation-draft.json#/components"
     },
     "#/components/parameters/UpdateMask/name": {
       "classification": "typescript-derived-inference",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/components/parameters/UpdateMask/name"
+      "citation": "spec/research/historical-27-operation-draft.json#/components"
     },
     "#/components/parameters/UpdateMask/in": {
       "classification": "typescript-derived-inference",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/components/parameters/UpdateMask/in"
+      "citation": "spec/research/historical-27-operation-draft.json#/components"
     },
     "#/components/parameters/UpdateMask/schema/type": {
       "classification": "typescript-derived-inference",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/components/parameters/UpdateMask/schema/type"
+      "citation": "spec/research/historical-27-operation-draft.json#/components"
     },
     "#/components/parameters/PageSize": {
       "classification": "typescript-derived-inference",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/components/parameters/PageSize"
+      "citation": "spec/research/historical-27-operation-draft.json#/components"
     },
     "#/components/parameters/PageSize/name": {
       "classification": "typescript-derived-inference",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/components/parameters/PageSize/name"
+      "citation": "spec/research/historical-27-operation-draft.json#/components"
     },
     "#/components/parameters/PageSize/in": {
       "classification": "typescript-derived-inference",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/components/parameters/PageSize/in"
+      "citation": "spec/research/historical-27-operation-draft.json#/components"
     },
     "#/components/parameters/PageSize/schema/type": {
       "classification": "typescript-derived-inference",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/components/parameters/PageSize/schema/type"
+      "citation": "spec/research/historical-27-operation-draft.json#/components"
     },
     "#/components/parameters/PageSize/schema/minimum": {
       "classification": "typescript-derived-inference",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/components/parameters/PageSize/schema/minimum"
+      "citation": "spec/research/historical-27-operation-draft.json#/components"
     },
     "#/components/parameters/PageToken": {
       "classification": "typescript-derived-inference",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/components/parameters/PageToken"
+      "citation": "spec/research/historical-27-operation-draft.json#/components"
     },
     "#/components/parameters/PageToken/name": {
       "classification": "typescript-derived-inference",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/components/parameters/PageToken/name"
+      "citation": "spec/research/historical-27-operation-draft.json#/components"
     },
     "#/components/parameters/PageToken/in": {
       "classification": "typescript-derived-inference",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/components/parameters/PageToken/in"
+      "citation": "spec/research/historical-27-operation-draft.json#/components"
     },
     "#/components/parameters/PageToken/schema/type": {
       "classification": "typescript-derived-inference",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/components/parameters/PageToken/schema/type"
+      "citation": "spec/research/historical-27-operation-draft.json#/components"
     },
     "#/components/requestBodies/CallableRequest": {
       "classification": "typescript-derived-inference",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/components/requestBodies/CallableRequest"
+      "citation": "spec/research/historical-27-operation-draft.json#/components"
     },
     "#/components/requestBodies/CallableRequest/required": {
       "classification": "typescript-derived-inference",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/components/requestBodies/CallableRequest/required"
+      "citation": "spec/research/historical-27-operation-draft.json#/components"
     },
     "#/components/requestBodies/CallableRequest/content/application~1json": {
       "classification": "typescript-derived-inference",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/components/requestBodies/CallableRequest/content/application~1json"
+      "citation": "spec/research/historical-27-operation-draft.json#/components"
     },
     "#/components/requestBodies/CallableRequest/content/application~1json/schema/$ref": {
       "classification": "typescript-derived-inference",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/components/requestBodies/CallableRequest/content/application~1json/schema/$ref"
+      "citation": "spec/research/historical-27-operation-draft.json#/components"
     },
     "#/components/requestBodies/TextBlastRequest": {
       "classification": "typescript-derived-inference",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/components/requestBodies/TextBlastRequest"
+      "citation": "spec/research/historical-27-operation-draft.json#/components"
     },
     "#/components/requestBodies/TextBlastRequest/required": {
       "classification": "typescript-derived-inference",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/components/requestBodies/TextBlastRequest/required"
+      "citation": "spec/research/historical-27-operation-draft.json#/components"
     },
     "#/components/requestBodies/TextBlastRequest/content/application~1json": {
       "classification": "typescript-derived-inference",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/components/requestBodies/TextBlastRequest/content/application~1json"
+      "citation": "spec/research/historical-27-operation-draft.json#/components"
     },
     "#/components/requestBodies/TextBlastRequest/content/application~1json/schema/$ref": {
       "classification": "typescript-derived-inference",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/components/requestBodies/TextBlastRequest/content/application~1json/schema/$ref"
+      "citation": "spec/research/historical-27-operation-draft.json#/components"
     },
     "#/components/requestBodies/FirestoreWrite": {
       "classification": "typescript-derived-inference",
-      "citation": "9e6ed15:src/lib/http.ts#L1-L245"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#typescript-firestore-research"
     },
     "#/components/requestBodies/FirestoreWrite/required": {
       "classification": "typescript-derived-inference",
-      "citation": "9e6ed15:src/lib/http.ts#L1-L245"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#typescript-firestore-research"
     },
     "#/components/requestBodies/FirestoreWrite/content/application~1json": {
       "classification": "typescript-derived-inference",
-      "citation": "9e6ed15:src/lib/http.ts#L1-L245"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#typescript-firestore-research"
     },
     "#/components/requestBodies/FirestoreWrite/content/application~1json/schema/$ref": {
       "classification": "typescript-derived-inference",
-      "citation": "9e6ed15:src/lib/http.ts#L1-L245"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#typescript-firestore-research"
     },
     "#/components/requestBodies/RefreshToken": {
       "classification": "typescript-derived-inference",
-      "citation": "9e6ed15:src/lib/auth.ts#L1-L150"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#typescript-callable-and-auth-research"
     },
     "#/components/requestBodies/RefreshToken/required": {
       "classification": "typescript-derived-inference",
-      "citation": "9e6ed15:src/lib/auth.ts#L1-L150"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#typescript-callable-and-auth-research"
     },
     "#/components/requestBodies/RefreshToken/content/application~1x-www-form-urlencoded": {
       "classification": "typescript-derived-inference",
-      "citation": "9e6ed15:src/lib/auth.ts#L1-L150"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#typescript-callable-and-auth-research"
     },
     "#/components/requestBodies/RefreshToken/content/application~1x-www-form-urlencoded/schema/$ref": {
       "classification": "typescript-derived-inference",
-      "citation": "9e6ed15:src/lib/auth.ts#L1-L150"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#typescript-callable-and-auth-research"
     },
     "#/components/requestBodies/CustomToken": {
       "classification": "dated-live-observation",
-      "citation": "docs/research/2026-03-24-auth-flow-endpoints.md#auth-endpoints"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#dated-authentication-observation"
     },
     "#/components/requestBodies/CustomToken/required": {
       "classification": "dated-live-observation",
-      "citation": "docs/research/2026-03-24-auth-flow-endpoints.md#auth-endpoints"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#dated-authentication-observation"
     },
     "#/components/requestBodies/CustomToken/content/application~1json": {
       "classification": "dated-live-observation",
-      "citation": "docs/research/2026-03-24-auth-flow-endpoints.md#auth-endpoints"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#dated-authentication-observation"
     },
     "#/components/requestBodies/CustomToken/content/application~1json/schema/$ref": {
       "classification": "dated-live-observation",
-      "citation": "docs/research/2026-03-24-auth-flow-endpoints.md#auth-endpoints"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#dated-authentication-observation"
     },
     "#/components/requestBodies/FirebaseLookup": {
       "classification": "reviewed-first-party-repository-research",
-      "citation": "9e6ed15:src/commands/auth.ts#L145-L340"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#typescript-callable-and-auth-research"
     },
     "#/components/requestBodies/FirebaseLookup/required": {
       "classification": "reviewed-first-party-repository-research",
-      "citation": "9e6ed15:src/commands/auth.ts#L145-L340"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#typescript-callable-and-auth-research"
     },
     "#/components/requestBodies/FirebaseLookup/content/application~1json": {
       "classification": "reviewed-first-party-repository-research",
-      "citation": "9e6ed15:src/commands/auth.ts#L145-L340"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#typescript-callable-and-auth-research"
     },
     "#/components/requestBodies/FirebaseLookup/content/application~1json/schema/$ref": {
       "classification": "reviewed-first-party-repository-research",
-      "citation": "9e6ed15:src/commands/auth.ts#L145-L340"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#typescript-callable-and-auth-research"
     },
     "#/components/requestBodies/UploadPhoto": {
       "classification": "typescript-derived-inference",
-      "citation": "9e6ed15:src/lib/upload.ts#L35-L115"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#typescript-upload-research"
     },
     "#/components/requestBodies/UploadPhoto/required": {
       "classification": "typescript-derived-inference",
-      "citation": "9e6ed15:src/lib/upload.ts#L35-L115"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#typescript-upload-research"
     },
     "#/components/requestBodies/UploadPhoto/content/multipart~1form-data": {
       "classification": "typescript-derived-inference",
-      "citation": "9e6ed15:src/lib/upload.ts#L35-L115"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#typescript-upload-research"
     },
     "#/components/requestBodies/UploadPhoto/content/multipart~1form-data/schema/type": {
       "classification": "typescript-derived-inference",
-      "citation": "9e6ed15:src/lib/upload.ts#L35-L115"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#typescript-upload-research"
     },
     "#/components/requestBodies/UploadPhoto/content/multipart~1form-data/schema/required/0": {
       "classification": "typescript-derived-inference",
-      "citation": "9e6ed15:src/lib/upload.ts#L35-L115"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#typescript-upload-research"
     },
     "#/components/requestBodies/UploadPhoto/content/multipart~1form-data/schema/properties/file": {
       "classification": "typescript-derived-inference",
-      "citation": "9e6ed15:src/lib/upload.ts#L35-L115"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#typescript-upload-research"
     },
     "#/components/requestBodies/UploadPhoto/content/multipart~1form-data/schema/properties/file/type": {
       "classification": "typescript-derived-inference",
-      "citation": "9e6ed15:src/lib/upload.ts#L35-L115"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#typescript-upload-research"
     },
     "#/components/requestBodies/UploadPhoto/content/multipart~1form-data/schema/properties/file/format": {
       "classification": "typescript-derived-inference",
-      "citation": "9e6ed15:src/lib/upload.ts#L35-L115"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#typescript-upload-research"
     },
     "#/components/responses/CallableResponse": {
       "classification": "typescript-derived-inference",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/components/responses/CallableResponse"
+      "citation": "spec/research/historical-27-operation-draft.json#/components"
     },
     "#/components/responses/CallableResponse/content/application~1json": {
       "classification": "typescript-derived-inference",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/components/responses/CallableResponse/content/application~1json"
+      "citation": "spec/research/historical-27-operation-draft.json#/components"
     },
     "#/components/responses/CallableResponse/content/application~1json/schema/$ref": {
       "classification": "typescript-derived-inference",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/components/responses/CallableResponse/content/application~1json/schema/$ref"
+      "citation": "spec/research/historical-27-operation-draft.json#/components"
     },
     "#/components/responses/FirestoreDocument": {
       "classification": "typescript-derived-inference",
-      "citation": "9e6ed15:src/lib/http.ts#L1-L245"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#typescript-firestore-research"
     },
     "#/components/responses/FirestoreDocument/content/application~1json": {
       "classification": "typescript-derived-inference",
-      "citation": "9e6ed15:src/lib/http.ts#L1-L245"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#typescript-firestore-research"
     },
     "#/components/responses/FirestoreDocument/content/application~1json/schema/$ref": {
       "classification": "typescript-derived-inference",
-      "citation": "9e6ed15:src/lib/http.ts#L1-L245"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#typescript-firestore-research"
     },
     "#/components/responses/FirestoreList": {
       "classification": "typescript-derived-inference",
-      "citation": "9e6ed15:src/lib/http.ts#L1-L245"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#typescript-firestore-research"
     },
     "#/components/responses/FirestoreList/content/application~1json": {
       "classification": "typescript-derived-inference",
-      "citation": "9e6ed15:src/lib/http.ts#L1-L245"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#typescript-firestore-research"
     },
     "#/components/responses/FirestoreList/content/application~1json/schema/$ref": {
       "classification": "typescript-derived-inference",
-      "citation": "9e6ed15:src/lib/http.ts#L1-L245"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#typescript-firestore-research"
     },
     "#/components/responses/RefreshToken": {
       "classification": "typescript-derived-inference",
-      "citation": "9e6ed15:src/lib/auth.ts#L1-L150"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#typescript-callable-and-auth-research"
     },
     "#/components/responses/RefreshToken/content/application~1json": {
       "classification": "typescript-derived-inference",
-      "citation": "9e6ed15:src/lib/auth.ts#L1-L150"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#typescript-callable-and-auth-research"
     },
     "#/components/responses/RefreshToken/content/application~1json/schema/$ref": {
       "classification": "typescript-derived-inference",
-      "citation": "9e6ed15:src/lib/auth.ts#L1-L150"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#typescript-callable-and-auth-research"
     },
     "#/components/responses/FirebaseSignIn": {
       "classification": "dated-live-observation",
-      "citation": "docs/research/2026-03-24-auth-flow-endpoints.md#auth-endpoints"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#dated-authentication-observation"
     },
     "#/components/responses/FirebaseSignIn/content/application~1json": {
       "classification": "dated-live-observation",
-      "citation": "docs/research/2026-03-24-auth-flow-endpoints.md#auth-endpoints"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#dated-authentication-observation"
     },
     "#/components/responses/FirebaseSignIn/content/application~1json/schema/$ref": {
       "classification": "dated-live-observation",
-      "citation": "docs/research/2026-03-24-auth-flow-endpoints.md#auth-endpoints"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#dated-authentication-observation"
     },
     "#/components/responses/FirebaseLookup": {
       "classification": "reviewed-first-party-repository-research",
-      "citation": "9e6ed15:src/commands/auth.ts#L145-L340"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#typescript-callable-and-auth-research"
     },
     "#/components/responses/FirebaseLookup/content/application~1json": {
       "classification": "reviewed-first-party-repository-research",
-      "citation": "9e6ed15:src/commands/auth.ts#L145-L340"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#typescript-callable-and-auth-research"
     },
     "#/components/responses/FirebaseLookup/content/application~1json/schema/$ref": {
       "classification": "reviewed-first-party-repository-research",
-      "citation": "9e6ed15:src/commands/auth.ts#L145-L340"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#typescript-callable-and-auth-research"
     },
     "#/components/responses/UploadPhoto": {
       "classification": "typescript-derived-inference",
-      "citation": "9e6ed15:src/lib/upload.ts#L35-L115"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#typescript-upload-research"
     },
     "#/components/responses/UploadPhoto/content/application~1json": {
       "classification": "typescript-derived-inference",
-      "citation": "9e6ed15:src/lib/upload.ts#L35-L115"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#typescript-upload-research"
     },
     "#/components/responses/UploadPhoto/content/application~1json/schema/$ref": {
       "classification": "typescript-derived-inference",
-      "citation": "9e6ed15:src/lib/upload.ts#L35-L115"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#typescript-upload-research"
     },
     "#/components/responses/PosterCatalog": {
       "classification": "typescript-derived-inference",
-      "citation": "9e6ed15:src/lib/posters.ts#L25-L45"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#poster-catalog-fetch"
     },
     "#/components/responses/PosterCatalog/content/application~1json": {
       "classification": "typescript-derived-inference",
-      "citation": "9e6ed15:src/lib/posters.ts#L25-L45"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#poster-catalog-fetch"
     },
     "#/components/responses/PosterCatalog/content/application~1json/schema/type": {
       "classification": "typescript-derived-inference",
-      "citation": "9e6ed15:src/lib/posters.ts#L25-L45"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#poster-catalog-fetch"
     },
     "#/components/responses/PosterCatalog/content/application~1json/schema/items/$ref": {
       "classification": "typescript-derived-inference",
-      "citation": "9e6ed15:src/lib/posters.ts#L25-L45"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#poster-catalog-fetch"
     },
     "#/components/schemas/CallableRequest": {
       "classification": "typescript-derived-inference",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/components/schemas/CallableRequest"
+      "citation": "spec/research/historical-27-operation-draft.json#/components/schemas"
     },
     "#/components/schemas/CallableRequest/type": {
       "classification": "typescript-derived-inference",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/components/schemas/CallableRequest/type"
+      "citation": "spec/research/historical-27-operation-draft.json#/components/schemas"
     },
     "#/components/schemas/CallableRequest/required/0": {
       "classification": "typescript-derived-inference",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/components/schemas/CallableRequest/required/0"
+      "citation": "spec/research/historical-27-operation-draft.json#/components/schemas"
     },
     "#/components/schemas/CallableRequest/properties/data": {
       "classification": "typescript-derived-inference",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/components/schemas/CallableRequest/properties/data"
+      "citation": "spec/research/historical-27-operation-draft.json#/components/schemas"
     },
     "#/components/schemas/CallableRequest/properties/data/type": {
       "classification": "typescript-derived-inference",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/components/schemas/CallableRequest/properties/data/type"
+      "citation": "spec/research/historical-27-operation-draft.json#/components/schemas"
     },
     "#/components/schemas/CallableRequest/properties/data/required/0": {
       "classification": "typescript-derived-inference",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/components/schemas/CallableRequest/properties/data/required/0"
+      "citation": "spec/research/historical-27-operation-draft.json#/components/schemas"
     },
     "#/components/schemas/CallableRequest/properties/data/required/1": {
       "classification": "typescript-derived-inference",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/components/schemas/CallableRequest/properties/data/required/1"
+      "citation": "spec/research/historical-27-operation-draft.json#/components/schemas"
     },
     "#/components/schemas/CallableRequest/properties/data/properties/params": {
       "classification": "typescript-derived-inference",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/components/schemas/CallableRequest/properties/data/properties/params"
+      "citation": "spec/research/historical-27-operation-draft.json#/components/schemas"
     },
     "#/components/schemas/CallableRequest/properties/data/properties/params/type": {
       "classification": "typescript-derived-inference",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/components/schemas/CallableRequest/properties/data/properties/params/type"
+      "citation": "spec/research/historical-27-operation-draft.json#/components/schemas"
     },
     "#/components/schemas/CallableRequest/properties/data/properties/params/additionalProperties": {
       "classification": "typescript-derived-inference",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/components/schemas/CallableRequest/properties/data/properties/params/additionalProperties"
+      "citation": "spec/research/historical-27-operation-draft.json#/components/schemas"
     },
     "#/components/schemas/CallableRequest/properties/data/properties/amplitudeDeviceId": {
       "classification": "typescript-derived-inference",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/components/schemas/CallableRequest/properties/data/properties/amplitudeDeviceId"
+      "citation": "spec/research/historical-27-operation-draft.json#/components/schemas"
     },
     "#/components/schemas/CallableRequest/properties/data/properties/amplitudeDeviceId/type": {
       "classification": "typescript-derived-inference",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/components/schemas/CallableRequest/properties/data/properties/amplitudeDeviceId/type"
+      "citation": "spec/research/historical-27-operation-draft.json#/components/schemas"
     },
     "#/components/schemas/CallableRequest/properties/data/properties/amplitudeSessionId": {
       "classification": "typescript-derived-inference",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/components/schemas/CallableRequest/properties/data/properties/amplitudeSessionId"
+      "citation": "spec/research/historical-27-operation-draft.json#/components/schemas"
     },
     "#/components/schemas/CallableRequest/properties/data/properties/amplitudeSessionId/type": {
       "classification": "typescript-derived-inference",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/components/schemas/CallableRequest/properties/data/properties/amplitudeSessionId/type"
+      "citation": "spec/research/historical-27-operation-draft.json#/components/schemas"
     },
     "#/components/schemas/CallableRequest/properties/data/properties/userId": {
       "classification": "typescript-derived-inference",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/components/schemas/CallableRequest/properties/data/properties/userId"
+      "citation": "spec/research/historical-27-operation-draft.json#/components/schemas"
     },
     "#/components/schemas/CallableRequest/properties/data/properties/userId/type/0": {
       "classification": "typescript-derived-inference",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/components/schemas/CallableRequest/properties/data/properties/userId/type/0"
+      "citation": "spec/research/historical-27-operation-draft.json#/components/schemas"
     },
     "#/components/schemas/CallableRequest/properties/data/properties/userId/type/1": {
       "classification": "typescript-derived-inference",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/components/schemas/CallableRequest/properties/data/properties/userId/type/1"
+      "citation": "spec/research/historical-27-operation-draft.json#/components/schemas"
     },
     "#/components/schemas/CallableRequest/properties/data/additionalProperties": {
       "classification": "typescript-derived-inference",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/components/schemas/CallableRequest/properties/data/additionalProperties"
+      "citation": "spec/research/historical-27-operation-draft.json#/components/schemas"
     },
     "#/components/schemas/CallableRequest/additionalProperties": {
       "classification": "typescript-derived-inference",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/components/schemas/CallableRequest/additionalProperties"
+      "citation": "spec/research/historical-27-operation-draft.json#/components/schemas"
     },
     "#/components/schemas/TextBlastRequest": {
       "classification": "dated-live-observation",
-      "citation": "docs/research/2026-03-24-text-blast-endpoint.md#request-payload"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#dated-text-blast-observation"
     },
     "#/components/schemas/TextBlastRequest/type": {
       "classification": "dated-live-observation",
-      "citation": "docs/research/2026-03-24-text-blast-endpoint.md#request-payload"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#dated-text-blast-observation"
     },
     "#/components/schemas/TextBlastRequest/required/0": {
       "classification": "dated-live-observation",
-      "citation": "docs/research/2026-03-24-text-blast-endpoint.md#request-payload"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#dated-text-blast-observation"
     },
     "#/components/schemas/TextBlastRequest/properties/data": {
       "classification": "dated-live-observation",
-      "citation": "docs/research/2026-03-24-text-blast-endpoint.md#request-payload"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#dated-text-blast-observation"
     },
     "#/components/schemas/TextBlastRequest/properties/data/type": {
       "classification": "dated-live-observation",
-      "citation": "docs/research/2026-03-24-text-blast-endpoint.md#request-payload"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#dated-text-blast-observation"
     },
     "#/components/schemas/TextBlastRequest/properties/data/required/0": {
       "classification": "dated-live-observation",
-      "citation": "docs/research/2026-03-24-text-blast-endpoint.md#request-payload"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#dated-text-blast-observation"
     },
     "#/components/schemas/TextBlastRequest/properties/data/properties/params": {
       "classification": "dated-live-observation",
-      "citation": "docs/research/2026-03-24-text-blast-endpoint.md#request-payload"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#dated-text-blast-observation"
     },
     "#/components/schemas/TextBlastRequest/properties/data/properties/params/type": {
       "classification": "dated-live-observation",
-      "citation": "docs/research/2026-03-24-text-blast-endpoint.md#request-payload"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#dated-text-blast-observation"
     },
     "#/components/schemas/TextBlastRequest/properties/data/properties/params/required/0": {
       "classification": "dated-live-observation",
-      "citation": "docs/research/2026-03-24-text-blast-endpoint.md#request-payload"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#dated-text-blast-observation"
     },
     "#/components/schemas/TextBlastRequest/properties/data/properties/params/required/1": {
       "classification": "dated-live-observation",
-      "citation": "docs/research/2026-03-24-text-blast-endpoint.md#request-payload"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#dated-text-blast-observation"
     },
     "#/components/schemas/TextBlastRequest/properties/data/properties/params/properties/eventId": {
       "classification": "dated-live-observation",
-      "citation": "docs/research/2026-03-24-text-blast-endpoint.md#request-payload"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#dated-text-blast-observation"
     },
     "#/components/schemas/TextBlastRequest/properties/data/properties/params/properties/eventId/type": {
       "classification": "dated-live-observation",
-      "citation": "docs/research/2026-03-24-text-blast-endpoint.md#request-payload"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#dated-text-blast-observation"
     },
     "#/components/schemas/TextBlastRequest/properties/data/properties/params/properties/message": {
       "classification": "dated-live-observation",
-      "citation": "docs/research/2026-03-24-text-blast-endpoint.md#request-payload"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#dated-text-blast-observation"
     },
     "#/components/schemas/TextBlastRequest/properties/data/properties/params/properties/message/$ref": {
       "classification": "dated-live-observation",
-      "citation": "docs/research/2026-03-24-text-blast-endpoint.md#request-payload"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#dated-text-blast-observation"
     },
     "#/components/schemas/TextBlastRequest/properties/data/properties/params/additionalProperties": {
       "classification": "dated-live-observation",
-      "citation": "docs/research/2026-03-24-text-blast-endpoint.md#request-payload"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#dated-text-blast-observation"
     },
     "#/components/schemas/TextBlastRequest/properties/data/additionalProperties": {
       "classification": "dated-live-observation",
-      "citation": "docs/research/2026-03-24-text-blast-endpoint.md#request-payload"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#dated-text-blast-observation"
     },
     "#/components/schemas/TextBlastRequest/additionalProperties": {
       "classification": "dated-live-observation",
-      "citation": "docs/research/2026-03-24-text-blast-endpoint.md#request-payload"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#dated-text-blast-observation"
     },
     "#/components/schemas/TextBlastMessage": {
       "classification": "dated-live-observation",
-      "citation": "docs/research/2026-03-24-text-blast-endpoint.md#request-payload"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#dated-text-blast-observation"
     },
     "#/components/schemas/TextBlastMessage/type": {
       "classification": "dated-live-observation",
-      "citation": "docs/research/2026-03-24-text-blast-endpoint.md#request-payload"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#dated-text-blast-observation"
     },
     "#/components/schemas/TextBlastMessage/required/0": {
       "classification": "dated-live-observation",
-      "citation": "docs/research/2026-03-24-text-blast-endpoint.md#request-payload"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#dated-text-blast-observation"
     },
     "#/components/schemas/TextBlastMessage/required/1": {
       "classification": "dated-live-observation",
-      "citation": "docs/research/2026-03-24-text-blast-endpoint.md#request-payload"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#dated-text-blast-observation"
     },
     "#/components/schemas/TextBlastMessage/required/2": {
       "classification": "dated-live-observation",
-      "citation": "docs/research/2026-03-24-text-blast-endpoint.md#request-payload"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#dated-text-blast-observation"
     },
     "#/components/schemas/TextBlastMessage/properties/text": {
       "classification": "dated-live-observation",
-      "citation": "docs/research/2026-03-24-text-blast-endpoint.md#request-payload"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#dated-text-blast-observation"
     },
     "#/components/schemas/TextBlastMessage/properties/text/type": {
       "classification": "dated-live-observation",
-      "citation": "docs/research/2026-03-24-text-blast-endpoint.md#request-payload"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#dated-text-blast-observation"
     },
     "#/components/schemas/TextBlastMessage/properties/text/maxLength": {
       "classification": "dated-live-observation",
-      "citation": "docs/research/2026-03-24-text-blast-endpoint.md#request-payload"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#dated-text-blast-observation"
     },
     "#/components/schemas/TextBlastMessage/properties/to": {
       "classification": "dated-live-observation",
-      "citation": "docs/research/2026-03-24-text-blast-endpoint.md#request-payload"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#dated-text-blast-observation"
     },
     "#/components/schemas/TextBlastMessage/properties/to/type": {
       "classification": "dated-live-observation",
-      "citation": "docs/research/2026-03-24-text-blast-endpoint.md#request-payload"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#dated-text-blast-observation"
     },
     "#/components/schemas/TextBlastMessage/properties/to/items/type": {
       "classification": "dated-live-observation",
-      "citation": "docs/research/2026-03-24-text-blast-endpoint.md#request-payload"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#dated-text-blast-observation"
     },
     "#/components/schemas/TextBlastMessage/properties/showOnEventPage": {
       "classification": "dated-live-observation",
-      "citation": "docs/research/2026-03-24-text-blast-endpoint.md#request-payload"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#dated-text-blast-observation"
     },
     "#/components/schemas/TextBlastMessage/properties/showOnEventPage/type": {
       "classification": "dated-live-observation",
-      "citation": "docs/research/2026-03-24-text-blast-endpoint.md#request-payload"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#dated-text-blast-observation"
     },
     "#/components/schemas/TextBlastMessage/properties/images": {
       "classification": "dated-live-observation",
-      "citation": "docs/research/2026-03-24-text-blast-endpoint.md#request-payload"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#dated-text-blast-observation"
     },
     "#/components/schemas/TextBlastMessage/properties/images/type": {
       "classification": "dated-live-observation",
-      "citation": "docs/research/2026-03-24-text-blast-endpoint.md#request-payload"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#dated-text-blast-observation"
     },
     "#/components/schemas/TextBlastMessage/properties/images/maxItems": {
       "classification": "dated-live-observation",
-      "citation": "docs/research/2026-03-24-text-blast-endpoint.md#request-payload"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#dated-text-blast-observation"
     },
     "#/components/schemas/TextBlastMessage/properties/images/items/type": {
       "classification": "dated-live-observation",
-      "citation": "docs/research/2026-03-24-text-blast-endpoint.md#request-payload"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#dated-text-blast-observation"
     },
     "#/components/schemas/TextBlastMessage/properties/images/items/additionalProperties": {
       "classification": "dated-live-observation",
-      "citation": "docs/research/2026-03-24-text-blast-endpoint.md#request-payload"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#dated-text-blast-observation"
     },
     "#/components/schemas/TextBlastMessage/additionalProperties": {
       "classification": "dated-live-observation",
-      "citation": "docs/research/2026-03-24-text-blast-endpoint.md#request-payload"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#dated-text-blast-observation"
     },
     "#/components/schemas/CallableResponse": {
       "classification": "typescript-derived-inference",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/components/schemas/CallableResponse"
+      "citation": "spec/research/historical-27-operation-draft.json#/components/schemas/CallableResponse"
     },
     "#/components/schemas/CallableResponse/type": {
       "classification": "typescript-derived-inference",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/components/schemas/CallableResponse/type"
+      "citation": "spec/research/historical-27-operation-draft.json#/components/schemas/CallableResponse/type"
     },
     "#/components/schemas/CallableResponse/properties/result": {
       "classification": "typescript-derived-inference",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/components/schemas/CallableResponse/properties/result"
+      "citation": "spec/research/historical-27-operation-draft.json#/components/schemas/CallableResponse/properties/result"
     },
     "#/components/schemas/CallableResponse/properties/result/type": {
       "classification": "typescript-derived-inference",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/components/schemas/CallableResponse/properties/result/type"
+      "citation": "spec/research/historical-27-operation-draft.json#/components/schemas/CallableResponse/properties/result/type"
     },
     "#/components/schemas/CallableResponse/properties/result/properties/data": {
       "classification": "typescript-derived-inference",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/components/schemas/CallableResponse/properties/result/properties/data"
+      "citation": "spec/research/historical-27-operation-draft.json#/components/schemas/CallableResponse/properties/result/properties/data"
     },
     "#/components/schemas/CallableResponse/properties/result/additionalProperties": {
       "classification": "typescript-derived-inference",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/components/schemas/CallableResponse/properties/result/additionalProperties"
+      "citation": "spec/research/historical-27-operation-draft.json#/components/schemas/CallableResponse/properties/result/additionalProperties"
     },
     "#/components/schemas/CallableResponse/additionalProperties": {
       "classification": "typescript-derived-inference",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/components/schemas/CallableResponse/additionalProperties"
+      "citation": "spec/research/historical-27-operation-draft.json#/components/schemas/CallableResponse/additionalProperties"
     },
     "#/components/schemas/FirestoreWriteDocument": {
       "classification": "typescript-derived-inference",
-      "citation": "9e6ed15:src/lib/http.ts#L1-L245"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#typescript-firestore-research"
     },
     "#/components/schemas/FirestoreWriteDocument/type": {
       "classification": "typescript-derived-inference",
-      "citation": "9e6ed15:src/lib/http.ts#L1-L245"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#typescript-firestore-research"
     },
     "#/components/schemas/FirestoreWriteDocument/properties/fields": {
       "classification": "typescript-derived-inference",
-      "citation": "9e6ed15:src/lib/http.ts#L1-L245"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#typescript-firestore-research"
     },
     "#/components/schemas/FirestoreWriteDocument/properties/fields/type": {
       "classification": "typescript-derived-inference",
-      "citation": "9e6ed15:src/lib/http.ts#L1-L245"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#typescript-firestore-research"
     },
     "#/components/schemas/FirestoreWriteDocument/properties/fields/additionalProperties": {
       "classification": "typescript-derived-inference",
-      "citation": "9e6ed15:src/lib/http.ts#L1-L245"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#typescript-firestore-research"
     },
     "#/components/schemas/FirestoreWriteDocument/additionalProperties": {
       "classification": "typescript-derived-inference",
-      "citation": "9e6ed15:src/lib/http.ts#L1-L245"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#typescript-firestore-research"
     },
     "#/components/schemas/FirestoreDocument": {
       "classification": "typescript-derived-inference",
-      "citation": "9e6ed15:src/lib/http.ts#L1-L245"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#typescript-firestore-research"
     },
     "#/components/schemas/FirestoreDocument/type": {
       "classification": "typescript-derived-inference",
-      "citation": "9e6ed15:src/lib/http.ts#L1-L245"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#typescript-firestore-research"
     },
     "#/components/schemas/FirestoreDocument/properties/name": {
       "classification": "typescript-derived-inference",
-      "citation": "9e6ed15:src/lib/http.ts#L1-L245"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#typescript-firestore-research"
     },
     "#/components/schemas/FirestoreDocument/properties/name/type": {
       "classification": "typescript-derived-inference",
-      "citation": "9e6ed15:src/lib/http.ts#L1-L245"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#typescript-firestore-research"
     },
     "#/components/schemas/FirestoreDocument/properties/fields": {
       "classification": "typescript-derived-inference",
-      "citation": "9e6ed15:src/lib/http.ts#L1-L245"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#typescript-firestore-research"
     },
     "#/components/schemas/FirestoreDocument/properties/fields/type": {
       "classification": "typescript-derived-inference",
-      "citation": "9e6ed15:src/lib/http.ts#L1-L245"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#typescript-firestore-research"
     },
     "#/components/schemas/FirestoreDocument/properties/fields/additionalProperties": {
       "classification": "typescript-derived-inference",
-      "citation": "9e6ed15:src/lib/http.ts#L1-L245"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#typescript-firestore-research"
     },
     "#/components/schemas/FirestoreDocument/properties/createTime": {
       "classification": "typescript-derived-inference",
-      "citation": "9e6ed15:src/lib/http.ts#L1-L245"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#typescript-firestore-research"
     },
     "#/components/schemas/FirestoreDocument/properties/createTime/type": {
       "classification": "typescript-derived-inference",
-      "citation": "9e6ed15:src/lib/http.ts#L1-L245"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#typescript-firestore-research"
     },
     "#/components/schemas/FirestoreDocument/properties/updateTime": {
       "classification": "typescript-derived-inference",
-      "citation": "9e6ed15:src/lib/http.ts#L1-L245"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#typescript-firestore-research"
     },
     "#/components/schemas/FirestoreDocument/properties/updateTime/type": {
       "classification": "typescript-derived-inference",
-      "citation": "9e6ed15:src/lib/http.ts#L1-L245"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#typescript-firestore-research"
     },
     "#/components/schemas/FirestoreDocument/additionalProperties": {
       "classification": "typescript-derived-inference",
-      "citation": "9e6ed15:src/lib/http.ts#L1-L245"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#typescript-firestore-research"
     },
     "#/components/schemas/FirestoreListResponse": {
       "classification": "typescript-derived-inference",
-      "citation": "9e6ed15:src/lib/http.ts#L1-L245"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#typescript-firestore-research"
     },
     "#/components/schemas/FirestoreListResponse/type": {
       "classification": "typescript-derived-inference",
-      "citation": "9e6ed15:src/lib/http.ts#L1-L245"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#typescript-firestore-research"
     },
     "#/components/schemas/FirestoreListResponse/properties/documents": {
       "classification": "typescript-derived-inference",
-      "citation": "9e6ed15:src/lib/http.ts#L1-L245"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#typescript-firestore-research"
     },
     "#/components/schemas/FirestoreListResponse/properties/documents/type": {
       "classification": "typescript-derived-inference",
-      "citation": "9e6ed15:src/lib/http.ts#L1-L245"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#typescript-firestore-research"
     },
     "#/components/schemas/FirestoreListResponse/properties/documents/items/$ref": {
       "classification": "typescript-derived-inference",
-      "citation": "9e6ed15:src/lib/http.ts#L1-L245"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#typescript-firestore-research"
     },
     "#/components/schemas/FirestoreListResponse/properties/nextPageToken": {
       "classification": "typescript-derived-inference",
-      "citation": "9e6ed15:src/lib/http.ts#L1-L245"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#typescript-firestore-research"
     },
     "#/components/schemas/FirestoreListResponse/properties/nextPageToken/type": {
       "classification": "typescript-derived-inference",
-      "citation": "9e6ed15:src/lib/http.ts#L1-L245"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#typescript-firestore-research"
     },
     "#/components/schemas/FirestoreListResponse/additionalProperties": {
       "classification": "typescript-derived-inference",
-      "citation": "9e6ed15:src/lib/http.ts#L1-L245"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#typescript-firestore-research"
     },
     "#/components/schemas/RefreshTokenRequest": {
       "classification": "typescript-derived-inference",
-      "citation": "9e6ed15:src/lib/auth.ts#L1-L150"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#typescript-callable-and-auth-research"
     },
     "#/components/schemas/RefreshTokenRequest/type": {
       "classification": "typescript-derived-inference",
-      "citation": "9e6ed15:src/lib/auth.ts#L1-L150"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#typescript-callable-and-auth-research"
     },
     "#/components/schemas/RefreshTokenRequest/required/0": {
       "classification": "typescript-derived-inference",
-      "citation": "9e6ed15:src/lib/auth.ts#L1-L150"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#typescript-callable-and-auth-research"
     },
     "#/components/schemas/RefreshTokenRequest/required/1": {
       "classification": "typescript-derived-inference",
-      "citation": "9e6ed15:src/lib/auth.ts#L1-L150"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#typescript-callable-and-auth-research"
     },
     "#/components/schemas/RefreshTokenRequest/properties/grant_type": {
       "classification": "typescript-derived-inference",
-      "citation": "9e6ed15:src/lib/auth.ts#L1-L150"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#typescript-callable-and-auth-research"
     },
     "#/components/schemas/RefreshTokenRequest/properties/grant_type/const": {
       "classification": "typescript-derived-inference",
-      "citation": "9e6ed15:src/lib/auth.ts#L1-L150"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#typescript-callable-and-auth-research"
     },
     "#/components/schemas/RefreshTokenRequest/properties/refresh_token": {
       "classification": "typescript-derived-inference",
-      "citation": "9e6ed15:src/lib/auth.ts#L1-L150"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#typescript-callable-and-auth-research"
     },
     "#/components/schemas/RefreshTokenRequest/properties/refresh_token/type": {
       "classification": "typescript-derived-inference",
-      "citation": "9e6ed15:src/lib/auth.ts#L1-L150"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#typescript-callable-and-auth-research"
     },
     "#/components/schemas/RefreshTokenResponse": {
       "classification": "typescript-derived-inference",
-      "citation": "9e6ed15:src/lib/auth.ts#L1-L150"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#typescript-callable-and-auth-research"
     },
     "#/components/schemas/RefreshTokenResponse/type": {
       "classification": "typescript-derived-inference",
-      "citation": "9e6ed15:src/lib/auth.ts#L1-L150"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#typescript-callable-and-auth-research"
     },
     "#/components/schemas/RefreshTokenResponse/properties/id_token": {
       "classification": "typescript-derived-inference",
-      "citation": "9e6ed15:src/lib/auth.ts#L1-L150"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#typescript-callable-and-auth-research"
     },
     "#/components/schemas/RefreshTokenResponse/properties/id_token/type": {
       "classification": "typescript-derived-inference",
-      "citation": "9e6ed15:src/lib/auth.ts#L1-L150"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#typescript-callable-and-auth-research"
     },
     "#/components/schemas/RefreshTokenResponse/properties/refresh_token": {
       "classification": "typescript-derived-inference",
-      "citation": "9e6ed15:src/lib/auth.ts#L1-L150"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#typescript-callable-and-auth-research"
     },
     "#/components/schemas/RefreshTokenResponse/properties/refresh_token/type": {
       "classification": "typescript-derived-inference",
-      "citation": "9e6ed15:src/lib/auth.ts#L1-L150"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#typescript-callable-and-auth-research"
     },
     "#/components/schemas/RefreshTokenResponse/properties/expires_in": {
       "classification": "typescript-derived-inference",
-      "citation": "9e6ed15:src/lib/auth.ts#L1-L150"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#typescript-callable-and-auth-research"
     },
     "#/components/schemas/RefreshTokenResponse/properties/expires_in/type": {
       "classification": "typescript-derived-inference",
-      "citation": "9e6ed15:src/lib/auth.ts#L1-L150"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#typescript-callable-and-auth-research"
     },
     "#/components/schemas/RefreshTokenResponse/properties/user_id": {
       "classification": "typescript-derived-inference",
-      "citation": "9e6ed15:src/lib/auth.ts#L1-L150"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#typescript-callable-and-auth-research"
     },
     "#/components/schemas/RefreshTokenResponse/properties/user_id/type": {
       "classification": "typescript-derived-inference",
-      "citation": "9e6ed15:src/lib/auth.ts#L1-L150"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#typescript-callable-and-auth-research"
     },
     "#/components/schemas/RefreshTokenResponse/additionalProperties": {
       "classification": "typescript-derived-inference",
-      "citation": "9e6ed15:src/lib/auth.ts#L1-L150"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#typescript-callable-and-auth-research"
     },
     "#/components/schemas/CustomTokenRequest": {
       "classification": "dated-live-observation",
-      "citation": "docs/research/2026-03-24-auth-flow-endpoints.md#auth-endpoints"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#dated-authentication-observation"
     },
     "#/components/schemas/CustomTokenRequest/type": {
       "classification": "dated-live-observation",
-      "citation": "docs/research/2026-03-24-auth-flow-endpoints.md#auth-endpoints"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#dated-authentication-observation"
     },
     "#/components/schemas/CustomTokenRequest/required/0": {
       "classification": "dated-live-observation",
-      "citation": "docs/research/2026-03-24-auth-flow-endpoints.md#auth-endpoints"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#dated-authentication-observation"
     },
     "#/components/schemas/CustomTokenRequest/required/1": {
       "classification": "dated-live-observation",
-      "citation": "docs/research/2026-03-24-auth-flow-endpoints.md#auth-endpoints"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#dated-authentication-observation"
     },
     "#/components/schemas/CustomTokenRequest/properties/token": {
       "classification": "dated-live-observation",
-      "citation": "docs/research/2026-03-24-auth-flow-endpoints.md#auth-endpoints"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#dated-authentication-observation"
     },
     "#/components/schemas/CustomTokenRequest/properties/token/type": {
       "classification": "dated-live-observation",
-      "citation": "docs/research/2026-03-24-auth-flow-endpoints.md#auth-endpoints"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#dated-authentication-observation"
     },
     "#/components/schemas/CustomTokenRequest/properties/returnSecureToken": {
       "classification": "dated-live-observation",
-      "citation": "docs/research/2026-03-24-auth-flow-endpoints.md#auth-endpoints"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#dated-authentication-observation"
     },
     "#/components/schemas/CustomTokenRequest/properties/returnSecureToken/const": {
       "classification": "dated-live-observation",
-      "citation": "docs/research/2026-03-24-auth-flow-endpoints.md#auth-endpoints"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#dated-authentication-observation"
     },
     "#/components/schemas/FirebaseSignInResponse": {
       "classification": "dated-live-observation",
-      "citation": "docs/research/2026-03-24-auth-flow-endpoints.md#auth-endpoints"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#dated-authentication-observation"
     },
     "#/components/schemas/FirebaseSignInResponse/type": {
       "classification": "dated-live-observation",
-      "citation": "docs/research/2026-03-24-auth-flow-endpoints.md#auth-endpoints"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#dated-authentication-observation"
     },
     "#/components/schemas/FirebaseSignInResponse/properties/idToken": {
       "classification": "dated-live-observation",
-      "citation": "docs/research/2026-03-24-auth-flow-endpoints.md#auth-endpoints"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#dated-authentication-observation"
     },
     "#/components/schemas/FirebaseSignInResponse/properties/idToken/type": {
       "classification": "dated-live-observation",
-      "citation": "docs/research/2026-03-24-auth-flow-endpoints.md#auth-endpoints"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#dated-authentication-observation"
     },
     "#/components/schemas/FirebaseSignInResponse/properties/refreshToken": {
       "classification": "dated-live-observation",
-      "citation": "docs/research/2026-03-24-auth-flow-endpoints.md#auth-endpoints"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#dated-authentication-observation"
     },
     "#/components/schemas/FirebaseSignInResponse/properties/refreshToken/type": {
       "classification": "dated-live-observation",
-      "citation": "docs/research/2026-03-24-auth-flow-endpoints.md#auth-endpoints"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#dated-authentication-observation"
     },
     "#/components/schemas/FirebaseSignInResponse/properties/expiresIn": {
       "classification": "dated-live-observation",
-      "citation": "docs/research/2026-03-24-auth-flow-endpoints.md#auth-endpoints"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#dated-authentication-observation"
     },
     "#/components/schemas/FirebaseSignInResponse/properties/expiresIn/type": {
       "classification": "dated-live-observation",
-      "citation": "docs/research/2026-03-24-auth-flow-endpoints.md#auth-endpoints"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#dated-authentication-observation"
     },
     "#/components/schemas/FirebaseSignInResponse/properties/localId": {
       "classification": "dated-live-observation",
-      "citation": "docs/research/2026-03-24-auth-flow-endpoints.md#auth-endpoints"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#dated-authentication-observation"
     },
     "#/components/schemas/FirebaseSignInResponse/properties/localId/type": {
       "classification": "dated-live-observation",
-      "citation": "docs/research/2026-03-24-auth-flow-endpoints.md#auth-endpoints"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#dated-authentication-observation"
     },
     "#/components/schemas/FirebaseSignInResponse/additionalProperties": {
       "classification": "dated-live-observation",
-      "citation": "docs/research/2026-03-24-auth-flow-endpoints.md#auth-endpoints"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#dated-authentication-observation"
     },
     "#/components/schemas/FirebaseLookupRequest": {
       "classification": "reviewed-first-party-repository-research",
-      "citation": "9e6ed15:src/commands/auth.ts#L145-L340"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#typescript-callable-and-auth-research"
     },
     "#/components/schemas/FirebaseLookupRequest/type": {
       "classification": "reviewed-first-party-repository-research",
-      "citation": "9e6ed15:src/commands/auth.ts#L145-L340"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#typescript-callable-and-auth-research"
     },
     "#/components/schemas/FirebaseLookupRequest/required/0": {
       "classification": "reviewed-first-party-repository-research",
-      "citation": "9e6ed15:src/commands/auth.ts#L145-L340"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#typescript-callable-and-auth-research"
     },
     "#/components/schemas/FirebaseLookupRequest/properties/idToken": {
       "classification": "reviewed-first-party-repository-research",
-      "citation": "9e6ed15:src/commands/auth.ts#L145-L340"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#typescript-callable-and-auth-research"
     },
     "#/components/schemas/FirebaseLookupRequest/properties/idToken/type": {
       "classification": "reviewed-first-party-repository-research",
-      "citation": "9e6ed15:src/commands/auth.ts#L145-L340"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#typescript-callable-and-auth-research"
     },
     "#/components/schemas/FirebaseLookupResponse": {
       "classification": "reviewed-first-party-repository-research",
-      "citation": "9e6ed15:src/commands/auth.ts#L145-L340"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#typescript-callable-and-auth-research"
     },
     "#/components/schemas/FirebaseLookupResponse/type": {
       "classification": "reviewed-first-party-repository-research",
-      "citation": "9e6ed15:src/commands/auth.ts#L145-L340"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#typescript-callable-and-auth-research"
     },
     "#/components/schemas/FirebaseLookupResponse/properties/users": {
       "classification": "reviewed-first-party-repository-research",
-      "citation": "9e6ed15:src/commands/auth.ts#L145-L340"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#typescript-callable-and-auth-research"
     },
     "#/components/schemas/FirebaseLookupResponse/properties/users/type": {
       "classification": "reviewed-first-party-repository-research",
-      "citation": "9e6ed15:src/commands/auth.ts#L145-L340"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#typescript-callable-and-auth-research"
     },
     "#/components/schemas/FirebaseLookupResponse/properties/users/items/type": {
       "classification": "reviewed-first-party-repository-research",
-      "citation": "9e6ed15:src/commands/auth.ts#L145-L340"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#typescript-callable-and-auth-research"
     },
     "#/components/schemas/FirebaseLookupResponse/properties/users/items/additionalProperties": {
       "classification": "reviewed-first-party-repository-research",
-      "citation": "9e6ed15:src/commands/auth.ts#L145-L340"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#typescript-callable-and-auth-research"
     },
     "#/components/schemas/FirebaseLookupResponse/additionalProperties": {
       "classification": "reviewed-first-party-repository-research",
-      "citation": "9e6ed15:src/commands/auth.ts#L145-L340"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#typescript-callable-and-auth-research"
     },
     "#/components/schemas/UploadPhotoResponse": {
       "classification": "typescript-derived-inference",
-      "citation": "9e6ed15:src/lib/upload.ts#L35-L115"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#typescript-upload-research"
     },
     "#/components/schemas/UploadPhotoResponse/type": {
       "classification": "typescript-derived-inference",
-      "citation": "9e6ed15:src/lib/upload.ts#L35-L115"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#typescript-upload-research"
     },
     "#/components/schemas/UploadPhotoResponse/properties/uploadData": {
       "classification": "typescript-derived-inference",
-      "citation": "9e6ed15:src/lib/upload.ts#L35-L115"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#typescript-upload-research"
     },
     "#/components/schemas/UploadPhotoResponse/properties/uploadData/type": {
       "classification": "typescript-derived-inference",
-      "citation": "9e6ed15:src/lib/upload.ts#L35-L115"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#typescript-upload-research"
     },
     "#/components/schemas/UploadPhotoResponse/properties/uploadData/properties/url": {
       "classification": "typescript-derived-inference",
-      "citation": "9e6ed15:src/lib/upload.ts#L35-L115"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#typescript-upload-research"
     },
     "#/components/schemas/UploadPhotoResponse/properties/uploadData/properties/url/type": {
       "classification": "typescript-derived-inference",
-      "citation": "9e6ed15:src/lib/upload.ts#L35-L115"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#typescript-upload-research"
     },
     "#/components/schemas/UploadPhotoResponse/properties/uploadData/additionalProperties": {
       "classification": "typescript-derived-inference",
-      "citation": "9e6ed15:src/lib/upload.ts#L35-L115"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#typescript-upload-research"
     },
     "#/components/schemas/UploadPhotoResponse/additionalProperties": {
       "classification": "typescript-derived-inference",
-      "citation": "9e6ed15:src/lib/upload.ts#L35-L115"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#typescript-upload-research"
     },
     "#/components/schemas/Poster": {
       "classification": "typescript-derived-inference",
-      "citation": "9e6ed15:src/lib/posters.ts#L25-L45"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#poster-interface"
     },
     "#/components/schemas/Poster/type": {
       "classification": "typescript-derived-inference",
-      "citation": "9e6ed15:src/lib/posters.ts#L25-L45"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#poster-interface"
     },
     "#/components/schemas/Poster/properties/id": {
       "classification": "typescript-derived-inference",
-      "citation": "9e6ed15:src/lib/posters.ts#L25-L45"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#poster-interface"
     },
     "#/components/schemas/Poster/properties/id/type": {
       "classification": "typescript-derived-inference",
-      "citation": "9e6ed15:src/lib/posters.ts#L25-L45"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#poster-interface"
     },
     "#/components/schemas/Poster/properties/name": {
       "classification": "typescript-derived-inference",
-      "citation": "9e6ed15:src/lib/posters.ts#L25-L45"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#poster-interface"
     },
     "#/components/schemas/Poster/properties/name/type": {
       "classification": "typescript-derived-inference",
-      "citation": "9e6ed15:src/lib/posters.ts#L25-L45"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#poster-interface"
     },
     "#/components/schemas/Poster/properties/url": {
       "classification": "typescript-derived-inference",
-      "citation": "9e6ed15:src/lib/posters.ts#L25-L45"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#poster-interface"
     },
     "#/components/schemas/Poster/properties/url/type": {
       "classification": "typescript-derived-inference",
-      "citation": "9e6ed15:src/lib/posters.ts#L25-L45"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#poster-interface"
     },
     "#/components/schemas/Poster/properties/contentType": {
       "classification": "typescript-derived-inference",
-      "citation": "9e6ed15:src/lib/posters.ts#L25-L45"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#poster-interface"
     },
     "#/components/schemas/Poster/properties/contentType/type": {
       "classification": "typescript-derived-inference",
-      "citation": "9e6ed15:src/lib/posters.ts#L25-L45"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#poster-interface"
     },
     "#/components/schemas/Poster/properties/width": {
       "classification": "typescript-derived-inference",
-      "citation": "9e6ed15:src/lib/posters.ts#L25-L45"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#poster-interface"
     },
     "#/components/schemas/Poster/properties/width/type": {
       "classification": "typescript-derived-inference",
-      "citation": "9e6ed15:src/lib/posters.ts#L25-L45"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#poster-interface"
     },
     "#/components/schemas/Poster/properties/height": {
       "classification": "typescript-derived-inference",
-      "citation": "9e6ed15:src/lib/posters.ts#L25-L45"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#poster-interface"
     },
     "#/components/schemas/Poster/properties/height/type": {
       "classification": "typescript-derived-inference",
-      "citation": "9e6ed15:src/lib/posters.ts#L25-L45"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#poster-interface"
     },
     "#/components/schemas/Poster/additionalProperties": {
       "classification": "typescript-derived-inference",
-      "citation": "9e6ed15:src/lib/posters.ts#L25-L45"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#poster-interface"
     },
     "#/servers/0/url": {
       "classification": "typescript-derived-inference",
-      "citation": "17e9800753ada577408074bbbcadbae8cc8eacf0:spec/partiful.openapi.json#/servers/0/url"
+      "citation": "spec/research/historical-27-operation-draft.json#/servers/0/url"
     }
   }
 }

@@ -3,6 +3,7 @@
 **Proposed contract revision:** `2026-08-10.1` (pending explicit owner approval)
 **Contract:** `spec/partiful.openapi.json`
 **Machine-readable ledger:** `spec/partiful.api-evidence.json`
+**Stable citation sources:** `docs/research/2026-08-10-contract-evidence-sources.md`
 
 ## Evidence classes
 
@@ -32,6 +33,12 @@ schema, constraint, and response claims. Unless a claim is specifically
 observed, callable result payloads, status codes, error bodies, permission
 rules, and limits are **explicit unknown**. Consequently, this proposal uses
 OpenAPI `default` responses rather than inventing a success status.
+
+The 379 material claims are audited by
+`tests/remote-api-contract.test.js`. Each ledger citation resolves either to a
+JSON Pointer in the committed non-authoritative historical artifact or to a
+heading in the committed stable source index. This keeps the audit independent
+of unreachable historical Git objects in shallow CI checkouts.
 
 The event-image observation establishes fields used for an event's selected
 poster image; it does **not** establish that `/posters.json` returns a catalog

@@ -1,4 +1,6 @@
 import { describe, expect, it } from 'vitest';
+import fs from 'node:fs';
+import path from 'node:path';
 import evidence from '../spec/partiful.api-evidence.json';
 import spec from '../spec/partiful.openapi.json';
 
@@ -53,6 +55,49 @@ function materialClaimPointers(value, pointer, parentKey = '') {
   });
 }
 
+function markdownSlug(value) {
+  return value
+    .toLowerCase()
+    .replace(/[`*_]/g, '')
+    .replace(/[^a-z0-9 -]/g, '')
+    .trim()
+    .replace(/\s+/g, '-');
+}
+
+function citationResolves(citation) {
+  const separator = citation.indexOf('#');
+  if (separator < 1) return false;
+  const sourcePath = citation.slice(0, separator);
+  const fragment = citation.slice(separator + 1);
+  if (path.isAbsolute(sourcePath) || sourcePath.split('/').includes('..')) return false;
+  const source = path.resolve(process.cwd(), sourcePath);
+  if (!fs.existsSync(source)) return false;
+
+  if (sourcePath.endsWith('.json')) {
+    let value;
+    try {
+      value = JSON.parse(fs.readFileSync(source, 'utf8'));
+    } catch {
+      return false;
+    }
+    for (const rawSegment of fragment.replace(/^\//, '').split('/')) {
+      if (!rawSegment) continue;
+      const segment = rawSegment.replaceAll('~1', '/').replaceAll('~0', '~');
+      if (value === null || typeof value !== 'object' || !(segment in value)) return false;
+      value = value[segment];
+    }
+    return true;
+  }
+
+  if (sourcePath.endsWith('.md')) {
+    const anchors = [...fs.readFileSync(source, 'utf8').matchAll(/^#{1,6}\s+(.+)$/gm)]
+      .map((match) => markdownSlug(match[1]));
+    return anchors.includes(fragment);
+  }
+
+  return false;
+}
+
 describe('remote API contract', () => {
   it('is a proposed, consistently versioned OpenAPI 3.1 document with unique operation IDs', () => {
     expect(spec.openapi).toBe('3.1.0');
@@ -64,29 +109,32 @@ describe('remote API contract', () => {
     expect(new Set(ids).size).toBe(ids.length);
   });
 
-  it('covers every operation and material OpenAPI claim with a precise citation', () => {
+  it('covers all 379 material OpenAPI claims with a resolving citation', () => {
     const allowed = new Set(evidence.allowedClassifications);
     for (const { operation } of operations()) {
       const operationEvidence = evidence.operations[operation.operationId];
       expect(operationEvidence, operation.operationId).toBeDefined();
       expect(allowed.has(operationEvidence.classification)).toBe(true);
-      expect(operationEvidence.citation).toMatch(/(#|#L)/);
+      expect(citationResolves(operationEvidence.citation), operation.operationId).toBe(true);
       const claim = evidence.operationClaims[operation.operationId];
       expect(claim, operation.operationId).toBeDefined();
       expect(allowed.has(claim.request)).toBe(true);
       expect(allowed.has(claim.response)).toBe(true);
+      expect(claim.status).toBe('explicit-unknown');
+      expect(citationResolves(claim.citation), operation.operationId).toBe(true);
+      expect(citationResolves(claim.statusCitation), operation.operationId).toBe(true);
     }
-    const pointers = [
+    const pointers = new Set([
       ...materialClaimPointers(spec.servers, '#/servers', 'servers'),
       ...materialClaimPointers(spec.paths, '#/paths', 'paths'),
       ...materialClaimPointers(spec.components, '#/components', 'components'),
-    ];
-    expect(pointers.length).toBeGreaterThan(0);
+    ]);
+    expect(pointers).toHaveLength(379);
     for (const pointer of pointers) {
       const claim = evidence.claims[pointer];
       expect(claim, pointer).toBeDefined();
       expect(allowed.has(claim.classification), pointer).toBe(true);
-      expect(claim.citation, pointer).toMatch(/(#|#L)/);
+      expect(citationResolves(claim.citation), pointer).toBe(true);
     }
   });
 
@@ -129,7 +177,8 @@ describe('remote API contract', () => {
   it('does not treat the event-image observation as poster-catalog evidence', () => {
     const posterOperation = evidence.operations.getPosterCatalog;
     expect(posterOperation.classification).toBe('typescript-derived-inference');
-    expect(posterOperation.citation).toBe(evidence.sources.posterTransport);
+    expect(posterOperation.citation).toBe(evidence.sources.posterCatalog);
+    expect(evidence.sources).not.toHaveProperty('eventImageObservation');
     for (const [pointer, claim] of Object.entries(evidence.claims)) {
       if (pointer.includes('/posters.json') || pointer.includes('/Poster')) {
         expect(claim.citation).not.toBe(evidence.sources.eventImageObservation);
