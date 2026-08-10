@@ -1,0 +1,1939 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Partiful remote API contract",
+    "version": "2026-08-10.1",
+    "description": "Owner-reviewed, versioned remote-only transport snapshot. Evidence classifications and uncertainty are recorded in spec/partiful.api-evidence.json."
+  },
+  "servers": [
+    {
+      "url": "https://api.partiful.com",
+      "description": "Partiful callable service"
+    }
+  ],
+  "paths": {
+    "/createEvent": {
+      "post": {
+        "operationId": "createEvent",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "data"
+                ],
+                "properties": {
+                  "data": {
+                    "type": "object",
+                    "required": [
+                      "params",
+                      "amplitudeDeviceId"
+                    ],
+                    "properties": {
+                      "params": {
+                        "type": "object",
+                        "properties": {
+                          "event": {
+                            "$ref": "#/components/schemas/EventDraft"
+                          },
+                          "cohostIds": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          }
+                        },
+                        "additionalProperties": false,
+                        "required": [
+                          "event",
+                          "cohostIds"
+                        ]
+                      },
+                      "amplitudeDeviceId": {
+                        "type": "string"
+                      },
+                      "amplitudeSessionId": {
+                        "type": "integer",
+                        "format": "int64"
+                      },
+                      "userId": {
+                        "type": [
+                          "string",
+                          "null"
+                        ]
+                      }
+                    },
+                    "additionalProperties": false
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "default": {
+            "description": "Response status and body are unknown."
+          }
+        },
+        "security": [
+          {
+            "firebaseBearer": []
+          }
+        ]
+      }
+    },
+    "/cancelEvent": {
+      "post": {
+        "operationId": "cancelEvent",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "data"
+                ],
+                "properties": {
+                  "data": {
+                    "type": "object",
+                    "required": [
+                      "params",
+                      "amplitudeDeviceId"
+                    ],
+                    "properties": {
+                      "params": {
+                        "type": "object",
+                        "properties": {
+                          "eventId": {
+                            "type": "string"
+                          }
+                        },
+                        "additionalProperties": false,
+                        "required": [
+                          "eventId"
+                        ]
+                      },
+                      "amplitudeDeviceId": {
+                        "type": "string"
+                      },
+                      "amplitudeSessionId": {
+                        "type": "integer",
+                        "format": "int64"
+                      },
+                      "userId": {
+                        "type": [
+                          "string",
+                          "null"
+                        ]
+                      }
+                    },
+                    "additionalProperties": false
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "default": {
+            "description": "Response status and body are unknown."
+          }
+        },
+        "security": [
+          {
+            "firebaseBearer": []
+          }
+        ]
+      }
+    },
+    "/getEventInfo": {
+      "post": {
+        "operationId": "getEventInfo",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "data"
+                ],
+                "properties": {
+                  "data": {
+                    "type": "object",
+                    "required": [
+                      "params",
+                      "amplitudeDeviceId"
+                    ],
+                    "properties": {
+                      "params": {
+                        "type": "object",
+                        "properties": {
+                          "eventId": {
+                            "type": "string"
+                          }
+                        },
+                        "additionalProperties": false,
+                        "required": [
+                          "eventId"
+                        ]
+                      },
+                      "amplitudeDeviceId": {
+                        "type": "string"
+                      },
+                      "amplitudeSessionId": {
+                        "type": "integer",
+                        "format": "int64"
+                      },
+                      "userId": {
+                        "type": [
+                          "string",
+                          "null"
+                        ]
+                      }
+                    },
+                    "additionalProperties": false
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "default": {
+            "description": "Response status and body are unknown."
+          }
+        },
+        "security": [
+          {
+            "firebaseBearer": []
+          }
+        ]
+      }
+    },
+    "/getContacts": {
+      "post": {
+        "operationId": "getContacts",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "data"
+                ],
+                "properties": {
+                  "data": {
+                    "type": "object",
+                    "required": [
+                      "params",
+                      "amplitudeDeviceId"
+                    ],
+                    "properties": {
+                      "params": {
+                        "type": "object",
+                        "properties": {},
+                        "additionalProperties": false
+                      },
+                      "amplitudeDeviceId": {
+                        "type": "string"
+                      },
+                      "amplitudeSessionId": {
+                        "type": "integer",
+                        "format": "int64"
+                      },
+                      "userId": {
+                        "type": [
+                          "string",
+                          "null"
+                        ]
+                      }
+                    },
+                    "additionalProperties": false
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "default": {
+            "description": "Response status and body are unknown."
+          }
+        },
+        "security": [
+          {
+            "firebaseBearer": []
+          }
+        ]
+      }
+    },
+    "/createTextBlast": {
+      "post": {
+        "operationId": "createTextBlast",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "data"
+                ],
+                "properties": {
+                  "data": {
+                    "type": "object",
+                    "required": [
+                      "params",
+                      "amplitudeDeviceId"
+                    ],
+                    "properties": {
+                      "params": {
+                        "type": "object",
+                        "required": [
+                          "eventId",
+                          "message"
+                        ],
+                        "properties": {
+                          "eventId": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "object",
+                            "required": [
+                              "text",
+                              "to",
+                              "showOnEventPage"
+                            ],
+                            "properties": {
+                              "text": {
+                                "type": "string",
+                                "maxLength": 480
+                              },
+                              "to": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string"
+                                }
+                              },
+                              "showOnEventPage": {
+                                "type": "boolean"
+                              },
+                              "images": {
+                                "type": "array",
+                                "maxItems": 1,
+                                "items": {
+                                  "type": "object",
+                                  "additionalProperties": true
+                                }
+                              }
+                            },
+                            "additionalProperties": true
+                          }
+                        },
+                        "additionalProperties": true
+                      },
+                      "amplitudeDeviceId": {
+                        "type": "string"
+                      },
+                      "amplitudeSessionId": {
+                        "type": "integer"
+                      },
+                      "userId": {
+                        "type": "string"
+                      }
+                    },
+                    "additionalProperties": true
+                  }
+                },
+                "additionalProperties": true
+              }
+            }
+          }
+        },
+        "responses": {
+          "default": {
+            "description": "Response status and body are unknown."
+          }
+        },
+        "security": [
+          {
+            "firebaseBearer": []
+          }
+        ]
+      }
+    },
+    "/addInvitedGuestsAsHost": {
+      "post": {
+        "operationId": "addInvitedGuestsAsHost",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "data"
+                ],
+                "properties": {
+                  "data": {
+                    "type": "object",
+                    "required": [
+                      "params",
+                      "amplitudeDeviceId"
+                    ],
+                    "properties": {
+                      "params": {
+                        "type": "object",
+                        "properties": {
+                          "eventId": {
+                            "type": "string"
+                          },
+                          "guests": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "additionalProperties": true
+                            }
+                          }
+                        },
+                        "additionalProperties": false,
+                        "required": [
+                          "eventId",
+                          "guests"
+                        ]
+                      },
+                      "amplitudeDeviceId": {
+                        "type": "string"
+                      },
+                      "amplitudeSessionId": {
+                        "type": "integer",
+                        "format": "int64"
+                      },
+                      "userId": {
+                        "type": [
+                          "string",
+                          "null"
+                        ]
+                      }
+                    },
+                    "additionalProperties": false
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "default": {
+            "description": "Response status and body are unknown."
+          }
+        },
+        "security": [
+          {
+            "firebaseBearer": []
+          }
+        ]
+      }
+    },
+    "/createCohostRequest": {
+      "post": {
+        "operationId": "createCohostRequest",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "data"
+                ],
+                "properties": {
+                  "data": {
+                    "type": "object",
+                    "required": [
+                      "params",
+                      "amplitudeDeviceId"
+                    ],
+                    "properties": {
+                      "params": {
+                        "type": "object",
+                        "properties": {
+                          "eventId": {
+                            "type": "string"
+                          },
+                          "targetUserId": {
+                            "type": "string"
+                          }
+                        },
+                        "additionalProperties": false,
+                        "required": [
+                          "eventId",
+                          "targetUserId"
+                        ]
+                      },
+                      "amplitudeDeviceId": {
+                        "type": "string"
+                      },
+                      "amplitudeSessionId": {
+                        "type": "integer",
+                        "format": "int64"
+                      },
+                      "userId": {
+                        "type": [
+                          "string",
+                          "null"
+                        ]
+                      }
+                    },
+                    "additionalProperties": false
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "default": {
+            "description": "Response status and body are unknown."
+          }
+        },
+        "security": [
+          {
+            "firebaseBearer": []
+          }
+        ]
+      }
+    },
+    "/deleteCohostRequest": {
+      "post": {
+        "operationId": "deleteCohostRequest",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "data"
+                ],
+                "properties": {
+                  "data": {
+                    "type": "object",
+                    "required": [
+                      "params",
+                      "amplitudeDeviceId"
+                    ],
+                    "properties": {
+                      "params": {
+                        "type": "object",
+                        "properties": {
+                          "eventId": {
+                            "type": "string"
+                          },
+                          "targetUserId": {
+                            "type": "string"
+                          }
+                        },
+                        "additionalProperties": false,
+                        "required": [
+                          "eventId",
+                          "targetUserId"
+                        ]
+                      },
+                      "amplitudeDeviceId": {
+                        "type": "string"
+                      },
+                      "amplitudeSessionId": {
+                        "type": "integer",
+                        "format": "int64"
+                      },
+                      "userId": {
+                        "type": [
+                          "string",
+                          "null"
+                        ]
+                      }
+                    },
+                    "additionalProperties": false
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "default": {
+            "description": "Response status and body are unknown."
+          }
+        },
+        "security": [
+          {
+            "firebaseBearer": []
+          }
+        ]
+      }
+    },
+    "/removeCohost": {
+      "post": {
+        "operationId": "removeCohost",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "data"
+                ],
+                "properties": {
+                  "data": {
+                    "type": "object",
+                    "required": [
+                      "params",
+                      "amplitudeDeviceId"
+                    ],
+                    "properties": {
+                      "params": {
+                        "type": "object",
+                        "properties": {
+                          "eventId": {
+                            "type": "string"
+                          },
+                          "targetUserId": {
+                            "type": "string"
+                          }
+                        },
+                        "additionalProperties": false,
+                        "required": [
+                          "eventId",
+                          "targetUserId"
+                        ]
+                      },
+                      "amplitudeDeviceId": {
+                        "type": "string"
+                      },
+                      "amplitudeSessionId": {
+                        "type": "integer",
+                        "format": "int64"
+                      },
+                      "userId": {
+                        "type": [
+                          "string",
+                          "null"
+                        ]
+                      }
+                    },
+                    "additionalProperties": false
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "default": {
+            "description": "Response status and body are unknown."
+          }
+        },
+        "security": [
+          {
+            "firebaseBearer": []
+          }
+        ]
+      }
+    },
+    "/generateEventCohostLink": {
+      "post": {
+        "operationId": "generateEventCohostLink",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "data"
+                ],
+                "properties": {
+                  "data": {
+                    "type": "object",
+                    "required": [
+                      "params",
+                      "amplitudeDeviceId"
+                    ],
+                    "properties": {
+                      "params": {
+                        "type": "object",
+                        "properties": {
+                          "eventId": {
+                            "type": "string"
+                          }
+                        },
+                        "additionalProperties": false,
+                        "required": [
+                          "eventId"
+                        ]
+                      },
+                      "amplitudeDeviceId": {
+                        "type": "string"
+                      },
+                      "amplitudeSessionId": {
+                        "type": "integer",
+                        "format": "int64"
+                      },
+                      "userId": {
+                        "type": [
+                          "string",
+                          "null"
+                        ]
+                      }
+                    },
+                    "additionalProperties": false
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "default": {
+            "description": "Response status and body are unknown."
+          }
+        },
+        "security": [
+          {
+            "firebaseBearer": []
+          }
+        ]
+      }
+    },
+    "/revokeEventCohostLink": {
+      "post": {
+        "operationId": "revokeEventCohostLink",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "data"
+                ],
+                "properties": {
+                  "data": {
+                    "type": "object",
+                    "required": [
+                      "params",
+                      "amplitudeDeviceId"
+                    ],
+                    "properties": {
+                      "params": {
+                        "type": "object",
+                        "properties": {
+                          "eventId": {
+                            "type": "string"
+                          }
+                        },
+                        "additionalProperties": false,
+                        "required": [
+                          "eventId"
+                        ]
+                      },
+                      "amplitudeDeviceId": {
+                        "type": "string"
+                      },
+                      "amplitudeSessionId": {
+                        "type": "integer",
+                        "format": "int64"
+                      },
+                      "userId": {
+                        "type": [
+                          "string",
+                          "null"
+                        ]
+                      }
+                    },
+                    "additionalProperties": false
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "default": {
+            "description": "Response status and body are unknown."
+          }
+        },
+        "security": [
+          {
+            "firebaseBearer": []
+          }
+        ]
+      }
+    },
+    "/getMyUpcomingEventsForHomePage": {
+      "post": {
+        "operationId": "getMyUpcomingEventsForHomePage",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "data"
+                ],
+                "properties": {
+                  "data": {
+                    "type": "object",
+                    "required": [
+                      "params",
+                      "amplitudeDeviceId"
+                    ],
+                    "properties": {
+                      "params": {
+                        "type": "object",
+                        "properties": {},
+                        "additionalProperties": false
+                      },
+                      "amplitudeDeviceId": {
+                        "type": "string"
+                      },
+                      "amplitudeSessionId": {
+                        "type": "integer",
+                        "format": "int64"
+                      },
+                      "userId": {
+                        "type": [
+                          "string",
+                          "null"
+                        ]
+                      }
+                    },
+                    "additionalProperties": false
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "default": {
+            "description": "Response status and body are unknown."
+          }
+        },
+        "security": [
+          {
+            "firebaseBearer": []
+          }
+        ]
+      }
+    },
+    "/getMyPastEventsForHomePage": {
+      "post": {
+        "operationId": "getMyPastEventsForHomePage",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "data"
+                ],
+                "properties": {
+                  "data": {
+                    "type": "object",
+                    "required": [
+                      "params",
+                      "amplitudeDeviceId"
+                    ],
+                    "properties": {
+                      "params": {
+                        "type": "object",
+                        "properties": {},
+                        "additionalProperties": false
+                      },
+                      "amplitudeDeviceId": {
+                        "type": "string"
+                      },
+                      "amplitudeSessionId": {
+                        "type": "integer",
+                        "format": "int64"
+                      },
+                      "userId": {
+                        "type": [
+                          "string",
+                          "null"
+                        ]
+                      }
+                    },
+                    "additionalProperties": false
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "default": {
+            "description": "Response status and body are unknown."
+          }
+        },
+        "security": [
+          {
+            "firebaseBearer": []
+          }
+        ]
+      }
+    },
+    "/addGuest": {
+      "post": {
+        "operationId": "addGuest",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "data"
+                ],
+                "properties": {
+                  "data": {
+                    "type": "object",
+                    "required": [
+                      "params",
+                      "amplitudeDeviceId"
+                    ],
+                    "properties": {
+                      "params": {
+                        "type": "object",
+                        "properties": {
+                          "eventId": {
+                            "type": "string"
+                          },
+                          "rsvp": {
+                            "$ref": "#/components/schemas/RsvpDraft"
+                          }
+                        },
+                        "additionalProperties": false,
+                        "required": [
+                          "eventId",
+                          "rsvp"
+                        ]
+                      },
+                      "amplitudeDeviceId": {
+                        "type": "string"
+                      },
+                      "amplitudeSessionId": {
+                        "type": "integer",
+                        "format": "int64"
+                      },
+                      "userId": {
+                        "type": [
+                          "string",
+                          "null"
+                        ]
+                      }
+                    },
+                    "additionalProperties": false
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "default": {
+            "description": "Response status and body are unknown."
+          }
+        },
+        "security": [
+          {
+            "firebaseBearer": []
+          }
+        ]
+      }
+    },
+    "/markEventInterest": {
+      "post": {
+        "operationId": "markEventInterest",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "data"
+                ],
+                "properties": {
+                  "data": {
+                    "type": "object",
+                    "required": [
+                      "params",
+                      "amplitudeDeviceId"
+                    ],
+                    "properties": {
+                      "params": {
+                        "type": "object",
+                        "properties": {
+                          "eventId": {
+                            "type": "string"
+                          },
+                          "interested": {
+                            "type": "boolean"
+                          },
+                          "source": {
+                            "type": "string"
+                          }
+                        },
+                        "additionalProperties": false,
+                        "required": [
+                          "eventId",
+                          "interested",
+                          "source"
+                        ]
+                      },
+                      "amplitudeDeviceId": {
+                        "type": "string"
+                      },
+                      "amplitudeSessionId": {
+                        "type": "integer",
+                        "format": "int64"
+                      },
+                      "userId": {
+                        "type": [
+                          "string",
+                          "null"
+                        ]
+                      }
+                    },
+                    "additionalProperties": false
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "default": {
+            "description": "Response status and body are unknown."
+          }
+        },
+        "security": [
+          {
+            "firebaseBearer": []
+          }
+        ]
+      }
+    },
+    "/getCurrentGuest": {
+      "post": {
+        "operationId": "getCurrentGuest",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "data"
+                ],
+                "properties": {
+                  "data": {
+                    "type": "object",
+                    "required": [
+                      "params",
+                      "amplitudeDeviceId"
+                    ],
+                    "properties": {
+                      "params": {
+                        "type": "object",
+                        "properties": {
+                          "eventId": {
+                            "type": "string"
+                          }
+                        },
+                        "additionalProperties": false,
+                        "required": [
+                          "eventId"
+                        ]
+                      },
+                      "amplitudeDeviceId": {
+                        "type": "string"
+                      },
+                      "amplitudeSessionId": {
+                        "type": "integer",
+                        "format": "int64"
+                      },
+                      "userId": {
+                        "type": [
+                          "string",
+                          "null"
+                        ]
+                      }
+                    },
+                    "additionalProperties": false
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "default": {
+            "description": "Response status and body are unknown."
+          }
+        },
+        "security": [
+          {
+            "firebaseBearer": []
+          }
+        ]
+      }
+    },
+    "/v1/projects/getpartiful/databases/(default)/documents/events/{eventId}": {
+      "get": {
+        "operationId": "firestoreGetEvent",
+        "parameters": [
+          {
+            "name": "eventId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Response status and body are unknown."
+          }
+        },
+        "security": [
+          {
+            "firebaseBearer": []
+          }
+        ],
+        "servers": [
+          {
+            "url": "https://firestore.googleapis.com"
+          }
+        ]
+      },
+      "patch": {
+        "operationId": "firestorePatchEvent",
+        "parameters": [
+          {
+            "name": "eventId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "updateMask.fieldPaths",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "style": "form",
+            "explode": true
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FirestoreWriteDocument"
+              }
+            }
+          }
+        },
+        "responses": {
+          "default": {
+            "description": "Response status and body are unknown."
+          }
+        },
+        "security": [
+          {
+            "firebaseBearer": []
+          }
+        ],
+        "servers": [
+          {
+            "url": "https://firestore.googleapis.com"
+          }
+        ]
+      }
+    },
+    "/v1/projects/getpartiful/databases/(default)/documents/events/{eventId}/guests/{guestId}": {
+      "get": {
+        "operationId": "firestoreGetGuest",
+        "parameters": [
+          {
+            "name": "eventId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "guestId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Response status and body are unknown."
+          }
+        },
+        "security": [
+          {
+            "firebaseBearer": []
+          }
+        ],
+        "servers": [
+          {
+            "url": "https://firestore.googleapis.com"
+          }
+        ]
+      }
+    },
+    "/v1/projects/getpartiful/databases/(default)/documents/{collectionPath}": {
+      "get": {
+        "operationId": "firestoreListDocuments",
+        "parameters": [
+          {
+            "name": "collectionPath",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "pageToken",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Response status and body are unknown."
+          }
+        },
+        "security": [
+          {
+            "firebaseBearer": []
+          }
+        ],
+        "servers": [
+          {
+            "url": "https://firestore.googleapis.com"
+          }
+        ]
+      }
+    },
+    "/v1/token": {
+      "post": {
+        "operationId": "refreshToken",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "grant_type",
+                  "refresh_token"
+                ],
+                "properties": {
+                  "grant_type": {
+                    "type": "string",
+                    "enum": [
+                      "refresh_token"
+                    ]
+                  },
+                  "refresh_token": {
+                    "type": "string"
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "default": {
+            "description": "Response status and body are unknown."
+          }
+        },
+        "security": [
+          {
+            "firebaseApiKey": []
+          }
+        ],
+        "servers": [
+          {
+            "url": "https://securetoken.googleapis.com"
+          }
+        ]
+      }
+    },
+    "/sendAuthCodeTrusted": {
+      "post": {
+        "operationId": "sendAuthCodeTrusted",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "data"
+                ],
+                "properties": {
+                  "data": {
+                    "type": "object",
+                    "required": [
+                      "params",
+                      "amplitudeDeviceId"
+                    ],
+                    "properties": {
+                      "params": {
+                        "type": "object",
+                        "required": [
+                          "displayName",
+                          "phoneNumber",
+                          "silent",
+                          "channelPreference",
+                          "captchaToken",
+                          "useAppleBusinessUpdates"
+                        ],
+                        "properties": {
+                          "displayName": {
+                            "type": "string"
+                          },
+                          "phoneNumber": {
+                            "type": "string"
+                          },
+                          "silent": {
+                            "type": "boolean"
+                          },
+                          "channelPreference": {
+                            "type": "string",
+                            "enum": [
+                              "sms"
+                            ]
+                          },
+                          "captchaToken": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          },
+                          "useAppleBusinessUpdates": {
+                            "type": "boolean"
+                          }
+                        },
+                        "additionalProperties": false
+                      },
+                      "amplitudeDeviceId": {
+                        "type": "string"
+                      },
+                      "amplitudeSessionId": {
+                        "type": "integer",
+                        "format": "int64"
+                      }
+                    },
+                    "additionalProperties": false
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "default": {
+            "description": "Response status and body are unknown."
+          }
+        }
+      }
+    },
+    "/getLoginToken": {
+      "post": {
+        "operationId": "getLoginToken",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "data"
+                ],
+                "properties": {
+                  "data": {
+                    "type": "object",
+                    "required": [
+                      "params",
+                      "amplitudeDeviceId"
+                    ],
+                    "properties": {
+                      "params": {
+                        "type": "object",
+                        "required": [
+                          "phoneNumber",
+                          "authCode",
+                          "affiliateId",
+                          "utms"
+                        ],
+                        "properties": {
+                          "phoneNumber": {
+                            "type": "string"
+                          },
+                          "authCode": {
+                            "type": "string"
+                          },
+                          "affiliateId": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          },
+                          "utms": {
+                            "type": "object",
+                            "additionalProperties": true
+                          }
+                        },
+                        "additionalProperties": false
+                      },
+                      "amplitudeDeviceId": {
+                        "type": "string"
+                      },
+                      "amplitudeSessionId": {
+                        "type": "integer",
+                        "format": "int64"
+                      }
+                    },
+                    "additionalProperties": false
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "default": {
+            "description": "Response status and body are unknown."
+          }
+        }
+      }
+    },
+    "/v1/accounts:signInWithCustomToken": {
+      "post": {
+        "operationId": "signInWithCustomToken",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "token",
+                  "returnSecureToken"
+                ],
+                "properties": {
+                  "token": {
+                    "type": "string"
+                  },
+                  "returnSecureToken": {
+                    "type": "boolean"
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "default": {
+            "description": "Response status and body are unknown."
+          }
+        },
+        "security": [
+          {
+            "firebaseApiKey": []
+          }
+        ],
+        "servers": [
+          {
+            "url": "https://identitytoolkit.googleapis.com"
+          }
+        ]
+      }
+    },
+    "/v1/accounts:lookup": {
+      "post": {
+        "operationId": "lookupFirebaseUser",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "idToken"
+                ],
+                "properties": {
+                  "idToken": {
+                    "type": "string"
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "default": {
+            "description": "Response status and body are unknown."
+          }
+        },
+        "security": [
+          {
+            "firebaseApiKey": []
+          }
+        ],
+        "servers": [
+          {
+            "url": "https://identitytoolkit.googleapis.com"
+          }
+        ]
+      }
+    },
+    "/uploadPhoto": {
+      "post": {
+        "operationId": "uploadEventPhoto",
+        "parameters": [
+          {
+            "name": "uploadType",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "event_poster"
+              ]
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "file"
+                ],
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary"
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "default": {
+            "description": "Response status and body are unknown."
+          }
+        },
+        "security": [
+          {
+            "firebaseBearer": []
+          }
+        ],
+        "servers": [
+          {
+            "url": "https://us-central1-getpartiful.cloudfunctions.net"
+          }
+        ]
+      }
+    },
+    "/posters.json": {
+      "get": {
+        "operationId": "getPosterCatalog",
+        "responses": {
+          "default": {
+            "description": "Response status and body are unknown."
+          }
+        },
+        "servers": [
+          {
+            "url": "https://assets.getpartiful.com"
+          }
+        ]
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "firebaseBearer": {
+        "type": "http",
+        "scheme": "bearer"
+      },
+      "firebaseApiKey": {
+        "type": "apiKey",
+        "in": "query",
+        "name": "key"
+      }
+    },
+    "schemas": {
+      "EventDraft": {
+        "type": "object",
+        "required": [
+          "title",
+          "startDate",
+          "timezone",
+          "displaySettings"
+        ],
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "startDate": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "endDate": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "timezone": {
+            "type": "string"
+          },
+          "displaySettings": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "visibility": {
+            "type": "string",
+            "enum": [
+              "public",
+              "private"
+            ]
+          },
+          "location": {
+            "type": "string"
+          },
+          "address": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "guestLimit": {
+            "type": "integer"
+          },
+          "links": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "image": {}
+        },
+        "additionalProperties": true
+      },
+      "RsvpDraft": {
+        "type": "object",
+        "required": [
+          "name",
+          "count",
+          "plusOnes",
+          "status",
+          "timezone"
+        ],
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "count": {
+            "type": "integer"
+          },
+          "plusOnes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "message": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "emailInvitationId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "status": {
+            "type": "string"
+          },
+          "guestId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "timezone": {
+            "type": "string"
+          },
+          "password": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "questionnaireResponse": {
+            "type": "object",
+            "properties": {
+              "questionnaireVersion": {
+                "type": "integer"
+              },
+              "answers": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "string"
+                }
+              }
+            },
+            "required": [
+              "questionnaireVersion",
+              "answers"
+            ]
+          }
+        },
+        "additionalProperties": false
+      },
+      "CallableResponse": {
+        "type": "object",
+        "properties": {
+          "result": {
+            "type": "object",
+            "properties": {
+              "data": {}
+            },
+            "additionalProperties": true
+          }
+        },
+        "additionalProperties": true
+      },
+      "FirestoreValue": {
+        "type": "object",
+        "additionalProperties": true
+      },
+      "FirestoreDocument": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "fields": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/FirestoreValue"
+            }
+          },
+          "createTime": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updateTime": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "additionalProperties": true
+      },
+      "FirestoreWriteDocument": {
+        "type": "object",
+        "required": [
+          "fields"
+        ],
+        "properties": {
+          "fields": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/FirestoreValue"
+            }
+          }
+        },
+        "additionalProperties": false
+      },
+      "FirestoreListResponse": {
+        "type": "object",
+        "properties": {
+          "documents": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FirestoreDocument"
+            }
+          },
+          "nextPageToken": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": true
+      },
+      "RefreshTokenResponse": {
+        "type": "object",
+        "additionalProperties": true
+      },
+      "FirebaseSignInResponse": {
+        "type": "object",
+        "additionalProperties": true
+      },
+      "FirebaseLookupResponse": {
+        "type": "object",
+        "additionalProperties": true
+      },
+      "UploadData": {
+        "type": "object",
+        "required": [
+          "url"
+        ],
+        "properties": {
+          "url": {
+            "type": "string",
+            "format": "uri"
+          },
+          "contentType": {
+            "type": "string"
+          },
+          "height": {
+            "type": "integer"
+          },
+          "width": {
+            "type": "integer"
+          }
+        },
+        "additionalProperties": true
+      },
+      "UploadPhotoResponse": {
+        "type": "object",
+        "properties": {
+          "uploadData": {
+            "$ref": "#/components/schemas/UploadData"
+          },
+          "result": {
+            "type": "object",
+            "properties": {
+              "uploadData": {
+                "$ref": "#/components/schemas/UploadData"
+              }
+            },
+            "additionalProperties": true
+          }
+        },
+        "additionalProperties": true
+      },
+      "Poster": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string",
+            "format": "uri"
+          },
+          "blurHash": {
+            "type": "string"
+          },
+          "contentType": {
+            "type": "string"
+          },
+          "height": {
+            "type": "integer"
+          },
+          "width": {
+            "type": "integer"
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "categories": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "additionalProperties": true
+      }
+    }
+  }
+}
