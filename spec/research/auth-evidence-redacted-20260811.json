@@ -1,0 +1,238 @@
+{
+  "purpose": "Partiful authentication remote-contract evidence",
+  "observedAt": "2026-08-11T02:30:19Z",
+  "redaction": "Only HTTP metadata and JSON paths/types are retained.",
+  "observations": [
+    {
+      "operation": "sendAuthCodeTrusted",
+      "phase": "success-attempt",
+      "endpoint": "/sendAuthCodeTrusted",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "bodyKind": "json",
+      "bodyBytes": 22,
+      "shape": []
+    },
+    {
+      "operation": "getLoginToken",
+      "phase": "wrong-code",
+      "endpoint": "/getLoginToken",
+      "status": 403,
+      "contentType": "application/json; charset=utf-8",
+      "bodyKind": "json",
+      "bodyBytes": 127,
+      "shape": [
+        {
+          "path": "error.details.authErrorCode",
+          "type": "string"
+        },
+        {
+          "path": "error.message",
+          "type": "string"
+        },
+        {
+          "path": "error.status",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "operation": "getLoginToken",
+      "phase": "success-attempt",
+      "endpoint": "/getLoginToken",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "bodyKind": "json",
+      "bodyBytes": 849,
+      "shape": [
+        {
+          "path": "result.data.token",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "operation": "signInWithCustomToken",
+      "phase": "success-attempt",
+      "endpoint": "/v1/accounts:signInWithCustomToken",
+      "status": 200,
+      "contentType": "application/json; charset=UTF-8",
+      "bodyKind": "json",
+      "bodyBytes": 1453,
+      "shape": [
+        {
+          "path": "expiresIn",
+          "type": "string"
+        },
+        {
+          "path": "idToken",
+          "type": "string"
+        },
+        {
+          "path": "kind",
+          "type": "string"
+        },
+        {
+          "path": "refreshToken",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "operation": "refreshToken",
+      "phase": "success-attempt",
+      "endpoint": "/v1/token",
+      "status": 200,
+      "contentType": "application/json; charset=UTF-8",
+      "bodyKind": "json",
+      "bodyBytes": 2632,
+      "shape": [
+        {
+          "path": "access_token",
+          "type": "string"
+        },
+        {
+          "path": "expires_in",
+          "type": "string"
+        },
+        {
+          "path": "id_token",
+          "type": "string"
+        },
+        {
+          "path": "project_id",
+          "type": "string"
+        },
+        {
+          "path": "refresh_token",
+          "type": "string"
+        },
+        {
+          "path": "token_type",
+          "type": "string"
+        },
+        {
+          "path": "user_id",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "operation": "refreshToken",
+      "phase": "invalid-token",
+      "endpoint": "/v1/token",
+      "status": 400,
+      "contentType": "application/json; charset=UTF-8",
+      "bodyKind": "json",
+      "bodyBytes": 111,
+      "shape": [
+        {
+          "path": "error.code",
+          "type": "number"
+        },
+        {
+          "path": "error.message",
+          "type": "string"
+        },
+        {
+          "path": "error.status",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "operation": "lookupFirebaseUser",
+      "phase": "success-attempt",
+      "endpoint": "/v1/accounts:lookup",
+      "status": 200,
+      "contentType": "application/json; charset=UTF-8",
+      "bodyKind": "json",
+      "bodyBytes": 765,
+      "shape": [
+        {
+          "path": "kind",
+          "type": "string"
+        },
+        {
+          "path": "users.[].createdAt",
+          "type": "string"
+        },
+        {
+          "path": "users.[].customAuth",
+          "type": "boolean"
+        },
+        {
+          "path": "users.[].displayName",
+          "type": "string"
+        },
+        {
+          "path": "users.[].lastLoginAt",
+          "type": "string"
+        },
+        {
+          "path": "users.[].lastRefreshAt",
+          "type": "string"
+        },
+        {
+          "path": "users.[].localId",
+          "type": "string"
+        },
+        {
+          "path": "users.[].phoneNumber",
+          "type": "string"
+        },
+        {
+          "path": "users.[].photoUrl",
+          "type": "string"
+        },
+        {
+          "path": "users.[].providerUserInfo.[].phoneNumber",
+          "type": "string"
+        },
+        {
+          "path": "users.[].providerUserInfo.[].providerId",
+          "type": "string"
+        },
+        {
+          "path": "users.[].providerUserInfo.[].rawId",
+          "type": "string"
+        },
+        {
+          "path": "users.[].validSince",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "operation": "lookupFirebaseUser",
+      "phase": "invalid-token",
+      "endpoint": "/v1/accounts:lookup",
+      "status": 400,
+      "contentType": "application/json; charset=UTF-8",
+      "bodyKind": "json",
+      "bodyBytes": 206,
+      "shape": [
+        {
+          "path": "error.code",
+          "type": "number"
+        },
+        {
+          "path": "error.errors.[].domain",
+          "type": "string"
+        },
+        {
+          "path": "error.errors.[].message",
+          "type": "string"
+        },
+        {
+          "path": "error.errors.[].reason",
+          "type": "string"
+        },
+        {
+          "path": "error.message",
+          "type": "string"
+        }
+      ]
+    }
+  ]
+}

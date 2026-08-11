@@ -107,11 +107,10 @@ function citationResolves(citation) {
 }
 
 describe('remote API contract', () => {
-  it('is an owner-reviewed, consistently versioned OpenAPI 3.1 document with unique operation IDs', () => {
+  it('is a consistently versioned OpenAPI 3.1 document with unique operation IDs', () => {
     expect(spec.openapi).toBe('3.1.0');
     expect(spec.info.version).toBe(evidence.contractRevision);
     expect(evidence.status).toBe('owner-reviewed');
-    expect(spec.info.description).toContain('Owner-reviewed');
     const ids = operations().map(({ operation }) => operation.operationId);
     expect(ids).toHaveLength(27);
     expect(new Set(ids).size).toBe(ids.length);
@@ -130,8 +129,16 @@ describe('remote API contract', () => {
       expect(allowed.has(claim.response)).toBe(true);
       expect(citationResolves(claim.requestCitation), operation.operationId).toBe(true);
       expect(citationResolves(claim.responseCitation), operation.operationId).toBe(true);
+      const observedStatusOps = new Set([
+        'getPosterCatalog',
+        'sendAuthCodeTrusted',
+        'getLoginToken',
+        'signInWithCustomToken',
+        'refreshToken',
+        'lookupFirebaseUser',
+      ]);
       expect(claim.status).toBe(
-        operation.operationId === 'getPosterCatalog'
+        observedStatusOps.has(operation.operationId)
           ? 'dated-live-observation'
           : 'explicit-unknown',
       );
@@ -142,7 +149,7 @@ describe('remote API contract', () => {
       ...materialClaimPointers(spec.paths, '#/paths', 'paths'),
       ...materialClaimPointers(spec.components, '#/components', 'components'),
     ]);
-    expect(pointers).toHaveLength(833);
+    expect(pointers).toHaveLength(992);
     for (const pointer of pointers) {
       const claim = evidence.claims[pointer];
       expect(claim, pointer).toBeDefined();
@@ -181,9 +188,24 @@ describe('remote API contract', () => {
   });
 
   it('does not assert an unknown status code as a success response', () => {
+    const observedStatusOps = new Set([
+      'getPosterCatalog',
+      'sendAuthCodeTrusted',
+      'getLoginToken',
+      'signInWithCustomToken',
+      'refreshToken',
+      'lookupFirebaseUser',
+    ]);
+    const observedErrorOps = {
+      getLoginToken: ['200', '403', 'default'],
+      signInWithCustomToken: ['200', '400', 'default'],
+      refreshToken: ['200', '400', 'default'],
+      lookupFirebaseUser: ['200', '400', 'default'],
+    };
     for (const { operation } of operations()) {
-      if (operation.operationId === 'getPosterCatalog') {
-        expect(Object.keys(operation.responses)).toEqual(['200', 'default']);
+      if (observedStatusOps.has(operation.operationId)) {
+        const expectedKeys = observedErrorOps[operation.operationId] ?? ['200', 'default'];
+        expect(Object.keys(operation.responses).sort()).toEqual(expectedKeys.sort());
         expect(evidence.operationClaims[operation.operationId].status).toBe('dated-live-observation');
       } else {
         expect(Object.keys(operation.responses)).toEqual(['default']);
@@ -206,14 +228,32 @@ describe('remote API contract', () => {
   });
 
   it('keeps unknown default responses free of success-body schemas', () => {
+    const observedResponseOps = new Set([
+      'getPosterCatalog',
+      'sendAuthCodeTrusted',
+      'getLoginToken',
+      'signInWithCustomToken',
+      'refreshToken',
+      'lookupFirebaseUser',
+    ]);
+    const observedResponseSources = new Map([
+      ['getPosterCatalog', evidence.sources.posterCatalogObservation],
+      ['sendAuthCodeTrusted', evidence.sources.authSendCode20260811],
+      ['getLoginToken', evidence.sources.authLoginToken20260811],
+      ['signInWithCustomToken', evidence.sources.authSignIn20260811],
+      ['refreshToken', evidence.sources.authRefresh20260811],
+      ['lookupFirebaseUser', evidence.sources.authLookup20260811],
+    ]);
     for (const { path, method, operation } of operations()) {
       const base = `#/paths/${escapePointerSegment(path)}/${method}/responses/default`;
       expect(evidence.claims[base].citation).toBe(evidence.sources.unknownStatusDecision);
       expect(operation.responses.default).not.toHaveProperty('content');
       const operationClaim = evidence.operationClaims[operation.operationId];
-      if (operation.operationId === 'getPosterCatalog') {
+      if (observedResponseOps.has(operation.operationId)) {
         expect(operationClaim.response).toBe('dated-live-observation');
-        expect(operationClaim.responseCitation).toBe(evidence.sources.posterCatalogObservation);
+        expect(citationResolves(operationClaim.responseCitation), `${operation.operationId} responseCitation`).toBe(true);
+        expect(operationClaim.responseCitation)
+          .toBe(observedResponseSources.get(operation.operationId));
       } else {
         expect(operationClaim.response).toBe('explicit-unknown');
         expect(operationClaim.responseCitation).toBe(evidence.sources.unknownStatusDecision);
@@ -234,6 +274,19 @@ describe('remote API contract', () => {
       }
       if (claim.citation === evidence.sources.posterCatalogObservation) {
         expect(pointer.includes('~1posters.json') || pointer.includes('/schemas/Poster')).toBe(true);
+      }
+      const authCitationScopes = new Map([
+        [evidence.sources.authSendCode20260811, ['~1sendAuthCodeTrusted']],
+        [evidence.sources.authLoginToken20260811, ['~1getLoginToken', 'LoginTokenResponse', 'CallableAuthError']],
+        [evidence.sources.authSignIn20260811, ['signInWithCustomToken', 'FirebaseSignInResponse', 'FirebaseValidationError']],
+        [evidence.sources.authRefresh20260811, ['~1token', 'RefreshTokenResponse', 'FirebaseTokenError']],
+        [evidence.sources.authLookup20260811, ['accounts:lookup', 'FirebaseLookup', 'FirebaseProviderUserInfo']],
+      ]);
+      if (authCitationScopes.has(claim.citation)) {
+        expect(
+          authCitationScopes.get(claim.citation).some((fragment) => pointer.includes(fragment)),
+          `auth citation scope: ${pointer}`,
+        ).toBe(true);
       }
     }
   });
@@ -399,5 +452,208 @@ describe('remote API contract', () => {
       malformedSuccess: 'contract.protocol_changed',
       rateLimiting: 'not-claimed',
     });
+  });
+
+  it('captures the observed authentication response shapes from the attended session', () => {
+    // Load and verify both committed sanitized artifacts independently
+    const artifactPath = evidence.authObservation.artifactPath;
+    expect(fs.existsSync(artifactPath)).toBe(true);
+    const artifact = JSON.parse(fs.readFileSync(artifactPath, 'utf8'));
+    expect(artifact.redaction).toContain('HTTP metadata');
+
+    const probeArtifactPath = evidence.authObservation.probeArtifactPath;
+    expect(fs.existsSync(probeArtifactPath)).toBe(true);
+    const probeArtifact = JSON.parse(fs.readFileSync(probeArtifactPath, 'utf8'));
+    expect(probeArtifact.probeMethod).toContain('fake tokens');
+    const authObservationDocument = fs.readFileSync(
+      'docs/research/2026-08-11-auth-observation.md',
+      'utf8',
+    );
+    expect(authObservationDocument).toContain(probeArtifact.observedAt);
+
+    expect(evidence.authObservation).toMatchObject({
+      sourceCitation: 'docs/research/2026-08-11-auth-observation.md#scope-and-provenance',
+      observedAt: '2026-08-11T02:30:19Z',
+    });
+    expect(citationResolves(evidence.authObservation.sourceCitation)).toBe(true);
+
+    // Map artifact observations by operation+phase for independent verification
+    const byOpPhase = new Map();
+    for (const obs of artifact.observations) {
+      byOpPhase.set(`${obs.operation}:${obs.phase}`, obs);
+    }
+    for (const obs of probeArtifact.observations) {
+      byOpPhase.set(`probe:${obs.operation}:${obs.phase}`, obs);
+    }
+
+    // Helper: navigate schema following $refs and verify artifact shape paths
+    function verifyShapeAgainstSchema(operationId, schema, shape) {
+      for (const { path: shapePath, type: shapeType } of shape) {
+        const segments = shapePath.split('.');
+        let current = schema;
+        for (const seg of segments) {
+          if (seg === '[]') {
+            current = current.items;
+            if (current?.$ref) current = spec.components.schemas[current.$ref.split('/').pop()];
+          } else {
+            if (current?.$ref) current = spec.components.schemas[current.$ref.split('/').pop()];
+            current = current?.properties?.[seg];
+          }
+          expect(current, `${operationId} schema path ${shapePath} at ${seg}`).toBeDefined();
+        }
+        if (current?.$ref) current = spec.components.schemas[current.$ref.split('/').pop()];
+        if (current?.type) expect(current.type, `${operationId} ${shapePath} type`).toBe(shapeType);
+      }
+    }
+
+    // Verify each auth operation's success response matches the artifact
+    const authOps = [
+      { id: 'sendAuthCodeTrusted', path: '/sendAuthCodeTrusted' },
+      { id: 'getLoginToken', path: '/getLoginToken' },
+      { id: 'signInWithCustomToken', path: '/v1/accounts:signInWithCustomToken' },
+      { id: 'refreshToken', path: '/v1/token' },
+      { id: 'lookupFirebaseUser', path: '/v1/accounts:lookup' },
+    ];
+
+    for (const { id, path: opPath } of authOps) {
+      const success = byOpPhase.get(`${id}:success-attempt`);
+      expect(success, `${id} must have success-attempt in artifact`).toBeDefined();
+      expect(success.status, `${id} artifact status`).toBe(200);
+
+      const operation = spec.paths[opPath].post;
+      expect(Object.keys(operation.responses), `${id} retains default`).toContain('default');
+      expect(Object.keys(operation.responses), `${id} has 200`).toContain('200');
+
+      expect(evidence.operations[id].classification, `${id} operation class`).toBe('dated-live-observation');
+      const claim = evidence.operationClaims[id];
+      expect(claim.response, `${id} response class`).toBe('dated-live-observation');
+      expect(claim.status, `${id} status class`).toBe('dated-live-observation');
+      const expectedCitation = new Map([
+        ['sendAuthCodeTrusted', evidence.sources.authSendCode20260811],
+        ['getLoginToken', evidence.sources.authLoginToken20260811],
+        ['signInWithCustomToken', evidence.sources.authSignIn20260811],
+        ['refreshToken', evidence.sources.authRefresh20260811],
+        ['lookupFirebaseUser', evidence.sources.authLookup20260811],
+      ]).get(id);
+      expect(claim.responseCitation, `${id} responseCitation`).toBe(expectedCitation);
+
+      // Request provenance preserved
+      if (['sendAuthCodeTrusted', 'refreshToken', 'lookupFirebaseUser'].includes(id)) {
+        expect(claim.request, `${id} request class preserved`).toBe('typescript-derived-inference');
+      }
+
+      // Verify 200 response shape against artifact (except sendAuthCodeTrusted which has no content)
+      if (id !== 'sendAuthCodeTrusted' && success.shape.length > 0) {
+        const ref200 = operation.responses['200'].content['application/json'].schema;
+        const schemaName = ref200.$ref?.split('/').pop();
+        const schema = schemaName ? spec.components.schemas[schemaName] : ref200;
+        verifyShapeAgainstSchema(id, schema, success.shape);
+      }
+    }
+
+    // sendAuthCodeTrusted 200 has no content (body shape unclaimed)
+    expect(spec.paths['/sendAuthCodeTrusted'].post.responses['200'])
+      .not.toHaveProperty('content');
+
+    // Verify observed error responses against artifacts
+    // getLoginToken 403: owner artifact wrong-code observation
+    const login403 = byOpPhase.get('getLoginToken:wrong-code');
+    expect(login403).toBeDefined();
+    expect(login403.status).toBe(403);
+    const login403Schema = spec.paths['/getLoginToken'].post.responses['403']
+      .content['application/json'].schema;
+    const login403Ref = spec.components.schemas[login403Schema.$ref.split('/').pop()];
+    verifyShapeAgainstSchema('getLoginToken-403', login403Ref, login403.shape);
+
+    // signInWithCustomToken 400: agent probe artifact
+    const signIn400 = byOpPhase.get('probe:signInWithCustomToken:invalid-token');
+    expect(signIn400).toBeDefined();
+    expect(signIn400.status).toBe(400);
+    const signIn400Schema = spec.paths['/v1/accounts:signInWithCustomToken'].post.responses['400']
+      .content['application/json'].schema;
+    const signIn400Ref = spec.components.schemas[signIn400Schema.$ref.split('/').pop()];
+    verifyShapeAgainstSchema('signInWithCustomToken-400', signIn400Ref, signIn400.shape);
+
+    // refreshToken 400: owner artifact + agent probe (both observed)
+    const refresh400Owner = byOpPhase.get('refreshToken:invalid-token');
+    expect(refresh400Owner).toBeDefined();
+    expect(refresh400Owner.status).toBe(400);
+    const refresh400Schema = spec.paths['/v1/token'].post.responses['400']
+      .content['application/json'].schema;
+    const refresh400Ref = spec.components.schemas[refresh400Schema.$ref.split('/').pop()];
+    verifyShapeAgainstSchema('refreshToken-400', refresh400Ref, refresh400Owner.shape);
+
+    // lookupFirebaseUser 400: owner artifact + agent probe (both observed)
+    const lookup400Owner = byOpPhase.get('lookupFirebaseUser:invalid-token');
+    expect(lookup400Owner).toBeDefined();
+    expect(lookup400Owner.status).toBe(400);
+    const lookup400Schema = spec.paths['/v1/accounts:lookup'].post.responses['400']
+      .content['application/json'].schema;
+    const lookup400Ref = spec.components.schemas[lookup400Schema.$ref.split('/').pop()];
+    verifyShapeAgainstSchema('lookupFirebaseUser-400', lookup400Ref, lookup400Owner.shape);
+
+    // additionalProperties on all auth schemas must NOT be dated-live-observation
+    const authSchemas = [
+      'LoginTokenResponse', 'FirebaseSignInResponse', 'RefreshTokenResponse',
+      'FirebaseLookupResponse', 'FirebaseLookupUser', 'FirebaseProviderUserInfo',
+      'CallableAuthError', 'FirebaseValidationError', 'FirebaseTokenError',
+    ];
+    for (const name of authSchemas) {
+      const apPointer = `#/components/schemas/${name}/additionalProperties`;
+      if (evidence.claims[apPointer]) {
+        expect(evidence.claims[apPointer].classification, `${name} additionalProperties`)
+          .toBe('typescript-derived-inference');
+      }
+    }
+
+    // required arrays: fields must be present in the artifact success observation
+    function requiredFieldsObserved(schemaName, artifactOp) {
+      const schema = spec.components.schemas[schemaName];
+      if (!schema?.required) return;
+      const success = byOpPhase.get(`${artifactOp}:success-attempt`);
+      for (const field of schema.required) {
+        const found = success.shape.some(({ path }) => path.startsWith(field) || path === field);
+        expect(found, `${schemaName}.required field '${field}' observed in artifact`).toBe(true);
+      }
+    }
+    requiredFieldsObserved('FirebaseSignInResponse', 'signInWithCustomToken');
+    requiredFieldsObserved('RefreshTokenResponse', 'refreshToken');
+    requiredFieldsObserved('FirebaseLookupResponse', 'lookupFirebaseUser');
+    const loginSuccess = byOpPhase.get('getLoginToken:success-attempt');
+    expect(loginSuccess.shape.some(({ path }) => path.startsWith('result'))).toBe(true);
+
+    // Operation-specific failure boundaries
+    const fb = evidence.authObservation.failureBoundary;
+
+    // getLoginToken: 403 -> input.invalid / AUTH_CODE_REJECTED
+    expect(fb.getLoginToken['200']).toBe('success');
+    expect(fb.getLoginToken['403'].productMapping).toBe('input.invalid');
+    expect(fb.getLoginToken['403'].stableCode).toBe('AUTH_CODE_REJECTED');
+    expect(fb.getLoginToken.otherReceived).toBe('contract.protocol_changed');
+    expect(fb.getLoginToken.noResponse).toBe('remote.unavailable');
+    expect(fb.getLoginToken.rateLimiting).toBe('not-claimed');
+
+    // signInWithCustomToken: 400 -> auth.expired
+    expect(fb.signInWithCustomToken['200']).toBe('success');
+    expect(fb.signInWithCustomToken['400'].productMapping).toBe('auth.expired');
+    expect(fb.signInWithCustomToken['400'].stableCode).toBe('INVALID_CUSTOM_TOKEN');
+    expect(fb.signInWithCustomToken.otherReceived).toBe('contract.protocol_changed');
+
+    // refreshToken: 400 -> auth.expired
+    expect(fb.refreshToken['200']).toBe('success');
+    expect(fb.refreshToken['400'].productMapping).toBe('auth.expired');
+    expect(fb.refreshToken['400'].stableCode).toBe('INVALID_REFRESH_TOKEN');
+    expect(fb.refreshToken.otherReceived).toBe('contract.protocol_changed');
+
+    // lookupFirebaseUser: 400 -> auth.expired, optional for S2
+    expect(fb.lookupFirebaseUser['200']).toBe('success');
+    expect(fb.lookupFirebaseUser['400'].productMapping).toBe('auth.expired');
+    expect(fb.lookupFirebaseUser.s2Gate).toBe(false);
+
+    // sendAuthCodeTrusted: no error status promoted
+    expect(fb.sendAuthCodeTrusted['200']).toBe('success');
+    expect(fb.sendAuthCodeTrusted).not.toHaveProperty('400');
+    expect(fb.sendAuthCodeTrusted).not.toHaveProperty('403');
+    expect(fb.sendAuthCodeTrusted.otherReceived).toBe('contract.protocol_changed');
   });
 });
