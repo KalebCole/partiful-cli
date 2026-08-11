@@ -14,10 +14,19 @@ import (
 	"time"
 
 	"github.com/KalebCole/partiful-cli/internal/app"
+	"github.com/KalebCole/partiful-cli/internal/remote"
 )
 
 type scriptedHTTP struct {
 	do func(*http.Request) (*http.Response, error)
+}
+
+type scriptedRoundTripper struct {
+	roundTrip func(*http.Request) (*http.Response, error)
+}
+
+func (script scriptedRoundTripper) RoundTrip(request *http.Request) (*http.Response, error) {
+	return script.roundTrip(request)
 }
 
 func (script scriptedHTTP) Do(request *http.Request) (*http.Response, error) {
@@ -649,6 +658,29 @@ func TestExecutePostersListFailsClosedOnReceivedNon200(t *testing.T) {
 	if strings.Contains(result.Stdout+result.Stderr, "remote.rate_limited") ||
 		strings.Contains(result.Stdout+result.Stderr, "private") {
 		t.Fatal("non-200 failure claimed rate limiting or exposed response body")
+	}
+}
+
+func TestExecutePostersListProductionHTTPDoesNotFollowRedirects(t *testing.T) {
+	result := app.Execute(context.Background(), app.Request{
+		Argv:  []string{"posters", "list"},
+		Stdin: strings.NewReader(""),
+	}, app.Dependencies{
+		HTTP: remote.NewHTTPClient(scriptedRoundTripper{
+			roundTrip: func(*http.Request) (*http.Response, error) {
+				return &http.Response{
+					StatusCode: http.StatusFound,
+					Header: http.Header{
+						"Location": {"https://assets.getpartiful.com/unreviewed.json"},
+					},
+					Body: io.NopCloser(strings.NewReader("")),
+				}, nil
+			},
+		}),
+	})
+
+	if result.ExitCode != 9 || !strings.Contains(result.Stdout, `"type":"contract.protocol_changed"`) {
+		t.Fatalf("result = %#v, want original redirect to fail closed", result)
 	}
 }
 

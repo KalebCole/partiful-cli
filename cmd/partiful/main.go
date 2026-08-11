@@ -4,13 +4,13 @@ import (
 	"context"
 	"crypto/rand"
 	"io"
-	"net/http"
 	"os"
 	"time"
 
 	"github.com/KalebCole/partiful-cli/internal/app"
 	"github.com/KalebCole/partiful-cli/internal/auth"
 	cursorstate "github.com/KalebCole/partiful-cli/internal/cursor"
+	"github.com/KalebCole/partiful-cli/internal/remote"
 )
 
 func main() {
@@ -24,7 +24,7 @@ func main() {
 		CredentialsPath:      credentialsPath,
 		CredentialsPathError: credentialsPathError,
 		Now:                  time.Now,
-		HTTP:                 http.DefaultClient,
+		HTTP:                 remote.NewHTTPClient(nil),
 		CursorKeys:           cursorstate.FileKeyProvider{Path: cursorKeyPath},
 		CursorRandom:         rand.Reader,
 	})
