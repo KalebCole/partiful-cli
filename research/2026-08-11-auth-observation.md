@@ -221,8 +221,8 @@ contract gate.
 - Whether the 22-byte `sendAuthCodeTrusted` success body ever contains fields.
 - Rate-limiting behavior on any authentication endpoint.
 - Token lifetimes, refresh token rotation policy, and session duration.
-- Whether the Firebase referrer restriction applies to all allowed origins or
-  only specific patterns.
+- Whether the Firebase referrer restriction accepts additional `Referer`
+  values or patterns.
 - Additional fields in `getLoginToken` success (849 bytes, only `result.data.token`
   recorded in sanitized shape).
 - Whether `lookupFirebaseUser` returns additional user fields for accounts with

@@ -1,6 +1,6 @@
 # Partiful remote API contract evidence ledger
 
-**Owner-reviewed contract revision:** `2026-08-11.3`
+**Owner-reviewed contract revision:** `2026-08-11.4`
 **Status:** Owner-reviewed under the issue #114 delegation
 **Contract:** `spec/partiful.openapi.json`
 **Machine-readable ledger:** `spec/partiful.api-evidence.json`
@@ -133,7 +133,7 @@ configuration fact, not a Partiful callable behavior.
 
 ## Firebase transport configuration
 
-Revision `2026-08-11.3` formalizes two transport configuration facts required
+Revision `2026-08-11.4` formalizes two transport configuration facts required
 by the Go implementation's Firebase requests:
 
 1. **Firebase web API key value**: The `firebaseApiKey` security scheme now
