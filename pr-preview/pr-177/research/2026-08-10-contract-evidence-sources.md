@@ -109,7 +109,8 @@ A privacy-safe negative probe without a `Referer` header received HTTP 403
 `API_KEY_HTTP_REFERRER_BLOCKED`; probes using the observed
 `Referer: https://partiful.com/` reached the endpoint and returned ordinary
 invalid-input responses. The full allowed Referer set is unknown. Origin is
-unmodelled and remains unknown.
+unmodelled and remains unknown because the reviewed evidence establishes no
+Origin request fact.
 
 ## Dated poster catalog observation
 
