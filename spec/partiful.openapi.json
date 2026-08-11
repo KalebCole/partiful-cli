@@ -3,7 +3,7 @@
   "info": {
     "title": "Partiful remote API contract",
     "version": "2026-08-11.2",
-    "description": "Owner-reviewed, versioned remote-only transport snapshot. Evidence classifications and uncertainty are recorded in spec/partiful.api-evidence.json."
+    "description": "Proposed remote-only transport snapshot (pending owner approval). Evidence classifications and uncertainty are recorded in spec/partiful.api-evidence.json."
   },
   "servers": [
     {
@@ -1322,6 +1322,16 @@
           },
           "default": {
             "description": "Response status and body are unknown."
+          },
+          "400": {
+            "description": "Invalid or expired refresh token.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FirebaseTokenError"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -1412,15 +1422,7 @@
         },
         "responses": {
           "200": {
-            "description": "Acknowledgment with no structured fields.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "additionalProperties": true
-                }
-              }
-            }
+            "description": "HTTP 200 observed. Body shape is unclaimed; auth login uses no send-response field."
           },
           "default": {
             "description": "Response status and body are unknown."
@@ -1505,6 +1507,16 @@
           },
           "default": {
             "description": "Response status and body are unknown."
+          },
+          "403": {
+            "description": "Invalid authentication code.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CallableAuthError"
+                }
+              }
+            }
           }
         }
       }
@@ -1548,6 +1560,16 @@
           },
           "default": {
             "description": "Response status and body are unknown."
+          },
+          "400": {
+            "description": "Invalid or expired custom token.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FirebaseValidationError"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -1597,6 +1619,16 @@
           },
           "default": {
             "description": "Response status and body are unknown."
+          },
+          "400": {
+            "description": "Invalid or expired ID token.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FirebaseValidationError"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -2160,6 +2192,111 @@
           },
           "rawId": {
             "type": "string"
+          }
+        },
+        "additionalProperties": true
+      },
+      "CallableAuthError": {
+        "type": "object",
+        "required": [
+          "error"
+        ],
+        "properties": {
+          "error": {
+            "type": "object",
+            "required": [
+              "message",
+              "status"
+            ],
+            "properties": {
+              "message": {
+                "type": "string"
+              },
+              "status": {
+                "type": "string"
+              },
+              "details": {
+                "type": "object",
+                "properties": {
+                  "authErrorCode": {
+                    "type": "string"
+                  }
+                },
+                "additionalProperties": true
+              }
+            },
+            "additionalProperties": true
+          }
+        },
+        "additionalProperties": true
+      },
+      "FirebaseValidationError": {
+        "type": "object",
+        "required": [
+          "error"
+        ],
+        "properties": {
+          "error": {
+            "type": "object",
+            "required": [
+              "code",
+              "message"
+            ],
+            "properties": {
+              "code": {
+                "type": "number"
+              },
+              "message": {
+                "type": "string"
+              },
+              "errors": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "domain": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "reason": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": true
+                }
+              }
+            },
+            "additionalProperties": true
+          }
+        },
+        "additionalProperties": true
+      },
+      "FirebaseTokenError": {
+        "type": "object",
+        "required": [
+          "error"
+        ],
+        "properties": {
+          "error": {
+            "type": "object",
+            "required": [
+              "code",
+              "message"
+            ],
+            "properties": {
+              "code": {
+                "type": "number"
+              },
+              "message": {
+                "type": "string"
+              },
+              "status": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": true
           }
         },
         "additionalProperties": true

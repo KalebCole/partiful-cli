@@ -16,7 +16,8 @@
     "posterInterface": "docs/research/2026-08-10-contract-evidence-sources.md#poster-interface",
     "posterCatalog": "docs/research/2026-08-10-contract-evidence-sources.md#poster-catalog-fetch",
     "posterCatalogObservation": "docs/research/2026-08-10-contract-evidence-sources.md#dated-poster-catalog-observation",
-    "authObservation20260811": "docs/research/2026-08-11-auth-observation.md#scope-and-provenance"
+    "authObservation20260811": "docs/research/2026-08-11-auth-observation.md#scope-and-provenance",
+    "authErrorProbes20260811": "spec/research/auth-error-probes-redacted-20260811.json"
   },
   "operations": {
     "createEvent": {
@@ -4044,18 +4045,6 @@
       "classification": "dated-live-observation",
       "citation": "docs/research/2026-08-11-auth-observation.md#scope-and-provenance"
     },
-    "#/paths/~1sendAuthCodeTrusted/post/responses/200/content/application~1json": {
-      "classification": "dated-live-observation",
-      "citation": "docs/research/2026-08-11-auth-observation.md#scope-and-provenance"
-    },
-    "#/paths/~1sendAuthCodeTrusted/post/responses/200/content/application~1json/schema/additionalProperties": {
-      "classification": "typescript-derived-inference",
-      "citation": "docs/research/2026-08-11-auth-observation.md#scope-and-provenance"
-    },
-    "#/paths/~1sendAuthCodeTrusted/post/responses/200/content/application~1json/schema/type": {
-      "classification": "dated-live-observation",
-      "citation": "docs/research/2026-08-11-auth-observation.md#scope-and-provenance"
-    },
     "#/paths/~1v1~1accounts:lookup/post/responses/200": {
       "classification": "dated-live-observation",
       "citation": "docs/research/2026-08-11-auth-observation.md#scope-and-provenance"
@@ -4089,6 +4078,266 @@
       "citation": "docs/research/2026-08-11-auth-observation.md#scope-and-provenance"
     },
     "#/paths/~1v1~1token/post/responses/200/content/application~1json/schema/$ref": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#scope-and-provenance"
+    },
+    "#/components/schemas/CallableAuthError/additionalProperties": {
+      "classification": "typescript-derived-inference",
+      "citation": "docs/research/2026-08-11-auth-observation.md#scope-and-provenance"
+    },
+    "#/components/schemas/CallableAuthError/properties/error": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#scope-and-provenance"
+    },
+    "#/components/schemas/CallableAuthError/properties/error/additionalProperties": {
+      "classification": "typescript-derived-inference",
+      "citation": "docs/research/2026-08-11-auth-observation.md#scope-and-provenance"
+    },
+    "#/components/schemas/CallableAuthError/properties/error/properties/details": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#scope-and-provenance"
+    },
+    "#/components/schemas/CallableAuthError/properties/error/properties/details/additionalProperties": {
+      "classification": "typescript-derived-inference",
+      "citation": "docs/research/2026-08-11-auth-observation.md#scope-and-provenance"
+    },
+    "#/components/schemas/CallableAuthError/properties/error/properties/details/properties/authErrorCode": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#scope-and-provenance"
+    },
+    "#/components/schemas/CallableAuthError/properties/error/properties/details/properties/authErrorCode/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#scope-and-provenance"
+    },
+    "#/components/schemas/CallableAuthError/properties/error/properties/details/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#scope-and-provenance"
+    },
+    "#/components/schemas/CallableAuthError/properties/error/properties/message": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#scope-and-provenance"
+    },
+    "#/components/schemas/CallableAuthError/properties/error/properties/message/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#scope-and-provenance"
+    },
+    "#/components/schemas/CallableAuthError/properties/error/properties/status": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#scope-and-provenance"
+    },
+    "#/components/schemas/CallableAuthError/properties/error/properties/status/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#scope-and-provenance"
+    },
+    "#/components/schemas/CallableAuthError/properties/error/required/0": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#scope-and-provenance"
+    },
+    "#/components/schemas/CallableAuthError/properties/error/required/1": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#scope-and-provenance"
+    },
+    "#/components/schemas/CallableAuthError/properties/error/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#scope-and-provenance"
+    },
+    "#/components/schemas/CallableAuthError/required/0": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#scope-and-provenance"
+    },
+    "#/components/schemas/CallableAuthError/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#scope-and-provenance"
+    },
+    "#/components/schemas/FirebaseTokenError/additionalProperties": {
+      "classification": "typescript-derived-inference",
+      "citation": "docs/research/2026-08-11-auth-observation.md#scope-and-provenance"
+    },
+    "#/components/schemas/FirebaseTokenError/properties/error": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#scope-and-provenance"
+    },
+    "#/components/schemas/FirebaseTokenError/properties/error/additionalProperties": {
+      "classification": "typescript-derived-inference",
+      "citation": "docs/research/2026-08-11-auth-observation.md#scope-and-provenance"
+    },
+    "#/components/schemas/FirebaseTokenError/properties/error/properties/code": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#scope-and-provenance"
+    },
+    "#/components/schemas/FirebaseTokenError/properties/error/properties/code/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#scope-and-provenance"
+    },
+    "#/components/schemas/FirebaseTokenError/properties/error/properties/message": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#scope-and-provenance"
+    },
+    "#/components/schemas/FirebaseTokenError/properties/error/properties/message/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#scope-and-provenance"
+    },
+    "#/components/schemas/FirebaseTokenError/properties/error/properties/status": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#scope-and-provenance"
+    },
+    "#/components/schemas/FirebaseTokenError/properties/error/properties/status/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#scope-and-provenance"
+    },
+    "#/components/schemas/FirebaseTokenError/properties/error/required/0": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#scope-and-provenance"
+    },
+    "#/components/schemas/FirebaseTokenError/properties/error/required/1": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#scope-and-provenance"
+    },
+    "#/components/schemas/FirebaseTokenError/properties/error/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#scope-and-provenance"
+    },
+    "#/components/schemas/FirebaseTokenError/required/0": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#scope-and-provenance"
+    },
+    "#/components/schemas/FirebaseTokenError/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#scope-and-provenance"
+    },
+    "#/components/schemas/FirebaseValidationError/additionalProperties": {
+      "classification": "typescript-derived-inference",
+      "citation": "docs/research/2026-08-11-auth-observation.md#scope-and-provenance"
+    },
+    "#/components/schemas/FirebaseValidationError/properties/error": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#scope-and-provenance"
+    },
+    "#/components/schemas/FirebaseValidationError/properties/error/additionalProperties": {
+      "classification": "typescript-derived-inference",
+      "citation": "docs/research/2026-08-11-auth-observation.md#scope-and-provenance"
+    },
+    "#/components/schemas/FirebaseValidationError/properties/error/properties/code": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#scope-and-provenance"
+    },
+    "#/components/schemas/FirebaseValidationError/properties/error/properties/code/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#scope-and-provenance"
+    },
+    "#/components/schemas/FirebaseValidationError/properties/error/properties/errors": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#scope-and-provenance"
+    },
+    "#/components/schemas/FirebaseValidationError/properties/error/properties/errors/items/additionalProperties": {
+      "classification": "typescript-derived-inference",
+      "citation": "docs/research/2026-08-11-auth-observation.md#scope-and-provenance"
+    },
+    "#/components/schemas/FirebaseValidationError/properties/error/properties/errors/items/properties/domain": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#scope-and-provenance"
+    },
+    "#/components/schemas/FirebaseValidationError/properties/error/properties/errors/items/properties/domain/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#scope-and-provenance"
+    },
+    "#/components/schemas/FirebaseValidationError/properties/error/properties/errors/items/properties/message": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#scope-and-provenance"
+    },
+    "#/components/schemas/FirebaseValidationError/properties/error/properties/errors/items/properties/message/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#scope-and-provenance"
+    },
+    "#/components/schemas/FirebaseValidationError/properties/error/properties/errors/items/properties/reason": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#scope-and-provenance"
+    },
+    "#/components/schemas/FirebaseValidationError/properties/error/properties/errors/items/properties/reason/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#scope-and-provenance"
+    },
+    "#/components/schemas/FirebaseValidationError/properties/error/properties/errors/items/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#scope-and-provenance"
+    },
+    "#/components/schemas/FirebaseValidationError/properties/error/properties/errors/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#scope-and-provenance"
+    },
+    "#/components/schemas/FirebaseValidationError/properties/error/properties/message": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#scope-and-provenance"
+    },
+    "#/components/schemas/FirebaseValidationError/properties/error/properties/message/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#scope-and-provenance"
+    },
+    "#/components/schemas/FirebaseValidationError/properties/error/required/0": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#scope-and-provenance"
+    },
+    "#/components/schemas/FirebaseValidationError/properties/error/required/1": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#scope-and-provenance"
+    },
+    "#/components/schemas/FirebaseValidationError/properties/error/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#scope-and-provenance"
+    },
+    "#/components/schemas/FirebaseValidationError/required/0": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#scope-and-provenance"
+    },
+    "#/components/schemas/FirebaseValidationError/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#scope-and-provenance"
+    },
+    "#/paths/~1getLoginToken/post/responses/403": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#scope-and-provenance"
+    },
+    "#/paths/~1getLoginToken/post/responses/403/content/application~1json": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#scope-and-provenance"
+    },
+    "#/paths/~1getLoginToken/post/responses/403/content/application~1json/schema/$ref": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#scope-and-provenance"
+    },
+    "#/paths/~1v1~1accounts:lookup/post/responses/400": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#scope-and-provenance"
+    },
+    "#/paths/~1v1~1accounts:lookup/post/responses/400/content/application~1json": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#scope-and-provenance"
+    },
+    "#/paths/~1v1~1accounts:lookup/post/responses/400/content/application~1json/schema/$ref": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#scope-and-provenance"
+    },
+    "#/paths/~1v1~1accounts:signInWithCustomToken/post/responses/400": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#scope-and-provenance"
+    },
+    "#/paths/~1v1~1accounts:signInWithCustomToken/post/responses/400/content/application~1json": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#scope-and-provenance"
+    },
+    "#/paths/~1v1~1accounts:signInWithCustomToken/post/responses/400/content/application~1json/schema/$ref": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#scope-and-provenance"
+    },
+    "#/paths/~1v1~1token/post/responses/400": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#scope-and-provenance"
+    },
+    "#/paths/~1v1~1token/post/responses/400/content/application~1json": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#scope-and-provenance"
+    },
+    "#/paths/~1v1~1token/post/responses/400/content/application~1json/schema/$ref": {
       "classification": "dated-live-observation",
       "citation": "docs/research/2026-08-11-auth-observation.md#scope-and-provenance"
     }
@@ -4135,10 +4384,60 @@
     "observedAt": "2026-08-11T02:30:19Z",
     "artifactPath": "spec/research/auth-evidence-redacted-20260811.json",
     "failureBoundary": {
-      "receivedNon200": "contract.protocol_changed",
-      "malformedSuccess": "contract.protocol_changed",
-      "noResponse": "remote.unavailable",
-      "rateLimiting": "not-claimed"
-    }
+      "getLoginToken": {
+        "200": "success",
+        "403": {
+          "productMapping": "input.invalid",
+          "stableCode": "AUTH_CODE_REJECTED",
+          "source": "owner-attended wrong-code observation"
+        },
+        "otherReceived": "contract.protocol_changed",
+        "noResponse": "remote.unavailable",
+        "rateLimiting": "not-claimed"
+      },
+      "signInWithCustomToken": {
+        "200": "success",
+        "400": {
+          "productMapping": "auth.expired",
+          "stableCode": "INVALID_CUSTOM_TOKEN",
+          "source": "agent fake-token probe"
+        },
+        "otherReceived": "contract.protocol_changed",
+        "noResponse": "remote.unavailable",
+        "rateLimiting": "not-claimed"
+      },
+      "refreshToken": {
+        "200": "success",
+        "400": {
+          "productMapping": "auth.expired",
+          "stableCode": "INVALID_REFRESH_TOKEN",
+          "source": "owner-attended and agent fake-token probe"
+        },
+        "otherReceived": "contract.protocol_changed",
+        "noResponse": "remote.unavailable",
+        "rateLimiting": "not-claimed"
+      },
+      "lookupFirebaseUser": {
+        "200": "success",
+        "400": {
+          "productMapping": "auth.expired",
+          "stableCode": "INVALID_ID_TOKEN",
+          "source": "owner-attended and agent fake-token probe"
+        },
+        "otherReceived": "contract.protocol_changed",
+        "noResponse": "remote.unavailable",
+        "rateLimiting": "not-claimed",
+        "s2Gate": false,
+        "note": "Optional for S2. userId available from JWT without lookup call."
+      },
+      "sendAuthCodeTrusted": {
+        "200": "success",
+        "otherReceived": "contract.protocol_changed",
+        "noResponse": "remote.unavailable",
+        "rateLimiting": "not-claimed",
+        "note": "No error status observed from controlled conditions. Body shape unclaimed."
+      }
+    },
+    "probeArtifactPath": "spec/research/auth-error-probes-redacted-20260811.json"
   }
 }
