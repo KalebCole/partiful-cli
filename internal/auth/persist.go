@@ -1,17 +1,8 @@
 package auth
 
-import (
-	"encoding/json"
-	"time"
-)
+import "encoding/json"
 
-type Credentials struct {
-	AccessToken  string    `json:"accessToken"`
-	RefreshToken string    `json:"refreshToken,omitempty"`
-	ExpiresAt    time.Time `json:"expiresAt"`
-}
-
-func SaveCredentials(files FileSystem, path string, credentials Credentials) error {
+func saveCredentials(files FileSystem, path string, credentials credentialRecord) error {
 	if files == nil || path == "" {
 		return ErrNotConfigured
 	}
@@ -24,7 +15,7 @@ func SaveCredentials(files FileSystem, path string, credentials Credentials) err
 	return saveError
 }
 
-func saveCredentialsUnlocked(files FileSystem, path string, credentials Credentials) error {
+func saveCredentialsUnlocked(files FileSystem, path string, credentials credentialRecord) error {
 	document, err := json.Marshal(credentials)
 	if err != nil {
 		return ErrUnavailable

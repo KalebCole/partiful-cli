@@ -111,7 +111,7 @@ func Login(
 		return State{}, err
 	}
 	expiresAt := now.Add(session.ExpiresIn).UTC()
-	err = SaveCredentials(files, path, Credentials{
+	err = saveCredentials(files, path, credentialRecord{
 		AccessToken:  session.IDToken,
 		RefreshToken: session.RefreshToken,
 		ExpiresAt:    expiresAt,
@@ -147,7 +147,7 @@ func StatusWithRefresh(
 	now time.Time,
 	client remote.AuthClient,
 ) (State, error) {
-	_, state, err := refreshCredentials(ctx, files, path, now, client)
+	state, err := refreshCredentials(ctx, files, path, now, client)
 	return state, err
 }
 
@@ -173,9 +173,9 @@ func refreshCredentials(
 	path string,
 	now time.Time,
 	client remote.AuthClient,
-) (credentialRecord, State, error) {
+) (State, error) {
 	if files == nil || path == "" {
-		return credentialRecord{}, State{}, ErrNotConfigured
+		return State{}, ErrNotConfigured
 	}
 	var (
 		credentials  credentialRecord
@@ -207,7 +207,7 @@ func refreshCredentials(
 			RefreshToken: refreshed.RefreshToken,
 			ExpiresAt:    expiresAt,
 		}
-		operationErr = saveCredentialsUnlocked(files, path, Credentials{
+		operationErr = saveCredentialsUnlocked(files, path, credentialRecord{
 			AccessToken:  credentials.AccessToken,
 			RefreshToken: credentials.RefreshToken,
 			ExpiresAt:    credentials.ExpiresAt,
@@ -218,12 +218,12 @@ func refreshCredentials(
 		}
 		state = stateFromCredentials(credentials, now)
 	}); err != nil {
-		return credentialRecord{}, State{}, ErrUnavailable
+		return State{}, ErrUnavailable
 	}
 	if operationErr != nil {
-		return credentialRecord{}, State{}, operationErr
+		return State{}, operationErr
 	}
-	return credentials, state, nil
+	return state, nil
 }
 
 func loadCredentials(files FileSystem, path string) (credentialRecord, error) {

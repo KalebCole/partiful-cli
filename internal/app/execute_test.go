@@ -1621,7 +1621,7 @@ func TestExecuteAuthLoginRejectsInvalidOptionalFirebaseSuccessField(t *testing.T
 	}
 }
 
-func TestExecuteAuthLoginRejectsInvalidOptionalFirebaseErrorField(t *testing.T) {
+func TestExecuteAuthLoginAllowsUndeclaredFirebaseErrorField(t *testing.T) {
 	call := 0
 	result := app.Execute(context.Background(), app.Request{
 		Argv: []string{"auth", "login"},
@@ -1651,9 +1651,45 @@ func TestExecuteAuthLoginRejectsInvalidOptionalFirebaseErrorField(t *testing.T) 
 			}
 		}},
 	})
+	if result.ExitCode != 3 ||
+		!strings.Contains(result.Stdout, `"code":"INVALID_CUSTOM_TOKEN"`) {
+		t.Fatalf("result = %#v, want undeclared Firebase error field to remain allowed", result)
+	}
+}
+
+func TestExecuteAuthLoginRejectsInvalidOptionalFirebaseValidationErrors(t *testing.T) {
+	call := 0
+	result := app.Execute(context.Background(), app.Request{
+		Argv: []string{"auth", "login"},
+	}, app.Dependencies{
+		Files:           &memoryFilesystem{files: map[string][]byte{}},
+		CredentialsPath: "/config/partiful/credentials.json",
+		Terminal:        &scriptedPrivateTerminal{values: []string{"+15555550123", "123456"}},
+		AuthRandom:      strings.NewReader("0123456789abcdef"),
+		Now: func() time.Time {
+			return time.Date(2026, time.August, 11, 0, 0, 0, 0, time.UTC)
+		},
+		HTTP: scriptedHTTP{do: func(*http.Request) (*http.Response, error) {
+			call++
+			switch call {
+			case 1:
+				return jsonResponse(http.StatusOK, `{}`), nil
+			case 2:
+				return jsonResponse(
+					http.StatusOK,
+					`{"result":{"data":{"token":"custom-private-token"}}}`,
+				), nil
+			default:
+				return jsonResponse(
+					http.StatusBadRequest,
+					`{"error":{"code":400,"message":"invalid token","errors":"invalid"}}`,
+				), nil
+			}
+		}},
+	})
 	if result.ExitCode != 9 ||
 		!strings.Contains(result.Stdout, `"code":"AUTH_PROTOCOL_CHANGED"`) {
-		t.Fatalf("result = %#v, want invalid optional Firebase error field to fail closed", result)
+		t.Fatalf("result = %#v, want invalid declared Firebase errors field to fail closed", result)
 	}
 }
 

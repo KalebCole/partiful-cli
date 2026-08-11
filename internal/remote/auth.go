@@ -151,7 +151,7 @@ func (client AuthClient) SignInWithCustomToken(ctx context.Context, token string
 	defer response.Body.Close()
 	if response.StatusCode == http.StatusBadRequest {
 		data, err := readAuthJSON(response)
-		if err != nil || !validFirebaseError(data) {
+		if err != nil || !validFirebaseValidationError(data) {
 			return SignInWithCustomTokenResponse{}, fmt.Errorf("%w: response body", ErrProtocolChanged)
 		}
 		return SignInWithCustomTokenResponse{}, ErrAuthExpired
@@ -215,7 +215,7 @@ func (client AuthClient) RefreshToken(
 	defer response.Body.Close()
 	if response.StatusCode == http.StatusBadRequest {
 		data, err := readAuthJSON(response)
-		if err != nil || !validFirebaseError(data) {
+		if err != nil || !validFirebaseTokenError(data) {
 			return RefreshTokenResponse{}, fmt.Errorf("%w: response body", ErrProtocolChanged)
 		}
 		return RefreshTokenResponse{}, ErrAuthExpired
@@ -325,7 +325,52 @@ func validCallableAuthError(data []byte) bool {
 		validOptionalCallableDetails(failure.Error.Details)
 }
 
-func validFirebaseError(data []byte) bool {
+func validFirebaseValidationError(data []byte) bool {
+	var failure struct {
+		Error *struct {
+			Code    *float64        `json:"code"`
+			Message *string         `json:"message"`
+			Errors  json.RawMessage `json:"errors"`
+		} `json:"error"`
+	}
+	return json.Unmarshal(data, &failure) == nil &&
+		failure.Error != nil &&
+		failure.Error.Code != nil &&
+		failure.Error.Message != nil &&
+		validOptionalFirebaseValidationErrors(failure.Error.Errors)
+}
+
+func validOptionalFirebaseValidationErrors(raw json.RawMessage) bool {
+	if len(raw) == 0 {
+		return true
+	}
+	if bytes.Equal(bytes.TrimSpace(raw), []byte("null")) {
+		return false
+	}
+	var entries []json.RawMessage
+	if json.Unmarshal(raw, &entries) != nil {
+		return false
+	}
+	for _, entry := range entries {
+		if bytes.Equal(bytes.TrimSpace(entry), []byte("null")) {
+			return false
+		}
+		var item struct {
+			Domain  json.RawMessage `json:"domain"`
+			Message json.RawMessage `json:"message"`
+			Reason  json.RawMessage `json:"reason"`
+		}
+		if json.Unmarshal(entry, &item) != nil ||
+			!validOptionalString(item.Domain) ||
+			!validOptionalString(item.Message) ||
+			!validOptionalString(item.Reason) {
+			return false
+		}
+	}
+	return true
+}
+
+func validFirebaseTokenError(data []byte) bool {
 	var failure struct {
 		Error *struct {
 			Code    *float64        `json:"code"`
