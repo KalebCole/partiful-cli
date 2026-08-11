@@ -169,38 +169,33 @@ func nextCursor(payloadDigest [sha256.Size]byte, filterHash [sha256.Size]byte, o
 	return base64.RawURLEncoding.EncodeToString(document)
 }
 
-func cursorOffset(
-	token string,
-	payloadDigest [sha256.Size]byte,
-	filterHash [sha256.Size]byte,
-	itemCount int,
-) (int, *cursorValidationFailure) {
+func decodeCursor(token string, filterHash [sha256.Size]byte) (cursorPayload, *cursorValidationFailure) {
 	document, err := base64.RawURLEncoding.DecodeString(token)
 	if err != nil {
-		return 0, invalidCursorFailure()
+		return cursorPayload{}, invalidCursorFailure()
 	}
 	decoder := json.NewDecoder(bytes.NewReader(document))
 	decoder.DisallowUnknownFields()
 	var payload cursorPayload
 	if err := decoder.Decode(&payload); err != nil {
-		return 0, invalidCursorFailure()
+		return cursorPayload{}, invalidCursorFailure()
 	}
-	if payload.Version != 1 || payload.Offset < 0 || payload.Offset > itemCount {
-		return 0, invalidCursorFailure()
+	if payload.Version != 1 || payload.Offset < 0 {
+		return cursorPayload{}, invalidCursorFailure()
 	}
 	checksum, err := hex.DecodeString(payload.Checksum)
 	if err != nil || len(checksum) != sha256.Size {
-		return 0, invalidCursorFailure()
+		return cursorPayload{}, invalidCursorFailure()
 	}
 	unsigned := payload
 	unsigned.Checksum = ""
 	checksumInput, _ := json.Marshal(unsigned)
 	expected := sha256.Sum256(append([]byte("partiful-cursor-v1\x00"), checksumInput...))
 	if subtle.ConstantTimeCompare(checksum, expected[:]) != 1 {
-		return 0, invalidCursorFailure()
+		return cursorPayload{}, invalidCursorFailure()
 	}
 	if payload.FilterHash != hex.EncodeToString(filterHash[:]) {
-		return 0, &cursorValidationFailure{
+		return cursorPayload{}, &cursorValidationFailure{
 			exitCode: 2,
 			body: errorBody{
 				Type:      "input.invalid",
@@ -211,6 +206,14 @@ func cursorOffset(
 			},
 		}
 	}
+	return payload, nil
+}
+
+func cursorSnapshotOffset(
+	payload cursorPayload,
+	payloadDigest [sha256.Size]byte,
+	itemCount int,
+) (int, *cursorValidationFailure) {
 	if payload.Digest != hex.EncodeToString(payloadDigest[:]) {
 		return 0, &cursorValidationFailure{
 			exitCode: 6,
@@ -222,6 +225,9 @@ func cursorOffset(
 				Details:   map[string]any{},
 			},
 		}
+	}
+	if payload.Offset > itemCount {
+		return 0, invalidCursorFailure()
 	}
 	return payload.Offset, nil
 }

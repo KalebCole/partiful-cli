@@ -184,6 +184,9 @@ type jsonSchema struct {
 	Properties           map[string]jsonSchema `json:"properties,omitempty"`
 	Enum                 []string              `json:"enum,omitempty"`
 	Format               string                `json:"format,omitempty"`
+	Minimum              *int                  `json:"minimum,omitempty"`
+	Maximum              *int                  `json:"maximum,omitempty"`
+	MinLength            *int                  `json:"minLength,omitempty"`
 	Items                *jsonSchema           `json:"items,omitempty"`
 	OneOf                []jsonSchema          `json:"oneOf,omitempty"`
 }
@@ -320,15 +323,18 @@ func collectionFlagDefinitions() []flagDefinition {
 }
 
 func collectionInputSchema(search bool) jsonSchema {
+	one := 1
+	oneHundred := 100
+	oneThousand := 1000
 	properties := map[string]jsonSchema{
-		"limit":    {Type: "integer"},
+		"limit":    {Type: "integer", Minimum: &one, Maximum: &oneHundred},
 		"cursor":   {Type: "string"},
 		"all":      {Type: "boolean"},
-		"maxItems": {Type: "integer"},
+		"maxItems": {Type: "integer", Minimum: &one, Maximum: &oneThousand},
 	}
 	required := []string{}
 	if search {
-		properties["query"] = jsonSchema{Type: "string"}
+		properties["query"] = jsonSchema{Type: "string", MinLength: &one}
 		required = append(required, "query")
 	}
 	return objectSchema(required, properties)
@@ -579,6 +585,15 @@ func Execute(ctx context.Context, request Request, dependencies Dependencies) Re
 				if inputError != nil {
 					return failure(definition.path, 2, *inputError, pretty)
 				}
+				filterHash := normalizedFilterHash(definition.path, options.query)
+				var decodedCursor cursorPayload
+				if options.cursor != "" {
+					var cursorFailure *cursorValidationFailure
+					decodedCursor, cursorFailure = decodeCursor(options.cursor, filterHash)
+					if cursorFailure != nil {
+						return failure(definition.path, cursorFailure.exitCode, cursorFailure.body, pretty)
+					}
+				}
 				catalog, err := (remote.Client{HTTP: dependencies.HTTP}).GetPosterCatalog(ctx)
 				if err != nil {
 					if errors.Is(err, remote.ErrUnavailable) {
@@ -590,14 +605,12 @@ func Execute(ctx context.Context, request Request, dependencies Dependencies) Re
 				if definition.kind == postersSearchCommand {
 					filteredPosters = filterPosters(catalog.Posters, options.query)
 				}
-				filterHash := normalizedFilterHash(definition.path, options.query)
 				offset := 0
 				if options.cursor != "" {
 					var cursorFailure *cursorValidationFailure
-					offset, cursorFailure = cursorOffset(
-						options.cursor,
+					offset, cursorFailure = cursorSnapshotOffset(
+						decodedCursor,
 						catalog.PayloadSHA256,
-						filterHash,
 						len(filteredPosters),
 					)
 					if cursorFailure != nil {

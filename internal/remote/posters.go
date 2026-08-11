@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"mime"
 	"net/http"
 	"net/url"
 )
@@ -61,6 +62,10 @@ func (client Client) GetPosterCatalog(ctx context.Context) (PosterCatalog, error
 	if response.StatusCode != http.StatusOK {
 		return PosterCatalog{}, fmt.Errorf("%w: status", ErrProtocolChanged)
 	}
+	mediaType, _, err := mime.ParseMediaType(response.Header.Get("Content-Type"))
+	if err != nil || mediaType != "application/json" {
+		return PosterCatalog{}, fmt.Errorf("%w: content type", ErrProtocolChanged)
+	}
 	body, err := io.ReadAll(response.Body)
 	if err != nil {
 		return PosterCatalog{}, fmt.Errorf("%w: response read", ErrUnavailable)
@@ -108,6 +113,12 @@ func decodePoster(document map[string]json.RawMessage) (Poster, error) {
 	}
 	if err := decodeRequired(document, "contentType", &poster.ContentType); err != nil {
 		return Poster{}, err
+	}
+	if _, ok := document["blurHash"]; ok {
+		var blurHash string
+		if err := decodeRequired(document, "blurHash", &blurHash); err != nil {
+			return Poster{}, err
+		}
 	}
 	if err := decodeNullableInteger(document, "width", &poster.Width); err != nil {
 		return Poster{}, err

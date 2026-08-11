@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"io/fs"
 	"net/http"
@@ -36,6 +37,7 @@ func TestExecutePostersListReturnsFirstLocalPage(t *testing.T) {
 		HTTP: scriptedHTTP{do: func(*http.Request) (*http.Response, error) {
 			return &http.Response{
 				StatusCode: http.StatusOK,
+				Header:     http.Header{"Content-Type": {"application/json"}},
 				Body:       io.NopCloser(strings.NewReader(catalog)),
 			}, nil
 		}},
@@ -66,6 +68,7 @@ func TestExecutePostersListHonorsLimitAndReturnsOpaqueCursor(t *testing.T) {
 		HTTP: scriptedHTTP{do: func(*http.Request) (*http.Response, error) {
 			return &http.Response{
 				StatusCode: http.StatusOK,
+				Header:     http.Header{"Content-Type": {"application/json"}},
 				Body:       io.NopCloser(strings.NewReader(catalog)),
 			}, nil
 		}},
@@ -122,6 +125,7 @@ func TestExecutePostersListResumesFromOpaqueCursor(t *testing.T) {
 		HTTP: scriptedHTTP{do: func(*http.Request) (*http.Response, error) {
 			return &http.Response{
 				StatusCode: http.StatusOK,
+				Header:     http.Header{"Content-Type": {"application/json"}},
 				Body:       io.NopCloser(strings.NewReader(catalog)),
 			}, nil
 		}},
@@ -193,6 +197,7 @@ func TestExecutePostersSearchFiltersCaseInsensitivelyInCatalogOrder(t *testing.T
 		HTTP: scriptedHTTP{do: func(*http.Request) (*http.Response, error) {
 			return &http.Response{
 				StatusCode: http.StatusOK,
+				Header:     http.Header{"Content-Type": {"application/json"}},
 				Body:       io.NopCloser(strings.NewReader(catalog)),
 			}, nil
 		}},
@@ -250,6 +255,7 @@ func TestExecutePostersListAllStopsAtMaxItems(t *testing.T) {
 		HTTP: scriptedHTTP{do: func(*http.Request) (*http.Response, error) {
 			return &http.Response{
 				StatusCode: http.StatusOK,
+				Header:     http.Header{"Content-Type": {"application/json"}},
 				Body:       io.NopCloser(strings.NewReader(catalog)),
 			}, nil
 		}},
@@ -280,6 +286,404 @@ func TestExecutePostersListAllStopsAtMaxItems(t *testing.T) {
 		!envelope.Meta.Page.HasMore ||
 		envelope.Meta.Page.NextCursor == nil {
 		t.Fatalf("page = %#v, want resumable max-items boundary", envelope.Meta.Page)
+	}
+}
+
+func TestExecutePostersListRejectsCursorWhenPayloadChanges(t *testing.T) {
+	const firstCatalog = `[
+		{"id":"one","name":"One","url":"https://example.invalid/one.png","contentType":"image/png","width":1,"height":1,"tags":[],"categories":[]},
+		{"id":"two","name":"Two","url":"https://example.invalid/two.png","contentType":"image/png","width":1,"height":1,"tags":[],"categories":[]},
+		{"id":"three","name":"Three","url":"https://example.invalid/three.png","contentType":"image/png","width":1,"height":1,"tags":[],"categories":[]}
+	]`
+	const changedCatalog = `[
+		{"id":"replacement","name":"Replacement","url":"https://example.invalid/replacement.png","contentType":"image/png","width":1,"height":1,"tags":[],"categories":[]}
+	]`
+	call := 0
+	dependencies := app.Dependencies{
+		HTTP: scriptedHTTP{do: func(*http.Request) (*http.Response, error) {
+			call++
+			body := firstCatalog
+			if call == 2 {
+				body = changedCatalog
+			}
+			return &http.Response{
+				StatusCode: http.StatusOK,
+				Header:     http.Header{"Content-Type": {"application/json"}},
+				Body:       io.NopCloser(strings.NewReader(body)),
+			}, nil
+		}},
+	}
+	first := app.Execute(context.Background(), app.Request{
+		Argv:  []string{"posters", "list", "--limit", "2"},
+		Stdin: strings.NewReader(""),
+	}, dependencies)
+	var firstEnvelope struct {
+		Meta struct {
+			Page struct {
+				NextCursor string `json:"nextCursor"`
+			} `json:"page"`
+		} `json:"meta"`
+	}
+	if err := json.Unmarshal([]byte(first.Stdout), &firstEnvelope); err != nil {
+		t.Fatalf("decode first stdout: %v", err)
+	}
+
+	result := app.Execute(context.Background(), app.Request{
+		Argv:  []string{"posters", "list", "--cursor", firstEnvelope.Meta.Page.NextCursor},
+		Stdin: strings.NewReader(""),
+	}, dependencies)
+
+	const want = `{"ok":false,"error":{"type":"state.conflict","code":"CURSOR_SNAPSHOT_CHANGED","message":"The poster catalog changed after this cursor was issued.","retryable":false,"details":{}},"meta":{"command":"posters.list","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.1"}}` + "\n"
+	if result.ExitCode != 6 {
+		t.Fatalf("exit code = %d, want 6", result.ExitCode)
+	}
+	if result.Stdout != want {
+		t.Fatalf("stdout = %q, want %q", result.Stdout, want)
+	}
+	if result.Stderr != "" {
+		t.Fatalf("stderr = %q, want empty", result.Stderr)
+	}
+}
+
+func TestExecuteSchemaProjectsPosterSearchDefinition(t *testing.T) {
+	result := app.Execute(context.Background(), app.Request{
+		Argv:  []string{"schema", "posters.search"},
+		Stdin: strings.NewReader(""),
+	}, app.Dependencies{})
+
+	var envelope struct {
+		Data struct {
+			Command string `json:"command"`
+			Flags   []struct {
+				Name     string `json:"name"`
+				Required bool   `json:"required"`
+			} `json:"flags"`
+			InputSchema struct {
+				Required   []string `json:"required"`
+				Properties map[string]struct {
+					Minimum   *int `json:"minimum"`
+					Maximum   *int `json:"maximum"`
+					MinLength *int `json:"minLength"`
+				} `json:"properties"`
+			} `json:"inputSchema"`
+			SuccessSchema struct {
+				Properties map[string]struct {
+					Items struct {
+						Required []string `json:"required"`
+					} `json:"items"`
+				} `json:"properties"`
+			} `json:"successSchema"`
+			FailureTypes []string `json:"failureTypes"`
+			Safety       struct {
+				Kind                 string `json:"kind"`
+				PlanRequired         bool   `json:"planRequired"`
+				ConfirmationRequired bool   `json:"confirmationRequired"`
+			} `json:"safety"`
+		} `json:"data"`
+	}
+	if err := json.Unmarshal([]byte(result.Stdout), &envelope); err != nil {
+		t.Fatalf("decode stdout: %v", err)
+	}
+	if result.ExitCode != 0 {
+		t.Fatalf("result = %#v, want success", result)
+	}
+	if envelope.Data.Command != "posters.search" {
+		t.Fatalf("command = %q, want posters.search", envelope.Data.Command)
+	}
+	var gotFlags []string
+	for _, flag := range envelope.Data.Flags {
+		gotFlags = append(gotFlags, fmt.Sprintf("%s:%t", flag.Name, flag.Required))
+	}
+	wantFlags := []string{"--query:true", "--limit:false", "--cursor:false", "--all:false", "--max-items:false"}
+	if !reflect.DeepEqual(gotFlags, wantFlags) {
+		t.Fatalf("flags = %#v, want %#v", gotFlags, wantFlags)
+	}
+	if !reflect.DeepEqual(envelope.Data.InputSchema.Required, []string{"query"}) {
+		t.Fatalf("required inputs = %v, want query", envelope.Data.InputSchema.Required)
+	}
+	limit := envelope.Data.InputSchema.Properties["limit"]
+	maxItems := envelope.Data.InputSchema.Properties["maxItems"]
+	query := envelope.Data.InputSchema.Properties["query"]
+	if limit.Minimum == nil || *limit.Minimum != 1 ||
+		limit.Maximum == nil || *limit.Maximum != 100 ||
+		maxItems.Minimum == nil || *maxItems.Minimum != 1 ||
+		maxItems.Maximum == nil || *maxItems.Maximum != 1000 ||
+		query.MinLength == nil || *query.MinLength != 1 {
+		t.Fatalf("input constraints = %#v, want documented collection bounds", envelope.Data.InputSchema.Properties)
+	}
+	wantPosterFields := []string{"posterId", "name", "url", "contentType", "width", "height", "tags", "categories"}
+	if got := envelope.Data.SuccessSchema.Properties["items"].Items.Required; !reflect.DeepEqual(got, wantPosterFields) {
+		t.Fatalf("poster fields = %v, want %v", got, wantPosterFields)
+	}
+	wantFailures := []string{"input.invalid", "state.conflict", "remote.unavailable", "contract.protocol_changed"}
+	if !reflect.DeepEqual(envelope.Data.FailureTypes, wantFailures) {
+		t.Fatalf("failure types = %v, want %v", envelope.Data.FailureTypes, wantFailures)
+	}
+	if envelope.Data.Safety.Kind != "read-only" ||
+		envelope.Data.Safety.PlanRequired ||
+		envelope.Data.Safety.ConfirmationRequired {
+		t.Fatalf("safety = %#v, want read-only", envelope.Data.Safety)
+	}
+}
+
+func TestExecutePostersListRejectsUnexpectedSuccessContentType(t *testing.T) {
+	const privateBody = `[{"id":"private-value","name":"Private","url":"https://example.invalid/private.png","contentType":"image/png","width":1,"height":1,"tags":[],"categories":[]}]`
+	result := app.Execute(context.Background(), app.Request{
+		Argv:  []string{"posters", "list"},
+		Stdin: strings.NewReader(""),
+	}, app.Dependencies{
+		HTTP: scriptedHTTP{do: func(*http.Request) (*http.Response, error) {
+			return &http.Response{
+				StatusCode: http.StatusOK,
+				Header:     http.Header{"Content-Type": {"text/html"}},
+				Body:       io.NopCloser(strings.NewReader(privateBody)),
+			}, nil
+		}},
+	})
+
+	const wantStdout = `{"ok":false,"error":{"type":"contract.protocol_changed","code":"POSTER_CATALOG_PROTOCOL_CHANGED","message":"The poster catalog no longer matches the reviewed remote contract.","retryable":false,"details":{}},"meta":{"command":"posters.list","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.1"}}` + "\n"
+	const wantStderr = "partiful: poster catalog protocol changed\n"
+	if result.ExitCode != 9 {
+		t.Fatalf("exit code = %d, want 9", result.ExitCode)
+	}
+	if result.Stdout != wantStdout {
+		t.Fatalf("stdout = %q, want %q", result.Stdout, wantStdout)
+	}
+	if result.Stderr != wantStderr {
+		t.Fatalf("stderr = %q, want %q", result.Stderr, wantStderr)
+	}
+	if strings.Contains(result.Stdout+result.Stderr, "private-value") {
+		t.Fatal("protocol failure exposed response body")
+	}
+}
+
+func TestExecutePostersListRejectsMalformedCursorBeforeRemoteFailure(t *testing.T) {
+	result := app.Execute(context.Background(), app.Request{
+		Argv:  []string{"posters", "list", "--cursor", "not-an-opaque-cursor"},
+		Stdin: strings.NewReader(""),
+	}, app.Dependencies{
+		HTTP: scriptedHTTP{do: func(*http.Request) (*http.Response, error) {
+			return nil, errors.New("private network failure")
+		}},
+	})
+
+	const want = `{"ok":false,"error":{"type":"input.invalid","code":"CURSOR_INVALID","message":"The cursor is malformed.","retryable":false,"details":{}},"meta":{"command":"posters.list","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.1"}}` + "\n"
+	if result.ExitCode != 2 {
+		t.Fatalf("exit code = %d, want 2", result.ExitCode)
+	}
+	if result.Stdout != want {
+		t.Fatalf("stdout = %q, want %q", result.Stdout, want)
+	}
+	if result.Stderr != "" {
+		t.Fatalf("stderr = %q, want empty", result.Stderr)
+	}
+}
+
+func TestExecutePostersSearchRejectsCursorWithDifferentNormalizedFilter(t *testing.T) {
+	const catalog = `[
+		{"id":"dance","name":"Dance","url":"https://example.invalid/dance.png","contentType":"image/png","width":1,"height":1,"tags":[],"categories":[]},
+		{"id":"party","name":"Party","url":"https://example.invalid/party.png","contentType":"image/png","width":1,"height":1,"tags":[],"categories":[]}
+	]`
+	call := 0
+	dependencies := app.Dependencies{
+		HTTP: scriptedHTTP{do: func(*http.Request) (*http.Response, error) {
+			call++
+			if call > 1 {
+				return nil, errors.New("private network failure")
+			}
+			return &http.Response{
+				StatusCode: http.StatusOK,
+				Header:     http.Header{"Content-Type": {"application/json"}},
+				Body:       io.NopCloser(strings.NewReader(catalog)),
+			}, nil
+		}},
+	}
+	first := app.Execute(context.Background(), app.Request{
+		Argv:  []string{"posters", "search", "--query", "a", "--limit", "1"},
+		Stdin: strings.NewReader(""),
+	}, dependencies)
+	var firstEnvelope struct {
+		Meta struct {
+			Page struct {
+				NextCursor string `json:"nextCursor"`
+			} `json:"page"`
+		} `json:"meta"`
+	}
+	if err := json.Unmarshal([]byte(first.Stdout), &firstEnvelope); err != nil {
+		t.Fatalf("decode first stdout: %v", err)
+	}
+
+	result := app.Execute(context.Background(), app.Request{
+		Argv: []string{
+			"posters", "search",
+			"--query", "different",
+			"--cursor", firstEnvelope.Meta.Page.NextCursor,
+		},
+		Stdin: strings.NewReader(""),
+	}, dependencies)
+
+	const want = `{"ok":false,"error":{"type":"input.invalid","code":"CURSOR_FILTER_MISMATCH","message":"The cursor does not match this command and filters.","retryable":false,"details":{}},"meta":{"command":"posters.search","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.1"}}` + "\n"
+	if result.ExitCode != 2 {
+		t.Fatalf("exit code = %d, want 2", result.ExitCode)
+	}
+	if result.Stdout != want {
+		t.Fatalf("stdout = %q, want %q", result.Stdout, want)
+	}
+	if result.Stderr != "" {
+		t.Fatalf("stderr = %q, want empty", result.Stderr)
+	}
+}
+
+func TestExecutePostersListMapsNetworkFailureToRemoteUnavailable(t *testing.T) {
+	const privateError = "private endpoint failure details"
+	result := app.Execute(context.Background(), app.Request{
+		Argv:  []string{"posters", "list"},
+		Stdin: strings.NewReader(""),
+	}, app.Dependencies{
+		HTTP: scriptedHTTP{do: func(*http.Request) (*http.Response, error) {
+			return nil, errors.New(privateError)
+		}},
+	})
+
+	const wantStdout = `{"ok":false,"error":{"type":"remote.unavailable","code":"POSTER_CATALOG_UNAVAILABLE","message":"The poster catalog is unavailable.","retryable":true,"details":{}},"meta":{"command":"posters.list","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.1"}}` + "\n"
+	const wantStderr = "partiful: poster catalog unavailable\n"
+	if result.ExitCode != 8 {
+		t.Fatalf("exit code = %d, want 8", result.ExitCode)
+	}
+	if result.Stdout != wantStdout {
+		t.Fatalf("stdout = %q, want %q", result.Stdout, wantStdout)
+	}
+	if result.Stderr != wantStderr {
+		t.Fatalf("stderr = %q, want %q", result.Stderr, wantStderr)
+	}
+	if strings.Contains(result.Stdout+result.Stderr, privateError) {
+		t.Fatal("remote failure exposed private transport details")
+	}
+}
+
+func TestExecutePostersListFailsClosedOnReceivedNon200(t *testing.T) {
+	result := app.Execute(context.Background(), app.Request{
+		Argv:  []string{"posters", "list"},
+		Stdin: strings.NewReader(""),
+	}, app.Dependencies{
+		HTTP: scriptedHTTP{do: func(*http.Request) (*http.Response, error) {
+			return &http.Response{
+				StatusCode: http.StatusTooManyRequests,
+				Header:     http.Header{"Content-Type": {"application/json"}},
+				Body:       io.NopCloser(strings.NewReader(`{"private":"body"}`)),
+			}, nil
+		}},
+	})
+
+	const wantStdout = `{"ok":false,"error":{"type":"contract.protocol_changed","code":"POSTER_CATALOG_PROTOCOL_CHANGED","message":"The poster catalog no longer matches the reviewed remote contract.","retryable":false,"details":{}},"meta":{"command":"posters.list","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.1"}}` + "\n"
+	const wantStderr = "partiful: poster catalog protocol changed\n"
+	if result.ExitCode != 9 {
+		t.Fatalf("exit code = %d, want 9", result.ExitCode)
+	}
+	if result.Stdout != wantStdout {
+		t.Fatalf("stdout = %q, want %q", result.Stdout, wantStdout)
+	}
+	if result.Stderr != wantStderr {
+		t.Fatalf("stderr = %q, want %q", result.Stderr, wantStderr)
+	}
+	if strings.Contains(result.Stdout+result.Stderr, "remote.rate_limited") ||
+		strings.Contains(result.Stdout+result.Stderr, "private") {
+		t.Fatal("non-200 failure claimed rate limiting or exposed response body")
+	}
+}
+
+func TestExecutePostersListFailsClosedOnMalformed200Body(t *testing.T) {
+	const malformedBody = `[{"id":"private-id","name":"Missing categories","url":"https://example.invalid/poster.png","contentType":"image/png","width":1,"height":1,"tags":[]}]`
+	result := app.Execute(context.Background(), app.Request{
+		Argv:  []string{"posters", "list"},
+		Stdin: strings.NewReader(""),
+	}, app.Dependencies{
+		HTTP: scriptedHTTP{do: func(*http.Request) (*http.Response, error) {
+			return &http.Response{
+				StatusCode: http.StatusOK,
+				Header:     http.Header{"Content-Type": {"application/json"}},
+				Body:       io.NopCloser(strings.NewReader(malformedBody)),
+			}, nil
+		}},
+	})
+
+	const wantStdout = `{"ok":false,"error":{"type":"contract.protocol_changed","code":"POSTER_CATALOG_PROTOCOL_CHANGED","message":"The poster catalog no longer matches the reviewed remote contract.","retryable":false,"details":{}},"meta":{"command":"posters.list","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.1"}}` + "\n"
+	if result.ExitCode != 9 {
+		t.Fatalf("exit code = %d, want 9", result.ExitCode)
+	}
+	if result.Stdout != wantStdout {
+		t.Fatalf("stdout = %q, want %q", result.Stdout, wantStdout)
+	}
+	if strings.Contains(result.Stdout+result.Stderr, "private-id") {
+		t.Fatal("malformed response failure exposed response body")
+	}
+}
+
+func TestExecutePostersListRejectsMalformedOptionalBlurHash(t *testing.T) {
+	const malformedBody = `[{"id":"poster","name":"Poster","url":"https://example.invalid/poster.png","blurHash":42,"contentType":"image/png","width":1,"height":1,"tags":[],"categories":[]}]`
+	result := app.Execute(context.Background(), app.Request{
+		Argv:  []string{"posters", "list"},
+		Stdin: strings.NewReader(""),
+	}, app.Dependencies{
+		HTTP: scriptedHTTP{do: func(*http.Request) (*http.Response, error) {
+			return &http.Response{
+				StatusCode: http.StatusOK,
+				Header:     http.Header{"Content-Type": {"application/json"}},
+				Body:       io.NopCloser(strings.NewReader(malformedBody)),
+			}, nil
+		}},
+	})
+
+	if result.ExitCode != 9 || !strings.Contains(result.Stdout, `"type":"contract.protocol_changed"`) {
+		t.Fatalf("result = %#v, want protocol change", result)
+	}
+}
+
+func TestExecutePostersListRequiresMaxItemsWithAll(t *testing.T) {
+	result := app.Execute(context.Background(), app.Request{
+		Argv:  []string{"posters", "list", "--all"},
+		Stdin: strings.NewReader(""),
+	}, app.Dependencies{})
+
+	const want = `{"ok":false,"error":{"type":"input.invalid","code":"MAX_ITEMS_REQUIRED","message":"--all requires --max-items.","retryable":false,"details":{}},"meta":{"command":"posters.list","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.1"}}` + "\n"
+	if result.ExitCode != 2 {
+		t.Fatalf("exit code = %d, want 2", result.ExitCode)
+	}
+	if result.Stdout != want {
+		t.Fatalf("stdout = %q, want %q", result.Stdout, want)
+	}
+	if result.Stderr != "" {
+		t.Fatalf("stderr = %q, want empty", result.Stderr)
+	}
+}
+
+func TestExecutePostersListRejectsLimitAboveMaximum(t *testing.T) {
+	result := app.Execute(context.Background(), app.Request{
+		Argv:  []string{"posters", "list", "--limit", "101"},
+		Stdin: strings.NewReader(""),
+	}, app.Dependencies{})
+
+	const want = `{"ok":false,"error":{"type":"input.invalid","code":"LIMIT_INVALID","message":"Limit must be an integer from 1 to 100.","retryable":false,"details":{}},"meta":{"command":"posters.list","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.1"}}` + "\n"
+	if result.ExitCode != 2 {
+		t.Fatalf("exit code = %d, want 2", result.ExitCode)
+	}
+	if result.Stdout != want {
+		t.Fatalf("stdout = %q, want %q", result.Stdout, want)
+	}
+}
+
+func TestExecutePostersSearchRequiresNonEmptyQuery(t *testing.T) {
+	result := app.Execute(context.Background(), app.Request{
+		Argv:  []string{"posters", "search", "--query", "   "},
+		Stdin: strings.NewReader(""),
+	}, app.Dependencies{})
+
+	const want = `{"ok":false,"error":{"type":"input.invalid","code":"QUERY_REQUIRED","message":"Search query must not be empty.","retryable":false,"details":{}},"meta":{"command":"posters.search","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.1"}}` + "\n"
+	if result.ExitCode != 2 {
+		t.Fatalf("exit code = %d, want 2", result.ExitCode)
+	}
+	if result.Stdout != want {
+		t.Fatalf("stdout = %q, want %q", result.Stdout, want)
 	}
 }
 
