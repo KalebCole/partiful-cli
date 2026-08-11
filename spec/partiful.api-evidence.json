@@ -377,7 +377,7 @@
     "Status codes and error bodies for operations without dated observations.",
     "Unconditional poster-catalog failure statuses and bodies remain unknown; only HTTP 200 is an accepted catalog success.",
     "The full set of Referer values accepted by the Firebase API-key restriction remains unknown; https://partiful.com/ is the only observed accepted value.",
-    "Origin remains unmodelled and unknown because reviewed evidence establishes no Origin request fact."
+    "Origin is unmodelled and remains unknown because the reviewed evidence establishes no Origin request fact."
   ],
   "status": "proposed",
   "claims": {

@@ -14,10 +14,14 @@ const humanEvidencePaths = [
   'docs/research/2026-08-10-contract-evidence-sources.md',
   'docs/research/2026-08-10-partiful-api-contract-evidence-ledger.md',
 ];
+const citedMarkdownPaths = Object.values(evidence.sources)
+  .filter((citation) => typeof citation === 'string' && citation.includes('.md#'))
+  .map((citation) => citation.slice(0, citation.indexOf('#')));
 const originEvidencePaths = [
-  ...humanEvidencePaths,
-  'docs/research/2026-08-11-auth-observation.md',
+  ...new Set([...humanEvidencePaths, ...citedMarkdownPaths]),
 ];
+const approvedOriginStatement =
+  'Origin is unmodelled and remains unknown because the reviewed evidence establishes no Origin request fact.';
 const methods = new Set(['get', 'post', 'put', 'patch', 'delete']);
 const ignoredKeys = new Set(['description', 'summary', 'title']);
 const materialMapKeys = new Set([
@@ -754,7 +758,7 @@ describe('remote API contract', () => {
       'The full set of Referer values accepted by the Firebase API-key restriction remains unknown; https://partiful.com/ is the only observed accepted value.',
     );
     expect(evidence.unresolvedUncertainty).toContain(
-      'Origin remains unmodelled and unknown because reviewed evidence establishes no Origin request fact.',
+      approvedOriginStatement,
     );
   });
 
@@ -764,18 +768,18 @@ describe('remote API contract', () => {
     expect(evidence.sources.firebasePublicApiKeyRedacted).toBe(safeFirebaseKeySource);
     expect(citationResolves(safeFirebaseKeySource)).toBe(true);
 
-    const unsupportedOriginClaims = [
-      /probes?[^.]*without (?:an )?Origin/i,
-      /Origin (?:was|is) not required/i,
-      /succeeded without Origin/i,
-    ];
+    const originStatements = [];
     for (const evidencePath of originEvidencePaths) {
       const content = fs.readFileSync(evidencePath, 'utf8');
       expect(content, evidencePath).not.toContain(unsafeAuthSourcePath);
-      for (const claim of unsupportedOriginClaims) {
-        expect(content, evidencePath).not.toMatch(claim);
-      }
+      originStatements.push(
+        ...content
+          .replace(/\s+/g, ' ')
+          .split(/(?<=[.!?])\s+/)
+          .filter((statement) => /\borigin\b/i.test(statement)),
+      );
     }
+    expect([...new Set(originStatements)]).toEqual([approvedOriginStatement]);
   });
 
   it('keeps the historical auth note privacy-safe while retaining redacted transport structure', () => {
