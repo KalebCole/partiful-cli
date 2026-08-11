@@ -26,6 +26,11 @@ func main() {
 		HTTP:                 remote.NewHTTPClient(nil),
 		CursorKeys:           app.FileCursorKeyProvider{Path: cursorKeyPath},
 		CursorRandom:         rand.Reader,
+		AuthRandom:           rand.Reader,
+		Terminal: auth.OSTerminal{
+			Input:  os.Stdin,
+			Output: os.Stderr,
+		},
 	})
 
 	_, _ = io.WriteString(os.Stdout, result.Stdout)
