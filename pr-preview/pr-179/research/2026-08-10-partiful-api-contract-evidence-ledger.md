@@ -1,7 +1,7 @@
 # Partiful remote API contract evidence ledger
 
-**Proposed contract revision:** `2026-08-11.4`
-**Status:** Proposed pending delegated orchestrator review
+**Owner-reviewed contract revision:** `2026-08-11.4`
+**Status:** Owner-reviewed under the issue #114 delegation
 **Contract:** `spec/partiful.openapi.json`
 **Machine-readable ledger:** `spec/partiful.api-evidence.json`
 **Stable citation sources:** `docs/research/2026-08-10-contract-evidence-sources.md`
