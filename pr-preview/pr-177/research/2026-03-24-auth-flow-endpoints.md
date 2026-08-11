@@ -19,8 +19,8 @@ POST https://api.partiful.com/sendAuthCode
 {
   "data": {
     "params": {
-      "displayName": "Kaleb Cole",
-      "phoneNumber": "+12066993977",
+      "displayName": "<redacted-display-name>",
+      "phoneNumber": "<redacted-phone>",
       "silent": false,
       "channelPreference": "sms",
       "captchaToken": "<optional-recaptcha-token>",
@@ -47,8 +47,8 @@ POST https://api.partiful.com/getLoginToken
 {
   "data": {
     "params": {
-      "phoneNumber": "+12066993977",
-      "authCode": "889885",
+      "phoneNumber": "<redacted-phone>",
+      "authCode": "<redacted-code>",
       "affiliateId": null,
       "utms": {}
     }
@@ -121,6 +121,6 @@ No reCAPTCHA needed for the REST API calls when using the standard `data.params`
 
 ## SMS Source
 
-- Phone: `+18449460698` — Partiful's SMS sender
+- Phone: `<redacted-sender>` — Partiful's SMS sender
 - Message format: `{code} is your Partiful verification code`
 - Code: 6 digits
