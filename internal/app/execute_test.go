@@ -24,6 +24,18 @@ func (script scriptedHTTP) Do(request *http.Request) (*http.Response, error) {
 	return script.do(request)
 }
 
+type staticCursorKeyProvider struct{}
+
+func (staticCursorKeyProvider) Key() ([]byte, error) {
+	return []byte("0123456789abcdef0123456789abcdef"), nil
+}
+
+func withTestCursorCrypto(dependencies app.Dependencies) app.Dependencies {
+	dependencies.CursorKeys = staticCursorKeyProvider{}
+	dependencies.CursorRandom = strings.NewReader(strings.Repeat("deterministic-nonce", 100))
+	return dependencies
+}
+
 func TestExecutePostersListReturnsFirstLocalPage(t *testing.T) {
 	const catalog = `[
 		{"id":"first","name":"First","url":"https://example.invalid/first.png","contentType":"image/png","width":1200,"height":630,"tags":["party"],"categories":["fun"]},
@@ -33,7 +45,7 @@ func TestExecutePostersListReturnsFirstLocalPage(t *testing.T) {
 	result := app.Execute(context.Background(), app.Request{
 		Argv:  []string{"posters", "list"},
 		Stdin: strings.NewReader(""),
-	}, app.Dependencies{
+	}, withTestCursorCrypto(app.Dependencies{
 		HTTP: scriptedHTTP{do: func(*http.Request) (*http.Response, error) {
 			return &http.Response{
 				StatusCode: http.StatusOK,
@@ -41,7 +53,7 @@ func TestExecutePostersListReturnsFirstLocalPage(t *testing.T) {
 				Body:       io.NopCloser(strings.NewReader(catalog)),
 			}, nil
 		}},
-	})
+	}))
 
 	const want = `{"ok":true,"data":{"items":[{"posterId":"first","name":"First","url":"https://example.invalid/first.png","contentType":"image/png","width":1200,"height":630,"tags":["party"],"categories":["fun"]},{"posterId":"duplicate","name":"Duplicate","url":"https://example.invalid/duplicate.gif","contentType":"image/gif","width":null,"height":null,"tags":["dance"],"categories":[]},{"posterId":"duplicate","name":"Duplicate Again","url":"https://example.invalid/duplicate-2.gif","contentType":"image/gif","width":640,"height":480,"tags":[],"categories":["night"]}]},"meta":{"command":"posters.list","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.1","warnings":[],"page":{"limit":25,"nextCursor":null,"hasMore":false}}}` + "\n"
 	if result.ExitCode != 0 {
@@ -64,7 +76,7 @@ func TestExecutePostersListHonorsLimitAndReturnsOpaqueCursor(t *testing.T) {
 	result := app.Execute(context.Background(), app.Request{
 		Argv:  []string{"posters", "list", "--limit", "2"},
 		Stdin: strings.NewReader(""),
-	}, app.Dependencies{
+	}, withTestCursorCrypto(app.Dependencies{
 		HTTP: scriptedHTTP{do: func(*http.Request) (*http.Response, error) {
 			return &http.Response{
 				StatusCode: http.StatusOK,
@@ -72,7 +84,7 @@ func TestExecutePostersListHonorsLimitAndReturnsOpaqueCursor(t *testing.T) {
 				Body:       io.NopCloser(strings.NewReader(catalog)),
 			}, nil
 		}},
-	})
+	}))
 
 	var envelope struct {
 		OK   bool `json:"ok"`
@@ -121,7 +133,7 @@ func TestExecutePostersListResumesFromOpaqueCursor(t *testing.T) {
 		{"id":"second","name":"Second","url":"https://example.invalid/second.png","contentType":"image/png","width":1200,"height":630,"tags":[],"categories":[]},
 		{"id":"third","name":"Third","url":"https://example.invalid/third.png","contentType":"image/png","width":1200,"height":630,"tags":[],"categories":[]}
 	]`
-	dependencies := app.Dependencies{
+	dependencies := withTestCursorCrypto(app.Dependencies{
 		HTTP: scriptedHTTP{do: func(*http.Request) (*http.Response, error) {
 			return &http.Response{
 				StatusCode: http.StatusOK,
@@ -129,7 +141,7 @@ func TestExecutePostersListResumesFromOpaqueCursor(t *testing.T) {
 				Body:       io.NopCloser(strings.NewReader(catalog)),
 			}, nil
 		}},
-	}
+	})
 	first := app.Execute(context.Background(), app.Request{
 		Argv:  []string{"posters", "list", "--limit", "2"},
 		Stdin: strings.NewReader(""),
@@ -183,6 +195,54 @@ func TestExecutePostersListResumesFromOpaqueCursor(t *testing.T) {
 	}
 }
 
+func TestExecutePostersListRejectsTamperedAuthenticatedCursor(t *testing.T) {
+	const catalog = `[
+		{"id":"one","name":"One","url":"https://example.invalid/one.png","contentType":"image/png","width":1,"height":1,"tags":[],"categories":[]},
+		{"id":"two","name":"Two","url":"https://example.invalid/two.png","contentType":"image/png","width":1,"height":1,"tags":[],"categories":[]},
+		{"id":"three","name":"Three","url":"https://example.invalid/three.png","contentType":"image/png","width":1,"height":1,"tags":[],"categories":[]}
+	]`
+	dependencies := withTestCursorCrypto(app.Dependencies{
+		HTTP: scriptedHTTP{do: func(*http.Request) (*http.Response, error) {
+			return &http.Response{
+				StatusCode: http.StatusOK,
+				Header:     http.Header{"Content-Type": {"application/json"}},
+				Body:       io.NopCloser(strings.NewReader(catalog)),
+			}, nil
+		}},
+	})
+	first := app.Execute(context.Background(), app.Request{
+		Argv:  []string{"posters", "list", "--limit", "1"},
+		Stdin: strings.NewReader(""),
+	}, dependencies)
+	var firstEnvelope struct {
+		Meta struct {
+			Page struct {
+				NextCursor string `json:"nextCursor"`
+			} `json:"page"`
+		} `json:"meta"`
+	}
+	if err := json.Unmarshal([]byte(first.Stdout), &firstEnvelope); err != nil {
+		t.Fatalf("decode first stdout: %v", err)
+	}
+
+	tamperedCursor := []byte(firstEnvelope.Meta.Page.NextCursor)
+	last := len(tamperedCursor) - 1
+	if tamperedCursor[last] == 'A' {
+		tamperedCursor[last] = 'B'
+	} else {
+		tamperedCursor[last] = 'A'
+	}
+
+	result := app.Execute(context.Background(), app.Request{
+		Argv:  []string{"posters", "list", "--cursor", string(tamperedCursor)},
+		Stdin: strings.NewReader(""),
+	}, dependencies)
+
+	if result.ExitCode != 2 || !strings.Contains(result.Stdout, `"code":"CURSOR_INVALID"`) {
+		t.Fatalf("result = %#v, want forged cursor rejection", result)
+	}
+}
+
 func TestExecutePostersSearchFiltersCaseInsensitivelyInCatalogOrder(t *testing.T) {
 	const catalog = `[
 		{"id":"tag-match","name":"First","url":"https://example.invalid/first.png","contentType":"image/png","width":1200,"height":630,"tags":["Dance Floor"],"categories":[]},
@@ -193,7 +253,7 @@ func TestExecutePostersSearchFiltersCaseInsensitivelyInCatalogOrder(t *testing.T
 	result := app.Execute(context.Background(), app.Request{
 		Argv:  []string{"posters", "search", "--query", "  dance  "},
 		Stdin: strings.NewReader(""),
-	}, app.Dependencies{
+	}, withTestCursorCrypto(app.Dependencies{
 		HTTP: scriptedHTTP{do: func(*http.Request) (*http.Response, error) {
 			return &http.Response{
 				StatusCode: http.StatusOK,
@@ -201,7 +261,7 @@ func TestExecutePostersSearchFiltersCaseInsensitivelyInCatalogOrder(t *testing.T
 				Body:       io.NopCloser(strings.NewReader(catalog)),
 			}, nil
 		}},
-	})
+	}))
 
 	var envelope struct {
 		OK   bool `json:"ok"`
@@ -251,7 +311,7 @@ func TestExecutePostersListAllStopsAtMaxItems(t *testing.T) {
 	result := app.Execute(context.Background(), app.Request{
 		Argv:  []string{"posters", "list", "--all", "--max-items", "3"},
 		Stdin: strings.NewReader(""),
-	}, app.Dependencies{
+	}, withTestCursorCrypto(app.Dependencies{
 		HTTP: scriptedHTTP{do: func(*http.Request) (*http.Response, error) {
 			return &http.Response{
 				StatusCode: http.StatusOK,
@@ -259,7 +319,7 @@ func TestExecutePostersListAllStopsAtMaxItems(t *testing.T) {
 				Body:       io.NopCloser(strings.NewReader(catalog)),
 			}, nil
 		}},
-	})
+	}))
 
 	var envelope struct {
 		Data struct {
@@ -299,7 +359,7 @@ func TestExecutePostersListRejectsCursorWhenPayloadChanges(t *testing.T) {
 		{"id":"replacement","name":"Replacement","url":"https://example.invalid/replacement.png","contentType":"image/png","width":1,"height":1,"tags":[],"categories":[]}
 	]`
 	call := 0
-	dependencies := app.Dependencies{
+	dependencies := withTestCursorCrypto(app.Dependencies{
 		HTTP: scriptedHTTP{do: func(*http.Request) (*http.Response, error) {
 			call++
 			body := firstCatalog
@@ -312,7 +372,7 @@ func TestExecutePostersListRejectsCursorWhenPayloadChanges(t *testing.T) {
 				Body:       io.NopCloser(strings.NewReader(body)),
 			}, nil
 		}},
-	}
+	})
 	first := app.Execute(context.Background(), app.Request{
 		Argv:  []string{"posters", "list", "--limit", "2"},
 		Stdin: strings.NewReader(""),
@@ -415,7 +475,7 @@ func TestExecuteSchemaProjectsPosterSearchDefinition(t *testing.T) {
 	if got := envelope.Data.SuccessSchema.Properties["items"].Items.Required; !reflect.DeepEqual(got, wantPosterFields) {
 		t.Fatalf("poster fields = %v, want %v", got, wantPosterFields)
 	}
-	wantFailures := []string{"input.invalid", "state.conflict", "remote.unavailable", "contract.protocol_changed"}
+	wantFailures := []string{"input.invalid", "state.conflict", "remote.unavailable", "contract.protocol_changed", "internal.failure"}
 	if !reflect.DeepEqual(envelope.Data.FailureTypes, wantFailures) {
 		t.Fatalf("failure types = %v, want %v", envelope.Data.FailureTypes, wantFailures)
 	}
@@ -461,11 +521,11 @@ func TestExecutePostersListRejectsMalformedCursorBeforeRemoteFailure(t *testing.
 	result := app.Execute(context.Background(), app.Request{
 		Argv:  []string{"posters", "list", "--cursor", "not-an-opaque-cursor"},
 		Stdin: strings.NewReader(""),
-	}, app.Dependencies{
+	}, withTestCursorCrypto(app.Dependencies{
 		HTTP: scriptedHTTP{do: func(*http.Request) (*http.Response, error) {
 			return nil, errors.New("private network failure")
 		}},
-	})
+	}))
 
 	const want = `{"ok":false,"error":{"type":"input.invalid","code":"CURSOR_INVALID","message":"The cursor is malformed.","retryable":false,"details":{}},"meta":{"command":"posters.list","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.1"}}` + "\n"
 	if result.ExitCode != 2 {
@@ -485,7 +545,7 @@ func TestExecutePostersSearchRejectsCursorWithDifferentNormalizedFilter(t *testi
 		{"id":"party","name":"Party","url":"https://example.invalid/party.png","contentType":"image/png","width":1,"height":1,"tags":[],"categories":[]}
 	]`
 	call := 0
-	dependencies := app.Dependencies{
+	dependencies := withTestCursorCrypto(app.Dependencies{
 		HTTP: scriptedHTTP{do: func(*http.Request) (*http.Response, error) {
 			call++
 			if call > 1 {
@@ -497,7 +557,7 @@ func TestExecutePostersSearchRejectsCursorWithDifferentNormalizedFilter(t *testi
 				Body:       io.NopCloser(strings.NewReader(catalog)),
 			}, nil
 		}},
-	}
+	})
 	first := app.Execute(context.Background(), app.Request{
 		Argv:  []string{"posters", "search", "--query", "a", "--limit", "1"},
 		Stdin: strings.NewReader(""),

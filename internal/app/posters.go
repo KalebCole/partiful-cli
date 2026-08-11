@@ -2,11 +2,14 @@ package app
 
 import (
 	"bytes"
+	"crypto/aes"
+	"crypto/cipher"
 	"crypto/sha256"
-	"crypto/subtle"
 	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
+	"errors"
+	"io"
 	"strconv"
 	"strings"
 
@@ -31,7 +34,6 @@ type cursorPayload struct {
 	Digest     string `json:"digest"`
 	FilterHash string `json:"filterHash"`
 	Offset     int    `json:"offset"`
-	Checksum   string `json:"checksum"`
 }
 
 type cursorValidationFailure struct {
@@ -155,22 +157,47 @@ func parseCommandFlags(definition commandDefinition, argv []string) (map[string]
 	return values, nil
 }
 
-func nextCursor(payloadDigest [sha256.Size]byte, filterHash [sha256.Size]byte, offset int) string {
+func nextCursor(
+	payloadDigest [sha256.Size]byte,
+	filterHash [sha256.Size]byte,
+	offset int,
+	key []byte,
+	random io.Reader,
+) (string, error) {
 	payload := cursorPayload{
 		Version:    1,
 		Digest:     hex.EncodeToString(payloadDigest[:]),
 		FilterHash: hex.EncodeToString(filterHash[:]),
 		Offset:     offset,
 	}
-	checksumInput, _ := json.Marshal(payload)
-	checksum := sha256.Sum256(append([]byte("partiful-cursor-v1\x00"), checksumInput...))
-	payload.Checksum = hex.EncodeToString(checksum[:])
 	document, _ := json.Marshal(payload)
-	return base64.RawURLEncoding.EncodeToString(document)
+	aead, err := cursorAEAD(key)
+	if err != nil || random == nil {
+		return "", errors.New("cursor encryption is unavailable")
+	}
+	nonce := make([]byte, aead.NonceSize())
+	if _, err := io.ReadFull(random, nonce); err != nil {
+		return "", errors.New("cursor nonce is unavailable")
+	}
+	sealed := aead.Seal(nonce, nonce, document, cursorAssociatedData())
+	return base64.RawURLEncoding.EncodeToString(sealed), nil
 }
 
-func decodeCursor(token string, filterHash [sha256.Size]byte) (cursorPayload, *cursorValidationFailure) {
-	document, err := base64.RawURLEncoding.DecodeString(token)
+func decodeCursor(
+	token string,
+	filterHash [sha256.Size]byte,
+	key []byte,
+) (cursorPayload, *cursorValidationFailure) {
+	sealed, err := base64.RawURLEncoding.DecodeString(token)
+	if err != nil {
+		return cursorPayload{}, invalidCursorFailure()
+	}
+	aead, err := cursorAEAD(key)
+	if err != nil || len(sealed) < aead.NonceSize()+aead.Overhead() {
+		return cursorPayload{}, invalidCursorFailure()
+	}
+	nonce := sealed[:aead.NonceSize()]
+	document, err := aead.Open(nil, nonce, sealed[aead.NonceSize():], cursorAssociatedData())
 	if err != nil {
 		return cursorPayload{}, invalidCursorFailure()
 	}
@@ -181,17 +208,6 @@ func decodeCursor(token string, filterHash [sha256.Size]byte) (cursorPayload, *c
 		return cursorPayload{}, invalidCursorFailure()
 	}
 	if payload.Version != 1 || payload.Offset < 0 {
-		return cursorPayload{}, invalidCursorFailure()
-	}
-	checksum, err := hex.DecodeString(payload.Checksum)
-	if err != nil || len(checksum) != sha256.Size {
-		return cursorPayload{}, invalidCursorFailure()
-	}
-	unsigned := payload
-	unsigned.Checksum = ""
-	checksumInput, _ := json.Marshal(unsigned)
-	expected := sha256.Sum256(append([]byte("partiful-cursor-v1\x00"), checksumInput...))
-	if subtle.ConstantTimeCompare(checksum, expected[:]) != 1 {
 		return cursorPayload{}, invalidCursorFailure()
 	}
 	if payload.FilterHash != hex.EncodeToString(filterHash[:]) {
@@ -207,6 +223,18 @@ func decodeCursor(token string, filterHash [sha256.Size]byte) (cursorPayload, *c
 		}
 	}
 	return payload, nil
+}
+
+func cursorAEAD(key []byte) (cipher.AEAD, error) {
+	block, err := aes.NewCipher(key)
+	if err != nil {
+		return nil, err
+	}
+	return cipher.NewGCM(block)
+}
+
+func cursorAssociatedData() []byte {
+	return []byte("partiful/posters/cursor/v1")
 }
 
 func cursorSnapshotOffset(

@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/KalebCole/partiful-cli/internal/auth"
+	cursorstate "github.com/KalebCole/partiful-cli/internal/cursor"
 	"github.com/KalebCole/partiful-cli/internal/remote"
 )
 
@@ -35,6 +36,8 @@ type Dependencies struct {
 	CredentialsPathError error
 	Now                  func() time.Time
 	HTTP                 remote.HTTPClient
+	CursorKeys           cursorstate.KeyProvider
+	CursorRandom         io.Reader
 }
 
 type commandKind uint8
@@ -138,6 +141,7 @@ var commandCatalog = []commandDefinition{
 			"state.conflict",
 			"remote.unavailable",
 			"contract.protocol_changed",
+			"internal.failure",
 		},
 		safety: readOnlySafety(),
 	},
@@ -159,6 +163,7 @@ var commandCatalog = []commandDefinition{
 			"state.conflict",
 			"remote.unavailable",
 			"contract.protocol_changed",
+			"internal.failure",
 		},
 		safety: readOnlySafety(),
 	},
@@ -587,9 +592,15 @@ func Execute(ctx context.Context, request Request, dependencies Dependencies) Re
 				}
 				filterHash := normalizedFilterHash(definition.path, options.query)
 				var decodedCursor cursorPayload
+				var cursorKey []byte
+				var err error
 				if options.cursor != "" {
+					cursorKey, err = loadCursorKey(dependencies)
+					if err != nil {
+						return internalFailure(definition.path, pretty)
+					}
 					var cursorFailure *cursorValidationFailure
-					decodedCursor, cursorFailure = decodeCursor(options.cursor, filterHash)
+					decodedCursor, cursorFailure = decodeCursor(options.cursor, filterHash, cursorKey)
 					if cursorFailure != nil {
 						return failure(definition.path, cursorFailure.exitCode, cursorFailure.body, pretty)
 					}
@@ -634,11 +645,22 @@ func Execute(ctx context.Context, request Request, dependencies Dependencies) Re
 				var cursor *string
 				hasMore := end < len(filteredPosters)
 				if hasMore {
-					value := nextCursor(
+					if cursorKey == nil {
+						cursorKey, err = loadCursorKey(dependencies)
+						if err != nil {
+							return internalFailure(definition.path, pretty)
+						}
+					}
+					value, err := nextCursor(
 						catalog.PayloadSHA256,
 						filterHash,
 						end,
+						cursorKey,
+						dependencies.CursorRandom,
 					)
+					if err != nil {
+						return internalFailure(definition.path, pretty)
+					}
 					cursor = &value
 				}
 				return collectionSuccess(definition.path, posterData{Items: items}, pageMeta{
@@ -656,6 +678,17 @@ func Execute(ctx context.Context, request Request, dependencies Dependencies) Re
 		Retryable: false,
 		Details:   map[string]any{},
 	}, pretty)
+}
+
+func loadCursorKey(dependencies Dependencies) ([]byte, error) {
+	if dependencies.CursorKeys == nil {
+		return nil, errors.New("cursor key provider is unavailable")
+	}
+	key, err := dependencies.CursorKeys.Key()
+	if err != nil || len(key) != cursorstate.KeySize {
+		return nil, errors.New("cursor key is unavailable")
+	}
+	return key, nil
 }
 
 func (definition commandDefinition) matches(argv []string) bool {
