@@ -1,7 +1,7 @@
 # Partiful remote API contract evidence ledger
 
-**Owner-reviewed contract revision:** `2026-08-11.2`
-**Status:** Owner-reviewed
+**Owner-reviewed contract revision:** `2026-08-11.3`
+**Status:** Owner-reviewed under the issue #114 delegation
 **Contract:** `spec/partiful.openapi.json`
 **Machine-readable ledger:** `spec/partiful.api-evidence.json`
 **Stable citation sources:** `docs/research/2026-08-10-contract-evidence-sources.md`
@@ -53,7 +53,7 @@ rules, and limits are **explicit unknown**. Operations with an observed HTTP
 `200` success have typed response schemas; the schema-free OpenAPI `default`
 response is retained for unrecognized statuses.
 
-The 992 material claims are audited by
+The 1008 material claims are audited by
 `tests/remote-api-contract.test.js`. Each ledger citation resolves either to a
 JSON Pointer in the committed non-authoritative historical artifact or to a
 heading in the committed stable source index. This keeps the audit independent
@@ -105,8 +105,11 @@ schemas and operation-specific product failure mappings:
 `sendAuthCodeTrusted` has an observed `200` with unclaimed body shape (auth
 login uses no send-response field). No error status is promoted.
 
-Request-shape provenance is **not** promoted by these observations. Each
-operation's request claims retain their prior evidence class.
+Request-shape provenance is **not** promoted by these observations. All five
+authentication request schemas remain TypeScript-derived inferences, matched
+to the preserved historical request schemas. The newly observed public
+Firebase key and Referer facts remain separately classified as
+dated-live observations.
 
 Schema `required` arrays list fields that were present in every observed
 success response and that the implementation needs for correct operation
@@ -127,6 +130,30 @@ No-response/network is `remote.unavailable`. Rate limiting is not claimed.
 The Firebase Identity Toolkit and Secure Token endpoints require an HTTP
 `Referer` header matching an allowed pattern. This is a Firebase project
 configuration fact, not a Partiful callable behavior.
+
+## Firebase transport configuration
+
+Revision `2026-08-11.3` formalizes two transport configuration facts required
+by the Go implementation's Firebase requests:
+
+1. **Firebase web API key value**: The `firebaseApiKey` security scheme now
+   carries `x-publicValue: AIzaSyCky6PJ7cHRdBKk5X7gjuWERWaKWBHr4_k`. This is
+   a public value embedded in every Partiful web client, documented in the
+   privacy-safe redacted Firebase public-key extract. It is not a credential.
+   It is required as the `key` query parameter on
+   `signInWithCustomToken`, `refreshToken`, and `lookupFirebaseUser`.
+
+2. **Referer header requirement**: Each Firebase operation now has a required
+   `Referer: https://partiful.com/` header parameter. This is documented in
+   the August 11, 2026 auth observation under "Firebase API key referrer
+   restriction." The observed probe without a Referer received HTTP 403
+   `API_KEY_HTTP_REFERRER_BLOCKED`. This is the only observed accepted value;
+   the full set of values allowed by the remote restriction remains unknown.
+
+Origin is unmodelled and remains unknown because the reviewed evidence
+establishes no Origin request fact.
+
+The 1008 material claims are audited by `tests/remote-api-contract.test.js`.
 
 ## Resolved conflict
 
