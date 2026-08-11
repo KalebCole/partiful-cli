@@ -147,10 +147,9 @@ by the Go implementation's Firebase requests:
    `API_KEY_HTTP_REFERRER_BLOCKED`. This is the only observed accepted value;
    the full set of values allowed by the remote restriction remains unknown.
 
-Origin is **not** modelled. Agent negative probes succeeded without an Origin
-header, receiving valid error responses (400). Origin is browser CORS
-behavior, not a Firebase transport requirement. If the Go implementation sends
-Origin, that is an implementation choice, not a contract claim.
+Origin is not modelled because the reviewed evidence does not establish it as
+a required request fact. The Go implementation must not depend on an
+unreviewed Origin requirement.
 
 The 1008 material claims are audited by `tests/remote-api-contract.test.js`.
 
