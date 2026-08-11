@@ -1312,6 +1312,32 @@ func (terminal *scriptedPrivateTerminal) ReadSecret(prompt string) (string, erro
 	return value, nil
 }
 
+type failingPrivateTerminal struct {
+	err error
+}
+
+func (terminal failingPrivateTerminal) ReadSecret(string) (string, error) {
+	return "", terminal.err
+}
+
+func TestExecuteAuthLoginPreservesPrivateTerminalValidationFailure(t *testing.T) {
+	result := app.Execute(context.Background(), app.Request{
+		Argv: []string{"auth", "login"},
+	}, app.Dependencies{
+		Files:           &memoryFilesystem{files: map[string][]byte{}},
+		CredentialsPath: "/config/partiful/credentials.json",
+		Terminal:        failingPrivateTerminal{err: auth.ErrInputInvalid},
+		AuthRandom:      strings.NewReader("0123456789abcdef"),
+		Now: func() time.Time {
+			return time.Date(2026, time.August, 11, 0, 0, 0, 0, time.UTC)
+		},
+	})
+	if result.ExitCode != 2 ||
+		!strings.Contains(result.Stdout, `"code":"AUTH_INPUT_INVALID"`) {
+		t.Fatalf("result = %#v, want private terminal validation failure", result)
+	}
+}
+
 func TestExecuteAuthLoginPersistsReviewedSessionWithoutRevealingPrivateValues(t *testing.T) {
 	const (
 		phone        = "+15555550123"

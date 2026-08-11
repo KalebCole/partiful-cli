@@ -66,6 +66,9 @@ func Login(
 	if errors.Is(err, ErrHumanRequired) {
 		return State{}, ErrHumanRequired
 	}
+	if errors.Is(err, ErrInputInvalid) {
+		return State{}, ErrInputInvalid
+	}
 	if err != nil {
 		return State{}, ErrUnavailable
 	}
@@ -91,6 +94,9 @@ func Login(
 	code, err := terminal.ReadSecret("Verification code: ")
 	if errors.Is(err, ErrHumanRequired) {
 		return State{}, ErrHumanRequired
+	}
+	if errors.Is(err, ErrInputInvalid) {
+		return State{}, ErrInputInvalid
 	}
 	if err != nil {
 		return State{}, ErrUnavailable

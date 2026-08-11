@@ -32,6 +32,9 @@ func (terminal OSTerminal) ReadSecret(prompt string) (string, error) {
 	}
 	value, err := readSecretWithSignalRestore(terminal.Input)
 	_, _ = io.WriteString(terminal.Output, "\n")
+	if errors.Is(err, ErrInputInvalid) {
+		return "", ErrInputInvalid
+	}
 	if err != nil {
 		return "", ErrUnavailable
 	}
