@@ -11,14 +11,15 @@ import (
 )
 
 func main() {
-	credentialsPath, _ := auth.DefaultCredentialsPath()
+	credentialsPath, credentialsPathError := auth.DefaultCredentialsPath()
 	result := app.Execute(context.Background(), app.Request{
 		Argv:  os.Args[1:],
 		Stdin: os.Stdin,
 	}, app.Dependencies{
-		Files:           auth.OSFileSystem{},
-		CredentialsPath: credentialsPath,
-		Now:             time.Now,
+		Files:                auth.OSFileSystem{},
+		CredentialsPath:      credentialsPath,
+		CredentialsPathError: credentialsPathError,
+		Now:                  time.Now,
 	})
 
 	_, _ = io.WriteString(os.Stdout, result.Stdout)

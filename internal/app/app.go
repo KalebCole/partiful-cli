@@ -29,9 +29,10 @@ type Result struct {
 }
 
 type Dependencies struct {
-	Files           auth.FileSystem
-	CredentialsPath string
-	Now             func() time.Time
+	Files                auth.FileSystem
+	CredentialsPath      string
+	CredentialsPathError error
+	Now                  func() time.Time
 }
 
 type commandKind uint8
@@ -344,6 +345,9 @@ func Execute(_ context.Context, request Request, provided ...Dependencies) Resul
 					Details:   map[string]any{},
 				}, pretty)
 			case authStatusCommand:
+				if dependencies.CredentialsPathError != nil {
+					return configurationDirectoryFailure(definition.path, pretty)
+				}
 				now := time.Now()
 				if dependencies.Now != nil {
 					now = dependencies.Now()
@@ -364,6 +368,9 @@ func Execute(_ context.Context, request Request, provided ...Dependencies) Resul
 				}
 				return success(definition.path, state, pretty)
 			case authLogoutCommand:
+				if dependencies.CredentialsPathError != nil {
+					return configurationDirectoryFailure(definition.path, pretty)
+				}
 				state, err := auth.Logout(
 					dependencies.Files,
 					dependencies.CredentialsPath,
@@ -376,6 +383,18 @@ func Execute(_ context.Context, request Request, provided ...Dependencies) Resul
 				}
 				return success(definition.path, state, pretty)
 			case doctorCommand:
+				if dependencies.CredentialsPathError != nil {
+					remediation := "Set a usable user configuration directory."
+					return success(definition.path, doctorData{
+						Healthy: false,
+						Checks: []doctorCheck{{
+							Name:        "credentials",
+							Status:      "fail",
+							Message:     "Configuration directory is unavailable.",
+							Remediation: &remediation,
+						}},
+					}, pretty)
+				}
 				now := time.Now()
 				if dependencies.Now != nil {
 					now = dependencies.Now()
@@ -460,7 +479,7 @@ func Execute(_ context.Context, request Request, provided ...Dependencies) Resul
 			}
 		}
 	}
-	return failure("unknown", 2, errorBody{
+	return failure(commandName(request.Argv), 2, errorBody{
 		Type:      "usage.invalid",
 		Code:      "COMMAND_NOT_FOUND",
 		Message:   "Unknown command.",
@@ -587,6 +606,18 @@ func credentialUnavailableFailure(command string, pretty bool) Result {
 		Type:      "internal.failure",
 		Code:      "CREDENTIAL_STORE_UNAVAILABLE",
 		Message:   "Local credential storage is unavailable.",
+		Retryable: false,
+		Details:   map[string]any{},
+	}, pretty)
+	result.Stderr = "partiful: local operation failed\n"
+	return result
+}
+
+func configurationDirectoryFailure(command string, pretty bool) Result {
+	result := failure(command, 10, errorBody{
+		Type:      "internal.failure",
+		Code:      "CONFIG_DIRECTORY_UNAVAILABLE",
+		Message:   "Local configuration directory is unavailable.",
 		Retryable: false,
 		Details:   map[string]any{},
 	}, pretty)

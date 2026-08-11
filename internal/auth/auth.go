@@ -70,7 +70,7 @@ func Status(files FileSystem, path string, now time.Time) (State, error) {
 	}
 	expiresAt := credentials.ExpiresAt.UTC()
 	return State{
-		Authenticated: true,
+		Authenticated: false,
 		TokenState:    "expired",
 		ExpiresAt:     &expiresAt,
 	}, nil

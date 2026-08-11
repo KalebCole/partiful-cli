@@ -317,7 +317,7 @@ func TestExecuteAuthStatusReportsExpiredToken(t *testing.T) {
 		},
 	})
 
-	const want = `{"ok":true,"data":{"authenticated":true,"tokenState":"expired","expiresAt":"2026-08-10T23:59:00Z"},"meta":{"command":"auth.status","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-10.1","warnings":[]}}` + "\n"
+	const want = `{"ok":true,"data":{"authenticated":false,"tokenState":"expired","expiresAt":"2026-08-10T23:59:00Z"},"meta":{"command":"auth.status","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-10.1","warnings":[]}}` + "\n"
 	if result.ExitCode != 0 {
 		t.Fatalf("exit code = %d, want 0", result.ExitCode)
 	}
@@ -778,5 +778,76 @@ func TestExecutePrettyAppliesWhenItFollowsInvalidGlobalFlag(t *testing.T) {
 	}
 	if result.Stderr != "" {
 		t.Fatalf("stderr = %q, want empty", result.Stderr)
+	}
+}
+
+func TestExecuteUsesKnownCommandMetadataForInvalidArity(t *testing.T) {
+	result := app.Execute(context.Background(), app.Request{
+		Argv:  []string{"schema", "auth.status", "extra-private-value"},
+		Stdin: strings.NewReader(""),
+	})
+
+	const want = `{"ok":false,"error":{"type":"usage.invalid","code":"COMMAND_NOT_FOUND","message":"Unknown command.","retryable":false,"details":{}},"meta":{"command":"schema","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-10.1"}}` + "\n"
+	if result.ExitCode != 2 {
+		t.Fatalf("exit code = %d, want 2", result.ExitCode)
+	}
+	if result.Stdout != want {
+		t.Fatalf("stdout = %q, want %q", result.Stdout, want)
+	}
+	if strings.Contains(result.Stdout+result.Stderr, "extra-private-value") {
+		t.Fatal("invalid-arity output echoed untrusted input")
+	}
+}
+
+func TestExecuteAuthStatusReportsConfigurationDirectoryFailure(t *testing.T) {
+	const privateError = "configuration error containing private-user-identifier"
+	result := app.Execute(context.Background(), app.Request{
+		Argv:  []string{"auth", "status"},
+		Stdin: strings.NewReader(""),
+	}, app.Dependencies{
+		Files:                fakeFilesystem{},
+		CredentialsPathError: errors.New(privateError),
+		Now: func() time.Time {
+			return time.Date(2026, time.August, 11, 0, 0, 0, 0, time.UTC)
+		},
+	})
+
+	const wantStdout = `{"ok":false,"error":{"type":"internal.failure","code":"CONFIG_DIRECTORY_UNAVAILABLE","message":"Local configuration directory is unavailable.","retryable":false,"details":{}},"meta":{"command":"auth.status","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-10.1"}}` + "\n"
+	if result.ExitCode != 10 {
+		t.Fatalf("exit code = %d, want 10", result.ExitCode)
+	}
+	if result.Stdout != wantStdout {
+		t.Fatalf("stdout = %q, want %q", result.Stdout, wantStdout)
+	}
+	if strings.Contains(result.Stdout+result.Stderr, privateError) {
+		t.Fatal("configuration failure output revealed private error contents")
+	}
+}
+
+func TestExecuteDoctorDiagnosesConfigurationDirectoryFailure(t *testing.T) {
+	const privateError = "configuration error containing private-user-identifier"
+	result := app.Execute(context.Background(), app.Request{
+		Argv:  []string{"doctor"},
+		Stdin: strings.NewReader(""),
+	}, app.Dependencies{
+		Files:                fakeFilesystem{},
+		CredentialsPathError: errors.New(privateError),
+		Now: func() time.Time {
+			return time.Date(2026, time.August, 11, 0, 0, 0, 0, time.UTC)
+		},
+	})
+
+	const want = `{"ok":true,"data":{"healthy":false,"checks":[{"name":"credentials","status":"fail","message":"Configuration directory is unavailable.","remediation":"Set a usable user configuration directory."}]},"meta":{"command":"doctor","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-10.1","warnings":[]}}` + "\n"
+	if result.ExitCode != 0 {
+		t.Fatalf("exit code = %d, want 0", result.ExitCode)
+	}
+	if result.Stdout != want {
+		t.Fatalf("stdout = %q, want %q", result.Stdout, want)
+	}
+	if result.Stderr != "" {
+		t.Fatalf("stderr = %q, want empty", result.Stderr)
+	}
+	if strings.Contains(result.Stdout+result.Stderr, privateError) {
+		t.Fatal("doctor output revealed configuration error contents")
 	}
 }
