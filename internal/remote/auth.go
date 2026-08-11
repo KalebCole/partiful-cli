@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
+	"time"
 	"unicode/utf8"
 )
 
@@ -51,13 +52,13 @@ type GetLoginTokenResponse struct {
 type SignInWithCustomTokenResponse struct {
 	IDToken      string
 	RefreshToken string
-	ExpiresIn    int
+	ExpiresIn    time.Duration
 }
 
 type RefreshTokenResponse struct {
 	IDToken      string
 	RefreshToken string
-	ExpiresIn    int
+	ExpiresIn    time.Duration
 }
 
 func (client AuthClient) SendAuthCode(ctx context.Context, req SendAuthCodeRequest) error {
@@ -165,8 +166,8 @@ func (client AuthClient) SignInWithCustomToken(ctx context.Context, token string
 		result.IDToken == "" || result.RefreshToken == "" || result.ExpiresIn == "" {
 		return SignInWithCustomTokenResponse{}, fmt.Errorf("%w: response body", ErrProtocolChanged)
 	}
-	expiresIn, err := strconv.Atoi(result.ExpiresIn)
-	if err != nil || expiresIn <= 0 {
+	expiresIn, err := parseExpiresIn(result.ExpiresIn)
+	if err != nil {
 		return SignInWithCustomTokenResponse{}, fmt.Errorf("%w: expiresIn", ErrProtocolChanged)
 	}
 	return SignInWithCustomTokenResponse{
@@ -231,8 +232,8 @@ func (client AuthClient) RefreshToken(
 		result.TokenType == "" {
 		return RefreshTokenResponse{}, fmt.Errorf("%w: response body", ErrProtocolChanged)
 	}
-	expiresIn, err := strconv.Atoi(result.ExpiresIn)
-	if err != nil || expiresIn <= 0 {
+	expiresIn, err := parseExpiresIn(result.ExpiresIn)
+	if err != nil {
 		return RefreshTokenResponse{}, fmt.Errorf("%w: expiresIn", ErrProtocolChanged)
 	}
 	return RefreshTokenResponse{
@@ -240,6 +241,18 @@ func (client AuthClient) RefreshToken(
 		RefreshToken: result.RefreshToken,
 		ExpiresIn:    expiresIn,
 	}, nil
+}
+
+func parseExpiresIn(value string) (time.Duration, error) {
+	seconds, err := strconv.ParseInt(value, 10, 64)
+	if err != nil || seconds <= 0 {
+		return 0, ErrProtocolChanged
+	}
+	duration, err := time.ParseDuration(strconv.FormatInt(seconds, 10) + "s")
+	if err != nil {
+		return 0, ErrProtocolChanged
+	}
+	return duration, nil
 }
 
 func (client AuthClient) callablePost(ctx context.Context, url string, body any) (*http.Response, error) {

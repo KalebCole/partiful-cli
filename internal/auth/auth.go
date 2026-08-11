@@ -116,7 +116,7 @@ func Login(
 	if err != nil {
 		return State{}, err
 	}
-	expiresAt := now.Add(time.Duration(session.ExpiresIn) * time.Second).UTC()
+	expiresAt := now.Add(session.ExpiresIn).UTC()
 	err = SaveCredentials(files, path, Credentials{
 		AccessToken:  session.IDToken,
 		RefreshToken: session.RefreshToken,
@@ -207,7 +207,7 @@ func StatusWithRefresh(
 	if err != nil {
 		return State{}, err
 	}
-	expiresAt := now.Add(time.Duration(refreshed.ExpiresIn) * time.Second).UTC()
+	expiresAt := now.Add(refreshed.ExpiresIn).UTC()
 	if err := SaveCredentials(files, path, Credentials{
 		AccessToken:  refreshed.IDToken,
 		RefreshToken: refreshed.RefreshToken,

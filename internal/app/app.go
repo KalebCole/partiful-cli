@@ -521,6 +521,8 @@ func Execute(ctx context.Context, request Request, dependencies Dependencies) Re
 					case errors.Is(err, auth.ErrPersistence),
 						errors.Is(err, auth.ErrUnavailable):
 						return credentialUnavailableFailure(definition.path, pretty)
+					case errors.Is(err, auth.ErrInvalid):
+						return credentialInvalidFailure(definition.path, pretty)
 					default:
 						return internalFailure(definition.path, pretty)
 					}
