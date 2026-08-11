@@ -110,7 +110,7 @@ describe('remote API contract', () => {
   it('is a consistently versioned OpenAPI 3.1 document with unique operation IDs', () => {
     expect(spec.openapi).toBe('3.1.0');
     expect(spec.info.version).toBe(evidence.contractRevision);
-    expect(['owner-reviewed', 'proposed']).toContain(evidence.status);
+    expect(evidence.status).toBe('owner-reviewed');
     const ids = operations().map(({ operation }) => operation.operationId);
     expect(ids).toHaveLength(27);
     expect(new Set(ids).size).toBe(ids.length);
