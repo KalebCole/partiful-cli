@@ -2,7 +2,7 @@
 
 **Status:** Approved product contract  
 **Product contract revision:** `2026-08-10.1`  
-**Remote API contract revision:** `2026-08-11.1`
+**Remote API contract revision:** `2026-08-11.4`
 
 This document defines the public behavior of the greenfield Go `partiful` CLI.
 It is the authority for commands, inputs, JSON outputs, failures, and mutation
@@ -78,7 +78,7 @@ Every successful command returns:
     "command": "events.get",
     "cliVersion": "1.0.0",
     "productContractRevision": "2026-08-10.1",
-    "remoteContractRevision": "2026-08-11.1",
+    "remoteContractRevision": "2026-08-11.4",
     "warnings": []
   }
 }
@@ -102,7 +102,7 @@ Every failed command returns:
     "command": "guests.list",
     "cliVersion": "1.0.0",
     "productContractRevision": "2026-08-10.1",
-    "remoteContractRevision": "2026-08-11.1"
+    "remoteContractRevision": "2026-08-11.4"
   }
 }
 ```
@@ -150,7 +150,7 @@ Collection commands return:
     "command": "events.list",
     "cliVersion": "1.0.0",
     "productContractRevision": "2026-08-10.1",
-    "remoteContractRevision": "2026-08-11.1",
+    "remoteContractRevision": "2026-08-11.4",
     "warnings": [],
     "page": {
       "limit": 25,
@@ -203,7 +203,7 @@ remote mutation:
     "command": "events.update",
     "cliVersion": "1.0.0",
     "productContractRevision": "2026-08-10.1",
-    "remoteContractRevision": "2026-08-11.1",
+    "remoteContractRevision": "2026-08-11.4",
     "warnings": []
   }
 }
@@ -283,7 +283,15 @@ Returns:
 ```
 
 `tokenState` is `healthy`, `expiring`, `expired`, or `missing`. The command
-does not return identity details or credentials.
+does not return identity details or credentials. When stored credentials have
+a refresh token and are within five minutes of expiry or already expired,
+`auth status` deterministically refreshes and atomically replaces them before
+reporting `healthy`. This makes the command a local mutation. A rejected
+refresh returns
+`auth.expired`; an unavailable authentication service returns
+`remote.unavailable`; and an unrecognized released response returns
+`contract.protocol_changed`. Credentials without a refresh token continue to
+report `expiring` or `expired`.
 
 ### `partiful auth logout`
 
@@ -300,6 +308,14 @@ Deletes local credentials and returns:
 Token refresh, custom-token exchange, and Firebase account lookup are internal
 authentication steps. Other commands never start login or prompt. They return
 an authentication failure so an agent can hand control to a human.
+
+Authentication response bodies are limited to 64 KiB. A larger successful or
+error response does not enter output and fails closed as
+`contract.protocol_changed`.
+
+A successful token lifetime must exceed the five-minute refresh window so
+login and refresh can return `healthy`. A shorter lifetime fails closed as
+`contract.protocol_changed` rather than creating a refresh loop.
 
 ## Public commands
 
@@ -620,7 +636,7 @@ Without a path, returns every public command path. With a path such as
   "flags": [],
   "inputSchema": {},
   "successSchema": {},
-  "failureTypes": [],
+  "failureTypes": ["usage.invalid", "input.invalid"],
   "safety": {
     "kind": "standard-mutation",
     "planRequired": true,
@@ -629,9 +645,10 @@ Without a path, returns every public command path. With a path such as
 }
 ```
 
-The real arrays and schemas contain the complete contract. This command is
-generated from the same command definitions used by execution; it is not a
-second handwritten description.
+The example shows the default invocation failures. Real arrays add each
+command-specific failure, and the schemas contain the complete contract. This
+command is generated from the same command definitions used by execution; it
+is not a second handwritten description.
 
 #### `partiful doctor`
 

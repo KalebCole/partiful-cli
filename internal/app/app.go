@@ -15,7 +15,7 @@ import (
 const (
 	Version                 = "1.0.0"
 	ProductContractRevision = "2026-08-10.1"
-	RemoteContractRevision  = "2026-08-11.1"
+	RemoteContractRevision  = "2026-08-11.4"
 )
 
 type Request struct {
@@ -37,6 +37,8 @@ type Dependencies struct {
 	HTTP                 remote.HTTPClient
 	CursorKeys           CursorKeyProvider
 	CursorRandom         io.Reader
+	AuthRandom           io.Reader
+	Terminal             auth.PrivateTerminal
 }
 
 type commandKind uint8
@@ -44,6 +46,7 @@ type commandKind uint8
 const (
 	versionCommand commandKind = iota
 	schemaCommand
+	authLoginCommand
 	authStatusCommand
 	authLogoutCommand
 	doctorCommand
@@ -91,6 +94,28 @@ var commandCatalog = []commandDefinition{
 		safety:        readOnlySafety(),
 	},
 	{
+		path:          "auth.login",
+		invocation:    []string{"auth", "login"},
+		kind:          authLoginCommand,
+		positionals:   []positionalDefinition{},
+		flags:         []flagDefinition{},
+		inputSchema:   emptyInputSchema(),
+		successSchema: authStateSuccessSchema(),
+		failureTypes: []string{
+			"input.invalid",
+			"auth.expired",
+			"auth.human_required",
+			"remote.unavailable",
+			"contract.protocol_changed",
+			"internal.failure",
+		},
+		safety: safetyDefinition{
+			Kind:                 "local-mutation",
+			PlanRequired:         false,
+			ConfirmationRequired: false,
+		},
+	},
+	{
 		path:          "auth.status",
 		invocation:    []string{"auth", "status"},
 		kind:          authStatusCommand,
@@ -98,8 +123,17 @@ var commandCatalog = []commandDefinition{
 		flags:         []flagDefinition{},
 		inputSchema:   emptyInputSchema(),
 		successSchema: authStateSuccessSchema(),
-		failureTypes:  []string{"internal.failure"},
-		safety:        readOnlySafety(),
+		failureTypes: []string{
+			"auth.expired",
+			"remote.unavailable",
+			"contract.protocol_changed",
+			"internal.failure",
+		},
+		safety: safetyDefinition{
+			Kind:                 "local-mutation",
+			PlanRequired:         false,
+			ConfirmationRequired: false,
+		},
 	},
 	{
 		path:          "auth.logout",
@@ -471,20 +505,90 @@ func Execute(ctx context.Context, request Request, dependencies Dependencies) Re
 					Retryable: false,
 					Details:   map[string]any{},
 				}, pretty)
+			case authLoginCommand:
+				if slices.Contains(request.Argv, "--non-interactive") ||
+					dependencies.Terminal == nil {
+					return privateTerminalRequiredFailure(definition.path, pretty)
+				}
+				if dependencies.CredentialsPathError != nil {
+					return configurationDirectoryFailure(definition.path, pretty)
+				}
+				clock := time.Now
+				if dependencies.Now != nil {
+					clock = dependencies.Now
+				}
+				state, err := auth.Login(
+					ctx,
+					dependencies.Files,
+					dependencies.CredentialsPath,
+					dependencies.Terminal,
+					clock,
+					dependencies.AuthRandom,
+					remote.AuthClient{HTTP: dependencies.HTTP},
+				)
+				if err != nil {
+					if errors.Is(err, auth.ErrHumanRequired) {
+						return privateTerminalRequiredFailure(definition.path, pretty)
+					}
+					if errors.Is(err, auth.ErrInputInvalid) {
+						return authenticationInputInvalidFailure(definition.path, pretty)
+					}
+					if errors.Is(err, auth.ErrAuthCodeRejected) {
+						return authCodeRejectedFailure(definition.path, pretty)
+					}
+					if errors.Is(err, auth.ErrRemoteTokenExpired) {
+						return authenticationExpiredFailure(
+							definition.path,
+							"INVALID_CUSTOM_TOKEN",
+							"Authentication expired during login. Start login again.",
+							pretty,
+						)
+					}
+					if errors.Is(err, auth.ErrRemoteProtocolChanged) {
+						return authenticationProtocolChangedFailure(definition.path, pretty)
+					}
+					if errors.Is(err, auth.ErrRemoteUnavailable) {
+						return authenticationUnavailableFailure(definition.path, pretty)
+					}
+					if errors.Is(err, auth.ErrPersistence) {
+						return credentialUnavailableFailure(definition.path, pretty)
+					}
+					return internalFailure(definition.path, pretty)
+				}
+				return success(definition.path, state, pretty)
 			case authStatusCommand:
 				if dependencies.CredentialsPathError != nil {
 					return configurationDirectoryFailure(definition.path, pretty)
 				}
-				now := time.Now()
+				clock := time.Now
 				if dependencies.Now != nil {
-					now = dependencies.Now()
+					clock = dependencies.Now
 				}
-				state, err := auth.Status(
+				state, err := auth.StatusWithRefresh(
+					ctx,
 					dependencies.Files,
 					dependencies.CredentialsPath,
-					now,
+					clock,
+					remote.AuthClient{HTTP: dependencies.HTTP},
 				)
 				if err != nil {
+					if errors.Is(err, auth.ErrRemoteTokenExpired) {
+						return authenticationExpiredFailure(
+							definition.path,
+							"INVALID_REFRESH_TOKEN",
+							"Stored authentication has expired. Log in again.",
+							pretty,
+						)
+					}
+					if errors.Is(err, auth.ErrRemoteProtocolChanged) {
+						return authenticationProtocolChangedFailure(definition.path, pretty)
+					}
+					if errors.Is(err, auth.ErrRemoteUnavailable) {
+						return authenticationUnavailableFailure(definition.path, pretty)
+					}
+					if errors.Is(err, auth.ErrPersistence) {
+						return credentialUnavailableFailure(definition.path, pretty)
+					}
 					if errors.Is(err, auth.ErrInvalid) {
 						return credentialInvalidFailure(definition.path, pretty)
 					}
@@ -783,9 +887,19 @@ func projectSchema(definition commandDefinition) commandSchema {
 		Flags:         definition.flags,
 		InputSchema:   definition.inputSchema,
 		SuccessSchema: definition.successSchema,
-		FailureTypes:  definition.failureTypes,
+		FailureTypes:  declaredFailureTypes(definition),
 		Safety:        definition.safety,
 	}
+}
+
+func declaredFailureTypes(definition commandDefinition) []string {
+	failureTypes := []string{"usage.invalid", "input.invalid"}
+	for _, failureType := range definition.failureTypes {
+		if !slices.Contains(failureTypes, failureType) {
+			failureTypes = append(failureTypes, failureType)
+		}
+	}
+	return failureTypes
 }
 
 func commandName(argv []string) string {
@@ -859,6 +973,78 @@ func configurationDirectoryFailure(command string, pretty bool) Result {
 		Details:   map[string]any{},
 	}, pretty)
 	result.Stderr = "partiful: local operation failed\n"
+	return result
+}
+
+func privateTerminalRequiredFailure(command string, pretty bool) Result {
+	result := failure(command, 3, errorBody{
+		Type:      "auth.human_required",
+		Code:      "PRIVATE_TERMINAL_REQUIRED",
+		Message:   "Authentication login requires a private terminal.",
+		Retryable: false,
+		Details:   map[string]any{},
+	}, pretty)
+	result.Stderr = "partiful: private terminal required\n"
+	return result
+}
+
+func authenticationInputInvalidFailure(command string, pretty bool) Result {
+	result := failure(command, 2, errorBody{
+		Type:      "input.invalid",
+		Code:      "AUTH_INPUT_INVALID",
+		Message:   "Authentication input is invalid.",
+		Retryable: false,
+		Details:   map[string]any{},
+	}, pretty)
+	result.Stderr = "partiful: authentication input invalid\n"
+	return result
+}
+
+func authCodeRejectedFailure(command string, pretty bool) Result {
+	result := failure(command, 2, errorBody{
+		Type:      "input.invalid",
+		Code:      "AUTH_CODE_REJECTED",
+		Message:   "The verification code was rejected.",
+		Retryable: false,
+		Details:   map[string]any{},
+	}, pretty)
+	result.Stderr = "partiful: authentication code rejected\n"
+	return result
+}
+
+func authenticationExpiredFailure(command, code, message string, pretty bool) Result {
+	result := failure(command, 3, errorBody{
+		Type:      "auth.expired",
+		Code:      code,
+		Message:   message,
+		Retryable: false,
+		Details:   map[string]any{},
+	}, pretty)
+	result.Stderr = "partiful: authentication expired\n"
+	return result
+}
+
+func authenticationProtocolChangedFailure(command string, pretty bool) Result {
+	result := failure(command, 9, errorBody{
+		Type:      "contract.protocol_changed",
+		Code:      "AUTH_PROTOCOL_CHANGED",
+		Message:   "Authentication no longer matches the reviewed remote contract.",
+		Retryable: false,
+		Details:   map[string]any{},
+	}, pretty)
+	result.Stderr = "partiful: authentication protocol changed\n"
+	return result
+}
+
+func authenticationUnavailableFailure(command string, pretty bool) Result {
+	result := failure(command, 8, errorBody{
+		Type:      "remote.unavailable",
+		Code:      "AUTH_SERVICE_UNAVAILABLE",
+		Message:   "The authentication service is unavailable.",
+		Retryable: true,
+		Details:   map[string]any{},
+	}, pretty)
+	result.Stderr = "partiful: authentication service unavailable\n"
 	return result
 }
 
