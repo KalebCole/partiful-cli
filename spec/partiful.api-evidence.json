@@ -3717,6 +3717,13 @@
     "completeRepresentation": true,
     "allProductFieldsPresent": true,
     "duplicateIdEntries": 1,
+    "contentTypeVerifiedAt": "2026-08-11T01:42:58Z",
+    "contentTypes": [
+      "image/avif",
+      "image/gif",
+      "image/jpeg",
+      "image/png"
+    ],
     "pagination": {
       "remotePagination": false,
       "localPagination": "full-representation",

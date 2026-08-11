@@ -379,6 +379,8 @@ describe('remote API contract', () => {
       completeRepresentation: true,
       allProductFieldsPresent: true,
       duplicateIdEntries: 1,
+      contentTypeVerifiedAt: '2026-08-11T01:42:58Z',
+      contentTypes: ['image/avif', 'image/gif', 'image/jpeg', 'image/png'],
     });
     expect(citationResolves(evidence.posterCatalogObservation.sourceCitation)).toBe(true);
     expect(evidence.posterCatalogObservation.pagination).toEqual({

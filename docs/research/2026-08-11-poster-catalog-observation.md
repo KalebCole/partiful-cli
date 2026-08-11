@@ -28,10 +28,13 @@ The response included:
 
 Every entry had `id`, `name`, `url`, `contentType`, `width`, `height`, `tags`,
 and `categories`. IDs and names were non-empty strings; URLs were HTTPS
-strings; tags and categories were arrays containing only strings. Width and
-height were integers except that one entry used `null` for both. One ID
-occurred twice at non-adjacent positions; the two entries differed in tags and
-categories. No uniqueness or deduplication claim is supported.
+strings; tags and categories were arrays containing only strings. A repeated
+privacy-safe GET at `01:42:58Z` returned the same byte length and SHA-256;
+every `contentType` was a string and the complete observed value set was
+`image/avif`, `image/gif`, `image/jpeg`, and `image/png`. Width and height were
+integers except that one entry used `null` for both. One ID occurred twice at
+non-adjacent positions; the two entries differed in tags and categories. No
+uniqueness or deduplication claim is supported.
 
 An `If-None-Match` request using the observed ETag returned `304` with no body.
 A deliberately nonmatching `If-Match` request still returned `200` with the
