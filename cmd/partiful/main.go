@@ -9,13 +9,12 @@ import (
 
 	"github.com/KalebCole/partiful-cli/internal/app"
 	"github.com/KalebCole/partiful-cli/internal/auth"
-	cursorstate "github.com/KalebCole/partiful-cli/internal/cursor"
 	"github.com/KalebCole/partiful-cli/internal/remote"
 )
 
 func main() {
 	credentialsPath, credentialsPathError := auth.DefaultCredentialsPath()
-	cursorKeyPath, _ := cursorstate.DefaultKeyPath()
+	cursorKeyPath, _ := app.DefaultCursorKeyPath()
 	result := app.Execute(context.Background(), app.Request{
 		Argv:  os.Args[1:],
 		Stdin: os.Stdin,
@@ -25,7 +24,7 @@ func main() {
 		CredentialsPathError: credentialsPathError,
 		Now:                  time.Now,
 		HTTP:                 remote.NewHTTPClient(nil),
-		CursorKeys:           cursorstate.FileKeyProvider{Path: cursorKeyPath},
+		CursorKeys:           app.FileCursorKeyProvider{Path: cursorKeyPath},
 		CursorRandom:         rand.Reader,
 	})
 

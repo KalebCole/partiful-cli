@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/KalebCole/partiful-cli/internal/auth"
-	cursorstate "github.com/KalebCole/partiful-cli/internal/cursor"
 	"github.com/KalebCole/partiful-cli/internal/remote"
 )
 
@@ -36,7 +35,7 @@ type Dependencies struct {
 	CredentialsPathError error
 	Now                  func() time.Time
 	HTTP                 remote.HTTPClient
-	CursorKeys           cursorstate.KeyProvider
+	CursorKeys           CursorKeyProvider
 	CursorRandom         io.Reader
 }
 
@@ -691,7 +690,7 @@ func loadCursorKey(dependencies Dependencies) ([]byte, error) {
 		return nil, errors.New("cursor key provider is unavailable")
 	}
 	key, err := dependencies.CursorKeys.Key()
-	if err != nil || len(key) != cursorstate.KeySize {
+	if err != nil || len(key) != CursorKeySize {
 		return nil, errors.New("cursor key is unavailable")
 	}
 	return key, nil
