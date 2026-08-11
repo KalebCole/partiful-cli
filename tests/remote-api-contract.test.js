@@ -7,6 +7,13 @@ import spec from '../spec/partiful.openapi.json';
 const historicalDraftPath = 'spec/research/historical-27-operation-draft.json';
 const historicalDraft = JSON.parse(fs.readFileSync(historicalDraftPath, 'utf8'));
 const sourceCache = new Map([[historicalDraftPath, historicalDraft]]);
+const unsafeAuthSourcePath = 'docs/research/2026-03-24-auth-flow-endpoints.md';
+const safeFirebaseKeySource =
+  'docs/research/2026-08-11-firebase-public-api-key-redacted.md#firebase-public-api-key';
+const humanEvidencePaths = [
+  'docs/research/2026-08-10-contract-evidence-sources.md',
+  'docs/research/2026-08-10-partiful-api-contract-evidence-ledger.md',
+];
 const methods = new Set(['get', 'post', 'put', 'patch', 'delete']);
 const ignoredKeys = new Set(['description', 'summary', 'title']);
 const materialMapKeys = new Set([
@@ -665,17 +672,7 @@ describe('remote API contract', () => {
     expect(evidence.claims['#/components/securitySchemes/firebaseApiKey/x-publicValue'].classification)
       .toBe('dated-live-observation');
     expect(evidence.claims['#/components/securitySchemes/firebaseApiKey/x-publicValue'].citation)
-      .toBe(evidence.sources.marchAuthApiKey);
-
-    const sanitizedMarchSource = fs.readFileSync(
-      'docs/research/2026-03-24-auth-flow-endpoints.md',
-      'utf8',
-    );
-    expect(sanitizedMarchSource).toContain('<redacted-display-name>');
-    expect(sanitizedMarchSource).toContain('<redacted-phone>');
-    expect(sanitizedMarchSource).toContain('<redacted-code>');
-    expect(sanitizedMarchSource).toContain('<redacted-sender>');
-    expect(sanitizedMarchSource).not.toMatch(/\+[0-9]{10,15}/);
+      .toBe(safeFirebaseKeySource);
 
     // Each Firebase operation must require a Referer header
     const firebaseOps = [
@@ -710,5 +707,25 @@ describe('remote API contract', () => {
     expect(evidence.unresolvedUncertainty).toContain(
       'The full set of Referer values accepted by the Firebase API-key restriction remains unknown; https://partiful.com/ is the only observed accepted value.',
     );
+  });
+
+  it('keeps unsafe auth evidence and unsupported Origin claims out of contract provenance', () => {
+    const registeredProvenance = JSON.stringify(evidence);
+    expect(registeredProvenance.includes(unsafeAuthSourcePath)).toBe(false);
+    expect(evidence.sources.firebasePublicApiKeyRedacted).toBe(safeFirebaseKeySource);
+    expect(citationResolves(safeFirebaseKeySource)).toBe(true);
+
+    const unsupportedOriginClaims = [
+      /probes?[^.]*without (?:an )?Origin/i,
+      /Origin (?:was|is) not required/i,
+      /succeeded without Origin/i,
+    ];
+    for (const evidencePath of humanEvidencePaths) {
+      const content = fs.readFileSync(evidencePath, 'utf8');
+      expect(content, evidencePath).not.toContain(unsafeAuthSourcePath);
+      for (const claim of unsupportedOriginClaims) {
+        expect(content, evidencePath).not.toMatch(claim);
+      }
+    }
   });
 });

@@ -39,9 +39,9 @@ primary evidence that supersedes the historical string-message draft.
 
 ## Dated authentication observation
 
-The March 24, 2026 note
-`docs/research/2026-03-24-auth-flow-endpoints.md`, under “Auth Endpoints,”
-records the observed login-token and custom-token exchange wire shapes.
+The privacy-safe August 11, 2026 authentication observation
+`docs/research/2026-08-11-auth-observation.md` records the reviewed
+authentication request wire shapes.
 
 ## TypeScript callable and auth research
 
@@ -91,14 +91,14 @@ metadata and JSON paths/types; no credentials, phone numbers, codes, tokens,
 or user IDs are present. Privacy-safe negative probes with fake tokens
 confirmed error envelope shapes without using real credentials.
 
-This supersedes the earlier March 24 observation reference for response
-evidence. The March 24 note remains valid for the request shapes it recorded.
+This is the privacy-safe source for the reviewed authentication response
+evidence.
 
 ## Firebase web API key value
 
-The March 24, 2026 browser-interception note
-`docs/research/2026-03-24-auth-flow-endpoints.md`, under "Firebase API Key,"
-records Partiful's public Firebase web API key
+The privacy-safe redacted extract
+`docs/research/2026-08-11-firebase-public-api-key-redacted.md`, under
+"Firebase public API key," records Partiful's public Firebase web API key
 (`AIzaSyCky6PJ7cHRdBKk5X7gjuWERWaKWBHr4_k`). This value is public
 configuration embedded in every Partiful web client; it is not a credential.
 It is required as the `key` query parameter on all Firebase Identity Toolkit
@@ -113,8 +113,8 @@ endpoints require an HTTP `Referer` header matching an allowed pattern.
 A privacy-safe negative probe without a `Referer` header received HTTP 403
 `API_KEY_HTTP_REFERRER_BLOCKED`; probes using the observed
 `Referer: https://partiful.com/` reached the endpoint and returned ordinary
-invalid-input responses. The full allowed Referer set is unknown. Origin was
-not required — probes without an Origin header reached the endpoint.
+invalid-input responses. The full allowed Referer set is unknown. Origin is
+unmodelled and remains unknown.
 
 ## Dated poster catalog observation
 
