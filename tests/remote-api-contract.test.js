@@ -728,4 +728,35 @@ describe('remote API contract', () => {
       }
     }
   });
+
+  it('keeps the historical auth note privacy-safe while retaining redacted transport structure', () => {
+    const source = fs.readFileSync(unsafeAuthSourcePath, 'utf8');
+    for (const marker of [
+      '<redacted-display-name>',
+      '<redacted-phone>',
+      '<redacted-code>',
+      '<redacted-sender>',
+    ]) {
+      expect(source.includes(marker)).toBe(true);
+    }
+    for (const publicTransportFact of [
+      'sendAuthCodeTrusted',
+      'getLoginToken',
+      'accounts:signInWithCustomToken',
+      'accounts:lookup',
+    ]) {
+      expect(source.includes(publicTransportFact)).toBe(true);
+    }
+
+    const privateValuePatterns = [
+      /(?<![\w])\+[1-9]\d{9,14}(?!\d)/,
+      /\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/i,
+      /\beyJ[A-Za-z0-9_-]{12,}\.[A-Za-z0-9_-]{8,}\./,
+      /(?<!\d)\d{6}(?!\d)/,
+      /"(?:displayName|sender|phone|phoneNumber|code)"\s*:\s*"(?!<redacted-)[^"]+"/i,
+    ];
+    for (const pattern of privateValuePatterns) {
+      expect(pattern.test(source)).toBe(false);
+    }
+  });
 });
