@@ -79,6 +79,21 @@ the JSON array to `Poster[]`. This supports the inferred catalog endpoint and
 array transport only. The dated event-image observation is intentionally not
 used for this claim.
 
+## Dated authentication observation (August 11, 2026)
+
+The August 11, 2026 owner-attended authentication observation
+`docs/research/2026-08-11-auth-observation.md`, under "Scope and provenance,"
+records the observed success status (HTTP 200) and response shapes for
+`sendAuthCodeTrusted`, `getLoginToken`, `signInWithCustomToken`,
+`refreshToken`, and `lookupFirebaseUser`. The sanitized evidence artifact at
+`spec/research/auth-evidence-redacted-20260811.json` retains only HTTP
+metadata and JSON paths/types; no credentials, phone numbers, codes, tokens,
+or user IDs are present. Privacy-safe negative probes with fake tokens
+confirmed error envelope shapes without using real credentials.
+
+This supersedes the earlier March 24 observation reference for response
+evidence. The March 24 note remains valid for the request shapes it recorded.
+
 ## Dated poster catalog observation
 
 The unauthenticated, read-only observation in
