@@ -9,12 +9,13 @@ import (
 	"time"
 
 	"github.com/KalebCole/partiful-cli/internal/auth"
+	"github.com/KalebCole/partiful-cli/internal/remote"
 )
 
 const (
 	Version                 = "1.0.0"
 	ProductContractRevision = "2026-08-10.1"
-	RemoteContractRevision  = "2026-08-10.1"
+	RemoteContractRevision  = "2026-08-11.1"
 )
 
 type Request struct {
@@ -33,6 +34,7 @@ type Dependencies struct {
 	CredentialsPath      string
 	CredentialsPathError error
 	Now                  func() time.Time
+	HTTP                 remote.HTTPClient
 }
 
 type commandKind uint8
@@ -43,6 +45,8 @@ const (
 	authStatusCommand
 	authLogoutCommand
 	doctorCommand
+	postersListCommand
+	postersSearchCommand
 )
 
 type commandDefinition struct {
@@ -121,6 +125,43 @@ var commandCatalog = []commandDefinition{
 		failureTypes:  []string{},
 		safety:        readOnlySafety(),
 	},
+	{
+		path:          "posters.list",
+		invocation:    []string{"posters", "list"},
+		kind:          postersListCommand,
+		positionals:   []positionalDefinition{},
+		flags:         collectionFlagDefinitions(),
+		inputSchema:   collectionInputSchema(false),
+		successSchema: posterCollectionSuccessSchema(),
+		failureTypes: []string{
+			"input.invalid",
+			"state.conflict",
+			"remote.unavailable",
+			"contract.protocol_changed",
+		},
+		safety: readOnlySafety(),
+	},
+	{
+		path:        "posters.search",
+		invocation:  []string{"posters", "search"},
+		kind:        postersSearchCommand,
+		positionals: []positionalDefinition{},
+		flags: append([]flagDefinition{{
+			Name:        "--query",
+			Required:    true,
+			Description: "Non-empty poster search text.",
+			TakesValue:  true,
+		}}, collectionFlagDefinitions()...),
+		inputSchema:   collectionInputSchema(true),
+		successSchema: posterCollectionSuccessSchema(),
+		failureTypes: []string{
+			"input.invalid",
+			"state.conflict",
+			"remote.unavailable",
+			"contract.protocol_changed",
+		},
+		safety: readOnlySafety(),
+	},
 }
 
 type positionalDefinition struct {
@@ -133,6 +174,7 @@ type flagDefinition struct {
 	Name        string `json:"name"`
 	Required    bool   `json:"required"`
 	Description string `json:"description"`
+	TakesValue  bool   `json:"-"`
 }
 
 type jsonSchema struct {
@@ -268,6 +310,51 @@ func doctorSuccessSchema() jsonSchema {
 	)
 }
 
+func collectionFlagDefinitions() []flagDefinition {
+	return []flagDefinition{
+		{Name: "--limit", Description: "Maximum items in this result.", TakesValue: true},
+		{Name: "--cursor", Description: "Opaque cursor from the same command and filters.", TakesValue: true},
+		{Name: "--all", Description: "Return multiple pages up to --max-items."},
+		{Name: "--max-items", Description: "Hard result limit for --all.", TakesValue: true},
+	}
+}
+
+func collectionInputSchema(search bool) jsonSchema {
+	properties := map[string]jsonSchema{
+		"limit":    {Type: "integer"},
+		"cursor":   {Type: "string"},
+		"all":      {Type: "boolean"},
+		"maxItems": {Type: "integer"},
+	}
+	required := []string{}
+	if search {
+		properties["query"] = jsonSchema{Type: "string"}
+		required = append(required, "query")
+	}
+	return objectSchema(required, properties)
+}
+
+func posterCollectionSuccessSchema() jsonSchema {
+	nullableInteger := jsonSchema{Type: []string{"integer", "null"}}
+	stringItem := jsonSchema{Type: "string"}
+	stringList := jsonSchema{Type: "array", Items: &stringItem}
+	poster := objectSchema(
+		[]string{"posterId", "name", "url", "contentType", "width", "height", "tags", "categories"},
+		map[string]jsonSchema{
+			"posterId":    {Type: "string"},
+			"name":        {Type: "string"},
+			"url":         {Type: "string", Format: "uri"},
+			"contentType": {Type: "string"},
+			"width":       nullableInteger,
+			"height":      nullableInteger,
+			"tags":        stringList,
+			"categories":  stringList,
+		},
+	)
+	items := jsonSchema{Type: "array", Items: &poster}
+	return objectSchema([]string{"items"}, map[string]jsonSchema{"items": items})
+}
+
 func readOnlySafety() safetyDefinition {
 	return safetyDefinition{
 		Kind:                 "read-only",
@@ -283,11 +370,33 @@ type successEnvelope struct {
 }
 
 type successMeta struct {
-	Command                 string   `json:"command"`
-	CLIVersion              string   `json:"cliVersion"`
-	ProductContractRevision string   `json:"productContractRevision"`
-	RemoteContractRevision  string   `json:"remoteContractRevision"`
-	Warnings                []string `json:"warnings"`
+	Command                 string    `json:"command"`
+	CLIVersion              string    `json:"cliVersion"`
+	ProductContractRevision string    `json:"productContractRevision"`
+	RemoteContractRevision  string    `json:"remoteContractRevision"`
+	Warnings                []string  `json:"warnings"`
+	Page                    *pageMeta `json:"page,omitempty"`
+}
+
+type pageMeta struct {
+	Limit      int     `json:"limit"`
+	NextCursor *string `json:"nextCursor"`
+	HasMore    bool    `json:"hasMore"`
+}
+
+type posterData struct {
+	Items []poster `json:"items"`
+}
+
+type poster struct {
+	PosterID    string   `json:"posterId"`
+	Name        string   `json:"name"`
+	URL         string   `json:"url"`
+	ContentType string   `json:"contentType"`
+	Width       *int     `json:"width"`
+	Height      *int     `json:"height"`
+	Tags        []string `json:"tags"`
+	Categories  []string `json:"categories"`
 }
 
 type versionData struct {
@@ -296,7 +405,7 @@ type versionData struct {
 	RemoteContractRevision  string `json:"remoteContractRevision"`
 }
 
-func Execute(_ context.Context, request Request, dependencies Dependencies) Result {
+func Execute(ctx context.Context, request Request, dependencies Dependencies) Result {
 	argv := make([]string, 0, len(request.Argv))
 	pretty := slices.Contains(request.Argv, "--pretty")
 	seenGlobalFlags := make(map[string]bool)
@@ -465,6 +574,65 @@ func Execute(_ context.Context, request Request, dependencies Dependencies) Resu
 					nil,
 					pretty,
 				)
+			case postersListCommand, postersSearchCommand:
+				options, inputError := parseCollectionOptions(definition, argv)
+				if inputError != nil {
+					return failure(definition.path, 2, *inputError, pretty)
+				}
+				catalog, err := (remote.Client{HTTP: dependencies.HTTP}).GetPosterCatalog(ctx)
+				if err != nil {
+					if errors.Is(err, remote.ErrUnavailable) {
+						return remoteUnavailableFailure(definition.path, pretty)
+					}
+					return protocolChangedFailure(definition.path, pretty)
+				}
+				filteredPosters := catalog.Posters
+				if definition.kind == postersSearchCommand {
+					filteredPosters = filterPosters(catalog.Posters, options.query)
+				}
+				filterHash := normalizedFilterHash(definition.path, options.query)
+				offset := 0
+				if options.cursor != "" {
+					var cursorFailure *cursorValidationFailure
+					offset, cursorFailure = cursorOffset(
+						options.cursor,
+						catalog.PayloadSHA256,
+						filterHash,
+						len(filteredPosters),
+					)
+					if cursorFailure != nil {
+						return failure(definition.path, cursorFailure.exitCode, cursorFailure.body, pretty)
+					}
+				}
+				end := min(offset+options.limit, len(filteredPosters))
+				items := make([]poster, 0, end-offset)
+				for _, remotePoster := range filteredPosters[offset:end] {
+					items = append(items, poster{
+						PosterID:    remotePoster.ID,
+						Name:        remotePoster.Name,
+						URL:         remotePoster.URL,
+						ContentType: remotePoster.ContentType,
+						Width:       remotePoster.Width,
+						Height:      remotePoster.Height,
+						Tags:        remotePoster.Tags,
+						Categories:  remotePoster.Categories,
+					})
+				}
+				var cursor *string
+				hasMore := end < len(filteredPosters)
+				if hasMore {
+					value := nextCursor(
+						catalog.PayloadSHA256,
+						filterHash,
+						end,
+					)
+					cursor = &value
+				}
+				return collectionSuccess(definition.path, posterData{Items: items}, pageMeta{
+					Limit:      options.limit,
+					NextCursor: cursor,
+					HasMore:    hasMore,
+				}, pretty)
 			}
 		}
 	}
@@ -480,6 +648,10 @@ func Execute(_ context.Context, request Request, dependencies Dependencies) Resu
 func (definition commandDefinition) matches(argv []string) bool {
 	if definition.kind == schemaCommand && len(argv) == 2 {
 		return argv[0] == "schema"
+	}
+	if (definition.kind == postersListCommand || definition.kind == postersSearchCommand) &&
+		len(argv) >= len(definition.invocation) {
+		return slices.Equal(argv[:len(definition.invocation)], definition.invocation)
 	}
 	return slices.Equal(argv, definition.invocation)
 }
@@ -633,6 +805,30 @@ func configurationDirectoryFailure(command string, pretty bool) Result {
 	return result
 }
 
+func remoteUnavailableFailure(command string, pretty bool) Result {
+	result := failure(command, 8, errorBody{
+		Type:      "remote.unavailable",
+		Code:      "POSTER_CATALOG_UNAVAILABLE",
+		Message:   "The poster catalog is unavailable.",
+		Retryable: true,
+		Details:   map[string]any{},
+	}, pretty)
+	result.Stderr = "partiful: poster catalog unavailable\n"
+	return result
+}
+
+func protocolChangedFailure(command string, pretty bool) Result {
+	result := failure(command, 9, errorBody{
+		Type:      "contract.protocol_changed",
+		Code:      "POSTER_CATALOG_PROTOCOL_CHANGED",
+		Message:   "The poster catalog no longer matches the reviewed remote contract.",
+		Retryable: false,
+		Details:   map[string]any{},
+	}, pretty)
+	result.Stderr = "partiful: poster catalog protocol changed\n"
+	return result
+}
+
 func success(command string, data any, pretty bool) Result {
 	document := encode(successEnvelope{
 		OK:   true,
@@ -643,6 +839,22 @@ func success(command string, data any, pretty bool) Result {
 			ProductContractRevision: ProductContractRevision,
 			RemoteContractRevision:  RemoteContractRevision,
 			Warnings:                []string{},
+		},
+	}, pretty)
+	return Result{Stdout: document}
+}
+
+func collectionSuccess(command string, data any, page pageMeta, pretty bool) Result {
+	document := encode(successEnvelope{
+		OK:   true,
+		Data: data,
+		Meta: successMeta{
+			Command:                 command,
+			CLIVersion:              Version,
+			ProductContractRevision: ProductContractRevision,
+			RemoteContractRevision:  RemoteContractRevision,
+			Warnings:                []string{},
+			Page:                    &page,
 		},
 	}, pretty)
 	return Result{Stdout: document}

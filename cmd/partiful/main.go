@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"io"
+	"net/http"
 	"os"
 	"time"
 
@@ -20,6 +21,7 @@ func main() {
 		CredentialsPath:      credentialsPath,
 		CredentialsPathError: credentialsPathError,
 		Now:                  time.Now,
+		HTTP:                 http.DefaultClient,
 	})
 
 	_, _ = io.WriteString(os.Stdout, result.Stdout)
