@@ -137,7 +137,6 @@ func (client AuthClient) SignInWithCustomToken(ctx context.Context, token string
 		return SignInWithCustomTokenResponse{}, fmt.Errorf("%w: request", ErrUnavailable)
 	}
 	request.Header.Set("Content-Type", "application/json")
-	request.Header.Set("Origin", "https://partiful.com")
 	request.Header.Set("Referer", "https://partiful.com/")
 	response, err := client.HTTP.Do(request)
 	if err != nil {
@@ -199,7 +198,6 @@ func (client AuthClient) RefreshToken(
 		return RefreshTokenResponse{}, fmt.Errorf("%w: request", ErrUnavailable)
 	}
 	request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-	request.Header.Set("Origin", "https://partiful.com")
 	request.Header.Set("Referer", "https://partiful.com/")
 	response, err := client.HTTP.Do(request)
 	if err != nil {
