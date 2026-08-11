@@ -43,9 +43,14 @@ and a zero-byte body.
 ## Reviewed contract conclusions
 
 The catalog's only accepted success is HTTP `200` with the documented complete
-array representation. Other statuses use the schema-free default response;
-they must not be parsed as catalog success. A `200` body that violates the
-released schema is a protocol change, not a transport failure.
+array representation. The schema-free default response remains an explicit
+unknown. The observed `416` resulted only from a Range request that the
+implementation will not send, so it does not establish ordinary failure
+mapping. A received non-`200` status is unrecognized by this contract revision
+and must fail closed as `contract.protocol_changed`. A no-response or network
+failure may map to `remote.unavailable` as a local transport fact. No
+`remote.rate_limited` mapping is claimed. A `200` body that violates the
+released schema is also `contract.protocol_changed`.
 
 The product mapping is direct and total for its documented output:
 `id` becomes `posterId`; `name`, `url`, `contentType`, `width`, `height`,
@@ -72,4 +77,7 @@ not a claim that the server provides pagination.
 
 These unknowns do not require a runtime fallback. The implementation remains
 gated until this evidence and contract revision receive owner approval and are
-merged.
+merged. Under the fail-closed boundary above, S1 can close without guessing:
+the implementation accepts only the observed `200` representation, maps only
+local no-response/network failures to `remote.unavailable`, and treats every
+received unrecognized status or malformed success body as a protocol change.
