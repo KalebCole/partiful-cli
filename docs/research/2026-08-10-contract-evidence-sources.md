@@ -37,19 +37,14 @@ The March 24, 2026 browser-interception note
 records the nested `message` object used by `createTextBlast`. It is the
 primary evidence that supersedes the historical string-message draft.
 
-## Dated authentication observation
-
-The March 24, 2026 note
-`docs/research/2026-03-24-auth-flow-endpoints.md`, under “Auth Endpoints,”
-records the observed login-token and custom-token exchange wire shapes.
-
 ## TypeScript callable and auth research
 
 Reviewed source evidence is preserved from
 `9e6ed15:src/lib/api/endpoints.ts#L1-L560`,
 `9e6ed15:src/lib/auth.ts#L1-L150`, and
 `9e6ed15:src/commands/auth.ts#L145-L340`. It supports inferred callable
-registration and authentication behavior; it is not a live-server claim.
+registration and authentication request schemas; it is not a live-server
+claim. Authentication request schemas remain TypeScript-derived inferences.
 
 ## TypeScript Firestore research
 
@@ -91,8 +86,30 @@ metadata and JSON paths/types; no credentials, phone numbers, codes, tokens,
 or user IDs are present. Privacy-safe negative probes with fake tokens
 confirmed error envelope shapes without using real credentials.
 
-This supersedes the earlier March 24 observation reference for response
-evidence. The March 24 note remains valid for the request shapes it recorded.
+This is the privacy-safe source for the reviewed authentication response
+evidence.
+
+## Firebase web API key value
+
+The privacy-safe redacted extract
+`docs/research/2026-08-11-firebase-public-api-key-redacted.md`, under
+"Firebase public API key," records Partiful's public Firebase web API key
+(`AIzaSyCky6PJ7cHRdBKk5X7gjuWERWaKWBHr4_k`). This value is public
+configuration embedded in every Partiful web client; it is not a credential.
+It is required as the `key` query parameter on all Firebase Identity Toolkit
+and Secure Token endpoints.
+
+## Firebase API key referrer restriction
+
+The August 11, 2026 authentication observation
+`docs/research/2026-08-11-auth-observation.md`, under "Firebase API key
+referrer restriction," records that Firebase Identity Toolkit and Secure Token
+endpoints require an HTTP `Referer` header matching an allowed pattern.
+A privacy-safe negative probe without a `Referer` header received HTTP 403
+`API_KEY_HTTP_REFERRER_BLOCKED`; probes using the observed
+`Referer: https://partiful.com/` reached the endpoint and returned ordinary
+invalid-input responses. The full allowed Referer set is unknown. Origin is
+unmodelled and remains unknown.
 
 ## Dated poster catalog observation
 

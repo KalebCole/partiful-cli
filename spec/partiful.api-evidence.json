@@ -1,5 +1,5 @@
 {
-  "contractRevision": "2026-08-11.2",
+  "contractRevision": "2026-08-11.3",
   "contractPath": "spec/partiful.openapi.json",
   "allowedClassifications": [
     "dated-live-observation",
@@ -12,7 +12,6 @@
     "unknownStatusDecision": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision",
     "updateMask": "docs/research/2026-08-10-contract-evidence-sources.md#update-mask-serialization",
     "textBlast": "docs/research/2026-08-10-contract-evidence-sources.md#dated-text-blast-observation",
-    "authObservation": "docs/research/2026-08-10-contract-evidence-sources.md#dated-authentication-observation",
     "posterInterface": "docs/research/2026-08-10-contract-evidence-sources.md#poster-interface",
     "posterCatalog": "docs/research/2026-08-10-contract-evidence-sources.md#poster-catalog-fetch",
     "posterCatalogObservation": "docs/research/2026-08-10-contract-evidence-sources.md#dated-poster-catalog-observation",
@@ -22,7 +21,9 @@
     "authLoginToken20260811": "docs/research/2026-08-11-auth-observation.md#getlogintoken",
     "authSignIn20260811": "docs/research/2026-08-11-auth-observation.md#signinwithcustomtoken",
     "authRefresh20260811": "docs/research/2026-08-11-auth-observation.md#refreshtoken",
-    "authLookup20260811": "docs/research/2026-08-11-auth-observation.md#lookupfirebaseuser"
+    "authLookup20260811": "docs/research/2026-08-11-auth-observation.md#lookupfirebaseuser",
+    "firebasePublicApiKeyRedacted": "docs/research/2026-08-11-firebase-public-api-key-redacted.md#firebase-public-api-key",
+    "augRefererRestriction": "docs/research/2026-08-11-auth-observation.md#firebase-api-key-referrer-restriction"
   },
   "operations": {
     "createEvent": {
@@ -312,16 +313,16 @@
       "statusCitation": "docs/research/2026-08-11-auth-observation.md#sendauthcodetrusted"
     },
     "getLoginToken": {
-      "request": "dated-live-observation",
-      "requestCitation": "docs/research/2026-08-10-contract-evidence-sources.md#dated-authentication-observation",
+      "request": "typescript-derived-inference",
+      "requestCitation": "spec/research/historical-27-operation-draft.json#/paths/~1getLoginToken/post",
       "response": "dated-live-observation",
       "responseCitation": "docs/research/2026-08-11-auth-observation.md#getlogintoken",
       "status": "dated-live-observation",
       "statusCitation": "docs/research/2026-08-11-auth-observation.md#getlogintoken"
     },
     "signInWithCustomToken": {
-      "request": "dated-live-observation",
-      "requestCitation": "docs/research/2026-08-10-contract-evidence-sources.md#dated-authentication-observation",
+      "request": "typescript-derived-inference",
+      "requestCitation": "spec/research/historical-27-operation-draft.json#/paths/~1v1~1accounts:signInWithCustomToken/post",
       "response": "dated-live-observation",
       "responseCitation": "docs/research/2026-08-11-auth-observation.md#signinwithcustomtoken",
       "status": "dated-live-observation",
@@ -374,7 +375,8 @@
     "Upload accepted media types, size limits, response variants, and whether uploadType values remain stable.",
     "Poster catalog membership and order can change; exhaustiveness beyond the complete observed endpoint representation is unknown.",
     "Status codes and error bodies for operations without dated observations.",
-    "Unconditional poster-catalog failure statuses and bodies remain unknown; only HTTP 200 is an accepted catalog success."
+    "Unconditional poster-catalog failure statuses and bodies remain unknown; only HTTP 200 is an accepted catalog success.",
+    "The full set of Referer values accepted by the Firebase API-key restriction remains unknown; https://partiful.com/ is the only observed accepted value."
   ],
   "status": "owner-reviewed",
   "claims": {
@@ -4345,6 +4347,70 @@
     "#/paths/~1v1~1token/post/responses/400/content/application~1json/schema/$ref": {
       "classification": "dated-live-observation",
       "citation": "docs/research/2026-08-11-auth-observation.md#refreshtoken"
+    },
+    "#/components/securitySchemes/firebaseApiKey/x-publicValue": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-firebase-public-api-key-redacted.md#firebase-public-api-key"
+    },
+    "#/paths/~1v1~1accounts:lookup/post/parameters/0/in": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#firebase-api-key-referrer-restriction"
+    },
+    "#/paths/~1v1~1accounts:lookup/post/parameters/0/name": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#firebase-api-key-referrer-restriction"
+    },
+    "#/paths/~1v1~1accounts:lookup/post/parameters/0/required": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#firebase-api-key-referrer-restriction"
+    },
+    "#/paths/~1v1~1accounts:lookup/post/parameters/0/schema/const": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#firebase-api-key-referrer-restriction"
+    },
+    "#/paths/~1v1~1accounts:lookup/post/parameters/0/schema/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#firebase-api-key-referrer-restriction"
+    },
+    "#/paths/~1v1~1accounts:signInWithCustomToken/post/parameters/0/in": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#firebase-api-key-referrer-restriction"
+    },
+    "#/paths/~1v1~1accounts:signInWithCustomToken/post/parameters/0/name": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#firebase-api-key-referrer-restriction"
+    },
+    "#/paths/~1v1~1accounts:signInWithCustomToken/post/parameters/0/required": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#firebase-api-key-referrer-restriction"
+    },
+    "#/paths/~1v1~1accounts:signInWithCustomToken/post/parameters/0/schema/const": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#firebase-api-key-referrer-restriction"
+    },
+    "#/paths/~1v1~1accounts:signInWithCustomToken/post/parameters/0/schema/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#firebase-api-key-referrer-restriction"
+    },
+    "#/paths/~1v1~1token/post/parameters/0/in": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#firebase-api-key-referrer-restriction"
+    },
+    "#/paths/~1v1~1token/post/parameters/0/name": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#firebase-api-key-referrer-restriction"
+    },
+    "#/paths/~1v1~1token/post/parameters/0/required": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#firebase-api-key-referrer-restriction"
+    },
+    "#/paths/~1v1~1token/post/parameters/0/schema/const": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#firebase-api-key-referrer-restriction"
+    },
+    "#/paths/~1v1~1token/post/parameters/0/schema/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#firebase-api-key-referrer-restriction"
     }
   },
   "posterCatalogObservation": {

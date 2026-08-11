@@ -7,6 +7,13 @@ import spec from '../spec/partiful.openapi.json';
 const historicalDraftPath = 'spec/research/historical-27-operation-draft.json';
 const historicalDraft = JSON.parse(fs.readFileSync(historicalDraftPath, 'utf8'));
 const sourceCache = new Map([[historicalDraftPath, historicalDraft]]);
+const unsafeAuthSourcePath = 'docs/research/2026-03-24-auth-flow-endpoints.md';
+const safeFirebaseKeySource =
+  'docs/research/2026-08-11-firebase-public-api-key-redacted.md#firebase-public-api-key';
+const humanEvidencePaths = [
+  'docs/research/2026-08-10-contract-evidence-sources.md',
+  'docs/research/2026-08-10-partiful-api-contract-evidence-ledger.md',
+];
 const methods = new Set(['get', 'post', 'put', 'patch', 'delete']);
 const ignoredKeys = new Set(['description', 'summary', 'title']);
 const materialMapKeys = new Set([
@@ -149,7 +156,7 @@ describe('remote API contract', () => {
       ...materialClaimPointers(spec.paths, '#/paths', 'paths'),
       ...materialClaimPointers(spec.components, '#/components', 'components'),
     ]);
-    expect(pointers).toHaveLength(992);
+    expect(pointers).toHaveLength(1008);
     for (const pointer of pointers) {
       const claim = evidence.claims[pointer];
       expect(claim, pointer).toBeDefined();
@@ -655,5 +662,134 @@ describe('remote API contract', () => {
     expect(fb.sendAuthCodeTrusted).not.toHaveProperty('400');
     expect(fb.sendAuthCodeTrusted).not.toHaveProperty('403');
     expect(fb.sendAuthCodeTrusted.otherReceived).toBe('contract.protocol_changed');
+  });
+
+  it('keeps auth request schemas inferred while response and transport facts use observations', () => {
+    const authOperations = [
+      { id: 'sendAuthCodeTrusted', path: '/sendAuthCodeTrusted' },
+      { id: 'getLoginToken', path: '/getLoginToken' },
+      { id: 'signInWithCustomToken', path: '/v1/accounts:signInWithCustomToken' },
+      { id: 'refreshToken', path: '/v1/token' },
+      { id: 'lookupFirebaseUser', path: '/v1/accounts:lookup' },
+    ];
+    for (const { id, path: operationPath } of authOperations) {
+      const escapedPath = escapePointerSegment(operationPath);
+      const sourceOperationPointer = `#/paths/${escapedPath}/post`;
+      const claims = evidence.operationClaims[id];
+      expect(claims.request, `${id} request classification`)
+        .toBe('typescript-derived-inference');
+      expect(claims.requestCitation, `${id} request citation`)
+        .toBe(`${historicalDraftPath}${sourceOperationPointer}`);
+      expect(spec.paths[operationPath].post.requestBody, `${id} request schema`)
+        .toEqual(jsonPointerValue(historicalDraft, `${sourceOperationPointer}/requestBody`));
+      expect(claims.response, `${id} response classification`)
+        .toBe('dated-live-observation');
+      expect(claims.responseCitation, `${id} response citation`)
+        .toContain('2026-08-11-auth-observation.md#');
+    }
+
+    const sourceIndex = fs.readFileSync(humanEvidencePaths[0], 'utf8');
+    expect(sourceIndex).toContain(
+      'Authentication request schemas remain TypeScript-derived inferences.',
+    );
+    expect(sourceIndex).not.toMatch(
+      /authentication observation[^.]*records[^.]*request (?:wire )?shapes/i,
+    );
+  });
+
+  it('models the Firebase transport configuration needed by signInWithCustomToken, refreshToken, and lookupFirebaseUser', () => {
+    // The firebaseApiKey security scheme must carry the public web-key value
+    const apiKeyScheme = spec.components.securitySchemes.firebaseApiKey;
+    expect(apiKeyScheme['x-publicValue']).toBe('AIzaSyCky6PJ7cHRdBKk5X7gjuWERWaKWBHr4_k');
+    expect(evidence.claims['#/components/securitySchemes/firebaseApiKey/x-publicValue']).toBeDefined();
+    expect(evidence.claims['#/components/securitySchemes/firebaseApiKey/x-publicValue'].classification)
+      .toBe('dated-live-observation');
+    expect(evidence.claims['#/components/securitySchemes/firebaseApiKey/x-publicValue'].citation)
+      .toBe(safeFirebaseKeySource);
+
+    // Each Firebase operation must require a Referer header
+    const firebaseOps = [
+      { path: '/v1/accounts:signInWithCustomToken', id: 'signInWithCustomToken' },
+      { path: '/v1/token', id: 'refreshToken' },
+      { path: '/v1/accounts:lookup', id: 'lookupFirebaseUser' },
+    ];
+    for (const { path: opPath, id } of firebaseOps) {
+      const operation = spec.paths[opPath].post;
+      expect(operation.parameters, `${id} has parameters`).toBeDefined();
+      const referer = operation.parameters.find((p) => p.name === 'Referer' && p.in === 'header');
+      expect(referer, `${id} has Referer parameter`).toBeDefined();
+      expect(referer.required, `${id} Referer is required`).toBe(true);
+      expect(referer.schema.const, `${id} Referer value`).toBe('https://partiful.com/');
+
+      // Referer claim must have observation-backed provenance
+      const escaped = escapePointerSegment(opPath);
+      const refererIdx = operation.parameters.indexOf(referer);
+      const constPointer = `#/paths/${escaped}/post/parameters/${refererIdx}/schema/const`;
+      expect(evidence.claims[constPointer], `${id} Referer const claim`).toBeDefined();
+      expect(evidence.claims[constPointer].classification).toBe('dated-live-observation');
+      expect(evidence.claims[constPointer].citation)
+        .toBe(evidence.sources.augRefererRestriction);
+    }
+
+    // Origin is NOT modelled for Firebase operations — evidence does not support it as required
+    for (const { path: opPath, id } of firebaseOps) {
+      const operation = spec.paths[opPath].post;
+      const origin = (operation.parameters ?? []).find((p) => p.name === 'Origin');
+      expect(origin, `${id} must not claim Origin`).toBeUndefined();
+    }
+    expect(evidence.unresolvedUncertainty).toContain(
+      'The full set of Referer values accepted by the Firebase API-key restriction remains unknown; https://partiful.com/ is the only observed accepted value.',
+    );
+  });
+
+  it('keeps unsafe auth evidence and unsupported Origin claims out of contract provenance', () => {
+    const registeredProvenance = JSON.stringify(evidence);
+    expect(registeredProvenance.includes(unsafeAuthSourcePath)).toBe(false);
+    expect(evidence.sources.firebasePublicApiKeyRedacted).toBe(safeFirebaseKeySource);
+    expect(citationResolves(safeFirebaseKeySource)).toBe(true);
+
+    const unsupportedOriginClaims = [
+      /probes?[^.]*without (?:an )?Origin/i,
+      /Origin (?:was|is) not required/i,
+      /succeeded without Origin/i,
+    ];
+    for (const evidencePath of humanEvidencePaths) {
+      const content = fs.readFileSync(evidencePath, 'utf8');
+      expect(content, evidencePath).not.toContain(unsafeAuthSourcePath);
+      for (const claim of unsupportedOriginClaims) {
+        expect(content, evidencePath).not.toMatch(claim);
+      }
+    }
+  });
+
+  it('keeps the historical auth note privacy-safe while retaining redacted transport structure', () => {
+    const source = fs.readFileSync(unsafeAuthSourcePath, 'utf8');
+    for (const marker of [
+      '<redacted-display-name>',
+      '<redacted-phone>',
+      '<redacted-code>',
+      '<redacted-sender>',
+    ]) {
+      expect(source.includes(marker)).toBe(true);
+    }
+    for (const publicTransportFact of [
+      'sendAuthCodeTrusted',
+      'getLoginToken',
+      'accounts:signInWithCustomToken',
+      'accounts:lookup',
+    ]) {
+      expect(source.includes(publicTransportFact)).toBe(true);
+    }
+
+    const privateValuePatterns = [
+      /(?<![\w])\+[1-9]\d{9,14}(?!\d)/,
+      /\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/i,
+      /\beyJ[A-Za-z0-9_-]{12,}\.[A-Za-z0-9_-]{8,}\./,
+      /(?<!\d)\d{6}(?!\d)/,
+      /"(?:displayName|sender|phone|phoneNumber|code)"\s*:\s*"(?!<redacted-)[^"]+"/i,
+    ];
+    for (const pattern of privateValuePatterns) {
+      expect(pattern.test(source)).toBe(false);
+    }
   });
 });
