@@ -2,8 +2,8 @@
   "openapi": "3.1.0",
   "info": {
     "title": "Partiful remote API contract",
-    "version": "2026-08-11.3",
-    "description": "Owner-reviewed, versioned remote-only transport snapshot. Evidence classifications and uncertainty are recorded in spec/partiful.api-evidence.json."
+    "version": "2026-08-11.4",
+    "description": "Proposed, versioned remote-only transport snapshot. Evidence classifications and uncertainty are recorded in spec/partiful.api-evidence.json."
   },
   "servers": [
     {

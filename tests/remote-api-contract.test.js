@@ -14,6 +14,10 @@ const humanEvidencePaths = [
   'docs/research/2026-08-10-contract-evidence-sources.md',
   'docs/research/2026-08-10-partiful-api-contract-evidence-ledger.md',
 ];
+const originEvidencePaths = [
+  ...humanEvidencePaths,
+  'docs/research/2026-08-11-auth-observation.md',
+];
 const methods = new Set(['get', 'post', 'put', 'patch', 'delete']);
 const ignoredKeys = new Set(['description', 'summary', 'title']);
 const materialMapKeys = new Set([
@@ -116,8 +120,9 @@ function citationResolves(citation) {
 describe('remote API contract', () => {
   it('is a consistently versioned OpenAPI 3.1 document with unique operation IDs', () => {
     expect(spec.openapi).toBe('3.1.0');
+    expect(evidence.contractRevision).toBe('2026-08-11.4');
     expect(spec.info.version).toBe(evidence.contractRevision);
-    expect(evidence.status).toBe('owner-reviewed');
+    expect(evidence.status).toBe('proposed');
     const ids = operations().map(({ operation }) => operation.operationId);
     expect(ids).toHaveLength(27);
     expect(new Set(ids).size).toBe(ids.length);
@@ -733,12 +738,23 @@ describe('remote API contract', () => {
 
     // Origin is NOT modelled for Firebase operations — evidence does not support it as required
     for (const { path: opPath, id } of firebaseOps) {
-      const operation = spec.paths[opPath].post;
-      const origin = (operation.parameters ?? []).find((p) => p.name === 'Origin');
+      const pathItem = spec.paths[opPath];
+      const parameters = [
+        ...(pathItem.parameters ?? []),
+        ...(pathItem.post.parameters ?? []),
+      ];
+      const origin = parameters.find(
+        (parameter) =>
+          parameter.in === 'header' &&
+          parameter.name?.toLowerCase() === 'origin',
+      );
       expect(origin, `${id} must not claim Origin`).toBeUndefined();
     }
     expect(evidence.unresolvedUncertainty).toContain(
       'The full set of Referer values accepted by the Firebase API-key restriction remains unknown; https://partiful.com/ is the only observed accepted value.',
+    );
+    expect(evidence.unresolvedUncertainty).toContain(
+      'Origin remains unmodelled and unknown because reviewed evidence establishes no Origin request fact.',
     );
   });
 
@@ -753,7 +769,7 @@ describe('remote API contract', () => {
       /Origin (?:was|is) not required/i,
       /succeeded without Origin/i,
     ];
-    for (const evidencePath of humanEvidencePaths) {
+    for (const evidencePath of originEvidencePaths) {
       const content = fs.readFileSync(evidencePath, 'utf8');
       expect(content, evidencePath).not.toContain(unsafeAuthSourcePath);
       for (const claim of unsupportedOriginClaims) {
