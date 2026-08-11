@@ -358,6 +358,74 @@ func TestExecutePostersListAllStopsAtMaxItems(t *testing.T) {
 	}
 }
 
+func TestExecutePostersListAllResumesFromReturnedCursor(t *testing.T) {
+	const catalog = `[
+		{"id":"one","name":"One","url":"https://example.invalid/one.png","contentType":"image/png","width":1,"height":1,"tags":[],"categories":[]},
+		{"id":"two","name":"Two","url":"https://example.invalid/two.png","contentType":"image/png","width":1,"height":1,"tags":[],"categories":[]},
+		{"id":"three","name":"Three","url":"https://example.invalid/three.png","contentType":"image/png","width":1,"height":1,"tags":[],"categories":[]},
+		{"id":"four","name":"Four","url":"https://example.invalid/four.png","contentType":"image/png","width":1,"height":1,"tags":[],"categories":[]},
+		{"id":"five","name":"Five","url":"https://example.invalid/five.png","contentType":"image/png","width":1,"height":1,"tags":[],"categories":[]}
+	]`
+	dependencies := withTestCursorCrypto(app.Dependencies{
+		HTTP: scriptedHTTP{do: func(*http.Request) (*http.Response, error) {
+			return &http.Response{
+				StatusCode: http.StatusOK,
+				Header:     http.Header{"Content-Type": {"application/json"}},
+				Body:       io.NopCloser(strings.NewReader(catalog)),
+			}, nil
+		}},
+	})
+	first := app.Execute(context.Background(), app.Request{
+		Argv:  []string{"posters", "list", "--all", "--max-items", "2"},
+		Stdin: strings.NewReader(""),
+	}, dependencies)
+	var firstEnvelope struct {
+		Meta struct {
+			Page struct {
+				NextCursor string `json:"nextCursor"`
+			} `json:"page"`
+		} `json:"meta"`
+	}
+	if err := json.Unmarshal([]byte(first.Stdout), &firstEnvelope); err != nil {
+		t.Fatalf("decode first stdout: %v", err)
+	}
+
+	second := app.Execute(context.Background(), app.Request{
+		Argv: []string{
+			"posters", "list",
+			"--all", "--max-items", "2",
+			"--cursor", firstEnvelope.Meta.Page.NextCursor,
+		},
+		Stdin: strings.NewReader(""),
+	}, dependencies)
+	var secondEnvelope struct {
+		Data struct {
+			Items []struct {
+				PosterID string `json:"posterId"`
+			} `json:"items"`
+		} `json:"data"`
+		Meta struct {
+			Page struct {
+				NextCursor *string `json:"nextCursor"`
+				HasMore    bool    `json:"hasMore"`
+			} `json:"page"`
+		} `json:"meta"`
+	}
+	if err := json.Unmarshal([]byte(second.Stdout), &secondEnvelope); err != nil {
+		t.Fatalf("decode second stdout: %v", err)
+	}
+	var got []string
+	for _, item := range secondEnvelope.Data.Items {
+		got = append(got, item.PosterID)
+	}
+	if second.ExitCode != 0 || !reflect.DeepEqual(got, []string{"three", "four"}) {
+		t.Fatalf("second result = %#v, IDs = %v, want resumed all page", second, got)
+	}
+	if !secondEnvelope.Meta.Page.HasMore || secondEnvelope.Meta.Page.NextCursor == nil {
+		t.Fatalf("second page = %#v, want another resumable boundary", secondEnvelope.Meta.Page)
+	}
+}
+
 func TestExecutePostersListRejectsCursorWhenPayloadChanges(t *testing.T) {
 	const firstCatalog = `[
 		{"id":"one","name":"One","url":"https://example.invalid/one.png","contentType":"image/png","width":1,"height":1,"tags":[],"categories":[]},
@@ -428,8 +496,9 @@ func TestExecuteSchemaProjectsPosterSearchDefinition(t *testing.T) {
 				Required bool   `json:"required"`
 			} `json:"flags"`
 			InputSchema struct {
-				Required   []string `json:"required"`
-				Properties map[string]struct {
+				Required          []string            `json:"required"`
+				DependentRequired map[string][]string `json:"dependentRequired"`
+				Properties        map[string]struct {
 					Minimum   *int `json:"minimum"`
 					Maximum   *int `json:"maximum"`
 					MinLength *int `json:"minLength"`
@@ -469,6 +538,17 @@ func TestExecuteSchemaProjectsPosterSearchDefinition(t *testing.T) {
 	}
 	if !reflect.DeepEqual(envelope.Data.InputSchema.Required, []string{"query"}) {
 		t.Fatalf("required inputs = %v, want query", envelope.Data.InputSchema.Required)
+	}
+	wantDependencies := map[string][]string{
+		"all":      {"maxItems"},
+		"maxItems": {"all"},
+	}
+	if !reflect.DeepEqual(envelope.Data.InputSchema.DependentRequired, wantDependencies) {
+		t.Fatalf(
+			"input dependencies = %#v, want %#v",
+			envelope.Data.InputSchema.DependentRequired,
+			wantDependencies,
+		)
 	}
 	limit := envelope.Data.InputSchema.Properties["limit"]
 	maxItems := envelope.Data.InputSchema.Properties["maxItems"]

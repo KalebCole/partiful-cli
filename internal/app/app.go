@@ -192,6 +192,7 @@ type jsonSchema struct {
 	Minimum              *int                  `json:"minimum,omitempty"`
 	Maximum              *int                  `json:"maximum,omitempty"`
 	MinLength            *int                  `json:"minLength,omitempty"`
+	DependentRequired    map[string][]string   `json:"dependentRequired,omitempty"`
 	Items                *jsonSchema           `json:"items,omitempty"`
 	OneOf                []jsonSchema          `json:"oneOf,omitempty"`
 }
@@ -342,7 +343,12 @@ func collectionInputSchema(search bool) jsonSchema {
 		properties["query"] = jsonSchema{Type: "string", MinLength: &one}
 		required = append(required, "query")
 	}
-	return objectSchema(required, properties)
+	schema := objectSchema(required, properties)
+	schema.DependentRequired = map[string][]string{
+		"all":      {"maxItems"},
+		"maxItems": {"all"},
+	}
+	return schema
 }
 
 func posterCollectionSuccessSchema() jsonSchema {
