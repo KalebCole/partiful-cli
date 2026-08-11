@@ -2,7 +2,7 @@
 
 **Status:** Approved product contract  
 **Product contract revision:** `2026-08-10.1`  
-**Remote API contract revision:** `2026-08-10.1`
+**Remote API contract revision:** `2026-08-11.1`
 
 This document defines the public behavior of the greenfield Go `partiful` CLI.
 It is the authority for commands, inputs, JSON outputs, failures, and mutation
@@ -78,7 +78,7 @@ Every successful command returns:
     "command": "events.get",
     "cliVersion": "1.0.0",
     "productContractRevision": "2026-08-10.1",
-    "remoteContractRevision": "2026-08-10.1",
+    "remoteContractRevision": "2026-08-11.1",
     "warnings": []
   }
 }
@@ -102,7 +102,7 @@ Every failed command returns:
     "command": "guests.list",
     "cliVersion": "1.0.0",
     "productContractRevision": "2026-08-10.1",
-    "remoteContractRevision": "2026-08-10.1"
+    "remoteContractRevision": "2026-08-11.1"
   }
 }
 ```
@@ -150,7 +150,7 @@ Collection commands return:
     "command": "events.list",
     "cliVersion": "1.0.0",
     "productContractRevision": "2026-08-10.1",
-    "remoteContractRevision": "2026-08-10.1",
+    "remoteContractRevision": "2026-08-11.1",
     "warnings": [],
     "page": {
       "limit": 25,
@@ -203,7 +203,7 @@ remote mutation:
     "command": "events.update",
     "cliVersion": "1.0.0",
     "productContractRevision": "2026-08-10.1",
-    "remoteContractRevision": "2026-08-10.1",
+    "remoteContractRevision": "2026-08-11.1",
     "warnings": []
   }
 }
@@ -598,8 +598,8 @@ Both commands return `Poster` items:
 }
 ```
 
-Poster output depends on the inferred poster catalog and remains behind its
-implementation gate until the response is observed and reviewed.
+Poster output uses the observed catalog mapping in remote API contract revision
+`2026-08-11.1`.
 
 ### Local discovery and diagnostics
 
