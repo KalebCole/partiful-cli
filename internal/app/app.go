@@ -182,7 +182,7 @@ type flagDefinition struct {
 }
 
 type jsonSchema struct {
-	Type                 any                   `json:"type"`
+	Type                 any                   `json:"type,omitempty"`
 	AdditionalProperties *bool                 `json:"additionalProperties,omitempty"`
 	Required             []string              `json:"required,omitempty"`
 	Properties           map[string]jsonSchema `json:"properties,omitempty"`
@@ -191,6 +191,7 @@ type jsonSchema struct {
 	Minimum              *int                  `json:"minimum,omitempty"`
 	Maximum              *int                  `json:"maximum,omitempty"`
 	MinLength            *int                  `json:"minLength,omitempty"`
+	Pattern              string                `json:"pattern,omitempty"`
 	DependentRequired    map[string][]string   `json:"dependentRequired,omitempty"`
 	Items                *jsonSchema           `json:"items,omitempty"`
 	OneOf                []jsonSchema          `json:"oneOf,omitempty"`
@@ -335,13 +336,13 @@ func collectionInputSchema(search bool) jsonSchema {
 	oneThousand := 1000
 	properties := map[string]jsonSchema{
 		"limit":    {Type: "integer", Minimum: &one, Maximum: &oneHundred},
-		"cursor":   {Type: "string"},
+		"cursor":   {Type: "string", MinLength: &one},
 		"all":      {Type: "boolean"},
 		"maxItems": {Type: "integer", Minimum: &one, Maximum: &oneThousand},
 	}
 	required := []string{}
 	if search {
-		properties["query"] = jsonSchema{Type: "string", MinLength: &one}
+		properties["query"] = jsonSchema{Type: "string", MinLength: &one, Pattern: `\S`}
 		required = append(required, "query")
 	}
 	schema := objectSchema(required, properties)
@@ -604,7 +605,7 @@ func Execute(ctx context.Context, request Request, dependencies Dependencies) Re
 				var decodedCursor cursorPayload
 				var cursorKey []byte
 				var err error
-				if options.cursor != "" {
+				if options.cursorProvided {
 					cursorKey, err = loadCursorKey(dependencies)
 					if err != nil {
 						return internalFailure(definition.path, pretty)
@@ -627,7 +628,7 @@ func Execute(ctx context.Context, request Request, dependencies Dependencies) Re
 					filteredPosters = filterPosters(catalog.Posters, options.query)
 				}
 				offset := 0
-				if options.cursor != "" {
+				if options.cursorProvided {
 					var cursorFailure *cursorValidationFailure
 					offset, cursorFailure = cursorSnapshotOffset(
 						decodedCursor,

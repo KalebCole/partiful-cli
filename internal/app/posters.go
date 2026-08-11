@@ -22,11 +22,12 @@ const (
 )
 
 type collectionOptions struct {
-	limit  int
-	cursor string
-	all    bool
-	max    int
-	query  string
+	limit          int
+	cursor         string
+	cursorProvided bool
+	all            bool
+	max            int
+	query          string
 }
 
 type cursorPayload struct {
@@ -61,7 +62,11 @@ func parseCollectionOptions(definition commandDefinition, argv []string) (collec
 		}
 		options.limit = limit
 	}
-	options.cursor = values["--cursor"]
+	options.cursor, options.cursorProvided = values["--cursor"]
+	if options.cursorProvided && options.cursor == "" {
+		failure := invalidCursorFailure()
+		return collectionOptions{}, &failure.body
+	}
 	_, options.all = values["--all"]
 	if definition.kind == postersSearchCommand {
 		options.query = strings.ToLower(strings.TrimSpace(values["--query"]))

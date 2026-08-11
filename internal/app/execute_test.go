@@ -504,9 +504,10 @@ func TestExecuteSchemaProjectsPosterSearchDefinition(t *testing.T) {
 					} `json:"not"`
 				} `json:"allOf"`
 				Properties map[string]struct {
-					Minimum   *int `json:"minimum"`
-					Maximum   *int `json:"maximum"`
-					MinLength *int `json:"minLength"`
+					Minimum   *int   `json:"minimum"`
+					Maximum   *int   `json:"maximum"`
+					MinLength *int   `json:"minLength"`
+					Pattern   string `json:"pattern"`
 				} `json:"properties"`
 			} `json:"inputSchema"`
 			SuccessSchema struct {
@@ -568,12 +569,18 @@ func TestExecuteSchemaProjectsPosterSearchDefinition(t *testing.T) {
 	limit := envelope.Data.InputSchema.Properties["limit"]
 	maxItems := envelope.Data.InputSchema.Properties["maxItems"]
 	query := envelope.Data.InputSchema.Properties["query"]
+	cursor := envelope.Data.InputSchema.Properties["cursor"]
 	if limit.Minimum == nil || *limit.Minimum != 1 ||
 		limit.Maximum == nil || *limit.Maximum != 100 ||
 		maxItems.Minimum == nil || *maxItems.Minimum != 1 ||
 		maxItems.Maximum == nil || *maxItems.Maximum != 1000 ||
-		query.MinLength == nil || *query.MinLength != 1 {
+		query.MinLength == nil || *query.MinLength != 1 ||
+		query.Pattern != `\S` ||
+		cursor.MinLength == nil || *cursor.MinLength != 1 {
 		t.Fatalf("input constraints = %#v, want documented collection bounds", envelope.Data.InputSchema.Properties)
+	}
+	if strings.Contains(result.Stdout, `"type":null`) {
+		t.Fatalf("schema contains invalid null type: %s", result.Stdout)
 	}
 	wantPosterFields := []string{"posterId", "name", "url", "contentType", "width", "height", "tags", "categories"}
 	if got := envelope.Data.SuccessSchema.Properties["items"].Items.Required; !reflect.DeepEqual(got, wantPosterFields) {
@@ -901,6 +908,24 @@ func TestExecutePostersListRejectsLimitAboveMaximum(t *testing.T) {
 	}
 	if result.Stdout != want {
 		t.Fatalf("stdout = %q, want %q", result.Stdout, want)
+	}
+}
+
+func TestExecutePostersListRejectsEmptyCursor(t *testing.T) {
+	result := app.Execute(context.Background(), app.Request{
+		Argv:  []string{"posters", "list", "--cursor", ""},
+		Stdin: strings.NewReader(""),
+	}, app.Dependencies{})
+
+	const want = `{"ok":false,"error":{"type":"input.invalid","code":"CURSOR_INVALID","message":"The cursor is malformed.","retryable":false,"details":{}},"meta":{"command":"posters.list","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.1"}}` + "\n"
+	if result.ExitCode != 2 {
+		t.Fatalf("exit code = %d, want 2", result.ExitCode)
+	}
+	if result.Stdout != want {
+		t.Fatalf("stdout = %q, want %q", result.Stdout, want)
+	}
+	if result.Stderr != "" {
+		t.Fatalf("stderr = %q, want empty", result.Stderr)
 	}
 }
 
