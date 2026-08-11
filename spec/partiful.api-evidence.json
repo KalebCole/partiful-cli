@@ -378,7 +378,7 @@
     "Unconditional poster-catalog failure statuses and bodies remain unknown; only HTTP 200 is an accepted catalog success.",
     "The full set of Referer values accepted by the Firebase API-key restriction remains unknown; https://partiful.com/ is the only observed accepted value."
   ],
-  "status": "proposed",
+  "status": "owner-reviewed",
   "claims": {
     "#/servers/0/url": {
       "classification": "typescript-derived-inference",

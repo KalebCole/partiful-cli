@@ -3,7 +3,7 @@
   "info": {
     "title": "Partiful remote API contract",
     "version": "2026-08-11.3",
-    "description": "Proposed remote-only transport snapshot (pending owner approval). Evidence classifications and uncertainty are recorded in spec/partiful.api-evidence.json."
+    "description": "Owner-reviewed, versioned remote-only transport snapshot. Evidence classifications and uncertainty are recorded in spec/partiful.api-evidence.json."
   },
   "servers": [
     {
