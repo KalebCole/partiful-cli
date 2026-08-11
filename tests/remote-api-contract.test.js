@@ -130,7 +130,11 @@ describe('remote API contract', () => {
       expect(allowed.has(claim.response)).toBe(true);
       expect(citationResolves(claim.requestCitation), operation.operationId).toBe(true);
       expect(citationResolves(claim.responseCitation), operation.operationId).toBe(true);
-      expect(claim.status).toBe('explicit-unknown');
+      expect(claim.status).toBe(
+        operation.operationId === 'getPosterCatalog'
+          ? 'dated-live-observation'
+          : 'explicit-unknown',
+      );
       expect(citationResolves(claim.statusCitation), operation.operationId).toBe(true);
     }
     const pointers = new Set([
@@ -138,7 +142,7 @@ describe('remote API contract', () => {
       ...materialClaimPointers(spec.paths, '#/paths', 'paths'),
       ...materialClaimPointers(spec.components, '#/components', 'components'),
     ]);
-    expect(pointers).toHaveLength(819);
+    expect(pointers).toHaveLength(833);
     for (const pointer of pointers) {
       const claim = evidence.claims[pointer];
       expect(claim, pointer).toBeDefined();
@@ -178,8 +182,13 @@ describe('remote API contract', () => {
 
   it('does not assert an unknown status code as a success response', () => {
     for (const { operation } of operations()) {
-      expect(Object.keys(operation.responses)).toEqual(['default']);
-      expect(evidence.operationClaims[operation.operationId].status).toBe('explicit-unknown');
+      if (operation.operationId === 'getPosterCatalog') {
+        expect(Object.keys(operation.responses)).toEqual(['200', 'default']);
+        expect(evidence.operationClaims[operation.operationId].status).toBe('dated-live-observation');
+      } else {
+        expect(Object.keys(operation.responses)).toEqual(['default']);
+        expect(evidence.operationClaims[operation.operationId].status).toBe('explicit-unknown');
+      }
     }
   });
 
@@ -202,8 +211,13 @@ describe('remote API contract', () => {
       expect(evidence.claims[base].citation).toBe(evidence.sources.unknownStatusDecision);
       expect(operation.responses.default).not.toHaveProperty('content');
       const operationClaim = evidence.operationClaims[operation.operationId];
-      expect(operationClaim.response).toBe('explicit-unknown');
-      expect(operationClaim.responseCitation).toBe(evidence.sources.unknownStatusDecision);
+      if (operation.operationId === 'getPosterCatalog') {
+        expect(operationClaim.response).toBe('dated-live-observation');
+        expect(operationClaim.responseCitation).toBe(evidence.sources.posterCatalogObservation);
+      } else {
+        expect(operationClaim.response).toBe('explicit-unknown');
+        expect(operationClaim.responseCitation).toBe(evidence.sources.unknownStatusDecision);
+      }
     }
   });
 
@@ -218,11 +232,8 @@ describe('remote API contract', () => {
       if (claim.citation === evidence.sources.updateMask) {
         expect(pointer).toMatch(/updateMask\.fieldPaths|parameters\/1\/(?:style|explode)$/);
       }
-      if (claim.citation === evidence.sources.posterCatalog) {
-        expect(pointer).toContain('~1posters.json');
-      }
-      if (claim.citation === evidence.sources.posterInterface) {
-        expect(pointer).toContain('/schemas/Poster');
+      if (claim.citation === evidence.sources.posterCatalogObservation) {
+        expect(pointer.includes('~1posters.json') || pointer.includes('/schemas/Poster')).toBe(true);
       }
     }
   });
@@ -270,9 +281,26 @@ describe('remote API contract', () => {
       'docs/research/2026-08-10-partiful-api-contract-evidence-ledger.md',
       'utf8',
     );
-    for (const operationId of ['sendAuthCodeTrusted', 'lookupFirebaseUser']) {
-      expect(evidence.operations[operationId].classification).toBe('typescript-derived-inference');
-      expect(ledger).toContain('`' + operationId + '` is a TypeScript-derived inference');
+    const knownOperationIds = new Set(Object.keys(evidence.operations));
+    const documentedOperations = (heading) => {
+      const marker = `### ${heading}\n`;
+      const start = ledger.indexOf(marker);
+      expect(start, heading).toBeGreaterThanOrEqual(0);
+      const section = ledger.slice(start + marker.length).split(/\n#{2,6} /)[0];
+      return [...section.matchAll(/`([^`]+)`/g)]
+        .map((match) => match[1])
+        .filter((operationId) => knownOperationIds.has(operationId))
+        .sort();
+    };
+    for (const [heading, classification] of [
+      ['Dated-live operations', 'dated-live-observation'],
+      ['TypeScript-derived operations', 'typescript-derived-inference'],
+    ]) {
+      const machineOperations = Object.entries(evidence.operations)
+        .filter(([, operation]) => operation.classification === classification)
+        .map(([operationId]) => operationId)
+        .sort();
+      expect(documentedOperations(heading)).toEqual(machineOperations);
     }
   });
 
@@ -281,15 +309,95 @@ describe('remote API contract', () => {
     expect(jsonPointerValue(historicalDraft, '#/openapi')).not.toEqual(spec.info.version);
   });
 
-  it('does not treat the event-image observation as poster-catalog evidence', () => {
+  it('records the observed poster catalog without borrowing event-image evidence', () => {
     const posterOperation = evidence.operations.getPosterCatalog;
-    expect(posterOperation.classification).toBe('typescript-derived-inference');
-    expect(posterOperation.citation).toBe(evidence.sources.posterCatalog);
+    expect(posterOperation.classification).toBe('dated-live-observation');
+    expect(posterOperation.citation).toBe(evidence.sources.posterCatalogObservation);
     expect(evidence.sources).not.toHaveProperty('eventImageObservation');
     for (const [pointer, claim] of Object.entries(evidence.claims)) {
       if (pointer.includes('/posters.json') || pointer.includes('/Poster')) {
         expect(claim.citation).not.toBe(evidence.sources.eventImageObservation);
       }
     }
+  });
+
+  it('captures the complete poster response needed for bounded local pagination', () => {
+    const operation = spec.paths['/posters.json'].get;
+    expect(operation.responses['200']).toEqual({
+      description: 'Complete poster catalog.',
+      content: {
+        'application/json': {
+          schema: {
+            type: 'array',
+            items: { $ref: '#/components/schemas/Poster' },
+          },
+        },
+      },
+    });
+    expect(operation.responses.default).not.toHaveProperty('content');
+    expect(evidence.claims['#/paths/~1posters.json/get/operationId']).toEqual({
+      classification: 'typescript-derived-inference',
+      citation:
+        'spec/research/historical-27-operation-draft.json#/paths/~1posters.json/get/operationId',
+    });
+
+    const poster = spec.components.schemas.Poster;
+    expect(poster.required).toEqual([
+      'id',
+      'name',
+      'url',
+      'contentType',
+      'width',
+      'height',
+      'tags',
+      'categories',
+    ]);
+    expect(poster.properties.width.type).toEqual(['integer', 'null']);
+    expect(poster.properties.height.type).toEqual(['integer', 'null']);
+    expect(poster.properties.tags.items.type).toBe('string');
+    expect(poster.properties.categories.items.type).toBe('string');
+    for (const pointer of [
+      '#/components/schemas/Poster/properties/blurHash',
+      '#/components/schemas/Poster/properties/blurHash/type',
+      '#/components/schemas/Poster/additionalProperties',
+    ]) {
+      expect(evidence.claims[pointer]).toEqual({
+        classification: 'typescript-derived-inference',
+        citation: evidence.sources.posterInterface,
+      });
+    }
+
+    expect(evidence.posterCatalogObservation).toMatchObject({
+      sourceCitation: 'docs/research/2026-08-11-poster-catalog-observation.md#scope-and-provenance',
+      observedAt: '2026-08-11T01:08:30Z',
+      status: 200,
+      mediaType: 'application/json',
+      topLevel: 'array',
+      itemCount: 2114,
+      payloadBytes: 1125932,
+      payloadSha256: '35e22005b19dd5795cecf582dee4c4fe4ddc5349e3142f0aae8014f4e471cc6e',
+      completeRepresentation: true,
+      allProductFieldsPresent: true,
+      duplicateIdEntries: 1,
+      contentTypeVerifiedAt: '2026-08-11T01:42:58Z',
+      contentTypes: ['image/avif', 'image/gif', 'image/jpeg', 'image/png'],
+    });
+    expect(citationResolves(evidence.posterCatalogObservation.sourceCitation)).toBe(true);
+    expect(evidence.posterCatalogObservation.pagination).toEqual({
+      remotePagination: false,
+      localPagination: 'full-representation',
+      resumeBinding: 'payload-sha256-normalized-filters-and-next-offset',
+    });
+    expect(evidence.posterCatalogObservation.failureObservation).toEqual({
+      requestCondition: 'unsatisfiable-byte-range',
+      status: 416,
+      bodyBytes: 0,
+    });
+    expect(evidence.posterCatalogObservation.failureBoundary).toEqual({
+      noResponse: 'remote.unavailable',
+      receivedNon200: 'contract.protocol_changed',
+      malformedSuccess: 'contract.protocol_changed',
+      rateLimiting: 'not-claimed',
+    });
   });
 });
