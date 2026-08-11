@@ -2,16 +2,19 @@ package main
 
 import (
 	"context"
+	"crypto/rand"
 	"io"
 	"os"
 	"time"
 
 	"github.com/KalebCole/partiful-cli/internal/app"
 	"github.com/KalebCole/partiful-cli/internal/auth"
+	"github.com/KalebCole/partiful-cli/internal/remote"
 )
 
 func main() {
 	credentialsPath, credentialsPathError := auth.DefaultCredentialsPath()
+	cursorKeyPath, _ := app.DefaultCursorKeyPath()
 	result := app.Execute(context.Background(), app.Request{
 		Argv:  os.Args[1:],
 		Stdin: os.Stdin,
@@ -20,6 +23,9 @@ func main() {
 		CredentialsPath:      credentialsPath,
 		CredentialsPathError: credentialsPathError,
 		Now:                  time.Now,
+		HTTP:                 remote.NewHTTPClient(nil),
+		CursorKeys:           app.FileCursorKeyProvider{Path: cursorKeyPath},
+		CursorRandom:         rand.Reader,
 	})
 
 	_, _ = io.WriteString(os.Stdout, result.Stdout)
