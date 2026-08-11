@@ -313,6 +313,10 @@ Authentication response bodies are limited to 64 KiB. A larger successful or
 error response does not enter output and fails closed as
 `contract.protocol_changed`.
 
+A successful token lifetime must exceed the five-minute refresh window so
+login and refresh can return `healthy`. A shorter lifetime fails closed as
+`contract.protocol_changed` rather than creating a refresh loop.
+
 ## Public commands
 
 ### Events

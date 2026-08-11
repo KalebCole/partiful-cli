@@ -23,6 +23,7 @@ const (
 	firebaseTokenHost    = "https://securetoken.googleapis.com"
 	firebaseProjectKey   = "AIzaSyCky6PJ7cHRdBKk5X7gjuWERWaKWBHr4_k"
 	maximumAuthBodyBytes = 64 << 10
+	refreshWindow        = 5 * time.Minute
 )
 
 type AuthClient struct {
@@ -250,7 +251,11 @@ func parseExpiresIn(value string) (time.Duration, error) {
 	if seconds > math.MaxInt64/int64(time.Second) {
 		return 0, auth.ErrRemoteProtocolChanged
 	}
-	return time.Duration(seconds) * time.Second, nil
+	duration := time.Duration(seconds) * time.Second
+	if duration <= refreshWindow {
+		return 0, auth.ErrRemoteProtocolChanged
+	}
+	return duration, nil
 }
 
 func (client AuthClient) callablePost(

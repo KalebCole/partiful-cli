@@ -1702,6 +1702,42 @@ func TestExecuteAuthLoginRejectsInvalidOptionalFirebaseSuccessField(t *testing.T
 	}
 }
 
+func TestExecuteAuthLoginRejectsTokenInsideRefreshWindow(t *testing.T) {
+	call := 0
+	result := app.Execute(context.Background(), app.Request{
+		Argv: []string{"auth", "login"},
+	}, app.Dependencies{
+		Files:           &memoryFilesystem{files: map[string][]byte{}},
+		CredentialsPath: "/config/partiful/credentials.json",
+		Terminal:        &scriptedPrivateTerminal{values: []string{"+15555550123", "123456"}},
+		AuthRandom:      strings.NewReader("0123456789abcdef"),
+		Now: func() time.Time {
+			return time.Date(2026, time.August, 11, 0, 0, 0, 0, time.UTC)
+		},
+		HTTP: scriptedHTTP{do: func(*http.Request) (*http.Response, error) {
+			call++
+			switch call {
+			case 1:
+				return jsonResponse(http.StatusOK, `{}`), nil
+			case 2:
+				return jsonResponse(
+					http.StatusOK,
+					`{"result":{"data":{"token":"custom-private-token"}}}`,
+				), nil
+			default:
+				return jsonResponse(
+					http.StatusOK,
+					`{"idToken":"private-id-token","refreshToken":"private-refresh","expiresIn":"300"}`,
+				), nil
+			}
+		}},
+	})
+	if result.ExitCode != 9 ||
+		!strings.Contains(result.Stdout, `"code":"AUTH_PROTOCOL_CHANGED"`) {
+		t.Fatalf("result = %#v, want short token lifetime to fail closed", result)
+	}
+}
+
 func TestExecuteAuthLoginAllowsUndeclaredFirebaseErrorStatus(t *testing.T) {
 	call := 0
 	result := app.Execute(context.Background(), app.Request{
@@ -2353,6 +2389,34 @@ func TestExecuteAuthStatusRejectsInvalidOptionalRefreshField(t *testing.T) {
 	if result.ExitCode != 9 ||
 		!strings.Contains(result.Stdout, `"code":"AUTH_PROTOCOL_CHANGED"`) {
 		t.Fatalf("result = %#v, want invalid optional refresh field to fail closed", result)
+	}
+}
+
+func TestExecuteAuthStatusRejectsRefreshedTokenInsideRefreshWindow(t *testing.T) {
+	result := app.Execute(context.Background(), app.Request{
+		Argv: []string{"auth", "status"},
+	}, app.Dependencies{
+		Files: fakeFilesystem{
+			readFile: func(string) ([]byte, error) {
+				return []byte(
+					`{"accessToken":"private-access","refreshToken":"private-refresh","expiresAt":"2026-08-11T00:04:00Z"}`,
+				), nil
+			},
+		},
+		CredentialsPath: "/config/partiful/credentials.json",
+		Now: func() time.Time {
+			return time.Date(2026, time.August, 11, 0, 0, 0, 0, time.UTC)
+		},
+		HTTP: scriptedHTTP{do: func(*http.Request) (*http.Response, error) {
+			return jsonResponse(
+				http.StatusOK,
+				`{"access_token":"private-access","id_token":"private-id","refresh_token":"private-refresh","expires_in":"300","token_type":"Bearer"}`,
+			), nil
+		}},
+	})
+	if result.ExitCode != 9 ||
+		!strings.Contains(result.Stdout, `"code":"AUTH_PROTOCOL_CHANGED"`) {
+		t.Fatalf("result = %#v, want short refreshed lifetime to fail closed", result)
 	}
 }
 
