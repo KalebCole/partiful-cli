@@ -1,6 +1,6 @@
 # Firebase public web API key evidence
 
-**Observation date:** 2026-03-24  
+**Observation date:** 2026-03-24
 **Evidence status:** Privacy-safe redacted extract
 
 ## Firebase public API key
