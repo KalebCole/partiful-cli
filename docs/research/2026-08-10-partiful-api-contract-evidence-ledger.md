@@ -7,8 +7,9 @@
 
 ## Evidence classes
 
-- **Dated live observation:** the March 24 browser-interception research and
-  the August 11 public poster-catalog observation.
+- **Dated live observation:** the March 24 browser-interception research, the
+  August 11 public poster-catalog observation, and the August 11
+  owner-attended authentication observation.
 - **Reviewed first-party repository research:** reviewed repository source,
   without claiming it proves current server behavior.
 - **TypeScript-derived inference:** historical draft or TypeScript transport
@@ -21,12 +22,13 @@ The recovered 27 operations remain in the remote inventory.
 
 ### Dated-live operations
 
-Four operations have dated live observations: `createTextBlast`,
-`getLoginToken`, `signInWithCustomToken`, and `getPosterCatalog`.
+Nine operations have dated live observations: `createTextBlast`,
+`getLoginToken`, `signInWithCustomToken`, `getPosterCatalog`,
+`sendAuthCodeTrusted`, `refreshToken`, and `lookupFirebaseUser`.
 
 ### TypeScript-derived operations
 
-The other 23 operations remain TypeScript-derived inferences:
+The other 18 operations remain TypeScript-derived inferences:
 
 - callable: `createEvent`, `cancelEvent`, `getEventInfo`, `getContacts`,
   `addInvitedGuestsAsHost`, `createCohostRequest`, `deleteCohostRequest`,
@@ -35,22 +37,23 @@ The other 23 operations remain TypeScript-derived inferences:
   `markEventInterest`, and `getCurrentGuest`;
 - Firestore: `firestoreGetEvent`, `firestorePatchEvent`, `firestoreGetGuest`,
   and `firestoreListDocuments`;
-- Firebase and auxiliary: `refreshToken`, `sendAuthCodeTrusted`,
-  `lookupFirebaseUser`, and `uploadEventPhoto`.
+- Firebase auxiliary: `uploadEventPhoto`.
 
 Every operation's request and response claim is enumerated by JSON Pointer in
 the JSON ledger, including operation, parameter, content-type, security,
 schema, constraint, and response claims. Unless a claim is specifically
 observed, callable result payloads, status codes, error bodies, permission
-rules, and limits are **explicit unknown**. Consequently, this proposal uses
-schema-free OpenAPI `default` responses rather than inventing a success status
-or applying a success body to errors.
+rules, and limits are **explicit unknown**. Operations with an observed HTTP
+`200` success have typed response schemas; the schema-free OpenAPI `default`
+response is retained for unrecognized statuses.
 
-The 833 material claims are audited by
+The 930 material claims are audited by
 `tests/remote-api-contract.test.js`. Each ledger citation resolves either to a
 JSON Pointer in the committed non-authoritative historical artifact or to a
 heading in the committed stable source index. This keeps the audit independent
 of unreachable historical Git objects in shallow CI checkouts.
+
+## Poster catalog evidence
 
 The event-image observation remains unrelated to the catalog. The
 unauthenticated August 11 observation directly establishes the public
@@ -72,6 +75,31 @@ pagination must preserve response order and duplicates. Exact resumption can
 bind a cursor to the full payload digest, normalized filters, and next offset;
 it cannot rely on `If-Match`, which was not enforced by the observed endpoint.
 
+## Authentication evidence
+
+On August 11, 2026, the repository owner completed an attended authentication
+session. The agent did not enter credentials, send codes, or access live
+tokens. A sanitized evidence artifact at
+`spec/research/auth-evidence-redacted-20260811.json` retains only HTTP
+metadata and JSON paths/types. An independent scan confirmed no phone numbers,
+verification codes, tokens, API keys, or user IDs are present.
+
+All five authentication operations (`sendAuthCodeTrusted`, `getLoginToken`,
+`signInWithCustomToken`, `refreshToken`, `lookupFirebaseUser`) returned HTTP
+`200` on success with typed JSON response bodies. Response schemas are now
+included in the contract. The schema-free `default` response is retained for
+all unrecognized statuses.
+
+Error responses were observed (403 for wrong auth code, 400 for invalid
+tokens) but are **not** promoted to contract-level status codes because the
+full failure space is not characterized. The failure boundary is identical to
+the poster catalog: received non-`200` is `contract.protocol_changed`,
+no-response/network is `remote.unavailable`, rate limiting is not claimed.
+
+The Firebase Identity Toolkit and Secure Token endpoints require an HTTP
+`Referer` header matching an allowed pattern. This is a Firebase project
+configuration fact, not a Partiful callable behavior.
+
 ## Resolved conflict
 
 The historical draft described `createTextBlast.params.message` as a string and
@@ -82,7 +110,7 @@ nested `message` object with `text`, `to`, `showOnEventPage`, and optional
 
 ## Open questions
 
-No authenticated probe was performed for this reviewed revision. The poster
-observation used only the public catalog endpoint and performed no mutation or
-upload. Future safe observations should update both ledgers, preserve
-privacy-safe evidence, and receive owner review before changing the revision.
+Future safe observations should update both ledgers, preserve privacy-safe
+evidence, and receive owner review before changing the revision. The remaining
+18 TypeScript-derived operations have no observed success status or response
+shape.

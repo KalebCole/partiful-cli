@@ -130,8 +130,16 @@ describe('remote API contract', () => {
       expect(allowed.has(claim.response)).toBe(true);
       expect(citationResolves(claim.requestCitation), operation.operationId).toBe(true);
       expect(citationResolves(claim.responseCitation), operation.operationId).toBe(true);
+      const observedStatusOps = new Set([
+        'getPosterCatalog',
+        'sendAuthCodeTrusted',
+        'getLoginToken',
+        'signInWithCustomToken',
+        'refreshToken',
+        'lookupFirebaseUser',
+      ]);
       expect(claim.status).toBe(
-        operation.operationId === 'getPosterCatalog'
+        observedStatusOps.has(operation.operationId)
           ? 'dated-live-observation'
           : 'explicit-unknown',
       );
@@ -142,7 +150,7 @@ describe('remote API contract', () => {
       ...materialClaimPointers(spec.paths, '#/paths', 'paths'),
       ...materialClaimPointers(spec.components, '#/components', 'components'),
     ]);
-    expect(pointers).toHaveLength(833);
+    expect(pointers).toHaveLength(930);
     for (const pointer of pointers) {
       const claim = evidence.claims[pointer];
       expect(claim, pointer).toBeDefined();
@@ -181,8 +189,16 @@ describe('remote API contract', () => {
   });
 
   it('does not assert an unknown status code as a success response', () => {
+    const observedStatusOps = new Set([
+      'getPosterCatalog',
+      'sendAuthCodeTrusted',
+      'getLoginToken',
+      'signInWithCustomToken',
+      'refreshToken',
+      'lookupFirebaseUser',
+    ]);
     for (const { operation } of operations()) {
-      if (operation.operationId === 'getPosterCatalog') {
+      if (observedStatusOps.has(operation.operationId)) {
         expect(Object.keys(operation.responses)).toEqual(['200', 'default']);
         expect(evidence.operationClaims[operation.operationId].status).toBe('dated-live-observation');
       } else {
@@ -206,14 +222,21 @@ describe('remote API contract', () => {
   });
 
   it('keeps unknown default responses free of success-body schemas', () => {
+    const observedResponseOps = new Set([
+      'getPosterCatalog',
+      'sendAuthCodeTrusted',
+      'getLoginToken',
+      'signInWithCustomToken',
+      'refreshToken',
+      'lookupFirebaseUser',
+    ]);
     for (const { path, method, operation } of operations()) {
       const base = `#/paths/${escapePointerSegment(path)}/${method}/responses/default`;
       expect(evidence.claims[base].citation).toBe(evidence.sources.unknownStatusDecision);
       expect(operation.responses.default).not.toHaveProperty('content');
       const operationClaim = evidence.operationClaims[operation.operationId];
-      if (operation.operationId === 'getPosterCatalog') {
+      if (observedResponseOps.has(operation.operationId)) {
         expect(operationClaim.response).toBe('dated-live-observation');
-        expect(operationClaim.responseCitation).toBe(evidence.sources.posterCatalogObservation);
       } else {
         expect(operationClaim.response).toBe('explicit-unknown');
         expect(operationClaim.responseCitation).toBe(evidence.sources.unknownStatusDecision);
@@ -397,6 +420,73 @@ describe('remote API contract', () => {
       noResponse: 'remote.unavailable',
       receivedNon200: 'contract.protocol_changed',
       malformedSuccess: 'contract.protocol_changed',
+      rateLimiting: 'not-claimed',
+    });
+  });
+
+  it('captures the observed authentication response shapes from the attended session', () => {
+    expect(evidence.authObservation).toMatchObject({
+      sourceCitation: 'docs/research/2026-08-11-auth-observation.md#scope-and-provenance',
+      observedAt: '2026-08-11T02:30:19Z',
+      artifactPath: 'spec/research/auth-evidence-redacted-20260811.json',
+    });
+    expect(citationResolves(evidence.authObservation.sourceCitation)).toBe(true);
+    expect(fs.existsSync(evidence.authObservation.artifactPath)).toBe(true);
+
+    // sendAuthCodeTrusted: 200 success with minimal body
+    const sendAuth = spec.paths['/sendAuthCodeTrusted'].post;
+    expect(sendAuth.responses['200']).toMatchObject({
+      content: { 'application/json': { schema: { type: 'object' } } },
+    });
+    expect(evidence.operations.sendAuthCodeTrusted.classification).toBe('dated-live-observation');
+
+    // getLoginToken: 200 with result.data.token
+    const login = spec.paths['/getLoginToken'].post;
+    const loginSchema = login.responses['200'].content['application/json'].schema;
+    expect(loginSchema).toMatchObject({ $ref: '#/components/schemas/LoginTokenResponse' });
+    const loginResponse = spec.components.schemas.LoginTokenResponse;
+    expect(loginResponse.required).toContain('result');
+    expect(loginResponse.properties.result.properties.data.properties.token).toMatchObject({ type: 'string' });
+    expect(evidence.operations.getLoginToken.classification).toBe('dated-live-observation');
+
+    // signInWithCustomToken: 200 with idToken, refreshToken, expiresIn
+    const signIn = spec.paths['/v1/accounts:signInWithCustomToken'].post;
+    expect(signIn.responses['200'].content['application/json'].schema)
+      .toMatchObject({ $ref: '#/components/schemas/FirebaseSignInResponse' });
+    const signInResponse = spec.components.schemas.FirebaseSignInResponse;
+    expect(signInResponse.required).toEqual(expect.arrayContaining(['idToken', 'refreshToken', 'expiresIn']));
+    expect(signInResponse.properties.kind).toMatchObject({ type: 'string' });
+    expect(signInResponse.properties).not.toHaveProperty('localId');
+
+    // refreshToken: 200 with all observed fields
+    const refresh = spec.paths['/v1/token'].post;
+    expect(refresh.responses['200'].content['application/json'].schema)
+      .toMatchObject({ $ref: '#/components/schemas/RefreshTokenResponse' });
+    const refreshResponse = spec.components.schemas.RefreshTokenResponse;
+    expect(refreshResponse.required).toEqual(
+      expect.arrayContaining(['access_token', 'refresh_token', 'id_token', 'expires_in', 'token_type']),
+    );
+    expect(refreshResponse.properties.user_id).toMatchObject({ type: 'string' });
+    expect(refreshResponse.properties.project_id).toMatchObject({ type: 'string' });
+
+    // lookupFirebaseUser: 200 with users array
+    const lookup = spec.paths['/v1/accounts:lookup'].post;
+    expect(lookup.responses['200'].content['application/json'].schema)
+      .toMatchObject({ $ref: '#/components/schemas/FirebaseLookupResponse' });
+    const lookupResponse = spec.components.schemas.FirebaseLookupResponse;
+    expect(lookupResponse.required).toContain('users');
+    expect(lookupResponse.properties.users.items).toMatchObject({ $ref: '#/components/schemas/FirebaseLookupUser' });
+    const user = spec.components.schemas.FirebaseLookupUser;
+    expect(user.required).toContain('localId');
+    expect(user.properties.displayName).toMatchObject({ type: 'string' });
+    expect(user.properties.providerUserInfo.items)
+      .toMatchObject({ $ref: '#/components/schemas/FirebaseProviderUserInfo' });
+
+    // Failure boundary: all auth ops use fail-closed
+    expect(evidence.authObservation.failureBoundary).toEqual({
+      receivedNon200: 'contract.protocol_changed',
+      malformedSuccess: 'contract.protocol_changed',
+      noResponse: 'remote.unavailable',
       rateLimiting: 'not-claimed',
     });
   });

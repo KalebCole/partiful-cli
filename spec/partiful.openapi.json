@@ -1310,6 +1310,16 @@
           }
         },
         "responses": {
+          "200": {
+            "description": "Refreshed Firebase session tokens.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RefreshTokenResponse"
+                }
+              }
+            }
+          },
           "default": {
             "description": "Response status and body are unknown."
           }
@@ -1401,6 +1411,17 @@
           }
         },
         "responses": {
+          "200": {
+            "description": "Acknowledgment with no structured fields.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
           "default": {
             "description": "Response status and body are unknown."
           }
@@ -1472,6 +1493,16 @@
           }
         },
         "responses": {
+          "200": {
+            "description": "Login token in callable result envelope.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LoginTokenResponse"
+                }
+              }
+            }
+          },
           "default": {
             "description": "Response status and body are unknown."
           }
@@ -1505,6 +1536,16 @@
           }
         },
         "responses": {
+          "200": {
+            "description": "Firebase session tokens from custom token exchange.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FirebaseSignInResponse"
+                }
+              }
+            }
+          },
           "default": {
             "description": "Response status and body are unknown."
           }
@@ -1544,6 +1585,16 @@
           }
         },
         "responses": {
+          "200": {
+            "description": "Firebase user records.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FirebaseLookupResponse"
+                }
+              }
+            }
+          },
           "default": {
             "description": "Response status and body are unknown."
           }
@@ -1857,14 +1908,77 @@
       },
       "RefreshTokenResponse": {
         "type": "object",
+        "required": [
+          "access_token",
+          "refresh_token",
+          "id_token",
+          "expires_in",
+          "token_type"
+        ],
+        "properties": {
+          "access_token": {
+            "type": "string"
+          },
+          "expires_in": {
+            "type": "string"
+          },
+          "id_token": {
+            "type": "string"
+          },
+          "project_id": {
+            "type": "string"
+          },
+          "refresh_token": {
+            "type": "string"
+          },
+          "token_type": {
+            "type": "string"
+          },
+          "user_id": {
+            "type": "string"
+          }
+        },
         "additionalProperties": true
       },
       "FirebaseSignInResponse": {
         "type": "object",
+        "required": [
+          "idToken",
+          "refreshToken",
+          "expiresIn"
+        ],
+        "properties": {
+          "idToken": {
+            "type": "string"
+          },
+          "refreshToken": {
+            "type": "string"
+          },
+          "expiresIn": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string"
+          }
+        },
         "additionalProperties": true
       },
       "FirebaseLookupResponse": {
         "type": "object",
+        "required": [
+          "users"
+        ],
+        "properties": {
+          "kind": {
+            "type": "string"
+          },
+          "users": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FirebaseLookupUser"
+            }
+          }
+        },
         "additionalProperties": true
       },
       "UploadData": {
@@ -1962,6 +2076,93 @@
           "tags",
           "categories"
         ]
+      },
+      "LoginTokenResponse": {
+        "type": "object",
+        "required": [
+          "result"
+        ],
+        "properties": {
+          "result": {
+            "type": "object",
+            "required": [
+              "data"
+            ],
+            "properties": {
+              "data": {
+                "type": "object",
+                "required": [
+                  "token"
+                ],
+                "properties": {
+                  "token": {
+                    "type": "string"
+                  }
+                },
+                "additionalProperties": true
+              }
+            },
+            "additionalProperties": true
+          }
+        },
+        "additionalProperties": true
+      },
+      "FirebaseLookupUser": {
+        "type": "object",
+        "required": [
+          "localId"
+        ],
+        "properties": {
+          "localId": {
+            "type": "string"
+          },
+          "displayName": {
+            "type": "string"
+          },
+          "phoneNumber": {
+            "type": "string"
+          },
+          "photoUrl": {
+            "type": "string"
+          },
+          "customAuth": {
+            "type": "boolean"
+          },
+          "createdAt": {
+            "type": "string"
+          },
+          "lastLoginAt": {
+            "type": "string"
+          },
+          "lastRefreshAt": {
+            "type": "string"
+          },
+          "validSince": {
+            "type": "string"
+          },
+          "providerUserInfo": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FirebaseProviderUserInfo"
+            }
+          }
+        },
+        "additionalProperties": true
+      },
+      "FirebaseProviderUserInfo": {
+        "type": "object",
+        "properties": {
+          "providerId": {
+            "type": "string"
+          },
+          "phoneNumber": {
+            "type": "string"
+          },
+          "rawId": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": true
       }
     }
   }
