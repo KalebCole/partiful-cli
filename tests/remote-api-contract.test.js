@@ -132,7 +132,7 @@ describe('remote API contract', () => {
     expect(spec.openapi).toBe('3.1.0');
     expect(evidence.contractRevision).toBe('2026-08-11.4');
     expect(spec.info.version).toBe(evidence.contractRevision);
-    expect(evidence.status).toBe('proposed');
+    expect(evidence.status).toBe('owner-reviewed');
     const ids = operations().map(({ operation }) => operation.operationId);
     expect(ids).toHaveLength(27);
     expect(new Set(ids).size).toBe(ids.length);

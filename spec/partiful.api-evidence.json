@@ -379,7 +379,7 @@
     "The full set of Referer values accepted by the Firebase API-key restriction remains unknown; https://partiful.com/ is the only observed accepted value.",
     "Origin is unmodelled and remains unknown because the reviewed evidence establishes no Origin request fact."
   ],
-  "status": "proposed",
+  "status": "owner-reviewed",
   "claims": {
     "#/servers/0/url": {
       "classification": "typescript-derived-inference",
