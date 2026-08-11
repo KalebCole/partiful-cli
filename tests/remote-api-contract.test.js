@@ -664,6 +664,18 @@ describe('remote API contract', () => {
     expect(evidence.claims['#/components/securitySchemes/firebaseApiKey/x-publicValue']).toBeDefined();
     expect(evidence.claims['#/components/securitySchemes/firebaseApiKey/x-publicValue'].classification)
       .toBe('dated-live-observation');
+    expect(evidence.claims['#/components/securitySchemes/firebaseApiKey/x-publicValue'].citation)
+      .toBe(evidence.sources.marchAuthApiKey);
+
+    const sanitizedMarchSource = fs.readFileSync(
+      'docs/research/2026-03-24-auth-flow-endpoints.md',
+      'utf8',
+    );
+    expect(sanitizedMarchSource).toContain('<redacted-display-name>');
+    expect(sanitizedMarchSource).toContain('<redacted-phone>');
+    expect(sanitizedMarchSource).toContain('<redacted-code>');
+    expect(sanitizedMarchSource).toContain('<redacted-sender>');
+    expect(sanitizedMarchSource).not.toMatch(/\+[0-9]{10,15}/);
 
     // Each Firebase operation must require a Referer header
     const firebaseOps = [
@@ -685,6 +697,8 @@ describe('remote API contract', () => {
       const constPointer = `#/paths/${escaped}/post/parameters/${refererIdx}/schema/const`;
       expect(evidence.claims[constPointer], `${id} Referer const claim`).toBeDefined();
       expect(evidence.claims[constPointer].classification).toBe('dated-live-observation');
+      expect(evidence.claims[constPointer].citation)
+        .toBe(evidence.sources.augRefererRestriction);
     }
 
     // Origin is NOT modelled for Firebase operations — evidence does not support it as required
