@@ -110,11 +110,11 @@ The August 11, 2026 authentication observation
 `docs/research/2026-08-11-auth-observation.md`, under "Firebase API key
 referrer restriction," records that Firebase Identity Toolkit and Secure Token
 endpoints require an HTTP `Referer` header matching an allowed pattern.
-Requests without `Referer: https://partiful.com/` receive HTTP 403
-`API_KEY_HTTP_REFERRER_BLOCKED`. This was verified by agent privacy-safe
-negative probes that succeeded with the Referer header and failed without it.
-Origin was not required — probes without an Origin header received valid error
-responses.
+A privacy-safe negative probe without a `Referer` header received HTTP 403
+`API_KEY_HTTP_REFERRER_BLOCKED`; probes using the observed
+`Referer: https://partiful.com/` reached the endpoint and returned ordinary
+invalid-input responses. The full allowed Referer set is unknown. Origin was
+not required — probes without an Origin header reached the endpoint.
 
 ## Dated poster catalog observation
 
