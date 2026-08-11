@@ -88,18 +88,25 @@ session. The agent did not enter credentials, send codes, or access live
 tokens. A sanitized evidence artifact at
 `spec/research/auth-evidence-redacted-20260811.json` retains only HTTP
 metadata and JSON paths/types. An independent scan confirmed no phone numbers,
-verification codes, tokens, API keys, or user IDs are present.
+verification codes, tokens, API keys, or user IDs are present. A second
+artifact at `spec/research/auth-error-probes-redacted-20260811.json` records
+privacy-safe fake-token probes with no real credentials.
 
 All five authentication operations (`sendAuthCodeTrusted`, `getLoginToken`,
 `signInWithCustomToken`, `refreshToken`, `lookupFirebaseUser`) returned HTTP
-`200` on success with typed JSON response bodies. Response schemas are now
-included in the contract with observed field paths and types.
+`200` on success. Four operations have promoted error responses with precise
+schemas and operation-specific product failure mappings:
 
-Request-shape provenance is **not** promoted by this observation. Each
-operation's request claims retain their prior evidence class: `getLoginToken`
-and `signInWithCustomToken` retain the March 24 dated observation;
-`sendAuthCodeTrusted`, `refreshToken`, and `lookupFirebaseUser` retain their
-TypeScript-derived inferences.
+- `getLoginToken` `403` → `input.invalid` / `AUTH_CODE_REJECTED`
+- `signInWithCustomToken` `400` → `auth.expired`
+- `refreshToken` `400` → `auth.expired`
+- `lookupFirebaseUser` `400` → `auth.expired` (optional for S2)
+
+`sendAuthCodeTrusted` has an observed `200` with unclaimed body shape (auth
+login uses no send-response field). No error status is promoted.
+
+Request-shape provenance is **not** promoted by these observations. Each
+operation's request claims retain their prior evidence class.
 
 Schema `required` arrays list fields that were present in every observed
 success response and that the implementation needs for correct operation
@@ -113,11 +120,9 @@ TypeScript-derived inference, not an observed fact. One success response
 cannot prove that additional fields will appear or that the server promises
 open-ended extensibility.
 
-Error responses were observed (403 for wrong auth code, 400 for invalid
-tokens) but are **not** promoted to contract-level status codes because the
-full failure space is not characterized. The failure boundary is identical to
-the poster catalog: received non-`200` is `contract.protocol_changed`,
-no-response/network is `remote.unavailable`, rate limiting is not claimed.
+`auth.human_required` remains a local no-private-terminal failure, not a
+remote status mapping. Every other received status is `contract.protocol_changed`.
+No-response/network is `remote.unavailable`. Rate limiting is not claimed.
 
 The Firebase Identity Toolkit and Secure Token endpoints require an HTTP
 `Referer` header matching an allowed pattern. This is a Firebase project

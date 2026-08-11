@@ -162,20 +162,39 @@ does not affect Partiful callable endpoints (`sendAuthCodeTrusted`,
 ## Reviewed contract conclusions
 
 Each operation's only accepted success is HTTP `200` with the documented
-shape. The schema-free default response remains an explicit unknown. Error
-responses were observed but are not promoted to contract-level status codes
-because:
-1. The error shapes differ across Firebase standard (`error.code` number) and
-   Partiful callable (`error.message`/`error.status` strings) endpoints.
-2. Failure status codes (400, 403, 500) are request-condition-dependent and
-   the full failure space is not characterized.
-3. The referrer restriction is a Firebase project configuration that may change.
+shape. The schema-free default response remains an explicit unknown.
 
-A received non-`200` status is unrecognized by this contract revision and must
-fail closed as `contract.protocol_changed`. A no-response or network failure
-may map to `remote.unavailable` as a local transport fact. No
-`remote.rate_limited` mapping is claimed. A `200` body that violates the
-released schema is also `contract.protocol_changed`.
+The following operation-specific error statuses are promoted to the contract
+with precise error schemas, because each was observed under controlled
+conditions and maps to a specific product failure:
+
+- **getLoginToken `403`**: observed from a controlled wrong-code attempt.
+  Maps to product `input.invalid` with stable code `AUTH_CODE_REJECTED`.
+  Error shape: `{error: {details: {authErrorCode}, message, status}}`.
+- **signInWithCustomToken `400`**: observed from a privacy-safe fake-token
+  probe. Maps to product `auth.expired` (restart human login). Error shape:
+  `{error: {code, message, errors[]: {domain, message, reason}}}`.
+- **refreshToken `400`**: observed from both owner-attended and agent
+  fake-token probe. Maps to product `auth.expired`. Error shape:
+  `{error: {code, message, status}}`.
+- **lookupFirebaseUser `400`**: observed from both owner-attended and agent
+  fake-token probe. Maps to product `auth.expired`. Error shape:
+  `{error: {code, message, errors[]: {domain, message, reason}}}`.
+  Optional for S2; userId is available from the JWT without a lookup call.
+- **sendAuthCodeTrusted**: no error status promoted. The 500 from a
+  deliberately malformed probe does not establish a contract failure mapping.
+  The 200 body shape is unclaimed; `auth login` uses no send-response field.
+
+`auth.human_required` remains a local no-private-terminal failure, not a
+remote status mapping. Every other received status (not listed above) is
+unrecognized by this contract revision and must fail closed as
+`contract.protocol_changed`. A no-response or network failure may map to
+`remote.unavailable` as a local transport fact. No `remote.rate_limited`
+mapping is claimed. A `200` body that violates the released schema is also
+`contract.protocol_changed`.
+
+A structured sanitized artifact for the agent fake-token probes is committed
+at `spec/research/auth-error-probes-redacted-20260811.json`.
 
 ## lookupFirebaseUser S2 requirement
 
