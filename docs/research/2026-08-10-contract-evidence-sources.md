@@ -121,3 +121,28 @@ fields and their observed types, a `416` specific to an unsatisfiable Range
 request, and the facts needed to bind bounded local pagination to one response
 representation. It does not claim global catalog exhaustiveness, ordinary
 request failure statuses, or rate limiting.
+
+## Dated event and contact read observation
+
+The August 11, 2026 owner-attended read-only observation in
+`docs/research/2026-08-11-event-contacts-read-observation.md`, under “Scope
+and provenance,” records event list, event detail, current guest, Firestore
+guest, Firestore event denial, and contact response evidence. The sanitized
+artifact at `spec/research/read-evidence-redacted-20260811.json` contains only
+allowlisted metadata, paths, types, counts, equality facts, and error codes.
+It contains no raw response values or private identifier values.
+
+The operation-specific sections are the stable human citations for the
+proposed response and status claims. The proposal does not promote any
+unsupported status, pagination rule, permission behavior, ordering rule, or
+snapshot behavior.
+
+## Current public contact pagination assets
+
+The public-asset research in
+`docs/research/2026-08-11-contacts-pagination-public-assets.md`, under “Exact
+callable argument,” records `getContacts` request paging as a sibling of `params`.
+Normal contact loading uses empty `params`; a separate administrator flow can
+send boolean `useAuthUser`. Its behavior remains unknown. The assets also
+record local cursor traversal and client-side name filtering. This is reviewed
+first-party repository research, not a live-server request-shape observation.

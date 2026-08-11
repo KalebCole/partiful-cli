@@ -6,7 +6,12 @@ import spec from '../spec/partiful.openapi.json';
 
 const historicalDraftPath = 'spec/research/historical-27-operation-draft.json';
 const historicalDraft = JSON.parse(fs.readFileSync(historicalDraftPath, 'utf8'));
-const sourceCache = new Map([[historicalDraftPath, historicalDraft]]);
+const readEvidencePath = 'spec/research/read-evidence-redacted-20260811.json';
+const readEvidence = JSON.parse(fs.readFileSync(readEvidencePath, 'utf8'));
+const sourceCache = new Map([
+  [historicalDraftPath, historicalDraft],
+  [readEvidencePath, readEvidence],
+]);
 const unsafeAuthSourcePath = 'docs/research/2026-03-24-auth-flow-endpoints.md';
 const safeFirebaseKeySource =
   'docs/research/2026-08-11-firebase-public-api-key-redacted.md#firebase-public-api-key';
@@ -130,9 +135,9 @@ function citationResolves(citation) {
 describe('remote API contract', () => {
   it('is a consistently versioned OpenAPI 3.1 document with unique operation IDs', () => {
     expect(spec.openapi).toBe('3.1.0');
-    expect(evidence.contractRevision).toBe('2026-08-11.4');
+    expect(evidence.contractRevision).toBe('2026-08-11.5');
     expect(spec.info.version).toBe(evidence.contractRevision);
-    expect(evidence.status).toBe('owner-reviewed');
+    expect(evidence.status).toBe('proposed');
     const ids = operations().map(({ operation }) => operation.operationId);
     expect(ids).toHaveLength(27);
     expect(new Set(ids).size).toBe(ids.length);
@@ -158,6 +163,13 @@ describe('remote API contract', () => {
         'signInWithCustomToken',
         'refreshToken',
         'lookupFirebaseUser',
+        'getMyUpcomingEventsForHomePage',
+        'getMyPastEventsForHomePage',
+        'getEventInfo',
+        'getCurrentGuest',
+        'firestoreGetEvent',
+        'firestoreGetGuest',
+        'getContacts',
       ]);
       expect(claim.status).toBe(
         observedStatusOps.has(operation.operationId)
@@ -171,7 +183,7 @@ describe('remote API contract', () => {
       ...materialClaimPointers(spec.paths, '#/paths', 'paths'),
       ...materialClaimPointers(spec.components, '#/components', 'components'),
     ]);
-    expect(pointers).toHaveLength(1008);
+    expect(pointers).toHaveLength(1249);
     for (const pointer of pointers) {
       const claim = evidence.claims[pointer];
       expect(claim, pointer).toBeDefined();
@@ -217,12 +229,26 @@ describe('remote API contract', () => {
       'signInWithCustomToken',
       'refreshToken',
       'lookupFirebaseUser',
+      'getMyUpcomingEventsForHomePage',
+      'getMyPastEventsForHomePage',
+      'getEventInfo',
+      'getCurrentGuest',
+      'firestoreGetEvent',
+      'firestoreGetGuest',
+      'getContacts',
     ]);
     const observedErrorOps = {
       getLoginToken: ['200', '403', 'default'],
       signInWithCustomToken: ['200', '400', 'default'],
       refreshToken: ['200', '400', 'default'],
       lookupFirebaseUser: ['200', '400', 'default'],
+      getMyUpcomingEventsForHomePage: ['200', 'default'],
+      getMyPastEventsForHomePage: ['200', 'default'],
+      getEventInfo: ['200', '404', 'default'],
+      getCurrentGuest: ['200', 'default'],
+      firestoreGetEvent: ['403', 'default'],
+      firestoreGetGuest: ['200', 'default'],
+      getContacts: ['200', '401', 'default'],
     };
     for (const { operation } of operations()) {
       if (observedStatusOps.has(operation.operationId)) {
@@ -257,6 +283,13 @@ describe('remote API contract', () => {
       'signInWithCustomToken',
       'refreshToken',
       'lookupFirebaseUser',
+      'getMyUpcomingEventsForHomePage',
+      'getMyPastEventsForHomePage',
+      'getEventInfo',
+      'getCurrentGuest',
+      'firestoreGetEvent',
+      'firestoreGetGuest',
+      'getContacts',
     ]);
     const observedResponseSources = new Map([
       ['getPosterCatalog', evidence.sources.posterCatalogObservation],
@@ -265,6 +298,13 @@ describe('remote API contract', () => {
       ['signInWithCustomToken', evidence.sources.authSignIn20260811],
       ['refreshToken', evidence.sources.authRefresh20260811],
       ['lookupFirebaseUser', evidence.sources.authLookup20260811],
+      ['getMyUpcomingEventsForHomePage', evidence.sources.readEventLists20260811],
+      ['getMyPastEventsForHomePage', evidence.sources.readEventLists20260811],
+      ['getEventInfo', evidence.sources.readEventInfo20260811],
+      ['getCurrentGuest', evidence.sources.readGuestFirestore20260811],
+      ['firestoreGetEvent', evidence.sources.readGuestFirestore20260811],
+      ['firestoreGetGuest', evidence.sources.readGuestFirestore20260811],
+      ['getContacts', evidence.sources.readContacts20260811],
     ]);
     for (const { path, method, operation } of operations()) {
       const base = `#/paths/${escapePointerSegment(path)}/${method}/responses/default`;
@@ -474,6 +514,267 @@ describe('remote API contract', () => {
       malformedSuccess: 'contract.protocol_changed',
       rateLimiting: 'not-claimed',
     });
+  });
+
+  it('formalizes the observed one-response event lists without inventing remote pagination', () => {
+    const cases = [
+      {
+        operationId: 'getMyUpcomingEventsForHomePage',
+        path: '/getMyUpcomingEventsForHomePage',
+        rawField: 'upcomingEvents',
+        count: 35,
+      },
+      {
+        operationId: 'getMyPastEventsForHomePage',
+        path: '/getMyPastEventsForHomePage',
+        rawField: 'pastEvents',
+        count: 294,
+      },
+    ];
+
+    for (const { operationId, path: operationPath, rawField, count } of cases) {
+      const operation = spec.paths[operationPath].post;
+      const response = operation.responses['200'].content['application/json'].schema;
+      const array = response.properties.result.properties.data.properties[rawField];
+      expect(array.type).toBe('array');
+      expect(array.items).toEqual({ $ref: '#/components/schemas/HomePageEvent' });
+      expect(response.properties.result.properties.data.properties)
+        .not.toHaveProperty('paging');
+      expect(operation.requestBody.content['application/json'].schema.properties.data.properties)
+        .not.toHaveProperty('paging');
+      expect(evidence.operationClaims[operationId]).toMatchObject({
+        request: 'typescript-derived-inference',
+        response: 'dated-live-observation',
+        status: 'dated-live-observation',
+      });
+      expect(evidence.readObservation.eventLists[rawField]).toMatchObject({
+        rawPath: `result.data.${rawField}`,
+        firstCount: count,
+        secondCount: count,
+        sameIdentitySequence: true,
+        duplicateIdentityCount: 0,
+        representation: 'one-response-observed-complete-array',
+        remotePagination: 'explicit-unknown',
+      });
+    }
+
+    expect(spec.components.schemas.HomePageEvent).toMatchObject({
+      type: 'object',
+      required: ['id'],
+      properties: {
+        id: { type: 'string' },
+        title: { type: 'string' },
+        startDate: { type: 'string' },
+        endDate: { type: ['string', 'null'] },
+        timezone: { type: 'string' },
+        status: { type: 'string' },
+        location: { type: ['string', 'null'] },
+        displaySettings: { type: 'object' },
+        image: { type: ['object', 'null'] },
+        guest: {
+          type: 'object',
+          properties: { status: { type: 'string' } },
+        },
+      },
+    });
+    expect(evidence.readObservation.productProjection).toMatchObject({
+      eventId: 'supported-by-complete-item-id',
+      titleStartEndTimezone: 'observed-types-only-presence-not-proven',
+      myRsvp: 'selected-item-guest-status-observed',
+      stateMapping: 'explicit-unknown',
+      userRoleMapping: 'explicit-unknown',
+    });
+  });
+
+  it('formalizes only the observed event-detail and guest read variants', () => {
+    const eventInfo = spec.paths['/getEventInfo'].post;
+    expect(Object.keys(eventInfo.responses).sort()).toEqual(['200', '404', 'default']);
+    expect(eventInfo.responses['200'].content['application/json'].schema)
+      .toEqual({ $ref: '#/components/schemas/GetEventInfoResponse' });
+    expect(eventInfo.responses['404'].content['application/json'].schema)
+      .toEqual({ $ref: '#/components/schemas/CallableNotFoundError' });
+    expect(eventInfo.responses['200'].description).toContain('selected readable event');
+    expect(eventInfo.responses['200'].description).toContain('signed out');
+    expect(spec.components.schemas.EventInfo.properties).toMatchObject({
+      id: { type: 'string' },
+      title: { type: 'string' },
+      startDate: { type: 'string' },
+      endDate: { type: 'null' },
+      timezone: { type: 'string' },
+      status: { type: 'string' },
+      description: { type: 'string' },
+      displaySettings: { type: 'object' },
+      image: { type: 'object' },
+      visibility: { type: 'string' },
+    });
+    expect(evidence.readObservation.getEventInfo).toMatchObject({
+      selectedAuthenticatedStatus: 200,
+      selectedSignedOutStatus: 200,
+      signedOutScope: 'selected-readable-event-only',
+      syntheticMissingStatus: 404,
+      syntheticMissingCode: 'NOT_FOUND',
+      authenticatedPermission: 'not-observed',
+      inaccessibleEvent: 'not-observed',
+    });
+
+    const currentGuest = spec.paths['/getCurrentGuest'].post.responses['200']
+      .content['application/json'].schema;
+    expect(currentGuest).toEqual({ $ref: '#/components/schemas/GetCurrentGuestResponse' });
+    const currentGuestProperty = spec.components.schemas.GetCurrentGuestResponse
+      .properties.result.properties.data.properties.currentGuest;
+    expect(currentGuestProperty.anyOf)
+      .toContainEqual({ $ref: '#/components/schemas/CurrentGuest' });
+    expect(spec.components.schemas.GetCurrentGuestResponse.properties.result
+      .properties.data.required ?? [])
+      .not.toContain('currentGuest');
+    expect(spec.components.schemas.CurrentGuest).toMatchObject({
+      required: ['id', 'count', 'name', 'plusOnes', 'status', 'userId'],
+      properties: {
+        id: { type: 'string' },
+        count: { type: 'integer' },
+        name: { type: 'string' },
+        plusOnes: { type: 'null' },
+        status: { type: 'string' },
+        userId: { type: 'string' },
+      },
+    });
+    expect(evidence.readObservation.getCurrentGuest.otherVariants)
+      .toBe('explicit-unknown');
+    expect(evidence.readObservation.getCurrentGuest.currentGuestNullability)
+      .toBe('explicit-unknown');
+  });
+
+  it('distinguishes the observed Firestore guest success from event-document denial', () => {
+    const guest = spec.paths[
+      '/v1/projects/getpartiful/databases/(default)/documents/events/{eventId}/guests/{guestId}'
+    ].get;
+    expect(guest.responses['200'].content['application/json'].schema)
+      .toEqual({ $ref: '#/components/schemas/FirestoreGuestDocument' });
+    expect(spec.components.schemas.FirestoreGuestDocument).toMatchObject({
+      required: ['name', 'fields', 'createTime', 'updateTime'],
+      properties: {
+        fields: {
+          type: 'object',
+          required: ['count', 'createdAt', 'name', 'status'],
+        },
+      },
+    });
+    expect(evidence.readObservation.firestoreGuest).toMatchObject({
+      status: 200,
+      documentIdMatchesCurrentGuestId: true,
+      statusMatchesCurrentGuest: true,
+    });
+
+    const event = spec.paths[
+      '/v1/projects/getpartiful/databases/(default)/documents/events/{eventId}'
+    ].get;
+    expect(Object.keys(event.responses).sort()).toEqual(['403', 'default']);
+    expect(event.responses['403'].content['application/json'].schema)
+      .toEqual({ $ref: '#/components/schemas/FirestorePermissionDeniedError' });
+    expect(evidence.readObservation.firestoreEvent).toMatchObject({
+      selectedReadableEventStatus: 403,
+      syntheticMissingIdStatus: 403,
+      normalizedCode: 'PERMISSION_DENIED',
+      attendeeDenial: 'not-claimed',
+      notFoundBehavior: 'explicit-unknown',
+    });
+  });
+
+  it('formalizes exact contact cursor traversal and keeps identity private', () => {
+    const operation = spec.paths['/getContacts'].post;
+    const requestData = operation.requestBody.content['application/json'].schema
+      .properties.data;
+    expect(requestData.required).toEqual(expect.arrayContaining(['params', 'paging']));
+    expect(requestData.properties.params).toEqual({
+      type: 'object',
+      properties: {
+        useAuthUser: { type: 'boolean' },
+      },
+      additionalProperties: false,
+    });
+    expect(requestData.properties.params.required ?? []).not.toContain('useAuthUser');
+    expect(requestData.properties.paging).toEqual({
+      type: 'object',
+      required: ['maxResults', 'cursor'],
+      properties: {
+        maxResults: { type: 'integer', const: 1000 },
+        cursor: { type: ['string', 'null'] },
+      },
+      additionalProperties: false,
+    });
+
+    expect(operation.responses['200'].content['application/json'].schema)
+      .toEqual({ $ref: '#/components/schemas/GetContactsResponse' });
+    expect(operation.responses['401'].content['application/json'].schema)
+      .toEqual({ $ref: '#/components/schemas/CallableUnauthenticatedError' });
+    expect(spec.components.schemas.GetContactsResponse.properties.result
+      .properties.paging.properties.nextCursor)
+      .toEqual({ type: 'string' });
+    expect(spec.components.schemas.GetContactsResponse.properties.result
+      .properties.paging.required ?? [])
+      .not.toContain('nextCursor');
+    expect(spec.components.schemas.Contact).toMatchObject({
+      required: ['id', 'name', 'sharedEventCount'],
+      properties: {
+        id: { type: 'string' },
+        name: { type: 'string' },
+        sharedEventCount: { type: 'integer', minimum: 0 },
+      },
+    });
+
+    expect(evidence.operationClaims.getContacts.request)
+      .toBe('reviewed-first-party-repository-research');
+    expect(evidence.readObservation.contacts).toMatchObject({
+      catalogCount: 2451,
+      runPageItemCounts: [[1000, 1000, 451, 0], [1000, 1000, 451, 0]],
+      dataPageNextCursorType: 'string',
+      terminalNextCursor: 'missing',
+      sameIdentitySequence: true,
+      sameIdentitySet: true,
+      duplicateIdentityCount: 0,
+      filtering: 'client-side-name-filter-over-complete-traversed-catalog',
+      publicProjection: ['displayName', 'sharedEventCount'],
+      privateIdentityField: 'id',
+      signedOutStatus: 401,
+      signedOutCode: 'UNAUTHENTICATED',
+      normalParams: {},
+      useAuthUserBehavior: 'explicit-unknown',
+    });
+    expect(evidence.readObservation.contacts.unknowns).toEqual(expect.arrayContaining([
+      'invalid-cursor behavior',
+      'cursor lifetime and reuse',
+      'backend ordering key',
+      'snapshot behavior',
+      'useAuthUser behavior',
+      'duplicates outside the two observations',
+    ]));
+  });
+
+  it('keeps the read artifact sanitized and corrects unsupported failure labels', () => {
+    expect(readEvidence.aggregates.failureDistinctions).toMatchObject({
+      permissionProbeObserved: false,
+      signedOutEventObserved: true,
+      signedOutContactsObserved: true,
+      callableNotFoundObserved: true,
+      firestoreNotFoundObserved: false,
+    });
+    expect(readEvidence.aggregates.failureDistinctions)
+      .not.toHaveProperty('callablePermissionDiffersFromNotFound', true);
+    expect(readEvidence.aggregates.failureDistinctions)
+      .not.toHaveProperty('firestorePermissionDiffersFromNotFound', true);
+
+    const serialized = JSON.stringify(readEvidence);
+    for (const unsafe of [
+      /(?<![\w])\+[1-9]\d{9,14}(?!\d)/,
+      /\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/i,
+      /\beyJ[A-Za-z0-9_-]{12,}\.[A-Za-z0-9_-]{8,}\./,
+      /"(?:eventId|guestId|userId|id|name)"\s*:\s*"[^"]+"/,
+      /"(?:accessToken|refreshToken|authorization|credential)"\s*:/i,
+    ]) {
+      expect(serialized).not.toMatch(unsafe);
+    }
+    expect(readEvidence.redaction).toContain('No other body values');
+    expect(evidence.readObservation.artifactPath).toBe(readEvidencePath);
   });
 
   it('captures the observed authentication response shapes from the attended session', () => {

@@ -1,7 +1,7 @@
 # Partiful remote API contract evidence ledger
 
-**Owner-reviewed contract revision:** `2026-08-11.4`
-**Status:** Owner-reviewed under the issue #114 delegation
+**Proposed contract revision:** `2026-08-11.5`
+**Status:** Proposed; independent reviews are required
 **Contract:** `spec/partiful.openapi.json`
 **Machine-readable ledger:** `spec/partiful.api-evidence.json`
 **Stable citation sources:** `docs/research/2026-08-10-contract-evidence-sources.md`
@@ -10,7 +10,7 @@
 
 - **Dated live observation:** the March 24 browser-interception research, the
   August 11 public poster-catalog observation, and the August 11
-  owner-attended authentication observation.
+  owner-attended authentication and read-only event/contact observations.
 - **Reviewed first-party repository research:** reviewed repository source,
   without claiming it proves current server behavior.
 - **TypeScript-derived inference:** historical draft or TypeScript transport
@@ -23,26 +23,27 @@ The recovered 27 operations remain in the remote inventory.
 
 ### Dated-live operations
 
-Seven operations have at least one operation-level dated live observation:
-`createTextBlast`, `getLoginToken`, `getPosterCatalog`,
-`lookupFirebaseUser`, `refreshToken`, `sendAuthCodeTrusted`, and
-`signInWithCustomToken`.
+Fourteen operations have at least one operation-level dated live observation:
+`createTextBlast`, `firestoreGetEvent`, `firestoreGetGuest`, `getContacts`,
+`getCurrentGuest`, `getEventInfo`, `getLoginToken`,
+`getMyPastEventsForHomePage`, `getMyUpcomingEventsForHomePage`,
+`getPosterCatalog`, `lookupFirebaseUser`, `refreshToken`,
+`sendAuthCodeTrusted`, and `signInWithCustomToken`.
 
-Of these seven, six have an observed HTTP 200 success status and typed
-response schema (all except createTextBlast, whose response status and body
-remain explicit unknown).
+Twelve of these operations have an observed HTTP `200` success status and
+typed response schema. The text-blast operation retains an unknown response.
+The Firestore event read has an observed typed `403` response, not an observed
+success.
 
 ### TypeScript-derived operations
 
-The other 20 operations remain TypeScript-derived inferences:
+The other 13 operations remain TypeScript-derived inferences:
 
-- callable: `createEvent`, `cancelEvent`, `getEventInfo`, `getContacts`,
-  `addInvitedGuestsAsHost`, `createCohostRequest`, `deleteCohostRequest`,
-  `removeCohost`, `generateEventCohostLink`, `revokeEventCohostLink`,
-  `getMyUpcomingEventsForHomePage`, `getMyPastEventsForHomePage`, `addGuest`,
-  `markEventInterest`, and `getCurrentGuest`;
-- Firestore: `firestoreGetEvent`, `firestorePatchEvent`, `firestoreGetGuest`,
-  and `firestoreListDocuments`;
+- callable: `createEvent`, `cancelEvent`, `addInvitedGuestsAsHost`,
+  `createCohostRequest`, `deleteCohostRequest`, `removeCohost`,
+  `generateEventCohostLink`, `revokeEventCohostLink`, `addGuest`, and
+  `markEventInterest`;
+- Firestore: `firestorePatchEvent` and `firestoreListDocuments`;
 - Firebase auxiliary: `uploadEventPhoto`.
 
 Every operation's request and response claim is enumerated by JSON Pointer in
@@ -53,7 +54,7 @@ rules, and limits are **explicit unknown**. Operations with an observed HTTP
 `200` success have typed response schemas; the schema-free OpenAPI `default`
 response is retained for unrecognized statuses.
 
-The 1008 material claims are audited by
+The 1249 material claims are audited by
 `tests/remote-api-contract.test.js`. Each ledger citation resolves either to a
 JSON Pointer in the committed non-authoritative historical artifact or to a
 heading in the committed stable source index. This keeps the audit independent
@@ -131,6 +132,73 @@ The Firebase Identity Toolkit and Secure Token endpoints require an HTTP
 `Referer` header matching an allowed pattern. This is a Firebase project
 configuration fact, not a Partiful callable behavior.
 
+## Event and guest read evidence
+
+The sanitized owner-attended artifact records one-response arrays at the exact
+paths `result.data.upcomingEvents` and `result.data.pastEvents`. The observed
+counts were 35 and 294. Immediate repeats had the same count, identity
+sequence, and identity set, with no duplicate identity. Only item `id`
+completeness was checked. Named event fields retain their observed types and
+nullability without a broader presence claim.
+
+No remote paging field was observed for either list. Revision
+`2026-08-11.5` records the observed complete array representations but keeps
+remote pagination, limits, ordering, snapshot behavior, and list failures
+unknown. Event ID projection is supported. One selected guest status supports
+an RSVP projection for that item. Product state and full role mappings remain
+implementation gates.
+
+`getEventInfo` returned `200` at `result.data.event` for one selected readable
+event and returned `404 NOT_FOUND` for a synthetic missing ID. The selected
+event also returned `200` signed out. The proposal does not generalize this
+fact to other events. No inaccessible event was supplied, and no authenticated
+callable permission denial is claimed.
+
+`getCurrentGuest` returned `200` with an object at
+`result.data.currentGuest`. Only the observed object fields are formalized.
+A null current guest and other variants remain unknown.
+
+`firestoreGetGuest` returned `200` for the current guest document. Its
+document ID and status matched the callable guest. The complete Firestore
+typed-value grammar remains unknown. `firestoreGetEvent` returned
+`403 PERMISSION_DENIED` for both the selected readable ID and a synthetic
+missing ID with the observed authenticated request context. This does not
+establish attendee denial, resource existence, or Firestore not-found
+behavior.
+
+## Contact read evidence
+
+Current first-party public assets establish the exact relevant request:
+sibling `params` and `paging`, `maxResults: 1000`, and a null or string
+`cursor`. Normal loading uses empty `params`. A separate administrator flow
+can send boolean `useAuthUser`, but its behavior remains unknown. This request
+claim is reviewed first-party repository research. The owner-attended
+observation establishes the response and status claims.
+
+Two authenticated traversals each returned page sizes 1000, 1000, 451, and an
+empty terminal sentinel. Data pages had string `nextCursor` values. The
+terminal response omitted `nextCursor`. Both 2,451-item traversals had the same
+private identity sequence and set, with no observed duplicate identity.
+
+Every observed item had string private identity and name fields and a
+nonnegative integer `sharedEventCount`. The private identity is an internal
+transport field only. Public product output remains `displayName` and
+`sharedEventCount`. First-party assets establish client-side name filtering
+after cursor traversal. Signed-out `getContacts` returned
+`401 UNAUTHENTICATED`.
+
+Invalid cursors, cursor lifetime and reuse, backend ordering, snapshot
+behavior, `useAuthUser`, rate limiting, unsupported statuses, and duplicates
+outside these two observations remain unknown.
+
+## Read evidence privacy
+
+`spec/research/read-evidence-redacted-20260811.json` contains only HTTP
+metadata, allowlisted paths and types, counts, equality facts, and stable error
+codes. It contains no raw response values, credentials, identities, names,
+event ID values, or contact details. Contract tests reject unsafe identity,
+credential, JWT-like, phone, and email value patterns.
+
 ## Firebase transport configuration
 
 Revision `2026-08-11.4` formalizes two transport configuration facts required
@@ -153,7 +221,7 @@ by the Go implementation's Firebase requests:
 Origin is unmodelled and remains unknown because the reviewed evidence
 establishes no Origin request fact.
 
-The 1008 material claims are audited by `tests/remote-api-contract.test.js`.
+The 1249 material claims are audited by `tests/remote-api-contract.test.js`.
 
 ## Resolved conflict
 
@@ -165,7 +233,8 @@ nested `message` object with `text`, `to`, `showOnEventPage`, and optional
 
 ## Open questions
 
-Future safe observations should update both ledgers, preserve privacy-safe
+Future safe observations must update both ledgers, preserve privacy-safe
 evidence, and receive owner review before changing the revision. The remaining
-20 TypeScript-derived operations have no observed success status or response
-shape.
+13 TypeScript-derived operations have no observed response status or shape.
+The read-specific unknowns above remain explicit and must not become inferred
+implementation behavior.
