@@ -37,19 +37,14 @@ The March 24, 2026 browser-interception note
 records the nested `message` object used by `createTextBlast`. It is the
 primary evidence that supersedes the historical string-message draft.
 
-## Dated authentication observation
-
-The privacy-safe August 11, 2026 authentication observation
-`docs/research/2026-08-11-auth-observation.md` records the reviewed
-authentication request wire shapes.
-
 ## TypeScript callable and auth research
 
 Reviewed source evidence is preserved from
 `9e6ed15:src/lib/api/endpoints.ts#L1-L560`,
 `9e6ed15:src/lib/auth.ts#L1-L150`, and
 `9e6ed15:src/commands/auth.ts#L145-L340`. It supports inferred callable
-registration and authentication behavior; it is not a live-server claim.
+registration and authentication request schemas; it is not a live-server
+claim. Authentication request schemas remain TypeScript-derived inferences.
 
 ## TypeScript Firestore research
 

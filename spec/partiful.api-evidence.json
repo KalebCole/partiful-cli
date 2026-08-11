@@ -12,7 +12,6 @@
     "unknownStatusDecision": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision",
     "updateMask": "docs/research/2026-08-10-contract-evidence-sources.md#update-mask-serialization",
     "textBlast": "docs/research/2026-08-10-contract-evidence-sources.md#dated-text-blast-observation",
-    "authObservation": "docs/research/2026-08-10-contract-evidence-sources.md#dated-authentication-observation",
     "posterInterface": "docs/research/2026-08-10-contract-evidence-sources.md#poster-interface",
     "posterCatalog": "docs/research/2026-08-10-contract-evidence-sources.md#poster-catalog-fetch",
     "posterCatalogObservation": "docs/research/2026-08-10-contract-evidence-sources.md#dated-poster-catalog-observation",
@@ -314,16 +313,16 @@
       "statusCitation": "docs/research/2026-08-11-auth-observation.md#sendauthcodetrusted"
     },
     "getLoginToken": {
-      "request": "dated-live-observation",
-      "requestCitation": "docs/research/2026-08-10-contract-evidence-sources.md#dated-authentication-observation",
+      "request": "typescript-derived-inference",
+      "requestCitation": "spec/research/historical-27-operation-draft.json#/paths/~1getLoginToken/post",
       "response": "dated-live-observation",
       "responseCitation": "docs/research/2026-08-11-auth-observation.md#getlogintoken",
       "status": "dated-live-observation",
       "statusCitation": "docs/research/2026-08-11-auth-observation.md#getlogintoken"
     },
     "signInWithCustomToken": {
-      "request": "dated-live-observation",
-      "requestCitation": "docs/research/2026-08-10-contract-evidence-sources.md#dated-authentication-observation",
+      "request": "typescript-derived-inference",
+      "requestCitation": "spec/research/historical-27-operation-draft.json#/paths/~1v1~1accounts:signInWithCustomToken/post",
       "response": "dated-live-observation",
       "responseCitation": "docs/research/2026-08-11-auth-observation.md#signinwithcustomtoken",
       "status": "dated-live-observation",

@@ -664,6 +664,39 @@ describe('remote API contract', () => {
     expect(fb.sendAuthCodeTrusted.otherReceived).toBe('contract.protocol_changed');
   });
 
+  it('keeps auth request schemas inferred while response and transport facts use observations', () => {
+    const authOperations = [
+      { id: 'sendAuthCodeTrusted', path: '/sendAuthCodeTrusted' },
+      { id: 'getLoginToken', path: '/getLoginToken' },
+      { id: 'signInWithCustomToken', path: '/v1/accounts:signInWithCustomToken' },
+      { id: 'refreshToken', path: '/v1/token' },
+      { id: 'lookupFirebaseUser', path: '/v1/accounts:lookup' },
+    ];
+    for (const { id, path: operationPath } of authOperations) {
+      const escapedPath = escapePointerSegment(operationPath);
+      const sourceOperationPointer = `#/paths/${escapedPath}/post`;
+      const claims = evidence.operationClaims[id];
+      expect(claims.request, `${id} request classification`)
+        .toBe('typescript-derived-inference');
+      expect(claims.requestCitation, `${id} request citation`)
+        .toBe(`${historicalDraftPath}${sourceOperationPointer}`);
+      expect(spec.paths[operationPath].post.requestBody, `${id} request schema`)
+        .toEqual(jsonPointerValue(historicalDraft, `${sourceOperationPointer}/requestBody`));
+      expect(claims.response, `${id} response classification`)
+        .toBe('dated-live-observation');
+      expect(claims.responseCitation, `${id} response citation`)
+        .toContain('2026-08-11-auth-observation.md#');
+    }
+
+    const sourceIndex = fs.readFileSync(humanEvidencePaths[0], 'utf8');
+    expect(sourceIndex).toContain(
+      'Authentication request schemas remain TypeScript-derived inferences.',
+    );
+    expect(sourceIndex).not.toMatch(
+      /authentication observation[^.]*records[^.]*request (?:wire )?shapes/i,
+    );
+  });
+
   it('models the Firebase transport configuration needed by signInWithCustomToken, refreshToken, and lookupFirebaseUser', () => {
     // The firebaseApiKey security scheme must carry the public web-key value
     const apiKeyScheme = spec.components.securitySchemes.firebaseApiKey;
