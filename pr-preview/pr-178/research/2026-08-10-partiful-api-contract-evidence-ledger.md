@@ -105,8 +105,11 @@ schemas and operation-specific product failure mappings:
 `sendAuthCodeTrusted` has an observed `200` with unclaimed body shape (auth
 login uses no send-response field). No error status is promoted.
 
-Request-shape provenance is **not** promoted by these observations. Each
-operation's request claims retain their prior evidence class.
+Request-shape provenance is **not** promoted by these observations. All five
+authentication request schemas remain TypeScript-derived inferences, matched
+to the preserved historical request schemas. The newly observed public
+Firebase key and Referer facts remain separately classified as
+dated-live observations.
 
 Schema `required` arrays list fields that were present in every observed
 success response and that the implementation needs for correct operation
