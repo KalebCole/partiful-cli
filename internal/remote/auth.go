@@ -266,8 +266,6 @@ func (client AuthClient) callablePost(ctx context.Context, url string, body any)
 		return nil, fmt.Errorf("%w: request", ErrUnavailable)
 	}
 	request.Header.Set("Content-Type", "application/json")
-	request.Header.Set("Origin", "https://partiful.com")
-	request.Header.Set("Referer", "https://partiful.com/")
 	response, err := client.HTTP.Do(request)
 	if err != nil {
 		return nil, fmt.Errorf("%w: request failed", ErrUnavailable)

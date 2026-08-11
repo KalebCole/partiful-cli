@@ -15,7 +15,7 @@ import (
 const (
 	Version                 = "1.0.0"
 	ProductContractRevision = "2026-08-10.1"
-	RemoteContractRevision  = "2026-08-11.3"
+	RemoteContractRevision  = "2026-08-11.4"
 )
 
 type Request struct {
