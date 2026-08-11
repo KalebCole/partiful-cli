@@ -14,9 +14,9 @@ const humanEvidencePaths = [
   'docs/research/2026-08-10-contract-evidence-sources.md',
   'docs/research/2026-08-10-partiful-api-contract-evidence-ledger.md',
 ];
-const citedMarkdownPaths = Object.values(evidence.sources)
-  .filter((citation) => typeof citation === 'string' && citation.includes('.md#'))
-  .map((citation) => citation.slice(0, citation.indexOf('#')));
+const citedMarkdownPaths = stringValues(evidence)
+  .map((citation) => citation.split('#', 1)[0])
+  .filter((sourcePath) => sourcePath.endsWith('.md'));
 const originEvidencePaths = [
   ...new Set([...humanEvidencePaths, ...citedMarkdownPaths]),
 ];
@@ -45,6 +45,12 @@ function operations() {
       .filter(([method]) => methods.has(method))
       .map(([method, operation]) => ({ path, method, operation })),
   );
+}
+
+function stringValues(value) {
+  if (typeof value === 'string') return [value];
+  if (value === null || typeof value !== 'object') return [];
+  return Object.values(value).flatMap(stringValues);
 }
 
 function escapePointerSegment(value) {
@@ -776,7 +782,7 @@ describe('remote API contract', () => {
         ...content
           .replace(/\s+/g, ' ')
           .split(/(?<=[.!?])\s+/)
-          .filter((statement) => /\borigin\b/i.test(statement)),
+          .filter((statement) => /\borigins?\b/i.test(statement)),
       );
     }
     expect([...new Set(originStatements)]).toEqual([approvedOriginStatement]);
