@@ -53,7 +53,7 @@ rules, and limits are **explicit unknown**. Operations with an observed HTTP
 `200` success have typed response schemas; the schema-free OpenAPI `default`
 response is retained for unrecognized statuses.
 
-The 930 material claims are audited by
+The 992 material claims are audited by
 `tests/remote-api-contract.test.js`. Each ledger citation resolves either to a
 JSON Pointer in the committed non-authoritative historical artifact or to a
 heading in the committed stable source index. This keeps the audit independent
@@ -140,5 +140,5 @@ nested `message` object with `text`, `to`, `showOnEventPage`, and optional
 
 Future safe observations should update both ledgers, preserve privacy-safe
 evidence, and receive owner review before changing the revision. The remaining
-18 TypeScript-derived operations have no observed success status or response
+20 TypeScript-derived operations have no observed success status or response
 shape.

@@ -236,6 +236,14 @@ describe('remote API contract', () => {
       'refreshToken',
       'lookupFirebaseUser',
     ]);
+    const observedResponseSources = new Map([
+      ['getPosterCatalog', evidence.sources.posterCatalogObservation],
+      ['sendAuthCodeTrusted', evidence.sources.authSendCode20260811],
+      ['getLoginToken', evidence.sources.authLoginToken20260811],
+      ['signInWithCustomToken', evidence.sources.authSignIn20260811],
+      ['refreshToken', evidence.sources.authRefresh20260811],
+      ['lookupFirebaseUser', evidence.sources.authLookup20260811],
+    ]);
     for (const { path, method, operation } of operations()) {
       const base = `#/paths/${escapePointerSegment(path)}/${method}/responses/default`;
       expect(evidence.claims[base].citation).toBe(evidence.sources.unknownStatusDecision);
@@ -244,12 +252,8 @@ describe('remote API contract', () => {
       if (observedResponseOps.has(operation.operationId)) {
         expect(operationClaim.response).toBe('dated-live-observation');
         expect(citationResolves(operationClaim.responseCitation), `${operation.operationId} responseCitation`).toBe(true);
-        // Verify each observed-response operation cites its intended source
-        if (operation.operationId === 'getPosterCatalog') {
-          expect(operationClaim.responseCitation).toBe(evidence.sources.posterCatalogObservation);
-        } else {
-          expect(operationClaim.responseCitation).toBe(evidence.sources.authObservation20260811);
-        }
+        expect(operationClaim.responseCitation)
+          .toBe(observedResponseSources.get(operation.operationId));
       } else {
         expect(operationClaim.response).toBe('explicit-unknown');
         expect(operationClaim.responseCitation).toBe(evidence.sources.unknownStatusDecision);
@@ -271,17 +275,18 @@ describe('remote API contract', () => {
       if (claim.citation === evidence.sources.posterCatalogObservation) {
         expect(pointer.includes('~1posters.json') || pointer.includes('/schemas/Poster')).toBe(true);
       }
-      if (claim.citation === evidence.sources.authObservation20260811) {
-        const isAuthPath = [
-          'sendAuthCodeTrusted', 'getLoginToken', 'signInWithCustomToken',
-          'accounts:lookup', 'v1~1token',
-        ].some((frag) => pointer.includes(frag));
-        const isAuthSchema = [
-          'LoginTokenResponse', 'FirebaseSignInResponse', 'RefreshTokenResponse',
-          'FirebaseLookupResponse', 'FirebaseLookupUser', 'FirebaseProviderUserInfo',
-          'CallableAuthError', 'FirebaseValidationError', 'FirebaseTokenError',
-        ].some((name) => pointer.includes(`/schemas/${name}`));
-        expect(isAuthPath || isAuthSchema, `auth citation scope: ${pointer}`).toBe(true);
+      const authCitationScopes = new Map([
+        [evidence.sources.authSendCode20260811, ['~1sendAuthCodeTrusted']],
+        [evidence.sources.authLoginToken20260811, ['~1getLoginToken', 'LoginTokenResponse', 'CallableAuthError']],
+        [evidence.sources.authSignIn20260811, ['signInWithCustomToken', 'FirebaseSignInResponse', 'FirebaseValidationError']],
+        [evidence.sources.authRefresh20260811, ['~1token', 'RefreshTokenResponse', 'FirebaseTokenError']],
+        [evidence.sources.authLookup20260811, ['accounts:lookup', 'FirebaseLookup', 'FirebaseProviderUserInfo']],
+      ]);
+      if (authCitationScopes.has(claim.citation)) {
+        expect(
+          authCitationScopes.get(claim.citation).some((fragment) => pointer.includes(fragment)),
+          `auth citation scope: ${pointer}`,
+        ).toBe(true);
       }
     }
   });
@@ -518,7 +523,14 @@ describe('remote API contract', () => {
       const claim = evidence.operationClaims[id];
       expect(claim.response, `${id} response class`).toBe('dated-live-observation');
       expect(claim.status, `${id} status class`).toBe('dated-live-observation');
-      expect(claim.responseCitation, `${id} responseCitation`).toBe(evidence.sources.authObservation20260811);
+      const expectedCitation = new Map([
+        ['sendAuthCodeTrusted', evidence.sources.authSendCode20260811],
+        ['getLoginToken', evidence.sources.authLoginToken20260811],
+        ['signInWithCustomToken', evidence.sources.authSignIn20260811],
+        ['refreshToken', evidence.sources.authRefresh20260811],
+        ['lookupFirebaseUser', evidence.sources.authLookup20260811],
+      ]).get(id);
+      expect(claim.responseCitation, `${id} responseCitation`).toBe(expectedCitation);
 
       // Request provenance preserved
       if (['sendAuthCodeTrusted', 'refreshToken', 'lookupFirebaseUser'].includes(id)) {
