@@ -79,14 +79,6 @@ the JSON array to `Poster[]`. This supports the inferred catalog endpoint and
 array transport only. The dated event-image observation is intentionally not
 used for this claim.
 
-## Dated poster catalog observation
-
-The August 11, 2026 poster catalog observation
-`docs/research/2026-08-11-poster-catalog-observation.md`, under "Scope and
-provenance," records the complete catalog array response, including HTTP 200,
-`application/json`, 2,114 entries, field coverage, and failure boundary. It is
-the primary evidence for the `getPosterCatalog` operation's response.
-
 ## Dated authentication observation (August 11, 2026)
 
 The August 11, 2026 owner-attended authentication observation

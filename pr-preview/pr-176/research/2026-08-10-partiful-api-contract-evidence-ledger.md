@@ -1,6 +1,7 @@
 # Partiful remote API contract evidence ledger
 
-**Owner-reviewed contract revision:** `2026-08-11.1`
+**Proposed contract revision:** `2026-08-11.2`
+**Status:** Proposed — pending owner approval
 **Contract:** `spec/partiful.openapi.json`
 **Machine-readable ledger:** `spec/partiful.api-evidence.json`
 **Stable citation sources:** `docs/research/2026-08-10-contract-evidence-sources.md`
@@ -22,13 +23,18 @@ The recovered 27 operations remain in the remote inventory.
 
 ### Dated-live operations
 
-Nine operations have dated live observations: `createTextBlast`,
-`getLoginToken`, `signInWithCustomToken`, `getPosterCatalog`,
-`sendAuthCodeTrusted`, `refreshToken`, and `lookupFirebaseUser`.
+Seven operations have at least one operation-level dated live observation:
+`createTextBlast`, `getLoginToken`, `getPosterCatalog`,
+`lookupFirebaseUser`, `refreshToken`, `sendAuthCodeTrusted`, and
+`signInWithCustomToken`.
+
+Of these seven, six have an observed HTTP 200 success status and typed
+response schema (all except createTextBlast, whose response status and body
+remain explicit unknown).
 
 ### TypeScript-derived operations
 
-The other 18 operations remain TypeScript-derived inferences:
+The other 20 operations remain TypeScript-derived inferences:
 
 - callable: `createEvent`, `cancelEvent`, `getEventInfo`, `getContacts`,
   `addInvitedGuestsAsHost`, `createCohostRequest`, `deleteCohostRequest`,
@@ -87,8 +93,25 @@ verification codes, tokens, API keys, or user IDs are present.
 All five authentication operations (`sendAuthCodeTrusted`, `getLoginToken`,
 `signInWithCustomToken`, `refreshToken`, `lookupFirebaseUser`) returned HTTP
 `200` on success with typed JSON response bodies. Response schemas are now
-included in the contract. The schema-free `default` response is retained for
-all unrecognized statuses.
+included in the contract with observed field paths and types.
+
+Request-shape provenance is **not** promoted by this observation. Each
+operation's request claims retain their prior evidence class: `getLoginToken`
+and `signInWithCustomToken` retain the March 24 dated observation;
+`sendAuthCodeTrusted`, `refreshToken`, and `lookupFirebaseUser` retain their
+TypeScript-derived inferences.
+
+Schema `required` arrays list fields that were present in every observed
+success response and that the implementation needs for correct operation
+(token extraction, session establishment, user lookup). Their absence in
+a future `200` response constitutes `contract.protocol_changed` under the
+fail-closed boundary. This is a validation design choice supported by the
+observation, not a universal server guarantee.
+
+Schema `additionalProperties: true` on response schemas is a
+TypeScript-derived inference, not an observed fact. One success response
+cannot prove that additional fields will appear or that the server promises
+open-ended extensibility.
 
 Error responses were observed (403 for wrong auth code, 400 for invalid
 tokens) but are **not** promoted to contract-level status codes because the
