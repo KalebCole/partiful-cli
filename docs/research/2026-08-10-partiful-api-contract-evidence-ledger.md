@@ -1,6 +1,6 @@
 # Partiful remote API contract evidence ledger
 
-**Owner-reviewed contract revision:** `2026-08-10.1`
+**Owner-reviewed contract revision:** `2026-08-11.1`
 **Contract:** `spec/partiful.openapi.json`
 **Machine-readable ledger:** `spec/partiful.api-evidence.json`
 **Stable citation sources:** `docs/research/2026-08-10-contract-evidence-sources.md`
@@ -36,17 +36,24 @@ rules, and limits are **explicit unknown**. Consequently, this proposal uses
 schema-free OpenAPI `default` responses rather than inventing a success status
 or applying a success body to errors.
 
-The 819 material claims are audited by
+The 833 material claims are audited by
 `tests/remote-api-contract.test.js`. Each ledger citation resolves either to a
 JSON Pointer in the committed non-authoritative historical artifact or to a
 heading in the committed stable source index. This keeps the audit independent
 of unreachable historical Git objects in shallow CI checkouts.
 
-The event-image observation establishes fields used for an event's selected
-poster image; it does **not** establish that `/posters.json` returns a catalog
-array or that its entries have that shape. The catalog operation and `Poster`
-schema are therefore TypeScript-derived inferences with citations to
-`src/lib/posters.ts`, not dated live observations.
+The event-image observation remains unrelated to the catalog. The
+unauthenticated August 11 observation directly establishes the public
+`/posters.json` HTTP `200` response as a complete array representation and
+establishes every field needed by the product `Poster`. It also establishes a
+bodyless `416` for an unsatisfiable read range. Exact ordinary-request failure
+statuses remain unknown, so a schema-free `default` response distinguishes
+non-success without inventing an error body.
+
+The observed array contained 2,114 entries and one repeated ID. Local
+pagination must preserve response order and duplicates. Exact resumption can
+bind a cursor to the full payload digest, normalized filters, and next offset;
+it cannot rely on `If-Match`, which was not enforced by the observed endpoint.
 
 ## Resolved conflict
 
@@ -58,7 +65,7 @@ nested `message` object with `text`, `to`, `showOnEventPage`, and optional
 
 ## Open questions
 
-No authenticated live probe was performed for this reviewed revision: `partiful doctor`
-reported no local credentials. Mutation probes were deliberately omitted.
-Future safe observations should update both ledgers, preserve synthetic-only
-examples, and receive owner review before changing the revision.
+No authenticated probe was performed for this reviewed revision. The poster
+observation used only the public catalog endpoint and performed no mutation or
+upload. Future safe observations should update both ledgers, preserve
+privacy-safe evidence, and receive owner review before changing the revision.

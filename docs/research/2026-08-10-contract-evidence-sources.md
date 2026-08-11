@@ -78,3 +78,12 @@ catalog observations.
 the JSON array to `Poster[]`. This supports the inferred catalog endpoint and
 array transport only. The dated event-image observation is intentionally not
 used for this claim.
+
+## Dated poster catalog observation
+
+The unauthenticated, read-only observation in
+`docs/research/2026-08-11-poster-catalog-observation.md` establishes the
+catalog's HTTP `200` success, complete JSON-array response, required product
+fields and their observed types, one non-success response, and the facts needed
+to bind bounded local pagination to one response representation. It does not
+claim global catalog exhaustiveness or ordinary-request failure statuses.
