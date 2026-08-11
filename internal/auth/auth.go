@@ -52,11 +52,11 @@ func Login(
 	files FileSystem,
 	path string,
 	terminal PrivateTerminal,
-	now time.Time,
+	now func() time.Time,
 	random io.Reader,
 	client RemoteAuth,
 ) (State, error) {
-	if files == nil || path == "" || random == nil {
+	if files == nil || path == "" || now == nil || random == nil {
 		return State{}, ErrNotConfigured
 	}
 	if terminal == nil {
@@ -79,7 +79,7 @@ func Login(
 		return State{}, ErrUnavailable
 	}
 	deviceID := base64.RawURLEncoding.EncodeToString(deviceBytes)
-	sessionID := now.UnixMilli()
+	sessionID := now().UnixMilli()
 	if err := client.SendAuthCode(ctx, SendAuthCodeRequest{
 		PhoneNumber:        phoneNumber,
 		AmplitudeDeviceID:  deviceID,
@@ -112,7 +112,7 @@ func Login(
 	if err != nil {
 		return State{}, err
 	}
-	expiresAt := now.Add(session.ExpiresIn).UTC()
+	expiresAt := now().Add(session.ExpiresIn).UTC()
 	err = saveCredentials(files, path, credentialRecord{
 		AccessToken:  session.IDToken,
 		RefreshToken: session.RefreshToken,
@@ -146,7 +146,7 @@ func StatusWithRefresh(
 	ctx context.Context,
 	files FileSystem,
 	path string,
-	now time.Time,
+	now func() time.Time,
 	client RemoteAuth,
 ) (State, error) {
 	state, err := refreshCredentials(ctx, files, path, now, client)
@@ -173,10 +173,10 @@ func refreshCredentials(
 	ctx context.Context,
 	files FileSystem,
 	path string,
-	now time.Time,
+	now func() time.Time,
 	client RemoteAuth,
 ) (State, error) {
-	if files == nil || path == "" {
+	if files == nil || path == "" || now == nil {
 		return State{}, ErrNotConfigured
 	}
 	var (
@@ -194,7 +194,7 @@ func refreshCredentials(
 		if operationErr != nil {
 			return
 		}
-		state = stateFromCredentials(credentials, now)
+		state = stateFromCredentials(credentials, now())
 		if state.TokenState == "healthy" || credentials.RefreshToken == "" {
 			return
 		}
@@ -203,22 +203,19 @@ func refreshCredentials(
 		if operationErr != nil {
 			return
 		}
-		expiresAt := now.Add(refreshed.ExpiresIn).UTC()
+		completedAt := now()
+		expiresAt := completedAt.Add(refreshed.ExpiresIn).UTC()
 		credentials = credentialRecord{
 			AccessToken:  refreshed.IDToken,
 			RefreshToken: refreshed.RefreshToken,
 			ExpiresAt:    expiresAt,
 		}
-		operationErr = saveCredentialsUnlocked(files, path, credentialRecord{
-			AccessToken:  credentials.AccessToken,
-			RefreshToken: credentials.RefreshToken,
-			ExpiresAt:    credentials.ExpiresAt,
-		})
+		operationErr = saveCredentialsUnlocked(files, path, credentials)
 		if operationErr != nil {
 			operationErr = ErrPersistence
 			return
 		}
-		state = stateFromCredentials(credentials, now)
+		state = stateFromCredentials(credentials, completedAt)
 	}); err != nil {
 		return State{}, ErrUnavailable
 	}

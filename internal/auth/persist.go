@@ -20,5 +20,8 @@ func saveCredentialsUnlocked(files FileSystem, path string, credentials credenti
 	if err != nil {
 		return ErrUnavailable
 	}
-	return files.WriteFileAtomic(path, document)
+	if err := files.WriteFileAtomic(path, document); err != nil {
+		return ErrPersistence
+	}
+	return nil
 }

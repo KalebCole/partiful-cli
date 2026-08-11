@@ -3,8 +3,6 @@
 package auth
 
 import (
-	"errors"
-	"io/fs"
 	"os"
 
 	"golang.org/x/sys/unix"
@@ -23,13 +21,21 @@ func replaceFile(source, destination string) error {
 	return os.Rename(source, destination)
 }
 
+func secureDirectory(string) error {
+	return nil
+}
+
+func secureFile(string) error {
+	return nil
+}
+
 func syncDirectory(directory string) {
 	handle, err := os.Open(directory)
 	if err != nil {
 		return
 	}
-	defer handle.Close()
-	if err := handle.Sync(); err != nil && !errors.Is(err, fs.ErrInvalid) {
-		return
-	}
+	defer func() {
+		_ = handle.Close()
+	}()
+	_ = handle.Sync()
 }

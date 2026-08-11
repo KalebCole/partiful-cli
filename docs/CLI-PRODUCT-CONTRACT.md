@@ -284,9 +284,10 @@ Returns:
 
 `tokenState` is `healthy`, `expiring`, `expired`, or `missing`. The command
 does not return identity details or credentials. When stored credentials have
-a refresh token and are within five minutes of expiry, `auth status`
-deterministically refreshes and atomically replaces them before reporting
-`healthy`. This makes the command a local mutation. A rejected refresh returns
+a refresh token and are within five minutes of expiry or already expired,
+`auth status` deterministically refreshes and atomically replaces them before
+reporting `healthy`. This makes the command a local mutation. A rejected
+refresh returns
 `auth.expired`; an unavailable authentication service returns
 `remote.unavailable`; and an unrecognized released response returns
 `contract.protocol_changed`. Credentials without a refresh token continue to
@@ -631,7 +632,7 @@ Without a path, returns every public command path. With a path such as
   "flags": [],
   "inputSchema": {},
   "successSchema": {},
-  "failureTypes": [],
+  "failureTypes": ["usage.invalid", "input.invalid"],
   "safety": {
     "kind": "standard-mutation",
     "planRequired": true,
@@ -640,9 +641,10 @@ Without a path, returns every public command path. With a path such as
 }
 ```
 
-The real arrays and schemas contain the complete contract. This command is
-generated from the same command definitions used by execution; it is not a
-second handwritten description.
+The example shows the default invocation failures. Real arrays add each
+command-specific failure, and the schemas contain the complete contract. This
+command is generated from the same command definitions used by execution; it
+is not a second handwritten description.
 
 #### `partiful doctor`
 

@@ -513,16 +513,16 @@ func Execute(ctx context.Context, request Request, dependencies Dependencies) Re
 				if dependencies.CredentialsPathError != nil {
 					return configurationDirectoryFailure(definition.path, pretty)
 				}
-				now := time.Now()
+				clock := time.Now
 				if dependencies.Now != nil {
-					now = dependencies.Now()
+					clock = dependencies.Now
 				}
 				state, err := auth.Login(
 					ctx,
 					dependencies.Files,
 					dependencies.CredentialsPath,
 					dependencies.Terminal,
-					now,
+					clock,
 					dependencies.AuthRandom,
 					remote.AuthClient{HTTP: dependencies.HTTP},
 				)
@@ -560,15 +560,15 @@ func Execute(ctx context.Context, request Request, dependencies Dependencies) Re
 				if dependencies.CredentialsPathError != nil {
 					return configurationDirectoryFailure(definition.path, pretty)
 				}
-				now := time.Now()
+				clock := time.Now
 				if dependencies.Now != nil {
-					now = dependencies.Now()
+					clock = dependencies.Now
 				}
 				state, err := auth.StatusWithRefresh(
 					ctx,
 					dependencies.Files,
 					dependencies.CredentialsPath,
-					now,
+					clock,
 					remote.AuthClient{HTTP: dependencies.HTTP},
 				)
 				if err != nil {

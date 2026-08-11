@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"math"
 	"mime"
 	"net/http"
 	"net/url"
@@ -49,7 +50,9 @@ func (client AuthClient) SendAuthCode(ctx context.Context, req auth.SendAuthCode
 	if err != nil {
 		return err
 	}
-	defer response.Body.Close()
+	defer func() {
+		_ = response.Body.Close()
+	}()
 	if response.StatusCode != http.StatusOK {
 		return fmt.Errorf("%w: status %d", auth.ErrRemoteProtocolChanged, response.StatusCode)
 	}
@@ -79,7 +82,9 @@ func (client AuthClient) GetLoginToken(
 	if err != nil {
 		return auth.LoginTokenResponse{}, err
 	}
-	defer response.Body.Close()
+	defer func() {
+		_ = response.Body.Close()
+	}()
 	if response.StatusCode != http.StatusOK {
 		if response.StatusCode == http.StatusForbidden {
 			data, err := readAuthJSON(response)
@@ -109,8 +114,8 @@ func (client AuthClient) SignInWithCustomToken(
 		return auth.SignInResponse{}, fmt.Errorf("%w: authentication transport", auth.ErrRemoteUnavailable)
 	}
 	payload, _ := json.Marshal(signInRequest{Token: token, ReturnSecureToken: true})
-	url := firebaseIdentityHost + "/v1/accounts:signInWithCustomToken?key=" + firebaseProjectKey
-	request, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewReader(payload))
+	endpoint := firebaseIdentityHost + "/v1/accounts:signInWithCustomToken?key=" + firebaseProjectKey
+	request, err := http.NewRequestWithContext(ctx, http.MethodPost, endpoint, bytes.NewReader(payload))
 	if err != nil {
 		return auth.SignInResponse{}, fmt.Errorf("%w: request", auth.ErrRemoteUnavailable)
 	}
@@ -123,7 +128,9 @@ func (client AuthClient) SignInWithCustomToken(
 	if response == nil || response.Body == nil {
 		return auth.SignInResponse{}, fmt.Errorf("%w: missing response", auth.ErrRemoteProtocolChanged)
 	}
-	defer response.Body.Close()
+	defer func() {
+		_ = response.Body.Close()
+	}()
 	if response.StatusCode == http.StatusBadRequest {
 		data, err := readAuthJSON(response)
 		if err != nil || !validFirebaseValidationError(data) {
@@ -187,7 +194,9 @@ func (client AuthClient) RefreshToken(
 	if response == nil || response.Body == nil {
 		return auth.RefreshResponse{}, fmt.Errorf("%w: missing response", auth.ErrRemoteProtocolChanged)
 	}
-	defer response.Body.Close()
+	defer func() {
+		_ = response.Body.Close()
+	}()
 	if response.StatusCode == http.StatusBadRequest {
 		data, err := readAuthJSON(response)
 		if err != nil || !validFirebaseTokenError(data) {
@@ -229,14 +238,17 @@ func parseExpiresIn(value string) (time.Duration, error) {
 	if err != nil || seconds <= 0 {
 		return 0, auth.ErrRemoteProtocolChanged
 	}
-	duration, err := time.ParseDuration(strconv.FormatInt(seconds, 10) + "s")
-	if err != nil {
+	if seconds > math.MaxInt64/int64(time.Second) {
 		return 0, auth.ErrRemoteProtocolChanged
 	}
-	return duration, nil
+	return time.Duration(seconds) * time.Second, nil
 }
 
-func (client AuthClient) callablePost(ctx context.Context, url string, body any) (*http.Response, error) {
+func (client AuthClient) callablePost(
+	ctx context.Context,
+	endpoint string,
+	body any,
+) (*http.Response, error) {
 	if client.HTTP == nil {
 		return nil, fmt.Errorf("%w: authentication transport", auth.ErrRemoteUnavailable)
 	}
@@ -244,7 +256,7 @@ func (client AuthClient) callablePost(ctx context.Context, url string, body any)
 	if err != nil {
 		return nil, fmt.Errorf("%w: encode", auth.ErrRemoteUnavailable)
 	}
-	request, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewReader(payload))
+	request, err := http.NewRequestWithContext(ctx, http.MethodPost, endpoint, bytes.NewReader(payload))
 	if err != nil {
 		return nil, fmt.Errorf("%w: request", auth.ErrRemoteUnavailable)
 	}

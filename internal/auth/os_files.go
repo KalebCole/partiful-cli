@@ -20,12 +20,20 @@ func (OSFileSystem) WithLock(path string, operation func()) error {
 	if err := os.MkdirAll(directory, 0o700); err != nil {
 		return err
 	}
+	if err := secureDirectory(directory); err != nil {
+		return err
+	}
 	lock, err := os.OpenFile(path+".lock", os.O_CREATE|os.O_RDWR, 0o600)
 	if err != nil {
 		return err
 	}
-	defer lock.Close()
+	defer func() {
+		_ = lock.Close()
+	}()
 	if err := lock.Chmod(0o600); err != nil {
+		return err
+	}
+	if err := secureFile(lock.Name()); err != nil {
 		return err
 	}
 	release, err := acquireFileLock(lock)
@@ -42,6 +50,9 @@ func (OSFileSystem) WriteFileAtomic(path string, document []byte) (resultError e
 	if err := os.MkdirAll(directory, 0o700); err != nil {
 		return err
 	}
+	if err := secureDirectory(directory); err != nil {
+		return err
+	}
 	temporary, err := os.CreateTemp(directory, ".credentials-*")
 	if err != nil {
 		return err
@@ -54,6 +65,9 @@ func (OSFileSystem) WriteFileAtomic(path string, document []byte) (resultError e
 		}
 	}()
 	if err := temporary.Chmod(0o600); err != nil {
+		return err
+	}
+	if err := secureFile(temporaryPath); err != nil {
 		return err
 	}
 	if _, err := temporary.Write(document); err != nil {

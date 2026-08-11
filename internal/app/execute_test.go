@@ -1323,6 +1323,7 @@ func TestExecuteAuthLoginPersistsReviewedSessionWithoutRevealingPrivateValues(t 
 	terminal := &scriptedPrivateTerminal{values: []string{phone, code}}
 	files := &memoryFilesystem{files: map[string][]byte{}}
 	call := 0
+	clockCalls := 0
 	result := app.Execute(context.Background(), app.Request{
 		Argv:  []string{"auth", "login"},
 		Stdin: strings.NewReader("ordinary-private-input"),
@@ -1330,6 +1331,10 @@ func TestExecuteAuthLoginPersistsReviewedSessionWithoutRevealingPrivateValues(t 
 		Files:           files,
 		CredentialsPath: "/config/partiful/credentials.json",
 		Now: func() time.Time {
+			clockCalls++
+			if clockCalls > 1 {
+				return time.Date(2026, time.August, 11, 0, 10, 0, 0, time.UTC)
+			}
 			return time.Date(2026, time.August, 11, 0, 0, 0, 0, time.UTC)
 		},
 		AuthRandom: strings.NewReader("0123456789abcdef"),
@@ -1399,12 +1404,15 @@ func TestExecuteAuthLoginPersistsReviewedSessionWithoutRevealingPrivateValues(t 
 		}},
 	})
 
-	const want = `{"ok":true,"data":{"authenticated":true,"tokenState":"healthy","expiresAt":"2026-08-11T01:00:00Z"},"meta":{"command":"auth.login","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.4","warnings":[]}}` + "\n"
+	const want = `{"ok":true,"data":{"authenticated":true,"tokenState":"healthy","expiresAt":"2026-08-11T01:10:00Z"},"meta":{"command":"auth.login","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.4","warnings":[]}}` + "\n"
 	if result.ExitCode != 0 || result.Stdout != want || result.Stderr != "" {
 		t.Fatalf("result = %#v, want redacted login success", result)
 	}
 	if call != 3 {
 		t.Fatalf("HTTP calls = %d, want 3", call)
+	}
+	if clockCalls != 2 {
+		t.Fatalf("clock calls = %d, want request and completion timestamps", clockCalls)
 	}
 	if files.atomicWrites != 1 {
 		t.Fatalf("atomic writes = %d, want 1", files.atomicWrites)
@@ -1528,6 +1536,7 @@ func TestExecuteAuthLoginRejectsOversizedSendAcknowledgement(t *testing.T) {
 		HTTP: scriptedHTTP{do: func(*http.Request) (*http.Response, error) {
 			return &http.Response{
 				StatusCode: http.StatusOK,
+				Header:     http.Header{"Content-Type": {"application/json"}},
 				Body: io.NopCloser(
 					io.MultiReader(
 						strings.NewReader("{}"),
@@ -1621,7 +1630,7 @@ func TestExecuteAuthLoginRejectsInvalidOptionalFirebaseSuccessField(t *testing.T
 	}
 }
 
-func TestExecuteAuthLoginAllowsUndeclaredFirebaseErrorField(t *testing.T) {
+func TestExecuteAuthLoginAllowsUndeclaredFirebaseErrorStatus(t *testing.T) {
 	call := 0
 	result := app.Execute(context.Background(), app.Request{
 		Argv: []string{"auth", "login"},
@@ -2014,11 +2023,16 @@ func TestExecuteAuthStatusDeterministicallyRefreshesExpiringSession(t *testing.T
 	}}
 	terminal := &scriptedPrivateTerminal{values: []string{"must-not-be-read"}}
 	httpCalls := 0
+	clockCalls := 0
 	dependencies := app.Dependencies{
 		Files:           files,
 		CredentialsPath: credentialsPath,
 		Terminal:        terminal,
 		Now: func() time.Time {
+			clockCalls++
+			if clockCalls > 1 {
+				return time.Date(2026, time.August, 11, 0, 10, 0, 0, time.UTC)
+			}
 			return time.Date(2026, time.August, 11, 0, 0, 0, 0, time.UTC)
 		},
 		HTTP: scriptedHTTP{do: func(request *http.Request) (*http.Response, error) {
@@ -2055,12 +2069,15 @@ func TestExecuteAuthStatusDeterministicallyRefreshesExpiringSession(t *testing.T
 	first := app.Execute(context.Background(), app.Request{
 		Argv: []string{"auth", "status"},
 	}, dependencies)
-	const want = `{"ok":true,"data":{"authenticated":true,"tokenState":"healthy","expiresAt":"2026-08-11T01:00:00Z"},"meta":{"command":"auth.status","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.4","warnings":[]}}` + "\n"
+	const want = `{"ok":true,"data":{"authenticated":true,"tokenState":"healthy","expiresAt":"2026-08-11T01:10:00Z"},"meta":{"command":"auth.status","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.4","warnings":[]}}` + "\n"
 	if first.ExitCode != 0 || first.Stdout != want || first.Stderr != "" {
 		t.Fatalf("first status = %#v, want refreshed healthy session", first)
 	}
 	if httpCalls != 1 || files.atomicWrites != 1 {
 		t.Fatalf("refresh calls = %d, atomic writes = %d, want one each", httpCalls, files.atomicWrites)
+	}
+	if clockCalls != 2 {
+		t.Fatalf("clock calls = %d, want state and refresh completion timestamps", clockCalls)
 	}
 	if len(terminal.prompts) != 0 {
 		t.Fatalf("session refresh prompted: %#v", terminal.prompts)
