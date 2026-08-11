@@ -601,6 +601,11 @@ Both commands return `Poster` items:
 Poster output uses the observed catalog mapping in remote API contract revision
 `2026-08-11.1`.
 
+The CLI applies a local 8 MiB poster-catalog response ceiling, leaving
+substantial headroom above the observed response. A larger HTTP `200` response
+fails closed as `contract.protocol_changed`; this ceiling is not a claimed
+remote limit.
+
 ### Local discovery and diagnostics
 
 #### `partiful schema [command.path]`
