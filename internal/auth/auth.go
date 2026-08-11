@@ -14,12 +14,14 @@ import (
 )
 
 var (
-	ErrNotConfigured = errors.New("credential storage is not configured")
-	ErrUnavailable   = errors.New("credential storage is unavailable")
-	ErrInvalid       = errors.New("credential record is invalid")
-	ErrHumanRequired = errors.New("a private terminal is required")
-	ErrInputInvalid  = errors.New("authentication input is invalid")
-	ErrPersistence   = errors.New("credential persistence failed")
+	ErrNotConfigured  = errors.New("credential storage is not configured")
+	ErrUnavailable    = errors.New("credential storage is unavailable")
+	ErrInvalid        = errors.New("credential record is invalid")
+	ErrHumanRequired  = errors.New("a private terminal is required")
+	ErrInputInvalid   = errors.New("authentication input is invalid")
+	ErrPersistence    = errors.New("credential persistence failed")
+	ErrRequired       = errors.New("authentication is required")
+	ErrSessionExpired = errors.New("authentication session is expired")
 )
 
 type FileSystem interface {
@@ -36,6 +38,11 @@ type State struct {
 	Authenticated bool       `json:"authenticated"`
 	TokenState    string     `json:"tokenState"`
 	ExpiresAt     *time.Time `json:"expiresAt"`
+}
+
+type Session struct {
+	AccessToken string
+	ExpiresAt   time.Time
 }
 
 type credentialRecord struct {
@@ -169,6 +176,80 @@ func Status(files FileSystem, path string, now time.Time) (State, error) {
 		Authenticated: false,
 		TokenState:    "expired",
 		ExpiresAt:     &expiresAt,
+	}, nil
+}
+
+func StatusWithRefresh(
+	ctx context.Context,
+	files FileSystem,
+	path string,
+	now time.Time,
+	client remote.AuthClient,
+) (State, error) {
+	state, err := Status(files, path, now)
+	if err != nil ||
+		state.TokenState == "healthy" ||
+		state.TokenState == "missing" {
+		return state, err
+	}
+	document, err := files.ReadFile(path)
+	if err != nil {
+		return State{}, ErrUnavailable
+	}
+	var credentials credentialRecord
+	if json.Unmarshal(document, &credentials) != nil {
+		return State{}, ErrInvalid
+	}
+	if credentials.RefreshToken == "" {
+		return state, nil
+	}
+	refreshed, err := client.RefreshToken(ctx, credentials.RefreshToken)
+	if err != nil {
+		return State{}, err
+	}
+	expiresAt := now.Add(time.Duration(refreshed.ExpiresIn) * time.Second).UTC()
+	if err := SaveCredentials(files, path, Credentials{
+		AccessToken:  refreshed.IDToken,
+		RefreshToken: refreshed.RefreshToken,
+		ExpiresAt:    expiresAt,
+	}); err != nil {
+		return State{}, ErrPersistence
+	}
+	return State{
+		Authenticated: true,
+		TokenState:    "healthy",
+		ExpiresAt:     &expiresAt,
+	}, nil
+}
+
+func AcquireSession(
+	ctx context.Context,
+	files FileSystem,
+	path string,
+	now time.Time,
+	client remote.AuthClient,
+) (Session, error) {
+	state, err := StatusWithRefresh(ctx, files, path, now, client)
+	if err != nil {
+		return Session{}, err
+	}
+	if state.TokenState == "missing" {
+		return Session{}, ErrRequired
+	}
+	if state.TokenState == "expired" || !state.Authenticated || state.ExpiresAt == nil {
+		return Session{}, ErrSessionExpired
+	}
+	document, err := files.ReadFile(path)
+	if err != nil {
+		return Session{}, ErrUnavailable
+	}
+	var credentials credentialRecord
+	if json.Unmarshal(document, &credentials) != nil || credentials.AccessToken == "" {
+		return Session{}, ErrInvalid
+	}
+	return Session{
+		AccessToken: credentials.AccessToken,
+		ExpiresAt:   state.ExpiresAt.UTC(),
 	}, nil
 }
 

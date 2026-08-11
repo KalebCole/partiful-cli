@@ -9,6 +9,7 @@ import (
 	"io"
 	"mime"
 	"net/http"
+	"net/url"
 	"strconv"
 	"unicode/utf8"
 )
@@ -21,6 +22,7 @@ var (
 const (
 	partifulCallableHost = "https://api.partiful.com"
 	firebaseIdentityHost = "https://identitytoolkit.googleapis.com"
+	firebaseTokenHost    = "https://securetoken.googleapis.com"
 	firebaseProjectKey   = "AIzaSyCky6PJ7cHRdBKk5X7gjuWERWaKWBHr4_k"
 	maximumAuthBodyBytes = 64 << 10
 )
@@ -47,6 +49,12 @@ type GetLoginTokenResponse struct {
 }
 
 type SignInWithCustomTokenResponse struct {
+	IDToken      string
+	RefreshToken string
+	ExpiresIn    int
+}
+
+type RefreshTokenResponse struct {
 	IDToken      string
 	RefreshToken string
 	ExpiresIn    int
@@ -168,6 +176,72 @@ func (client AuthClient) SignInWithCustomToken(ctx context.Context, token string
 	}, nil
 }
 
+func (client AuthClient) RefreshToken(
+	ctx context.Context,
+	refreshToken string,
+) (RefreshTokenResponse, error) {
+	if client.HTTP == nil {
+		return RefreshTokenResponse{}, fmt.Errorf("%w: authentication transport", ErrUnavailable)
+	}
+	form := url.Values{
+		"grant_type":    {"refresh_token"},
+		"refresh_token": {refreshToken},
+	}.Encode()
+	endpoint := firebaseTokenHost + "/v1/token?key=" + firebaseProjectKey
+	request, err := http.NewRequestWithContext(
+		ctx,
+		http.MethodPost,
+		endpoint,
+		bytes.NewBufferString(form),
+	)
+	if err != nil {
+		return RefreshTokenResponse{}, fmt.Errorf("%w: request", ErrUnavailable)
+	}
+	request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	request.Header.Set("Origin", "https://partiful.com")
+	request.Header.Set("Referer", "https://partiful.com/")
+	response, err := client.HTTP.Do(request)
+	if err != nil {
+		return RefreshTokenResponse{}, fmt.Errorf("%w: request failed", ErrUnavailable)
+	}
+	if response == nil || response.Body == nil {
+		return RefreshTokenResponse{}, fmt.Errorf("%w: missing response", ErrProtocolChanged)
+	}
+	defer response.Body.Close()
+	if response.StatusCode == http.StatusBadRequest {
+		data, err := readAuthJSON(response)
+		if err != nil || !validFirebaseError(data) {
+			return RefreshTokenResponse{}, fmt.Errorf("%w: response body", ErrProtocolChanged)
+		}
+		return RefreshTokenResponse{}, ErrAuthExpired
+	}
+	if response.StatusCode != http.StatusOK {
+		return RefreshTokenResponse{}, fmt.Errorf("%w: status %d", ErrProtocolChanged, response.StatusCode)
+	}
+	data, err := readAuthJSON(response)
+	if err != nil {
+		return RefreshTokenResponse{}, err
+	}
+	var result refreshResult
+	if json.Unmarshal(data, &result) != nil ||
+		result.AccessToken == "" ||
+		result.IDToken == "" ||
+		result.RefreshToken == "" ||
+		result.ExpiresIn == "" ||
+		result.TokenType == "" {
+		return RefreshTokenResponse{}, fmt.Errorf("%w: response body", ErrProtocolChanged)
+	}
+	expiresIn, err := strconv.Atoi(result.ExpiresIn)
+	if err != nil || expiresIn <= 0 {
+		return RefreshTokenResponse{}, fmt.Errorf("%w: expiresIn", ErrProtocolChanged)
+	}
+	return RefreshTokenResponse{
+		IDToken:      result.IDToken,
+		RefreshToken: result.RefreshToken,
+		ExpiresIn:    expiresIn,
+	}, nil
+}
+
 func (client AuthClient) callablePost(ctx context.Context, url string, body any) (*http.Response, error) {
 	if client.HTTP == nil {
 		return nil, fmt.Errorf("%w: authentication transport", ErrUnavailable)
@@ -277,4 +351,12 @@ type signInResult struct {
 	IDToken      string `json:"idToken"`
 	RefreshToken string `json:"refreshToken"`
 	ExpiresIn    string `json:"expiresIn"`
+}
+
+type refreshResult struct {
+	AccessToken  string `json:"access_token"`
+	IDToken      string `json:"id_token"`
+	RefreshToken string `json:"refresh_token"`
+	ExpiresIn    string `json:"expires_in"`
+	TokenType    string `json:"token_type"`
 }

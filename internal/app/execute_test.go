@@ -1119,7 +1119,7 @@ func TestExecuteSchemaProjectsExecutableDefinition(t *testing.T) {
 		Stdin: strings.NewReader(""),
 	}, app.Dependencies{})
 
-	const want = `{"ok":true,"data":{"command":"auth.status","positionals":[],"flags":[],"inputSchema":{"type":"object","additionalProperties":false},"successSchema":{"type":"object","additionalProperties":false,"required":["authenticated","tokenState","expiresAt"],"properties":{"authenticated":{"type":"boolean"},"expiresAt":{"type":["string","null"],"format":"date-time"},"tokenState":{"type":"string","enum":["healthy","expiring","expired","missing"]}}},"failureTypes":["internal.failure"],"safety":{"kind":"read-only","planRequired":false,"confirmationRequired":false}},"meta":{"command":"schema","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.2","warnings":[]}}` + "\n"
+	const want = `{"ok":true,"data":{"command":"auth.status","positionals":[],"flags":[],"inputSchema":{"type":"object","additionalProperties":false},"successSchema":{"type":"object","additionalProperties":false,"required":["authenticated","tokenState","expiresAt"],"properties":{"authenticated":{"type":"boolean"},"expiresAt":{"type":["string","null"],"format":"date-time"},"tokenState":{"type":"string","enum":["healthy","expiring","expired","missing"]}}},"failureTypes":["auth.expired","remote.unavailable","contract.protocol_changed","internal.failure"],"safety":{"kind":"read-only","planRequired":false,"confirmationRequired":false}},"meta":{"command":"schema","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.2","warnings":[]}}` + "\n"
 	if result.ExitCode != 0 {
 		t.Fatalf("exit code = %d, want 0", result.ExitCode)
 	}
@@ -1802,6 +1802,171 @@ func TestExecuteAuthStatusReportsExpiringToken(t *testing.T) {
 	}
 	if result.Stderr != "" {
 		t.Fatalf("stderr = %q, want empty", result.Stderr)
+	}
+}
+
+func TestExecuteAuthStatusDeterministicallyRefreshesExpiringSession(t *testing.T) {
+	const (
+		oldAccessValue  = "old-access-private-value"
+		oldRefreshValue = "refresh/private+value"
+		newAccessValue  = "new-id-private-value"
+		newRefreshValue = "new-refresh-private-value"
+	)
+	const credentialsPath = "/config/partiful/credentials.json"
+	files := &memoryFilesystem{files: map[string][]byte{
+		credentialsPath: []byte(
+			`{"accessToken":"` + oldAccessValue +
+				`","refreshToken":"` + oldRefreshValue +
+				`","expiresAt":"2026-08-11T00:04:00Z"}`,
+		),
+	}}
+	terminal := &scriptedPrivateTerminal{values: []string{"must-not-be-read"}}
+	httpCalls := 0
+	dependencies := app.Dependencies{
+		Files:           files,
+		CredentialsPath: credentialsPath,
+		Terminal:        terminal,
+		Now: func() time.Time {
+			return time.Date(2026, time.August, 11, 0, 0, 0, 0, time.UTC)
+		},
+		HTTP: scriptedHTTP{do: func(request *http.Request) (*http.Response, error) {
+			httpCalls++
+			body, err := io.ReadAll(request.Body)
+			if err != nil {
+				t.Fatalf("read refresh request: %v", err)
+			}
+			if request.Method != http.MethodPost ||
+				request.URL.Scheme != "https" ||
+				request.URL.Host != "securetoken.googleapis.com" ||
+				request.URL.Path != "/v1/token" ||
+				request.URL.Query().Get("key") == "" {
+				t.Fatalf("refresh request URL = %q, want reviewed endpoint", request.URL)
+			}
+			if request.Header.Get("Content-Type") != "application/x-www-form-urlencoded" ||
+				request.Header.Get("Origin") != "https://partiful.com" ||
+				request.Header.Get("Referer") != "https://partiful.com/" {
+				t.Fatalf("refresh headers = %#v, want reviewed browser origin", request.Header)
+			}
+			const wantBody = "grant_type=refresh_token&refresh_token=refresh%2Fprivate%2Bvalue"
+			if string(body) != wantBody {
+				t.Fatalf("refresh body = %q, want %q", body, wantBody)
+			}
+			return jsonResponse(
+				http.StatusOK,
+				`{"access_token":"private-access-alias","id_token":"`+newAccessValue+`","refresh_token":"`+newRefreshValue+`","expires_in":"3600","token_type":"Bearer","project_id":"private-project","user_id":"private-user"}`,
+			), nil
+		}},
+	}
+
+	first := app.Execute(context.Background(), app.Request{
+		Argv: []string{"auth", "status"},
+	}, dependencies)
+	const want = `{"ok":true,"data":{"authenticated":true,"tokenState":"healthy","expiresAt":"2026-08-11T01:00:00Z"},"meta":{"command":"auth.status","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.2","warnings":[]}}` + "\n"
+	if first.ExitCode != 0 || first.Stdout != want || first.Stderr != "" {
+		t.Fatalf("first status = %#v, want refreshed healthy session", first)
+	}
+	if httpCalls != 1 || files.atomicWrites != 1 {
+		t.Fatalf("refresh calls = %d, atomic writes = %d, want one each", httpCalls, files.atomicWrites)
+	}
+	if len(terminal.prompts) != 0 {
+		t.Fatalf("session refresh prompted: %#v", terminal.prompts)
+	}
+	for _, privateValue := range []string{
+		oldAccessValue,
+		oldRefreshValue,
+		newAccessValue,
+		newRefreshValue,
+		"private-access-alias",
+		"private-project",
+		"private-user",
+	} {
+		if strings.Contains(first.Stdout+first.Stderr, privateValue) {
+			t.Fatalf("refresh output contains private value %q", privateValue)
+		}
+	}
+
+	second := app.Execute(context.Background(), app.Request{
+		Argv: []string{"auth", "status"},
+	}, dependencies)
+	if second.ExitCode != 0 || second.Stdout != want {
+		t.Fatalf("second status = %#v, want persisted healthy session", second)
+	}
+	if httpCalls != 1 || files.atomicWrites != 1 {
+		t.Fatalf("second status repeated refresh: calls = %d, writes = %d", httpCalls, files.atomicWrites)
+	}
+}
+
+func TestExecuteAuthStatusMapsReviewedInvalidRefreshTokenToExpired(t *testing.T) {
+	const (
+		privateRefreshValue = "expired-private-refresh-value"
+		privateRemoteValue  = "private invalid refresh"
+	)
+	result := app.Execute(context.Background(), app.Request{
+		Argv: []string{"auth", "status"},
+	}, app.Dependencies{
+		Files: fakeFilesystem{
+			readFile: func(string) ([]byte, error) {
+				return []byte(
+					`{"accessToken":"expired-private-access","refreshToken":"` +
+						privateRefreshValue +
+						`","expiresAt":"2026-08-10T23:59:00Z"}`,
+				), nil
+			},
+		},
+		CredentialsPath: "/config/partiful/credentials.json",
+		Now: func() time.Time {
+			return time.Date(2026, time.August, 11, 0, 0, 0, 0, time.UTC)
+		},
+		HTTP: scriptedHTTP{do: func(*http.Request) (*http.Response, error) {
+			return jsonResponse(
+				http.StatusBadRequest,
+				`{"error":{"code":400,"message":"`+privateRemoteValue+`","status":"INVALID_ARGUMENT"}}`,
+			), nil
+		}},
+	})
+
+	const wantStdout = `{"ok":false,"error":{"type":"auth.expired","code":"INVALID_REFRESH_TOKEN","message":"Stored authentication has expired. Log in again.","retryable":false,"details":{}},"meta":{"command":"auth.status","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.2"}}` + "\n"
+	const wantStderr = "partiful: authentication expired\n"
+	if result.ExitCode != 3 || result.Stdout != wantStdout || result.Stderr != wantStderr {
+		t.Fatalf("result = %#v, want reviewed invalid-refresh failure", result)
+	}
+	for _, privateValue := range []string{privateRefreshValue, privateRemoteValue} {
+		if strings.Contains(result.Stdout+result.Stderr, privateValue) {
+			t.Fatalf("invalid-refresh output contains private value %q", privateValue)
+		}
+	}
+}
+
+func TestExecuteAuthStatusFailsClosedOnMalformedRefreshSuccess(t *testing.T) {
+	const privateValue = "private-refreshed-id-token"
+	result := app.Execute(context.Background(), app.Request{
+		Argv: []string{"auth", "status"},
+	}, app.Dependencies{
+		Files: fakeFilesystem{
+			readFile: func(string) ([]byte, error) {
+				return []byte(
+					`{"accessToken":"expired-private-access","refreshToken":"refresh-private-value","expiresAt":"2026-08-10T23:59:00Z"}`,
+				), nil
+			},
+		},
+		CredentialsPath: "/config/partiful/credentials.json",
+		Now: func() time.Time {
+			return time.Date(2026, time.August, 11, 0, 0, 0, 0, time.UTC)
+		},
+		HTTP: scriptedHTTP{do: func(*http.Request) (*http.Response, error) {
+			return jsonResponse(
+				http.StatusOK,
+				`{"access_token":"private-access","id_token":"`+privateValue+`","refresh_token":"private-refresh","expires_in":"3600"}`,
+			), nil
+		}},
+	})
+
+	if result.ExitCode != 9 ||
+		!strings.Contains(result.Stdout, `"code":"AUTH_PROTOCOL_CHANGED"`) {
+		t.Fatalf("result = %#v, want malformed refresh to fail closed", result)
+	}
+	if strings.Contains(result.Stdout+result.Stderr, privateValue) {
+		t.Fatal("malformed refresh failure exposed a credential value")
 	}
 }
 
