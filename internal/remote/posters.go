@@ -10,6 +10,7 @@ import (
 	"mime"
 	"net/http"
 	"net/url"
+	"unicode/utf8"
 )
 
 const posterCatalogURL = "https://assets.getpartiful.com/posters.json"
@@ -76,6 +77,9 @@ func (client Client) GetPosterCatalog(ctx context.Context) (PosterCatalog, error
 	}
 	if len(body) > maximumPosterCatalogBytes {
 		return PosterCatalog{}, fmt.Errorf("%w: response too large", ErrProtocolChanged)
+	}
+	if !utf8.Valid(body) {
+		return PosterCatalog{}, fmt.Errorf("%w: invalid UTF-8", ErrProtocolChanged)
 	}
 	posters, err := decodePosters(body)
 	if err != nil {

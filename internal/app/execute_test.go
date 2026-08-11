@@ -1,6 +1,7 @@
 package app_test
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
@@ -847,6 +848,33 @@ func TestExecutePostersListRejectsMalformedOptionalBlurHash(t *testing.T) {
 				StatusCode: http.StatusOK,
 				Header:     http.Header{"Content-Type": {"application/json"}},
 				Body:       io.NopCloser(strings.NewReader(malformedBody)),
+			}, nil
+		}},
+	})
+
+	if result.ExitCode != 9 || !strings.Contains(result.Stdout, `"type":"contract.protocol_changed"`) {
+		t.Fatalf("result = %#v, want protocol change", result)
+	}
+}
+
+func TestExecutePostersListRejectsMalformedUTF8(t *testing.T) {
+	body := append(
+		[]byte(`[{"id":"poster","name":"`),
+		0xff,
+	)
+	body = append(
+		body,
+		[]byte(`","url":"https://example.invalid/poster.png","contentType":"image/png","width":1,"height":1,"tags":[],"categories":[]}]`)...,
+	)
+	result := app.Execute(context.Background(), app.Request{
+		Argv:  []string{"posters", "list"},
+		Stdin: strings.NewReader(""),
+	}, app.Dependencies{
+		HTTP: scriptedHTTP{do: func(*http.Request) (*http.Response, error) {
+			return &http.Response{
+				StatusCode: http.StatusOK,
+				Header:     http.Header{"Content-Type": {"application/json"}},
+				Body:       io.NopCloser(bytes.NewReader(body)),
 			}, nil
 		}},
 	})
