@@ -136,8 +136,8 @@ by the Go implementation's Firebase requests:
 1. **Firebase web API key value**: The `firebaseApiKey` security scheme now
    carries `x-publicValue: AIzaSyCky6PJ7cHRdBKk5X7gjuWERWaKWBHr4_k`. This is
    a public value embedded in every Partiful web client, documented in the
-   March 24, 2026 browser interception under "Firebase API Key." It is not a
-   credential. It is required as the `key` query parameter on
+   privacy-safe redacted Firebase public-key extract. It is not a credential.
+   It is required as the `key` query parameter on
    `signInWithCustomToken`, `refreshToken`, and `lookupFirebaseUser`.
 
 2. **Referer header requirement**: Each Firebase operation now has a required
@@ -147,9 +147,8 @@ by the Go implementation's Firebase requests:
    `API_KEY_HTTP_REFERRER_BLOCKED`. This is the only observed accepted value;
    the full set of values allowed by the remote restriction remains unknown.
 
-Origin is not modelled because the reviewed evidence does not establish it as
-a required request fact. The Go implementation must not depend on an
-unreviewed Origin requirement.
+Origin is unmodelled and remains unknown because the reviewed evidence
+establishes no Origin request fact.
 
 The 1008 material claims are audited by `tests/remote-api-contract.test.js`.
 
