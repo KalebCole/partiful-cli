@@ -1,5 +1,5 @@
 {
-  "contractRevision": "2026-08-11.1",
+  "contractRevision": "2026-08-11.2",
   "contractPath": "spec/partiful.openapi.json",
   "allowedClassifications": [
     "dated-live-observation",
@@ -298,8 +298,8 @@
       "statusCitation": "docs/research/2026-08-11-auth-observation.md#scope-and-provenance"
     },
     "sendAuthCodeTrusted": {
-      "request": "dated-live-observation",
-      "requestCitation": "docs/research/2026-08-11-auth-observation.md#scope-and-provenance",
+      "request": "typescript-derived-inference",
+      "requestCitation": "spec/research/historical-27-operation-draft.json#/paths/~1sendAuthCodeTrusted/post",
       "response": "dated-live-observation",
       "responseCitation": "docs/research/2026-08-11-auth-observation.md#scope-and-provenance",
       "status": "dated-live-observation",
@@ -370,7 +370,7 @@
     "Status codes and error bodies for operations without dated observations.",
     "Unconditional poster-catalog failure statuses and bodies remain unknown; only HTTP 200 is an accepted catalog success."
   ],
-  "status": "owner-reviewed",
+  "status": "proposed",
   "claims": {
     "#/servers/0/url": {
       "classification": "typescript-derived-inference",
@@ -3729,7 +3729,7 @@
       "citation": "docs/research/2026-08-11-auth-observation.md#scope-and-provenance"
     },
     "#/components/schemas/FirebaseLookupUser/additionalProperties": {
-      "classification": "dated-live-observation",
+      "classification": "typescript-derived-inference",
       "citation": "docs/research/2026-08-11-auth-observation.md#scope-and-provenance"
     },
     "#/components/schemas/FirebaseLookupUser/properties/createdAt": {
@@ -3825,7 +3825,7 @@
       "citation": "docs/research/2026-08-11-auth-observation.md#scope-and-provenance"
     },
     "#/components/schemas/FirebaseProviderUserInfo/additionalProperties": {
-      "classification": "dated-live-observation",
+      "classification": "typescript-derived-inference",
       "citation": "docs/research/2026-08-11-auth-observation.md#scope-and-provenance"
     },
     "#/components/schemas/FirebaseProviderUserInfo/properties/phoneNumber": {
@@ -3901,7 +3901,7 @@
       "citation": "docs/research/2026-08-11-auth-observation.md#scope-and-provenance"
     },
     "#/components/schemas/LoginTokenResponse/additionalProperties": {
-      "classification": "dated-live-observation",
+      "classification": "typescript-derived-inference",
       "citation": "docs/research/2026-08-11-auth-observation.md#scope-and-provenance"
     },
     "#/components/schemas/LoginTokenResponse/properties/result": {
@@ -3909,7 +3909,7 @@
       "citation": "docs/research/2026-08-11-auth-observation.md#scope-and-provenance"
     },
     "#/components/schemas/LoginTokenResponse/properties/result/additionalProperties": {
-      "classification": "dated-live-observation",
+      "classification": "typescript-derived-inference",
       "citation": "docs/research/2026-08-11-auth-observation.md#scope-and-provenance"
     },
     "#/components/schemas/LoginTokenResponse/properties/result/properties/data": {
@@ -3917,7 +3917,7 @@
       "citation": "docs/research/2026-08-11-auth-observation.md#scope-and-provenance"
     },
     "#/components/schemas/LoginTokenResponse/properties/result/properties/data/additionalProperties": {
-      "classification": "dated-live-observation",
+      "classification": "typescript-derived-inference",
       "citation": "docs/research/2026-08-11-auth-observation.md#scope-and-provenance"
     },
     "#/components/schemas/LoginTokenResponse/properties/result/properties/data/properties/token": {
@@ -4049,7 +4049,7 @@
       "citation": "docs/research/2026-08-11-auth-observation.md#scope-and-provenance"
     },
     "#/paths/~1sendAuthCodeTrusted/post/responses/200/content/application~1json/schema/additionalProperties": {
-      "classification": "dated-live-observation",
+      "classification": "typescript-derived-inference",
       "citation": "docs/research/2026-08-11-auth-observation.md#scope-and-provenance"
     },
     "#/paths/~1sendAuthCodeTrusted/post/responses/200/content/application~1json/schema/type": {
