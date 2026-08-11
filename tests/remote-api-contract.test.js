@@ -386,7 +386,7 @@ describe('remote API contract', () => {
     expect(evidence.posterCatalogObservation.pagination).toEqual({
       remotePagination: false,
       localPagination: 'full-representation',
-      resumeBinding: 'payload-sha256-and-normalized-filters',
+      resumeBinding: 'payload-sha256-normalized-filters-and-next-offset',
     });
     expect(evidence.posterCatalogObservation.failureObservation).toEqual({
       requestCondition: 'unsatisfiable-byte-range',

@@ -3727,7 +3727,7 @@
     "pagination": {
       "remotePagination": false,
       "localPagination": "full-representation",
-      "resumeBinding": "payload-sha256-and-normalized-filters"
+      "resumeBinding": "payload-sha256-normalized-filters-and-next-offset"
     },
     "failureObservation": {
       "requestCondition": "unsatisfiable-byte-range",
