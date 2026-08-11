@@ -14,6 +14,14 @@ const humanEvidencePaths = [
   'docs/research/2026-08-10-contract-evidence-sources.md',
   'docs/research/2026-08-10-partiful-api-contract-evidence-ledger.md',
 ];
+const citedMarkdownPaths = stringValues(evidence)
+  .map((citation) => citation.split('#', 1)[0])
+  .filter((sourcePath) => sourcePath.endsWith('.md'));
+const originEvidencePaths = [
+  ...new Set([...humanEvidencePaths, ...citedMarkdownPaths]),
+];
+const approvedOriginStatement =
+  'Origin is unmodelled and remains unknown because the reviewed evidence establishes no Origin request fact.';
 const methods = new Set(['get', 'post', 'put', 'patch', 'delete']);
 const ignoredKeys = new Set(['description', 'summary', 'title']);
 const materialMapKeys = new Set([
@@ -37,6 +45,12 @@ function operations() {
       .filter(([method]) => methods.has(method))
       .map(([method, operation]) => ({ path, method, operation })),
   );
+}
+
+function stringValues(value) {
+  if (typeof value === 'string') return [value];
+  if (value === null || typeof value !== 'object') return [];
+  return Object.values(value).flatMap(stringValues);
 }
 
 function escapePointerSegment(value) {
@@ -116,6 +130,7 @@ function citationResolves(citation) {
 describe('remote API contract', () => {
   it('is a consistently versioned OpenAPI 3.1 document with unique operation IDs', () => {
     expect(spec.openapi).toBe('3.1.0');
+    expect(evidence.contractRevision).toBe('2026-08-11.4');
     expect(spec.info.version).toBe(evidence.contractRevision);
     expect(evidence.status).toBe('owner-reviewed');
     const ids = operations().map(({ operation }) => operation.operationId);
@@ -714,17 +729,32 @@ describe('remote API contract', () => {
       { path: '/v1/accounts:lookup', id: 'lookupFirebaseUser' },
     ];
     for (const { path: opPath, id } of firebaseOps) {
-      const operation = spec.paths[opPath].post;
-      expect(operation.parameters, `${id} has parameters`).toBeDefined();
-      const referer = operation.parameters.find((p) => p.name === 'Referer' && p.in === 'header');
+      const pathItem = spec.paths[opPath];
+      const parameterGroups = [
+        { parameters: pathItem.parameters ?? [], pointer: 'parameters' },
+        { parameters: pathItem.post.parameters ?? [], pointer: 'post/parameters' },
+      ];
+      const refererGroup = parameterGroups.find(({ parameters }) =>
+        parameters.some(
+          (parameter) =>
+            parameter.in === 'header' &&
+            parameter.name?.toLowerCase() === 'referer',
+        ),
+      );
+      const referer = refererGroup?.parameters.find(
+        (parameter) =>
+          parameter.in === 'header' &&
+          parameter.name?.toLowerCase() === 'referer',
+      );
       expect(referer, `${id} has Referer parameter`).toBeDefined();
       expect(referer.required, `${id} Referer is required`).toBe(true);
       expect(referer.schema.const, `${id} Referer value`).toBe('https://partiful.com/');
 
       // Referer claim must have observation-backed provenance
       const escaped = escapePointerSegment(opPath);
-      const refererIdx = operation.parameters.indexOf(referer);
-      const constPointer = `#/paths/${escaped}/post/parameters/${refererIdx}/schema/const`;
+      const refererIdx = refererGroup.parameters.indexOf(referer);
+      const constPointer =
+        `#/paths/${escaped}/${refererGroup.pointer}/${refererIdx}/schema/const`;
       expect(evidence.claims[constPointer], `${id} Referer const claim`).toBeDefined();
       expect(evidence.claims[constPointer].classification).toBe('dated-live-observation');
       expect(evidence.claims[constPointer].citation)
@@ -733,12 +763,23 @@ describe('remote API contract', () => {
 
     // Origin is NOT modelled for Firebase operations — evidence does not support it as required
     for (const { path: opPath, id } of firebaseOps) {
-      const operation = spec.paths[opPath].post;
-      const origin = (operation.parameters ?? []).find((p) => p.name === 'Origin');
+      const pathItem = spec.paths[opPath];
+      const parameters = [
+        ...(pathItem.parameters ?? []),
+        ...(pathItem.post.parameters ?? []),
+      ];
+      const origin = parameters.find(
+        (parameter) =>
+          parameter.in === 'header' &&
+          parameter.name?.toLowerCase() === 'origin',
+      );
       expect(origin, `${id} must not claim Origin`).toBeUndefined();
     }
     expect(evidence.unresolvedUncertainty).toContain(
       'The full set of Referer values accepted by the Firebase API-key restriction remains unknown; https://partiful.com/ is the only observed accepted value.',
+    );
+    expect(evidence.unresolvedUncertainty).toContain(
+      approvedOriginStatement,
     );
   });
 
@@ -748,18 +789,19 @@ describe('remote API contract', () => {
     expect(evidence.sources.firebasePublicApiKeyRedacted).toBe(safeFirebaseKeySource);
     expect(citationResolves(safeFirebaseKeySource)).toBe(true);
 
-    const unsupportedOriginClaims = [
-      /probes?[^.]*without (?:an )?Origin/i,
-      /Origin (?:was|is) not required/i,
-      /succeeded without Origin/i,
-    ];
-    for (const evidencePath of humanEvidencePaths) {
+    const originStatements = stringValues(evidence)
+      .filter((statement) => /\borigins?\b/i.test(statement));
+    for (const evidencePath of originEvidencePaths) {
       const content = fs.readFileSync(evidencePath, 'utf8');
       expect(content, evidencePath).not.toContain(unsafeAuthSourcePath);
-      for (const claim of unsupportedOriginClaims) {
-        expect(content, evidencePath).not.toMatch(claim);
-      }
+      originStatements.push(
+        ...content
+          .replace(/\s+/g, ' ')
+          .split(/(?<=[.!?])\s+/)
+          .filter((statement) => /\borigins?\b/i.test(statement)),
+      );
     }
+    expect([...new Set(originStatements)]).toEqual([approvedOriginStatement]);
   });
 
   it('keeps the historical auth note privacy-safe while retaining redacted transport structure', () => {

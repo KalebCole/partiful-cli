@@ -1,5 +1,5 @@
 {
-  "contractRevision": "2026-08-11.3",
+  "contractRevision": "2026-08-11.4",
   "contractPath": "spec/partiful.openapi.json",
   "allowedClassifications": [
     "dated-live-observation",
@@ -376,7 +376,8 @@
     "Poster catalog membership and order can change; exhaustiveness beyond the complete observed endpoint representation is unknown.",
     "Status codes and error bodies for operations without dated observations.",
     "Unconditional poster-catalog failure statuses and bodies remain unknown; only HTTP 200 is an accepted catalog success.",
-    "The full set of Referer values accepted by the Firebase API-key restriction remains unknown; https://partiful.com/ is the only observed accepted value."
+    "The full set of Referer values accepted by the Firebase API-key restriction remains unknown; https://partiful.com/ is the only observed accepted value.",
+    "Origin is unmodelled and remains unknown because the reviewed evidence establishes no Origin request fact."
   ],
   "status": "owner-reviewed",
   "claims": {
