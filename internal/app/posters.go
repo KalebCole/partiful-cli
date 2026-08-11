@@ -47,6 +47,7 @@ func parseCollectionOptions(definition commandDefinition, argv []string) (collec
 		return collectionOptions{}, parseError
 	}
 	options := collectionOptions{limit: defaultCollectionLimit}
+	_, limitProvided := values["--limit"]
 	if value, ok := values["--limit"]; ok {
 		limit, err := strconv.Atoi(value)
 		if err != nil || limit < 1 || limit > maximumCollectionLimit {
@@ -101,6 +102,15 @@ func parseCollectionOptions(definition commandDefinition, argv []string) (collec
 			Type:      "input.invalid",
 			Code:      "ALL_REQUIRED",
 			Message:   "--max-items requires --all.",
+			Retryable: false,
+			Details:   map[string]any{},
+		}
+	}
+	if options.all && limitProvided {
+		return collectionOptions{}, &errorBody{
+			Type:      "input.invalid",
+			Code:      "LIMIT_WITH_ALL",
+			Message:   "--limit cannot be combined with --all.",
 			Retryable: false,
 			Details:   map[string]any{},
 		}

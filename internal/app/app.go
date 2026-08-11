@@ -194,6 +194,8 @@ type jsonSchema struct {
 	DependentRequired    map[string][]string   `json:"dependentRequired,omitempty"`
 	Items                *jsonSchema           `json:"items,omitempty"`
 	OneOf                []jsonSchema          `json:"oneOf,omitempty"`
+	AllOf                []jsonSchema          `json:"allOf,omitempty"`
+	Not                  *jsonSchema           `json:"not,omitempty"`
 }
 
 type safetyDefinition struct {
@@ -347,6 +349,9 @@ func collectionInputSchema(search bool) jsonSchema {
 		"all":      {"maxItems"},
 		"maxItems": {"all"},
 	}
+	schema.AllOf = []jsonSchema{{
+		Not: &jsonSchema{Required: []string{"all", "limit"}},
+	}}
 	return schema
 }
 

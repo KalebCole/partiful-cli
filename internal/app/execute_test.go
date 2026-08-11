@@ -498,7 +498,12 @@ func TestExecuteSchemaProjectsPosterSearchDefinition(t *testing.T) {
 			InputSchema struct {
 				Required          []string            `json:"required"`
 				DependentRequired map[string][]string `json:"dependentRequired"`
-				Properties        map[string]struct {
+				AllOf             []struct {
+					Not struct {
+						Required []string `json:"required"`
+					} `json:"not"`
+				} `json:"allOf"`
+				Properties map[string]struct {
 					Minimum   *int `json:"minimum"`
 					Maximum   *int `json:"maximum"`
 					MinLength *int `json:"minLength"`
@@ -548,6 +553,16 @@ func TestExecuteSchemaProjectsPosterSearchDefinition(t *testing.T) {
 			"input dependencies = %#v, want %#v",
 			envelope.Data.InputSchema.DependentRequired,
 			wantDependencies,
+		)
+	}
+	if len(envelope.Data.InputSchema.AllOf) != 1 ||
+		!reflect.DeepEqual(
+			envelope.Data.InputSchema.AllOf[0].Not.Required,
+			[]string{"all", "limit"},
+		) {
+		t.Fatalf(
+			"input exclusions = %#v, want --all and --limit to be mutually exclusive",
+			envelope.Data.InputSchema.AllOf,
 		)
 	}
 	limit := envelope.Data.InputSchema.Properties["limit"]
@@ -841,6 +856,28 @@ func TestExecutePostersListRequiresMaxItemsWithAll(t *testing.T) {
 	}, app.Dependencies{})
 
 	const want = `{"ok":false,"error":{"type":"input.invalid","code":"MAX_ITEMS_REQUIRED","message":"--all requires --max-items.","retryable":false,"details":{}},"meta":{"command":"posters.list","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.1"}}` + "\n"
+	if result.ExitCode != 2 {
+		t.Fatalf("exit code = %d, want 2", result.ExitCode)
+	}
+	if result.Stdout != want {
+		t.Fatalf("stdout = %q, want %q", result.Stdout, want)
+	}
+	if result.Stderr != "" {
+		t.Fatalf("stderr = %q, want empty", result.Stderr)
+	}
+}
+
+func TestExecutePostersListRejectsLimitWithAll(t *testing.T) {
+	result := app.Execute(context.Background(), app.Request{
+		Argv: []string{
+			"posters", "list",
+			"--limit", "10",
+			"--all", "--max-items", "100",
+		},
+		Stdin: strings.NewReader(""),
+	}, app.Dependencies{})
+
+	const want = `{"ok":false,"error":{"type":"input.invalid","code":"LIMIT_WITH_ALL","message":"--limit cannot be combined with --all.","retryable":false,"details":{}},"meta":{"command":"posters.list","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.1"}}` + "\n"
 	if result.ExitCode != 2 {
 		t.Fatalf("exit code = %d, want 2", result.ExitCode)
 	}
