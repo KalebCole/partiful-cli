@@ -183,7 +183,7 @@ describe('remote API contract', () => {
       ...materialClaimPointers(spec.paths, '#/paths', 'paths'),
       ...materialClaimPointers(spec.components, '#/components', 'components'),
     ]);
-    expect(pointers).toHaveLength(1249);
+    expect(pointers).toHaveLength(1250);
     for (const pointer of pointers) {
       const claim = evidence.claims[pointer];
       expect(claim, pointer).toBeDefined();
@@ -636,11 +636,11 @@ describe('remote API contract', () => {
     expect(currentGuest).toEqual({ $ref: '#/components/schemas/GetCurrentGuestResponse' });
     const currentGuestProperty = spec.components.schemas.GetCurrentGuestResponse
       .properties.result.properties.data.properties.currentGuest;
-    expect(currentGuestProperty.anyOf)
-      .toContainEqual({ $ref: '#/components/schemas/CurrentGuest' });
+    expect(currentGuestProperty)
+      .toEqual({ $ref: '#/components/schemas/CurrentGuest' });
     expect(spec.components.schemas.GetCurrentGuestResponse.properties.result
-      .properties.data.required ?? [])
-      .not.toContain('currentGuest');
+      .properties.data.required)
+      .toEqual(['currentGuest']);
     expect(spec.components.schemas.CurrentGuest).toMatchObject({
       required: ['id', 'count', 'name', 'plusOnes', 'status', 'userId'],
       properties: {

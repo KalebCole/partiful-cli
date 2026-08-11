@@ -2704,15 +2704,12 @@
             "properties": {
               "data": {
                 "type": "object",
+                "required": [
+                  "currentGuest"
+                ],
                 "properties": {
                   "currentGuest": {
-                    "description": "The observed object shape is listed first. Nullability and other variants remain unknown.",
-                    "anyOf": [
-                      {
-                        "$ref": "#/components/schemas/CurrentGuest"
-                      },
-                      {}
-                    ]
+                    "$ref": "#/components/schemas/CurrentGuest"
                   }
                 }
               }

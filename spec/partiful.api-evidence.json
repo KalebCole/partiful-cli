@@ -5078,11 +5078,15 @@
       "classification": "dated-live-observation",
       "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#guest-and-firestore-observations"
     },
+    "#/components/schemas/GetCurrentGuestResponse/properties/result/properties/data/required/0": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#guest-and-firestore-observations"
+    },
     "#/components/schemas/GetCurrentGuestResponse/properties/result/properties/data/properties/currentGuest": {
       "classification": "dated-live-observation",
       "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#guest-and-firestore-observations"
     },
-    "#/components/schemas/GetCurrentGuestResponse/properties/result/properties/data/properties/currentGuest/anyOf/0/$ref": {
+    "#/components/schemas/GetCurrentGuestResponse/properties/result/properties/data/properties/currentGuest/$ref": {
       "classification": "dated-live-observation",
       "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#guest-and-firestore-observations"
     },

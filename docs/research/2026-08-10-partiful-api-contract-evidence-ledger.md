@@ -54,7 +54,7 @@ rules, and limits are **explicit unknown**. Operations with an observed HTTP
 `200` success have typed response schemas; the schema-free OpenAPI `default`
 response is retained for unrecognized statuses.
 
-The 1249 material claims are audited by
+The 1250 material claims are audited by
 `tests/remote-api-contract.test.js`. Each ledger citation resolves either to a
 JSON Pointer in the committed non-authoritative historical artifact or to a
 heading in the committed stable source index. This keeps the audit independent
@@ -221,7 +221,7 @@ by the Go implementation's Firebase requests:
 Origin is unmodelled and remains unknown because the reviewed evidence
 establishes no Origin request fact.
 
-The 1249 material claims are audited by `tests/remote-api-contract.test.js`.
+The 1250 material claims are audited by `tests/remote-api-contract.test.js`.
 
 ## Resolved conflict
 
