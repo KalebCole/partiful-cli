@@ -143,7 +143,7 @@ by the Go implementation's Firebase requests:
 2. **Referer header requirement**: Each Firebase operation now has a required
    `Referer: https://partiful.com/` header parameter. This is documented in
    the August 11, 2026 auth observation under "Firebase API key referrer
-   restriction." Requests without this header receive HTTP 403
+   restriction." The observed probe without a Referer received HTTP 403
    `API_KEY_HTTP_REFERRER_BLOCKED`. This is the only observed accepted value;
    the full set of values allowed by the remote restriction remains unknown.
 
