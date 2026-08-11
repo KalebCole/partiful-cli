@@ -17,7 +17,7 @@ func TestExecuteVersion(t *testing.T) {
 	result := app.Execute(context.Background(), app.Request{
 		Argv:  []string{"--version"},
 		Stdin: strings.NewReader(""),
-	})
+	}, app.Dependencies{})
 
 	const want = `{"ok":true,"data":{"version":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-10.1"},"meta":{"command":"version","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-10.1","warnings":[]}}` + "\n"
 	if result.ExitCode != 0 {
@@ -35,7 +35,7 @@ func TestExecuteRejectsUnknownCommand(t *testing.T) {
 	result := app.Execute(context.Background(), app.Request{
 		Argv:  []string{"events", "list"},
 		Stdin: strings.NewReader(""),
-	})
+	}, app.Dependencies{})
 
 	const want = `{"ok":false,"error":{"type":"usage.invalid","code":"COMMAND_NOT_FOUND","message":"Unknown command.","retryable":false,"details":{}},"meta":{"command":"unknown","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-10.1"}}` + "\n"
 	if result.ExitCode != 2 {
@@ -53,7 +53,7 @@ func TestExecutePrettyPrintsOneCompleteEnvelope(t *testing.T) {
 	result := app.Execute(context.Background(), app.Request{
 		Argv:  []string{"--pretty", "--version"},
 		Stdin: strings.NewReader(""),
-	})
+	}, app.Dependencies{})
 
 	const want = `{
   "ok": true,
@@ -86,7 +86,7 @@ func TestExecuteAcceptsNonInteractiveGlobalFlag(t *testing.T) {
 	result := app.Execute(context.Background(), app.Request{
 		Argv:  []string{"--version", "--non-interactive"},
 		Stdin: strings.NewReader(""),
-	})
+	}, app.Dependencies{})
 
 	const want = `{"ok":true,"data":{"version":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-10.1"},"meta":{"command":"version","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-10.1","warnings":[]}}` + "\n"
 	if result.ExitCode != 0 {
@@ -104,7 +104,7 @@ func TestExecuteRejectsRepeatedScalarFlag(t *testing.T) {
 	result := app.Execute(context.Background(), app.Request{
 		Argv:  []string{"--pretty", "--version", "--pretty"},
 		Stdin: strings.NewReader(""),
-	})
+	}, app.Dependencies{})
 
 	const want = `{
   "ok": false,
@@ -140,7 +140,7 @@ func TestExecuteSchemaListsOnlyCompletedCatalog(t *testing.T) {
 	result := app.Execute(context.Background(), app.Request{
 		Argv:  []string{"schema"},
 		Stdin: strings.NewReader(""),
-	})
+	}, app.Dependencies{})
 
 	const want = `{"ok":true,"data":{"commands":["auth.logout","auth.status","doctor","schema","version"]},"meta":{"command":"schema","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-10.1","warnings":[]}}` + "\n"
 	if result.ExitCode != 0 {
@@ -158,7 +158,7 @@ func TestExecuteSchemaProjectsExecutableDefinition(t *testing.T) {
 	result := app.Execute(context.Background(), app.Request{
 		Argv:  []string{"schema", "auth.status"},
 		Stdin: strings.NewReader(""),
-	})
+	}, app.Dependencies{})
 
 	const want = `{"ok":true,"data":{"command":"auth.status","positionals":[],"flags":[],"inputSchema":{"type":"object","additionalProperties":false},"successSchema":{"type":"object","additionalProperties":false,"required":["authenticated","tokenState","expiresAt"],"properties":{"authenticated":{"type":"boolean"},"expiresAt":{"type":["string","null"],"format":"date-time"},"tokenState":{"type":"string","enum":["healthy","expiring","expired","missing"]}}},"failureTypes":["internal.failure"],"safety":{"kind":"read-only","planRequired":false,"confirmationRequired":false}},"meta":{"command":"schema","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-10.1","warnings":[]}}` + "\n"
 	if result.ExitCode != 0 {
@@ -176,7 +176,7 @@ func TestExecuteRejectsUnknownSchemaPathWithoutEchoingInput(t *testing.T) {
 	result := app.Execute(context.Background(), app.Request{
 		Argv:  []string{"schema", "secret-private-value"},
 		Stdin: strings.NewReader(""),
-	})
+	}, app.Dependencies{})
 
 	const want = `{"ok":false,"error":{"type":"usage.invalid","code":"COMMAND_SCHEMA_NOT_FOUND","message":"No completed command has that schema path.","retryable":false,"details":{}},"meta":{"command":"schema","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-10.1"}}` + "\n"
 	if result.ExitCode != 2 {
@@ -654,7 +654,7 @@ func TestExecuteSchemaDescribesBothDiscoveryResultShapes(t *testing.T) {
 	result := app.Execute(context.Background(), app.Request{
 		Argv:  []string{"schema", "schema"},
 		Stdin: strings.NewReader(""),
-	})
+	}, app.Dependencies{})
 	if result.ExitCode != 0 {
 		t.Fatalf("exit code = %d, want 0", result.ExitCode)
 	}
@@ -741,7 +741,7 @@ func TestExecuteUsesDefinitionForFlagFailureCommandMetadata(t *testing.T) {
 	result := app.Execute(context.Background(), app.Request{
 		Argv:  []string{"auth", "status", "--non-interactive", "--non-interactive"},
 		Stdin: strings.NewReader(""),
-	})
+	}, app.Dependencies{})
 
 	const want = `{"ok":false,"error":{"type":"input.invalid","code":"FLAG_REPEATED","message":"A scalar flag cannot be repeated.","retryable":false,"details":{"flag":"--non-interactive"}},"meta":{"command":"auth.status","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-10.1"}}` + "\n"
 	if result.ExitCode != 2 {
@@ -765,7 +765,7 @@ func TestExecutePrettyAppliesWhenItFollowsInvalidGlobalFlag(t *testing.T) {
 			"--pretty",
 		},
 		Stdin: strings.NewReader(""),
-	})
+	}, app.Dependencies{})
 
 	if result.ExitCode != 2 {
 		t.Fatalf("exit code = %d, want 2", result.ExitCode)
@@ -785,7 +785,7 @@ func TestExecuteUsesKnownCommandMetadataForInvalidArity(t *testing.T) {
 	result := app.Execute(context.Background(), app.Request{
 		Argv:  []string{"schema", "auth.status", "extra-private-value"},
 		Stdin: strings.NewReader(""),
-	})
+	}, app.Dependencies{})
 
 	const want = `{"ok":false,"error":{"type":"usage.invalid","code":"COMMAND_NOT_FOUND","message":"Unknown command.","retryable":false,"details":{}},"meta":{"command":"schema","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-10.1"}}` + "\n"
 	if result.ExitCode != 2 {

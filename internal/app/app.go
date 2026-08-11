@@ -296,11 +296,7 @@ type versionData struct {
 	RemoteContractRevision  string `json:"remoteContractRevision"`
 }
 
-func Execute(_ context.Context, request Request, provided ...Dependencies) Result {
-	var dependencies Dependencies
-	if len(provided) == 1 {
-		dependencies = provided[0]
-	}
+func Execute(_ context.Context, request Request, dependencies Dependencies) Result {
 	argv := make([]string, 0, len(request.Argv))
 	pretty := slices.Contains(request.Argv, "--pretty")
 	seenGlobalFlags := make(map[string]bool)
@@ -385,15 +381,14 @@ func Execute(_ context.Context, request Request, provided ...Dependencies) Resul
 			case doctorCommand:
 				if dependencies.CredentialsPathError != nil {
 					remediation := "Set a usable user configuration directory."
-					return success(definition.path, doctorData{
-						Healthy: false,
-						Checks: []doctorCheck{{
-							Name:        "credentials",
-							Status:      "fail",
-							Message:     "Configuration directory is unavailable.",
-							Remediation: &remediation,
-						}},
-					}, pretty)
+					return credentialsDoctorResult(
+						definition.path,
+						false,
+						"fail",
+						"Configuration directory is unavailable.",
+						&remediation,
+						pretty,
+					)
 				}
 				now := time.Now()
 				if dependencies.Now != nil {
@@ -406,76 +401,70 @@ func Execute(_ context.Context, request Request, provided ...Dependencies) Resul
 				)
 				if err == nil && state.TokenState == "missing" {
 					remediation := "Establish authentication before using commands that require it."
-					return success(definition.path, doctorData{
-						Healthy: false,
-						Checks: []doctorCheck{{
-							Name:        "credentials",
-							Status:      "fail",
-							Message:     "Authentication credentials are missing.",
-							Remediation: &remediation,
-						}},
-					}, pretty)
+					return credentialsDoctorResult(
+						definition.path,
+						false,
+						"fail",
+						"Authentication credentials are missing.",
+						&remediation,
+						pretty,
+					)
 				}
 				if err == nil && state.TokenState == "expiring" {
 					remediation := "Refresh authentication before the credentials expire."
-					return success(definition.path, doctorData{
-						Healthy: true,
-						Checks: []doctorCheck{{
-							Name:        "credentials",
-							Status:      "warn",
-							Message:     "Authentication credentials expire soon.",
-							Remediation: &remediation,
-						}},
-					}, pretty)
+					return credentialsDoctorResult(
+						definition.path,
+						true,
+						"warn",
+						"Authentication credentials expire soon.",
+						&remediation,
+						pretty,
+					)
 				}
 				if err == nil && state.TokenState == "expired" {
 					remediation := "Re-establish authentication."
-					return success(definition.path, doctorData{
-						Healthy: false,
-						Checks: []doctorCheck{{
-							Name:        "credentials",
-							Status:      "fail",
-							Message:     "Authentication credentials have expired.",
-							Remediation: &remediation,
-						}},
-					}, pretty)
+					return credentialsDoctorResult(
+						definition.path,
+						false,
+						"fail",
+						"Authentication credentials have expired.",
+						&remediation,
+						pretty,
+					)
 				}
 				if errors.Is(err, auth.ErrInvalid) {
 					remediation := "Remove the invalid credentials and re-establish authentication."
-					return success(definition.path, doctorData{
-						Healthy: false,
-						Checks: []doctorCheck{{
-							Name:        "credentials",
-							Status:      "fail",
-							Message:     "Authentication credentials are invalid.",
-							Remediation: &remediation,
-						}},
-					}, pretty)
+					return credentialsDoctorResult(
+						definition.path,
+						false,
+						"fail",
+						"Authentication credentials are invalid.",
+						&remediation,
+						pretty,
+					)
 				}
 				if errors.Is(err, auth.ErrUnavailable) {
 					remediation := "Check local credential file permissions."
-					return success(definition.path, doctorData{
-						Healthy: false,
-						Checks: []doctorCheck{{
-							Name:        "credentials",
-							Status:      "fail",
-							Message:     "Credential storage is unavailable.",
-							Remediation: &remediation,
-						}},
-					}, pretty)
+					return credentialsDoctorResult(
+						definition.path,
+						false,
+						"fail",
+						"Credential storage is unavailable.",
+						&remediation,
+						pretty,
+					)
 				}
 				if err != nil || state.TokenState != "healthy" {
 					return internalFailure(definition.path, pretty)
 				}
-				return success(definition.path, doctorData{
-					Healthy: true,
-					Checks: []doctorCheck{{
-						Name:        "credentials",
-						Status:      "pass",
-						Message:     "Authentication credentials are available.",
-						Remediation: nil,
-					}},
-				}, pretty)
+				return credentialsDoctorResult(
+					definition.path,
+					true,
+					"pass",
+					"Authentication credentials are available.",
+					nil,
+					pretty,
+				)
 			}
 		}
 	}
@@ -528,6 +517,25 @@ type doctorCheck struct {
 	Status      string  `json:"status"`
 	Message     string  `json:"message"`
 	Remediation *string `json:"remediation"`
+}
+
+func credentialsDoctorResult(
+	command string,
+	healthy bool,
+	status string,
+	message string,
+	remediation *string,
+	pretty bool,
+) Result {
+	return success(command, doctorData{
+		Healthy: healthy,
+		Checks: []doctorCheck{{
+			Name:        "credentials",
+			Status:      status,
+			Message:     message,
+			Remediation: remediation,
+		}},
+	}, pretty)
 }
 
 func findDefinition(path string) (commandDefinition, bool) {
