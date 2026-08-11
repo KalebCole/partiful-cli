@@ -556,6 +556,20 @@ describe('remote API contract', () => {
         representation: 'one-response-observed-complete-array',
         remotePagination: 'explicit-unknown',
       });
+      const artifactList = readEvidence.aggregates.eventLists[
+        rawField === 'upcomingEvents' ? 'upcoming' : 'past'
+      ];
+      expect(artifactList).toMatchObject({
+        firstCount: count,
+        secondCount: count,
+        sameIdentitySequence: true,
+        sameIdentitySet: true,
+        duplicateIdentityCount: 0,
+      });
+      expect(evidence.readObservation.eventLists[rawField].firstCount)
+        .toBe(artifactList.firstCount);
+      expect(evidence.readObservation.eventLists[rawField].secondCount)
+        .toBe(artifactList.secondCount);
     }
 
     expect(spec.components.schemas.HomePageEvent).toMatchObject({
@@ -748,9 +762,105 @@ describe('remote API contract', () => {
       'useAuthUser behavior',
       'duplicates outside the two observations',
     ]));
+    const artifactContacts = readEvidence.aggregates.contacts;
+    expect(artifactContacts.firstCount).toBe(evidence.readObservation.contacts.catalogCount);
+    expect(artifactContacts.secondCount).toBe(evidence.readObservation.contacts.catalogCount);
+    expect([
+      artifactContacts.pagination.firstRunPageItemCounts,
+      artifactContacts.pagination.secondRunPageItemCounts,
+    ]).toEqual(evidence.readObservation.contacts.runPageItemCounts);
+    expect(artifactContacts.pagination.firstRunPageItemCounts.reduce(
+      (total, pageCount) => total + pageCount,
+      0,
+    )).toBe(artifactContacts.firstCount);
   });
 
   it('keeps the read artifact sanitized and corrects unsupported failure labels', () => {
+    expect(Object.keys(readEvidence).sort()).toEqual([
+      'aggregates',
+      'observations',
+      'observedAt',
+      'probeMethod',
+      'purpose',
+      'redaction',
+    ]);
+    expect(readEvidence.observedAt).toBe(evidence.readObservation.observedAt);
+    expect(readEvidence.purpose)
+      .toBe('Privacy-safe Partiful event-read and contact remote-contract evidence');
+    expect(readEvidence.probeMethod)
+      .toBe('Owner-attended authenticated read-only calls. No mutation, retry, pagination guess, or rate-limit probe.');
+    expect(readEvidence.redaction)
+      .toBe('Only HTTP metadata, normalized JSON paths/types, allowlisted stable error codes, collection counts, and equality/projection facts are retained. No other body values, credentials, identities, names, event IDs, or contact details are written.');
+    const safeEndpoints = new Map([
+      ['getMyUpcomingEventsForHomePage', '/getMyUpcomingEventsForHomePage'],
+      ['getMyPastEventsForHomePage', '/getMyPastEventsForHomePage'],
+      ['getEventInfo', '/getEventInfo'],
+      ['getCurrentGuest', '/getCurrentGuest'],
+      ['getContacts', '/getContacts'],
+      [
+        'firestoreGetEvent',
+        '/v1/projects/getpartiful/databases/(default)/documents/events/{eventId}',
+      ],
+      [
+        'firestoreGetGuest',
+        '/v1/projects/getpartiful/databases/(default)/documents/events/{eventId}/guests/{guestId}',
+      ],
+    ]);
+    const safePhases = new Set([
+      'authenticated-first',
+      'authenticated-repeat',
+      'authenticated-first-page-1',
+      'authenticated-first-page-2',
+      'authenticated-first-page-3',
+      'authenticated-first-page-4',
+      'authenticated-repeat-page-1',
+      'authenticated-repeat-page-2',
+      'authenticated-repeat-page-3',
+      'authenticated-repeat-page-4',
+      'authenticated-selected-event',
+      'authenticated-synthetic-not-found',
+      'signed-out',
+      'signed-out-readable-event',
+    ]);
+    const safePathSegments = new Set([
+      '*', '[]', 'blurHash', 'code', 'contentType', 'count', 'createTime',
+      'createdAt', 'data', 'description', 'displaySettings', 'endDate', 'error',
+      'event', 'eventId', 'fields', 'height', 'id', 'image', 'images',
+      'location', 'message', 'name', 'nextCursor', 'paging', 'plusOnes',
+      'result', 'source', 'startDate', 'status', 'text', 'timezone', 'title',
+      'updateTime', 'url', 'userId', 'visibility', 'width',
+    ]);
+    const safeShapeTypes = new Set([
+      'array', 'boolean', 'integer', 'null', 'number', 'object', 'string',
+    ]);
+    for (const observation of readEvidence.observations) {
+      expect(Object.keys(observation).sort()).toEqual([
+        'bodyBytes',
+        'bodyKind',
+        'contentType',
+        'endpoint',
+        'normalizedErrorCode',
+        'operation',
+        'phase',
+        'shape',
+        'status',
+        'unknownKeyCount',
+      ]);
+      expect(observation.endpoint).toBe(safeEndpoints.get(observation.operation));
+      expect(safePhases.has(observation.phase)).toBe(true);
+      expect(observation.bodyKind).toBe('json');
+      expect(observation.contentType).toBe('application/json; charset=utf-8');
+      expect([null, 'NOT_FOUND', 'PERMISSION_DENIED', 'UNAUTHENTICATED'])
+        .toContain(observation.normalizedErrorCode);
+      for (const shape of observation.shape) {
+        expect(Object.keys(shape).sort()).toEqual(['path', 'type']);
+        expect(safeShapeTypes.has(shape.type)).toBe(true);
+        for (const segment of shape.path.split('.')) {
+          expect(safePathSegments.has(segment), shape.path).toBe(true);
+        }
+      }
+    }
+
     expect(readEvidence.aggregates.failureDistinctions).toMatchObject({
       permissionProbeObserved: false,
       signedOutEventObserved: true,
@@ -775,6 +885,28 @@ describe('remote API contract', () => {
     }
     expect(readEvidence.redaction).toContain('No other body values');
     expect(evidence.readObservation.artifactPath).toBe(readEvidencePath);
+  });
+
+  it('keeps the proposed revision status aligned in human contract surfaces', () => {
+    const productContract = fs.readFileSync(
+      'docs/CLI-PRODUCT-CONTRACT.md',
+      'utf8',
+    );
+    const contactResearch = fs.readFileSync(
+      'docs/research/2026-08-11-contacts-pagination-public-assets.md',
+      'utf8',
+    );
+
+    expect(productContract)
+      .not.toContain('currently leaves every operation response status and body unknown');
+    expect(contactResearch)
+      .not.toContain('The owner-reviewed remote contract still permits');
+    expect(contactResearch)
+      .not.toContain('Owner-attended authenticated observation is still required');
+    expect(contactResearch).toMatch(
+      /previous owner-reviewed remote contract[\s\S]+2026-08-11\.4/,
+    );
+    expect(contactResearch).toMatch(/Proposed revision `2026-08-11\.5`/);
   });
 
   it('captures the observed authentication response shapes from the attended session', () => {

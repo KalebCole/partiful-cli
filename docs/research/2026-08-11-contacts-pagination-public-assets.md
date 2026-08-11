@@ -125,24 +125,31 @@ Sources:
 `src/lib/api/endpoints.ts:158-174`;
 `src/lib/api/endpoints.ts:391-399`.
 
-The owner-reviewed remote contract still permits only empty request `params`
-and keeps response/status behavior unknown.
+The previous owner-reviewed remote contract, revision `2026-08-11.4`, permits
+only empty request `params` and keeps response/status behavior unknown.
+Proposed revision `2026-08-11.5` incorporates this paging request research and
+the separate authenticated response observation. It remains proposed.
 
 Sources:
 `spec/partiful.openapi.json#/paths/~1getContacts/post`;
 `spec/partiful.api-evidence.json#/operationClaims/getContacts`.
 
-## Remaining authenticated-only facts
+## Facts not established by public assets
 
-Owner-attended authenticated observation is still required to establish:
+The separate owner-attended observation now establishes actual page lengths,
+the current raw response paths, cursor types, the terminal response, two
+stable traversals, and observed success and signed-out responses. Public
+assets and that observation still do not establish:
 
-- actual page lengths and whether 1,000 is a request size, server cap, or both;
-- the current raw top-level response field;
-- cursor type, lifetime, reuse, invalid-cursor behavior, and terminal response;
-- ordering stability, duplicates within/across pages, and snapshot behavior;
+- whether 1,000 is only a request size, a server cap, or both;
+- cursor lifetime, reuse, and invalid-cursor behavior;
+- the backend ordering key and snapshot behavior;
 - the behavior of `useAuthUser`;
-- success and failure status/body mappings; and
-- whether the public client's inferred traversal produces a complete catalog.
+- unsupported status and error-body mappings; and
+- future completeness and duplicates outside the two observed traversals.
+
+The authenticated evidence and remaining limits are recorded in
+`docs/research/2026-08-11-event-contacts-read-observation.md`.
 
 Generic Firestore cursor rules do not apply without evidence that this callable
 uses a corresponding Firestore query.
