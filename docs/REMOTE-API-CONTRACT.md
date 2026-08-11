@@ -1,13 +1,15 @@
 # Remote API contract
 
-`spec/partiful.openapi.json` is owner-reviewed revision `2026-08-11.2` of the
+`spec/partiful.openapi.json` is proposed revision `2026-08-11.3` of the
 remote transport snapshot. It describes only network operations and wire
 shapes. It does not prescribe commands, output, credentials, mutation
 safeguards, or implementation architecture.
 
 ## Authority and change process
 
-Live, privacy-safe observations outrank this reviewed snapshot. A proposed
+Revision `2026-08-11.2` remains the owner-reviewed baseline until this proposed
+snapshot is approved. Live, privacy-safe observations can initiate a
+correction but do not authorize implementation by themselves. A proposed
 change must receive owner approval, update the contract and
 `spec/partiful.api-evidence.json`, then run
 `npm test -- tests/remote-api-contract.test.js`. TypeScript, historical drafts,

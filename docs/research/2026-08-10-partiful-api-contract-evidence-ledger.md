@@ -1,7 +1,7 @@
 # Partiful remote API contract evidence ledger
 
-**Owner-reviewed contract revision:** `2026-08-11.2`
-**Status:** Owner-reviewed
+**Proposed contract revision:** `2026-08-11.3`
+**Status:** Proposed — pending owner approval
 **Contract:** `spec/partiful.openapi.json`
 **Machine-readable ledger:** `spec/partiful.api-evidence.json`
 **Stable citation sources:** `docs/research/2026-08-10-contract-evidence-sources.md`
@@ -53,7 +53,7 @@ rules, and limits are **explicit unknown**. Operations with an observed HTTP
 `200` success have typed response schemas; the schema-free OpenAPI `default`
 response is retained for unrecognized statuses.
 
-The 992 material claims are audited by
+The 1008 material claims are audited by
 `tests/remote-api-contract.test.js`. Each ledger citation resolves either to a
 JSON Pointer in the committed non-authoritative historical artifact or to a
 heading in the committed stable source index. This keeps the audit independent
@@ -127,6 +127,32 @@ No-response/network is `remote.unavailable`. Rate limiting is not claimed.
 The Firebase Identity Toolkit and Secure Token endpoints require an HTTP
 `Referer` header matching an allowed pattern. This is a Firebase project
 configuration fact, not a Partiful callable behavior.
+
+## Firebase transport configuration
+
+Revision `2026-08-11.3` formalizes two transport configuration facts required
+by the Go implementation's Firebase requests:
+
+1. **Firebase web API key value**: The `firebaseApiKey` security scheme now
+   carries `x-publicValue: AIzaSyCky6PJ7cHRdBKk5X7gjuWERWaKWBHr4_k`. This is
+   a public value embedded in every Partiful web client, documented in the
+   March 24, 2026 browser interception under "Firebase API Key." It is not a
+   credential. It is required as the `key` query parameter on
+   `signInWithCustomToken`, `refreshToken`, and `lookupFirebaseUser`.
+
+2. **Referer header requirement**: Each Firebase operation now has a required
+   `Referer: https://partiful.com/` header parameter. This is documented in
+   the August 11, 2026 auth observation under "Firebase API key referrer
+   restriction." Requests without this header receive HTTP 403
+   `API_KEY_HTTP_REFERRER_BLOCKED`. This is the only observed accepted value;
+   the full set of values allowed by the remote restriction remains unknown.
+
+Origin is **not** modelled. Agent negative probes succeeded without an Origin
+header, receiving valid error responses (400). Origin is browser CORS
+behavior, not a Firebase transport requirement. If the Go implementation sends
+Origin, that is an implementation choice, not a contract claim.
+
+The 1008 material claims are audited by `tests/remote-api-contract.test.js`.
 
 ## Resolved conflict
 

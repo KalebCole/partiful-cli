@@ -94,6 +94,28 @@ confirmed error envelope shapes without using real credentials.
 This supersedes the earlier March 24 observation reference for response
 evidence. The March 24 note remains valid for the request shapes it recorded.
 
+## Firebase web API key value
+
+The March 24, 2026 browser-interception note
+`docs/research/2026-03-24-auth-flow-endpoints.md`, under "Firebase API Key,"
+records Partiful's public Firebase web API key
+(`AIzaSyCky6PJ7cHRdBKk5X7gjuWERWaKWBHr4_k`). This value is public
+configuration embedded in every Partiful web client; it is not a credential.
+It is required as the `key` query parameter on all Firebase Identity Toolkit
+and Secure Token endpoints.
+
+## Firebase API key referrer restriction
+
+The August 11, 2026 authentication observation
+`docs/research/2026-08-11-auth-observation.md`, under "Firebase API key
+referrer restriction," records that Firebase Identity Toolkit and Secure Token
+endpoints require an HTTP `Referer` header matching an allowed pattern.
+Requests without `Referer: https://partiful.com/` receive HTTP 403
+`API_KEY_HTTP_REFERRER_BLOCKED`. This was verified by agent privacy-safe
+negative probes that succeeded with the Referer header and failed without it.
+Origin was not required — probes without an Origin header received valid error
+responses.
+
 ## Dated poster catalog observation
 
 The unauthenticated, read-only observation in

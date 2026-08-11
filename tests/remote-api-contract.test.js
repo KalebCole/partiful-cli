@@ -110,7 +110,7 @@ describe('remote API contract', () => {
   it('is a consistently versioned OpenAPI 3.1 document with unique operation IDs', () => {
     expect(spec.openapi).toBe('3.1.0');
     expect(spec.info.version).toBe(evidence.contractRevision);
-    expect(evidence.status).toBe('owner-reviewed');
+    expect(evidence.status).toBe('proposed');
     const ids = operations().map(({ operation }) => operation.operationId);
     expect(ids).toHaveLength(27);
     expect(new Set(ids).size).toBe(ids.length);
@@ -149,7 +149,7 @@ describe('remote API contract', () => {
       ...materialClaimPointers(spec.paths, '#/paths', 'paths'),
       ...materialClaimPointers(spec.components, '#/components', 'components'),
     ]);
-    expect(pointers).toHaveLength(992);
+    expect(pointers).toHaveLength(1008);
     for (const pointer of pointers) {
       const claim = evidence.claims[pointer];
       expect(claim, pointer).toBeDefined();
@@ -655,5 +655,46 @@ describe('remote API contract', () => {
     expect(fb.sendAuthCodeTrusted).not.toHaveProperty('400');
     expect(fb.sendAuthCodeTrusted).not.toHaveProperty('403');
     expect(fb.sendAuthCodeTrusted.otherReceived).toBe('contract.protocol_changed');
+  });
+
+  it('models the Firebase transport configuration needed by signInWithCustomToken, refreshToken, and lookupFirebaseUser', () => {
+    // The firebaseApiKey security scheme must carry the public web-key value
+    const apiKeyScheme = spec.components.securitySchemes.firebaseApiKey;
+    expect(apiKeyScheme['x-publicValue']).toBe('AIzaSyCky6PJ7cHRdBKk5X7gjuWERWaKWBHr4_k');
+    expect(evidence.claims['#/components/securitySchemes/firebaseApiKey/x-publicValue']).toBeDefined();
+    expect(evidence.claims['#/components/securitySchemes/firebaseApiKey/x-publicValue'].classification)
+      .toBe('dated-live-observation');
+
+    // Each Firebase operation must require a Referer header
+    const firebaseOps = [
+      { path: '/v1/accounts:signInWithCustomToken', id: 'signInWithCustomToken' },
+      { path: '/v1/token', id: 'refreshToken' },
+      { path: '/v1/accounts:lookup', id: 'lookupFirebaseUser' },
+    ];
+    for (const { path: opPath, id } of firebaseOps) {
+      const operation = spec.paths[opPath].post;
+      expect(operation.parameters, `${id} has parameters`).toBeDefined();
+      const referer = operation.parameters.find((p) => p.name === 'Referer' && p.in === 'header');
+      expect(referer, `${id} has Referer parameter`).toBeDefined();
+      expect(referer.required, `${id} Referer is required`).toBe(true);
+      expect(referer.schema.const, `${id} Referer value`).toBe('https://partiful.com/');
+
+      // Referer claim must have observation-backed provenance
+      const escaped = escapePointerSegment(opPath);
+      const refererIdx = operation.parameters.indexOf(referer);
+      const constPointer = `#/paths/${escaped}/post/parameters/${refererIdx}/schema/const`;
+      expect(evidence.claims[constPointer], `${id} Referer const claim`).toBeDefined();
+      expect(evidence.claims[constPointer].classification).toBe('dated-live-observation');
+    }
+
+    // Origin is NOT modelled for Firebase operations — evidence does not support it as required
+    for (const { path: opPath, id } of firebaseOps) {
+      const operation = spec.paths[opPath].post;
+      const origin = (operation.parameters ?? []).find((p) => p.name === 'Origin');
+      expect(origin, `${id} must not claim Origin`).toBeUndefined();
+    }
+    expect(evidence.unresolvedUncertainty).toContain(
+      'The full set of Referer values accepted by the Firebase API-key restriction remains unknown; https://partiful.com/ is the only observed accepted value.',
+    );
   });
 });
