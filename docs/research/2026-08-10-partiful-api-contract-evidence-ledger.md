@@ -7,7 +7,8 @@
 
 ## Evidence classes
 
-- **Dated live observation:** the March 24 browser-interception research.
+- **Dated live observation:** the March 24 browser-interception research and
+  the August 11 public poster-catalog observation.
 - **Reviewed first-party repository research:** reviewed repository source,
   without claiming it proves current server behavior.
 - **TypeScript-derived inference:** historical draft or TypeScript transport
@@ -16,17 +17,26 @@
 
 ## Operation inventory
 
-The recovered 27 operations remain in the remote inventory. `createTextBlast`,
-`getLoginToken`, and `signInWithCustomToken` have dated live observations.
-`sendAuthCodeTrusted` is a TypeScript-derived inference.
-`lookupFirebaseUser` is a TypeScript-derived inference. The remaining
-operations are TypeScript-derived inferences:
+The recovered 27 operations remain in the remote inventory.
+
+### Dated-live operations
+
+Four operations have dated live observations: `createTextBlast`,
+`getLoginToken`, `signInWithCustomToken`, and `getPosterCatalog`.
+
+### TypeScript-derived operations
+
+The other 23 operations remain TypeScript-derived inferences:
 
 - callable: `createEvent`, `cancelEvent`, `getEventInfo`, `getContacts`,
-  `addInvitedGuestsAsHost`, cohost lifecycle operations, both home-page
-  queries, `addGuest`, `markEventInterest`, and `getCurrentGuest`;
-- Firestore: event and guest reads, event patch, and document listing;
-- Firebase and auxiliary: refresh, photo upload, and poster catalog.
+  `addInvitedGuestsAsHost`, `createCohostRequest`, `deleteCohostRequest`,
+  `removeCohost`, `generateEventCohostLink`, `revokeEventCohostLink`,
+  `getMyUpcomingEventsForHomePage`, `getMyPastEventsForHomePage`, `addGuest`,
+  `markEventInterest`, and `getCurrentGuest`;
+- Firestore: `firestoreGetEvent`, `firestorePatchEvent`, `firestoreGetGuest`,
+  and `firestoreListDocuments`;
+- Firebase and auxiliary: `refreshToken`, `sendAuthCodeTrusted`,
+  `lookupFirebaseUser`, and `uploadEventPhoto`.
 
 Every operation's request and response claim is enumerated by JSON Pointer in
 the JSON ledger, including operation, parameter, content-type, security,

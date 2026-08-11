@@ -281,9 +281,26 @@ describe('remote API contract', () => {
       'docs/research/2026-08-10-partiful-api-contract-evidence-ledger.md',
       'utf8',
     );
-    for (const operationId of ['sendAuthCodeTrusted', 'lookupFirebaseUser']) {
-      expect(evidence.operations[operationId].classification).toBe('typescript-derived-inference');
-      expect(ledger).toContain('`' + operationId + '` is a TypeScript-derived inference');
+    const knownOperationIds = new Set(Object.keys(evidence.operations));
+    const documentedOperations = (heading) => {
+      const marker = `### ${heading}\n`;
+      const start = ledger.indexOf(marker);
+      expect(start, heading).toBeGreaterThanOrEqual(0);
+      const section = ledger.slice(start + marker.length).split(/\n#{2,6} /)[0];
+      return [...section.matchAll(/`([^`]+)`/g)]
+        .map((match) => match[1])
+        .filter((operationId) => knownOperationIds.has(operationId))
+        .sort();
+    };
+    for (const [heading, classification] of [
+      ['Dated-live operations', 'dated-live-observation'],
+      ['TypeScript-derived operations', 'typescript-derived-inference'],
+    ]) {
+      const machineOperations = Object.entries(evidence.operations)
+        .filter(([, operation]) => operation.classification === classification)
+        .map(([operationId]) => operationId)
+        .sort();
+      expect(documentedOperations(heading)).toEqual(machineOperations);
     }
   });
 
