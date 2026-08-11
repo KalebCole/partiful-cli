@@ -2,7 +2,9 @@ package auth
 
 import (
 	"context"
+	"crypto/sha256"
 	"encoding/base64"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"io"
@@ -28,6 +30,7 @@ type FileSystem interface {
 	ReadFile(string) ([]byte, error)
 	Remove(string) error
 	WriteFileAtomic(string, []byte) error
+	WithLock(string, func()) error
 }
 
 type PrivateTerminal interface {
@@ -41,14 +44,16 @@ type State struct {
 }
 
 type Session struct {
-	AccessToken string
-	ExpiresAt   time.Time
+	AccessToken        string
+	ExpiresAt          time.Time
+	AccountFingerprint string
 }
 
 type credentialRecord struct {
-	AccessToken  string    `json:"accessToken"`
-	RefreshToken string    `json:"refreshToken"`
-	ExpiresAt    time.Time `json:"expiresAt"`
+	AccessToken        string    `json:"accessToken"`
+	RefreshToken       string    `json:"refreshToken"`
+	AccountFingerprint string    `json:"accountFingerprint,omitempty"`
+	ExpiresAt          time.Time `json:"expiresAt"`
 }
 
 func Login(
@@ -118,9 +123,10 @@ func Login(
 	}
 	expiresAt := now.Add(session.ExpiresIn).UTC()
 	err = SaveCredentials(files, path, Credentials{
-		AccessToken:  session.IDToken,
-		RefreshToken: session.RefreshToken,
-		ExpiresAt:    expiresAt,
+		AccessToken:        session.IDToken,
+		RefreshToken:       session.RefreshToken,
+		AccountFingerprint: accountFingerprint(session.IDToken),
+		ExpiresAt:          expiresAt,
 	})
 	if err != nil {
 		return State{}, ErrPersistence
@@ -136,47 +142,14 @@ func Status(files FileSystem, path string, now time.Time) (State, error) {
 	if files == nil || path == "" {
 		return State{}, ErrNotConfigured
 	}
-	document, err := files.ReadFile(path)
+	credentials, err := loadCredentials(files, path)
 	if errors.Is(err, fs.ErrNotExist) {
-		return State{
-			Authenticated: false,
-			TokenState:    "missing",
-			ExpiresAt:     nil,
-		}, nil
+		return missingState(), nil
 	}
 	if err != nil {
-		return State{}, ErrUnavailable
+		return State{}, err
 	}
-
-	var credentials credentialRecord
-	if err := json.Unmarshal(document, &credentials); err != nil ||
-		credentials.AccessToken == "" ||
-		credentials.ExpiresAt.IsZero() {
-		return State{}, ErrInvalid
-	}
-	if credentials.ExpiresAt.After(now.Add(5 * time.Minute)) {
-		expiresAt := credentials.ExpiresAt.UTC()
-		return State{
-			Authenticated: true,
-			TokenState:    "healthy",
-			ExpiresAt:     &expiresAt,
-		}, nil
-	}
-
-	if credentials.ExpiresAt.After(now) {
-		expiresAt := credentials.ExpiresAt.UTC()
-		return State{
-			Authenticated: true,
-			TokenState:    "expiring",
-			ExpiresAt:     &expiresAt,
-		}, nil
-	}
-	expiresAt := credentials.ExpiresAt.UTC()
-	return State{
-		Authenticated: false,
-		TokenState:    "expired",
-		ExpiresAt:     &expiresAt,
-	}, nil
+	return stateFromCredentials(credentials, now), nil
 }
 
 func StatusWithRefresh(
@@ -186,40 +159,8 @@ func StatusWithRefresh(
 	now time.Time,
 	client remote.AuthClient,
 ) (State, error) {
-	state, err := Status(files, path, now)
-	if err != nil ||
-		state.TokenState == "healthy" ||
-		state.TokenState == "missing" {
-		return state, err
-	}
-	document, err := files.ReadFile(path)
-	if err != nil {
-		return State{}, ErrUnavailable
-	}
-	var credentials credentialRecord
-	if json.Unmarshal(document, &credentials) != nil {
-		return State{}, ErrInvalid
-	}
-	if credentials.RefreshToken == "" {
-		return state, nil
-	}
-	refreshed, err := client.RefreshToken(ctx, credentials.RefreshToken)
-	if err != nil {
-		return State{}, err
-	}
-	expiresAt := now.Add(refreshed.ExpiresIn).UTC()
-	if err := SaveCredentials(files, path, Credentials{
-		AccessToken:  refreshed.IDToken,
-		RefreshToken: refreshed.RefreshToken,
-		ExpiresAt:    expiresAt,
-	}); err != nil {
-		return State{}, ErrPersistence
-	}
-	return State{
-		Authenticated: true,
-		TokenState:    "healthy",
-		ExpiresAt:     &expiresAt,
-	}, nil
+	_, state, err := refreshCredentials(ctx, files, path, now, client)
+	return state, err
 }
 
 func AcquireSession(
@@ -229,7 +170,7 @@ func AcquireSession(
 	now time.Time,
 	client remote.AuthClient,
 ) (Session, error) {
-	state, err := StatusWithRefresh(ctx, files, path, now, client)
+	credentials, state, err := refreshCredentials(ctx, files, path, now, client)
 	if err != nil {
 		return Session{}, err
 	}
@@ -239,17 +180,10 @@ func AcquireSession(
 	if state.TokenState == "expired" || !state.Authenticated || state.ExpiresAt == nil {
 		return Session{}, ErrSessionExpired
 	}
-	document, err := files.ReadFile(path)
-	if err != nil {
-		return Session{}, ErrUnavailable
-	}
-	var credentials credentialRecord
-	if json.Unmarshal(document, &credentials) != nil || credentials.AccessToken == "" {
-		return Session{}, ErrInvalid
-	}
 	return Session{
-		AccessToken: credentials.AccessToken,
-		ExpiresAt:   state.ExpiresAt.UTC(),
+		AccessToken:        credentials.AccessToken,
+		ExpiresAt:          state.ExpiresAt.UTC(),
+		AccountFingerprint: credentials.AccountFingerprint,
 	}, nil
 }
 
@@ -257,13 +191,165 @@ func Logout(files FileSystem, path string) (State, error) {
 	if files == nil || path == "" {
 		return State{}, ErrNotConfigured
 	}
-	err := files.Remove(path)
-	if err != nil && !errors.Is(err, fs.ErrNotExist) {
+	var removeError error
+	if err := files.WithLock(path, func() {
+		removeError = files.Remove(path)
+	}); err != nil {
 		return State{}, ErrUnavailable
 	}
-	return State{
-		Authenticated: false,
-		TokenState:    "missing",
-		ExpiresAt:     nil,
-	}, nil
+	if removeError != nil && !errors.Is(removeError, fs.ErrNotExist) {
+		return State{}, ErrUnavailable
+	}
+	return missingState(), nil
+}
+
+func refreshCredentials(
+	ctx context.Context,
+	files FileSystem,
+	path string,
+	now time.Time,
+	client remote.AuthClient,
+) (credentialRecord, State, error) {
+	if files == nil || path == "" {
+		return credentialRecord{}, State{}, ErrNotConfigured
+	}
+	var (
+		credentials  credentialRecord
+		state        State
+		operationErr error
+	)
+	if err := files.WithLock(path, func() {
+		credentials, operationErr = loadCredentials(files, path)
+		if errors.Is(operationErr, fs.ErrNotExist) {
+			operationErr = nil
+			state = missingState()
+			return
+		}
+		if operationErr != nil {
+			return
+		}
+		state = stateFromCredentials(credentials, now)
+		if state.TokenState == "healthy" || credentials.RefreshToken == "" {
+			return
+		}
+		var refreshed remote.RefreshTokenResponse
+		refreshed, operationErr = client.RefreshToken(ctx, credentials.RefreshToken)
+		if operationErr != nil {
+			return
+		}
+		expiresAt := now.Add(refreshed.ExpiresIn).UTC()
+		credentials = credentialRecord{
+			AccessToken:  refreshed.IDToken,
+			RefreshToken: refreshed.RefreshToken,
+			AccountFingerprint: refreshedFingerprint(
+				credentials.AccountFingerprint,
+				refreshed.IDToken,
+			),
+			ExpiresAt: expiresAt,
+		}
+		operationErr = saveCredentialsUnlocked(files, path, Credentials{
+			AccessToken:        credentials.AccessToken,
+			RefreshToken:       credentials.RefreshToken,
+			AccountFingerprint: credentials.AccountFingerprint,
+			ExpiresAt:          credentials.ExpiresAt,
+		})
+		if operationErr != nil {
+			operationErr = ErrPersistence
+			return
+		}
+		state = stateFromCredentials(credentials, now)
+	}); err != nil {
+		return credentialRecord{}, State{}, ErrUnavailable
+	}
+	if operationErr != nil {
+		return credentialRecord{}, State{}, operationErr
+	}
+	return credentials, state, nil
+}
+
+func loadCredentials(files FileSystem, path string) (credentialRecord, error) {
+	document, err := files.ReadFile(path)
+	if err != nil {
+		if errors.Is(err, fs.ErrNotExist) {
+			return credentialRecord{}, fs.ErrNotExist
+		}
+		return credentialRecord{}, ErrUnavailable
+	}
+	var credentials credentialRecord
+	if json.Unmarshal(document, &credentials) != nil ||
+		credentials.AccessToken == "" ||
+		credentials.ExpiresAt.IsZero() {
+		return credentialRecord{}, ErrInvalid
+	}
+	if credentials.AccountFingerprint == "" {
+		credentials.AccountFingerprint = accountFingerprint(credentials.AccessToken)
+	}
+	return credentials, nil
+}
+
+func stateFromCredentials(credentials credentialRecord, now time.Time) State {
+	expiresAt := credentials.ExpiresAt.UTC()
+	if credentials.ExpiresAt.After(now.Add(5 * time.Minute)) {
+		return State{Authenticated: true, TokenState: "healthy", ExpiresAt: &expiresAt}
+	}
+	if credentials.ExpiresAt.After(now) {
+		return State{Authenticated: true, TokenState: "expiring", ExpiresAt: &expiresAt}
+	}
+	return State{Authenticated: false, TokenState: "expired", ExpiresAt: &expiresAt}
+}
+
+func missingState() State {
+	return State{Authenticated: false, TokenState: "missing", ExpiresAt: nil}
+}
+
+func refreshedFingerprint(current, idToken string) string {
+	if fingerprint, ok := accountIdentityFingerprint(idToken); ok {
+		return fingerprint
+	}
+	if current != "" {
+		return current
+	}
+	return opaqueTokenFingerprint(idToken)
+}
+
+func accountFingerprint(idToken string) string {
+	if fingerprint, ok := accountIdentityFingerprint(idToken); ok {
+		return fingerprint
+	}
+	return opaqueTokenFingerprint(idToken)
+}
+
+func accountIdentityFingerprint(idToken string) (string, bool) {
+	segments := strings.Split(idToken, ".")
+	if len(segments) != 3 {
+		return "", false
+	}
+	payload, err := base64.RawURLEncoding.DecodeString(segments[1])
+	if err != nil {
+		return "", false
+	}
+	var claims struct {
+		Subject string `json:"sub"`
+		UserID  string `json:"user_id"`
+	}
+	if json.Unmarshal(payload, &claims) != nil {
+		return "", false
+	}
+	identity := claims.UserID
+	if identity == "" {
+		identity = claims.Subject
+	}
+	if identity == "" {
+		return "", false
+	}
+	return fingerprint("partiful-account:v1:", identity), true
+}
+
+func opaqueTokenFingerprint(idToken string) string {
+	return fingerprint("partiful-session:v1:", idToken)
+}
+
+func fingerprint(domain, value string) string {
+	hash := sha256.Sum256([]byte(domain + value))
+	return hex.EncodeToString(hash[:])
 }

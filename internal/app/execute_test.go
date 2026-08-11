@@ -9,12 +9,15 @@ import (
 	"io"
 	"io/fs"
 	"net/http"
+	"os"
 	"reflect"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
 	"github.com/KalebCole/partiful-cli/internal/app"
+	"github.com/KalebCole/partiful-cli/internal/auth"
 	"github.com/KalebCole/partiful-cli/internal/remote"
 )
 
@@ -587,7 +590,7 @@ func TestExecuteSchemaProjectsPosterSearchDefinition(t *testing.T) {
 	if got := envelope.Data.SuccessSchema.Properties["items"].Items.Required; !reflect.DeepEqual(got, wantPosterFields) {
 		t.Fatalf("poster fields = %v, want %v", got, wantPosterFields)
 	}
-	wantFailures := []string{"input.invalid", "state.conflict", "remote.unavailable", "contract.protocol_changed", "internal.failure"}
+	wantFailures := []string{"usage.invalid", "input.invalid", "state.conflict", "remote.unavailable", "contract.protocol_changed", "internal.failure"}
 	if !reflect.DeepEqual(envelope.Data.FailureTypes, wantFailures) {
 		t.Fatalf("failure types = %v, want %v", envelope.Data.FailureTypes, wantFailures)
 	}
@@ -1119,7 +1122,7 @@ func TestExecuteSchemaProjectsExecutableDefinition(t *testing.T) {
 		Stdin: strings.NewReader(""),
 	}, app.Dependencies{})
 
-	const want = `{"ok":true,"data":{"command":"auth.status","positionals":[],"flags":[],"inputSchema":{"type":"object","additionalProperties":false},"successSchema":{"type":"object","additionalProperties":false,"required":["authenticated","tokenState","expiresAt"],"properties":{"authenticated":{"type":"boolean"},"expiresAt":{"type":["string","null"],"format":"date-time"},"tokenState":{"type":"string","enum":["healthy","expiring","expired","missing"]}}},"failureTypes":["auth.expired","remote.unavailable","contract.protocol_changed","internal.failure"],"safety":{"kind":"read-only","planRequired":false,"confirmationRequired":false}},"meta":{"command":"schema","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.4","warnings":[]}}` + "\n"
+	const want = `{"ok":true,"data":{"command":"auth.status","positionals":[],"flags":[],"inputSchema":{"type":"object","additionalProperties":false},"successSchema":{"type":"object","additionalProperties":false,"required":["authenticated","tokenState","expiresAt"],"properties":{"authenticated":{"type":"boolean"},"expiresAt":{"type":["string","null"],"format":"date-time"},"tokenState":{"type":"string","enum":["healthy","expiring","expired","missing"]}}},"failureTypes":["usage.invalid","input.invalid","auth.expired","remote.unavailable","contract.protocol_changed","internal.failure"],"safety":{"kind":"read-only","planRequired":false,"confirmationRequired":false}},"meta":{"command":"schema","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.4","warnings":[]}}` + "\n"
 	if result.ExitCode != 0 {
 		t.Fatalf("exit code = %d, want 0", result.ExitCode)
 	}
@@ -1151,6 +1154,7 @@ func TestExecuteSchemaProjectsCompleteAuthLoginDefinition(t *testing.T) {
 		t.Fatalf("decode schema: %v", err)
 	}
 	wantFailures := []string{
+		"usage.invalid",
 		"input.invalid",
 		"auth.expired",
 		"auth.human_required",
@@ -1313,7 +1317,7 @@ func TestExecuteAuthLoginPersistsReviewedSessionWithoutRevealingPrivateValues(t 
 		phone        = "+15555550123"
 		code         = "123456"
 		customValue  = "custom-private-token"
-		accessValue  = "access-private-token"
+		accessValue  = "eyJhbGciOiJub25lIn0.eyJzdWIiOiJwcml2YXRlLXVzZXIifQ.signature"
 		refreshValue = "refresh-private-token"
 	)
 	terminal := &scriptedPrivateTerminal{values: []string{phone, code}}
@@ -1404,6 +1408,17 @@ func TestExecuteAuthLoginPersistsReviewedSessionWithoutRevealingPrivateValues(t 
 	}
 	if files.atomicWrites != 1 {
 		t.Fatalf("atomic writes = %d, want 1", files.atomicWrites)
+	}
+	storedCredentials := string(files.files["/config/partiful/credentials.json"])
+	if !strings.Contains(
+		storedCredentials,
+		`"accountFingerprint":"30d4c6416f97f2f3a466d7c093aa6927edcf2177516b3da1012f85f1c9aad1b4"`,
+	) {
+		t.Fatalf("stored credentials lack the stable private account fingerprint")
+	}
+	if strings.Contains(storedCredentials, "private-user") ||
+		strings.Contains(storedCredentials, `"userId"`) {
+		t.Fatal("stored credentials exposed a private account identifier")
 	}
 	if !reflect.DeepEqual(
 		terminal.prompts,
@@ -1735,6 +1750,7 @@ type fakeFilesystem struct {
 	readFile        func(string) ([]byte, error)
 	remove          func(string) error
 	writeFileAtomic func(string, []byte) error
+	withLock        func(string, func()) error
 }
 
 func (filesystem fakeFilesystem) ReadFile(path string) ([]byte, error) {
@@ -1752,6 +1768,14 @@ func (filesystem fakeFilesystem) WriteFileAtomic(path string, document []byte) e
 	if filesystem.writeFileAtomic != nil {
 		return filesystem.writeFileAtomic(path, document)
 	}
+	return nil
+}
+
+func (filesystem fakeFilesystem) WithLock(path string, operation func()) error {
+	if filesystem.withLock != nil {
+		return filesystem.withLock(path, operation)
+	}
+	operation()
 	return nil
 }
 
@@ -1908,6 +1932,113 @@ func TestExecuteAuthStatusDeterministicallyRefreshesExpiringSession(t *testing.T
 	}
 	if httpCalls != 1 || files.atomicWrites != 1 {
 		t.Fatalf("second status repeated refresh: calls = %d, writes = %d", httpCalls, files.atomicWrites)
+	}
+}
+
+func TestExecuteAuthLogoutCannotBeUndoneByConcurrentRefresh(t *testing.T) {
+	const credentialsPath = "/config/partiful/credentials.json"
+	files := &memoryFilesystem{files: map[string][]byte{
+		credentialsPath: []byte(
+			`{"accessToken":"old-private-token","refreshToken":"old-private-refresh","expiresAt":"2026-08-11T00:04:00Z"}`,
+		),
+	}}
+	refreshStarted := make(chan struct{})
+	allowRefresh := make(chan struct{})
+	dependencies := app.Dependencies{
+		Files:           files,
+		CredentialsPath: credentialsPath,
+		Now: func() time.Time {
+			return time.Date(2026, time.August, 11, 0, 0, 0, 0, time.UTC)
+		},
+		HTTP: scriptedHTTP{do: func(*http.Request) (*http.Response, error) {
+			close(refreshStarted)
+			<-allowRefresh
+			return jsonResponse(
+				http.StatusOK,
+				`{"access_token":"private-access","id_token":"new-private-token","refresh_token":"new-private-refresh","expires_in":"3600","token_type":"Bearer","user_id":"private-user"}`,
+			), nil
+		}},
+	}
+
+	statusResult := make(chan app.Result, 1)
+	go func() {
+		statusResult <- app.Execute(context.Background(), app.Request{
+			Argv: []string{"auth", "status"},
+		}, dependencies)
+	}()
+	<-refreshStarted
+
+	logoutResult := make(chan app.Result, 1)
+	go func() {
+		logoutResult <- app.Execute(context.Background(), app.Request{
+			Argv: []string{"auth", "logout"},
+		}, dependencies)
+	}()
+
+	select {
+	case result := <-logoutResult:
+		t.Fatalf("logout completed before in-flight refresh committed: %#v", result)
+	case <-time.After(20 * time.Millisecond):
+	}
+
+	close(allowRefresh)
+	if result := <-statusResult; result.ExitCode != 0 {
+		t.Fatalf("refreshing status = %#v, want success", result)
+	}
+	if result := <-logoutResult; result.ExitCode != 0 {
+		t.Fatalf("serialized logout = %#v, want success", result)
+	}
+	final := app.Execute(context.Background(), app.Request{
+		Argv: []string{"auth", "status"},
+	}, dependencies)
+	if final.ExitCode != 0 ||
+		!strings.Contains(final.Stdout, `"authenticated":false,"tokenState":"missing"`) {
+		t.Fatalf("final status = %#v, want logout to remain authoritative", final)
+	}
+}
+
+func TestExecuteAuthStatusAtomicallyReplacesProductionCredentials(t *testing.T) {
+	credentialsPath := t.TempDir() + "/credentials.json"
+	if err := os.WriteFile(
+		credentialsPath,
+		[]byte(`{"accessToken":"old-private-token","refreshToken":"old-private-refresh","expiresAt":"2026-08-11T00:04:00Z"}`),
+		0o600,
+	); err != nil {
+		t.Fatalf("write initial credentials: %v", err)
+	}
+
+	result := app.Execute(context.Background(), app.Request{
+		Argv: []string{"auth", "status"},
+	}, app.Dependencies{
+		Files:           auth.OSFileSystem{},
+		CredentialsPath: credentialsPath,
+		Now: func() time.Time {
+			return time.Date(2026, time.August, 11, 0, 0, 0, 0, time.UTC)
+		},
+		HTTP: scriptedHTTP{do: func(*http.Request) (*http.Response, error) {
+			return jsonResponse(
+				http.StatusOK,
+				`{"access_token":"private-access","id_token":"new-private-token","refresh_token":"new-private-refresh","expires_in":"3600","token_type":"Bearer","user_id":"private-user"}`,
+			), nil
+		}},
+	})
+	if result.ExitCode != 0 {
+		t.Fatalf("status = %#v, want successful production credential replacement", result)
+	}
+	document, err := os.ReadFile(credentialsPath)
+	if err != nil {
+		t.Fatalf("read replaced credentials: %v", err)
+	}
+	if strings.Contains(string(document), "old-private") ||
+		!strings.Contains(string(document), "new-private-token") {
+		t.Fatalf("replaced credentials do not contain one coherent refreshed record")
+	}
+	info, err := os.Stat(credentialsPath)
+	if err != nil {
+		t.Fatalf("stat replaced credentials: %v", err)
+	}
+	if info.Mode().Perm() != 0o600 {
+		t.Fatalf("credential mode = %o, want 600", info.Mode().Perm())
 	}
 }
 
@@ -2090,6 +2221,7 @@ func TestExecuteAuthLogoutAtomicallyRemovesCredentials(t *testing.T) {
 type memoryFilesystem struct {
 	files        map[string][]byte
 	atomicWrites int
+	mutex        sync.Mutex
 }
 
 func (filesystem *memoryFilesystem) ReadFile(path string) ([]byte, error) {
@@ -2111,6 +2243,13 @@ func (filesystem *memoryFilesystem) Remove(path string) error {
 func (filesystem *memoryFilesystem) WriteFileAtomic(path string, document []byte) error {
 	filesystem.atomicWrites++
 	filesystem.files[path] = append([]byte(nil), document...)
+	return nil
+}
+
+func (filesystem *memoryFilesystem) WithLock(_ string, operation func()) error {
+	filesystem.mutex.Lock()
+	defer filesystem.mutex.Unlock()
+	operation()
 	return nil
 }
 

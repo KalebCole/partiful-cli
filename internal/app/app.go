@@ -64,7 +64,6 @@ type commandDefinition struct {
 	successSchema   jsonSchema
 	failureTypes    []string
 	safety          safetyDefinition
-	sessionRequired bool
 }
 
 var commandCatalog = []commandDefinition{
@@ -481,53 +480,6 @@ func Execute(ctx context.Context, request Request, dependencies Dependencies) Re
 	}
 	for _, definition := range commandCatalog {
 		if definition.matches(argv) {
-			if definition.sessionRequired {
-				if dependencies.CredentialsPathError != nil {
-					return configurationDirectoryFailure(definition.path, pretty)
-				}
-				now := time.Now()
-				if dependencies.Now != nil {
-					now = dependencies.Now()
-				}
-				_, err := auth.AcquireSession(
-					ctx,
-					dependencies.Files,
-					dependencies.CredentialsPath,
-					now,
-					remote.AuthClient{HTTP: dependencies.HTTP},
-				)
-				if err != nil {
-					switch {
-					case errors.Is(err, auth.ErrRequired):
-						return authenticationRequiredFailure(definition.path, pretty)
-					case errors.Is(err, auth.ErrSessionExpired):
-						return authenticationExpiredFailure(
-							definition.path,
-							"SESSION_EXPIRED",
-							"Stored authentication has expired. Log in again.",
-							pretty,
-						)
-					case errors.Is(err, remote.ErrAuthExpired):
-						return authenticationExpiredFailure(
-							definition.path,
-							"INVALID_REFRESH_TOKEN",
-							"Stored authentication has expired. Log in again.",
-							pretty,
-						)
-					case errors.Is(err, remote.ErrProtocolChanged):
-						return authenticationProtocolChangedFailure(definition.path, pretty)
-					case errors.Is(err, remote.ErrUnavailable):
-						return authenticationUnavailableFailure(definition.path, pretty)
-					case errors.Is(err, auth.ErrPersistence),
-						errors.Is(err, auth.ErrUnavailable):
-						return credentialUnavailableFailure(definition.path, pretty)
-					case errors.Is(err, auth.ErrInvalid):
-						return credentialInvalidFailure(definition.path, pretty)
-					default:
-						return internalFailure(definition.path, pretty)
-					}
-				}
-			}
 			switch definition.kind {
 			case versionCommand:
 				return success(definition.path, versionData{
@@ -931,9 +883,19 @@ func projectSchema(definition commandDefinition) commandSchema {
 		Flags:         definition.flags,
 		InputSchema:   definition.inputSchema,
 		SuccessSchema: definition.successSchema,
-		FailureTypes:  definition.failureTypes,
+		FailureTypes:  declaredFailureTypes(definition),
 		Safety:        definition.safety,
 	}
+}
+
+func declaredFailureTypes(definition commandDefinition) []string {
+	failureTypes := []string{"usage.invalid", "input.invalid"}
+	for _, failureType := range definition.failureTypes {
+		if !slices.Contains(failureTypes, failureType) {
+			failureTypes = append(failureTypes, failureType)
+		}
+	}
+	return failureTypes
 }
 
 func commandName(argv []string) string {
@@ -1019,18 +981,6 @@ func privateTerminalRequiredFailure(command string, pretty bool) Result {
 		Details:   map[string]any{},
 	}, pretty)
 	result.Stderr = "partiful: private terminal required\n"
-	return result
-}
-
-func authenticationRequiredFailure(command string, pretty bool) Result {
-	result := failure(command, 3, errorBody{
-		Type:      "auth.required",
-		Code:      "AUTHENTICATION_REQUIRED",
-		Message:   "This command requires authentication. Log in first.",
-		Retryable: false,
-		Details:   map[string]any{},
-	}, pretty)
-	result.Stderr = "partiful: authentication required\n"
 	return result
 }
 

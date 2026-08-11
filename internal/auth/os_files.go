@@ -1,8 +1,6 @@
 package auth
 
 import (
-	"errors"
-	"io/fs"
 	"os"
 	"path/filepath"
 )
@@ -15,6 +13,28 @@ func (OSFileSystem) ReadFile(path string) ([]byte, error) {
 
 func (OSFileSystem) Remove(path string) error {
 	return os.Remove(path)
+}
+
+func (OSFileSystem) WithLock(path string, operation func()) error {
+	directory := filepath.Dir(path)
+	if err := os.MkdirAll(directory, 0o700); err != nil {
+		return err
+	}
+	lock, err := os.OpenFile(path+".lock", os.O_CREATE|os.O_RDWR, 0o600)
+	if err != nil {
+		return err
+	}
+	defer lock.Close()
+	if err := lock.Chmod(0o600); err != nil {
+		return err
+	}
+	release, err := acquireFileLock(lock)
+	if err != nil {
+		return err
+	}
+	defer release()
+	operation()
+	return nil
 }
 
 func (OSFileSystem) WriteFileAtomic(path string, document []byte) (resultError error) {
@@ -45,18 +65,10 @@ func (OSFileSystem) WriteFileAtomic(path string, document []byte) (resultError e
 	if err := temporary.Close(); err != nil {
 		return err
 	}
-	if err := os.Rename(temporaryPath, path); err != nil {
+	if err := replaceFile(temporaryPath, path); err != nil {
 		return err
 	}
-	directoryHandle, err := os.Open(directory)
-	if err != nil {
-		return err
-	}
-	defer directoryHandle.Close()
-	if err := directoryHandle.Sync(); err != nil &&
-		!errors.Is(err, fs.ErrInvalid) {
-		return err
-	}
+	syncDirectory(directory)
 	return nil
 }
 
