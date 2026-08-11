@@ -465,6 +465,11 @@ describe('remote API contract', () => {
     expect(fs.existsSync(probeArtifactPath)).toBe(true);
     const probeArtifact = JSON.parse(fs.readFileSync(probeArtifactPath, 'utf8'));
     expect(probeArtifact.probeMethod).toContain('fake tokens');
+    const authObservationDocument = fs.readFileSync(
+      'docs/research/2026-08-11-auth-observation.md',
+      'utf8',
+    );
+    expect(authObservationDocument).toContain(probeArtifact.observedAt);
 
     expect(evidence.authObservation).toMatchObject({
       sourceCitation: 'docs/research/2026-08-11-auth-observation.md#scope-and-provenance',
