@@ -84,6 +84,9 @@ func (client AuthClient) SendAuthCode(ctx context.Context, req SendAuthCodeReque
 	if response.StatusCode != http.StatusOK {
 		return fmt.Errorf("%w: status %d", ErrProtocolChanged, response.StatusCode)
 	}
+	if _, err := readBoundedAuthBody(response); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -162,7 +165,10 @@ func (client AuthClient) SignInWithCustomToken(ctx context.Context, token string
 	}
 	var result signInResult
 	if err := json.Unmarshal(data, &result); err != nil ||
-		result.IDToken == "" || result.RefreshToken == "" || result.ExpiresIn == "" {
+		result.IDToken == "" ||
+		result.RefreshToken == "" ||
+		result.ExpiresIn == "" ||
+		!validOptionalString(result.Kind) {
 		return SignInWithCustomTokenResponse{}, fmt.Errorf("%w: response body", ErrProtocolChanged)
 	}
 	expiresIn, err := parseExpiresIn(result.ExpiresIn)
@@ -227,7 +233,9 @@ func (client AuthClient) RefreshToken(
 		result.IDToken == "" ||
 		result.RefreshToken == "" ||
 		result.ExpiresIn == "" ||
-		result.TokenType == "" {
+		result.TokenType == "" ||
+		!validOptionalString(result.ProjectID) ||
+		!validOptionalString(result.UserID) {
 		return RefreshTokenResponse{}, fmt.Errorf("%w: response body", ErrProtocolChanged)
 	}
 	expiresIn, err := parseExpiresIn(result.ExpiresIn)
@@ -281,11 +289,22 @@ func readAuthJSON(response *http.Response) ([]byte, error) {
 	if err != nil || mediaType != "application/json" {
 		return nil, fmt.Errorf("%w: content type", ErrProtocolChanged)
 	}
+	data, err := readBoundedAuthBody(response)
+	if err != nil {
+		return nil, err
+	}
+	if !utf8.Valid(data) || !json.Valid(data) {
+		return nil, fmt.Errorf("%w: response body", ErrProtocolChanged)
+	}
+	return data, nil
+}
+
+func readBoundedAuthBody(response *http.Response) ([]byte, error) {
 	data, err := io.ReadAll(io.LimitReader(response.Body, maximumAuthBodyBytes+1))
 	if err != nil {
 		return nil, fmt.Errorf("%w: read body", ErrUnavailable)
 	}
-	if len(data) > maximumAuthBodyBytes || !utf8.Valid(data) || !json.Valid(data) {
+	if len(data) > maximumAuthBodyBytes {
 		return nil, fmt.Errorf("%w: response body", ErrProtocolChanged)
 	}
 	return data, nil
@@ -294,27 +313,56 @@ func readAuthJSON(response *http.Response) ([]byte, error) {
 func validCallableAuthError(data []byte) bool {
 	var failure struct {
 		Error *struct {
-			Message *string `json:"message"`
-			Status  *string `json:"status"`
+			Message *string         `json:"message"`
+			Status  *string         `json:"status"`
+			Details json.RawMessage `json:"details"`
 		} `json:"error"`
 	}
 	return json.Unmarshal(data, &failure) == nil &&
 		failure.Error != nil &&
 		failure.Error.Message != nil &&
-		failure.Error.Status != nil
+		failure.Error.Status != nil &&
+		validOptionalCallableDetails(failure.Error.Details)
 }
 
 func validFirebaseError(data []byte) bool {
 	var failure struct {
 		Error *struct {
-			Code    *float64 `json:"code"`
-			Message *string  `json:"message"`
+			Code    *float64        `json:"code"`
+			Message *string         `json:"message"`
+			Status  json.RawMessage `json:"status"`
 		} `json:"error"`
 	}
 	return json.Unmarshal(data, &failure) == nil &&
 		failure.Error != nil &&
 		failure.Error.Code != nil &&
-		failure.Error.Message != nil
+		failure.Error.Message != nil &&
+		validOptionalString(failure.Error.Status)
+}
+
+func validOptionalCallableDetails(raw json.RawMessage) bool {
+	if len(raw) == 0 {
+		return true
+	}
+	if bytes.Equal(bytes.TrimSpace(raw), []byte("null")) {
+		return false
+	}
+	var details struct {
+		AuthErrorCode json.RawMessage `json:"authErrorCode"`
+	}
+	return json.Unmarshal(raw, &details) == nil &&
+		validOptionalString(details.AuthErrorCode)
+}
+
+func validOptionalString(raw json.RawMessage) bool {
+	if len(raw) == 0 {
+		return true
+	}
+	if bytes.Equal(bytes.TrimSpace(raw), []byte("null")) {
+		return false
+	}
+	var value string
+	return json.Unmarshal(raw, &value) == nil
 }
 
 type callableBody struct {
@@ -357,15 +405,18 @@ type signInRequest struct {
 }
 
 type signInResult struct {
-	IDToken      string `json:"idToken"`
-	RefreshToken string `json:"refreshToken"`
-	ExpiresIn    string `json:"expiresIn"`
+	IDToken      string          `json:"idToken"`
+	RefreshToken string          `json:"refreshToken"`
+	ExpiresIn    string          `json:"expiresIn"`
+	Kind         json.RawMessage `json:"kind"`
 }
 
 type refreshResult struct {
-	AccessToken  string `json:"access_token"`
-	IDToken      string `json:"id_token"`
-	RefreshToken string `json:"refresh_token"`
-	ExpiresIn    string `json:"expires_in"`
-	TokenType    string `json:"token_type"`
+	AccessToken  string          `json:"access_token"`
+	IDToken      string          `json:"id_token"`
+	RefreshToken string          `json:"refresh_token"`
+	ExpiresIn    string          `json:"expires_in"`
+	TokenType    string          `json:"token_type"`
+	ProjectID    json.RawMessage `json:"project_id"`
+	UserID       json.RawMessage `json:"user_id"`
 }
