@@ -9,17 +9,19 @@ import (
 	"io/fs"
 	"strings"
 	"time"
-
-	"github.com/KalebCole/partiful-cli/internal/remote"
 )
 
 var (
-	ErrNotConfigured = errors.New("credential storage is not configured")
-	ErrUnavailable   = errors.New("credential storage is unavailable")
-	ErrInvalid       = errors.New("credential record is invalid")
-	ErrHumanRequired = errors.New("a private terminal is required")
-	ErrInputInvalid  = errors.New("authentication input is invalid")
-	ErrPersistence   = errors.New("credential persistence failed")
+	ErrNotConfigured         = errors.New("credential storage is not configured")
+	ErrUnavailable           = errors.New("credential storage is unavailable")
+	ErrInvalid               = errors.New("credential record is invalid")
+	ErrHumanRequired         = errors.New("a private terminal is required")
+	ErrInputInvalid          = errors.New("authentication input is invalid")
+	ErrPersistence           = errors.New("credential persistence failed")
+	ErrAuthCodeRejected      = errors.New("authentication code rejected")
+	ErrRemoteTokenExpired    = errors.New("remote authentication token expired")
+	ErrRemoteProtocolChanged = errors.New("remote authentication protocol changed")
+	ErrRemoteUnavailable     = errors.New("remote authentication service unavailable")
 )
 
 type FileSystem interface {
@@ -52,7 +54,7 @@ func Login(
 	terminal PrivateTerminal,
 	now time.Time,
 	random io.Reader,
-	client remote.AuthClient,
+	client RemoteAuth,
 ) (State, error) {
 	if files == nil || path == "" || random == nil {
 		return State{}, ErrNotConfigured
@@ -78,7 +80,7 @@ func Login(
 	}
 	deviceID := base64.RawURLEncoding.EncodeToString(deviceBytes)
 	sessionID := now.UnixMilli()
-	if err := client.SendAuthCode(ctx, remote.SendAuthCodeRequest{
+	if err := client.SendAuthCode(ctx, SendAuthCodeRequest{
 		PhoneNumber:        phoneNumber,
 		AmplitudeDeviceID:  deviceID,
 		AmplitudeSessionID: sessionID,
@@ -97,7 +99,7 @@ func Login(
 	if code == "" {
 		return State{}, ErrInputInvalid
 	}
-	customToken, err := client.GetLoginToken(ctx, remote.GetLoginTokenRequest{
+	customToken, err := client.GetLoginToken(ctx, GetLoginTokenRequest{
 		PhoneNumber:        phoneNumber,
 		AuthCode:           code,
 		AmplitudeDeviceID:  deviceID,
@@ -145,7 +147,7 @@ func StatusWithRefresh(
 	files FileSystem,
 	path string,
 	now time.Time,
-	client remote.AuthClient,
+	client RemoteAuth,
 ) (State, error) {
 	state, err := refreshCredentials(ctx, files, path, now, client)
 	return state, err
@@ -172,7 +174,7 @@ func refreshCredentials(
 	files FileSystem,
 	path string,
 	now time.Time,
-	client remote.AuthClient,
+	client RemoteAuth,
 ) (State, error) {
 	if files == nil || path == "" {
 		return State{}, ErrNotConfigured
@@ -196,7 +198,7 @@ func refreshCredentials(
 		if state.TokenState == "healthy" || credentials.RefreshToken == "" {
 			return
 		}
-		var refreshed remote.RefreshTokenResponse
+		var refreshed RefreshResponse
 		refreshed, operationErr = client.RefreshToken(ctx, credentials.RefreshToken)
 		if operationErr != nil {
 			return

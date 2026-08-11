@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"mime"
@@ -13,11 +12,8 @@ import (
 	"strconv"
 	"time"
 	"unicode/utf8"
-)
 
-var (
-	ErrAuthCodeRejected = errors.New("authentication code rejected")
-	ErrAuthExpired      = errors.New("authentication expired")
+	"github.com/KalebCole/partiful-cli/internal/auth"
 )
 
 const (
@@ -32,36 +28,9 @@ type AuthClient struct {
 	HTTP HTTPClient
 }
 
-type SendAuthCodeRequest struct {
-	PhoneNumber        string
-	AmplitudeDeviceID  string
-	AmplitudeSessionID int64
-}
+var _ auth.RemoteAuth = AuthClient{}
 
-type GetLoginTokenRequest struct {
-	PhoneNumber        string
-	AuthCode           string
-	AmplitudeDeviceID  string
-	AmplitudeSessionID int64
-}
-
-type GetLoginTokenResponse struct {
-	Token string
-}
-
-type SignInWithCustomTokenResponse struct {
-	IDToken      string
-	RefreshToken string
-	ExpiresIn    time.Duration
-}
-
-type RefreshTokenResponse struct {
-	IDToken      string
-	RefreshToken string
-	ExpiresIn    time.Duration
-}
-
-func (client AuthClient) SendAuthCode(ctx context.Context, req SendAuthCodeRequest) error {
+func (client AuthClient) SendAuthCode(ctx context.Context, req auth.SendAuthCodeRequest) error {
 	body := callableBody{
 		Data: callableData{
 			Params: sendAuthCodeParams{
@@ -82,7 +51,7 @@ func (client AuthClient) SendAuthCode(ctx context.Context, req SendAuthCodeReque
 	}
 	defer response.Body.Close()
 	if response.StatusCode != http.StatusOK {
-		return fmt.Errorf("%w: status %d", ErrProtocolChanged, response.StatusCode)
+		return fmt.Errorf("%w: status %d", auth.ErrRemoteProtocolChanged, response.StatusCode)
 	}
 	if _, err := readBoundedAuthBody(response); err != nil {
 		return err
@@ -90,7 +59,10 @@ func (client AuthClient) SendAuthCode(ctx context.Context, req SendAuthCodeReque
 	return nil
 }
 
-func (client AuthClient) GetLoginToken(ctx context.Context, req GetLoginTokenRequest) (GetLoginTokenResponse, error) {
+func (client AuthClient) GetLoginToken(
+	ctx context.Context,
+	req auth.GetLoginTokenRequest,
+) (auth.LoginTokenResponse, error) {
 	body := callableBody{
 		Data: callableData{
 			Params: getLoginTokenParams{
@@ -105,63 +77,66 @@ func (client AuthClient) GetLoginToken(ctx context.Context, req GetLoginTokenReq
 	}
 	response, err := client.callablePost(ctx, partifulCallableHost+"/getLoginToken", body)
 	if err != nil {
-		return GetLoginTokenResponse{}, err
+		return auth.LoginTokenResponse{}, err
 	}
 	defer response.Body.Close()
 	if response.StatusCode != http.StatusOK {
 		if response.StatusCode == http.StatusForbidden {
 			data, err := readAuthJSON(response)
 			if err != nil || !validCallableAuthError(data) {
-				return GetLoginTokenResponse{}, fmt.Errorf("%w: response body", ErrProtocolChanged)
+				return auth.LoginTokenResponse{}, fmt.Errorf("%w: response body", auth.ErrRemoteProtocolChanged)
 			}
-			return GetLoginTokenResponse{}, ErrAuthCodeRejected
+			return auth.LoginTokenResponse{}, auth.ErrAuthCodeRejected
 		}
-		return GetLoginTokenResponse{}, fmt.Errorf("%w: status %d", ErrProtocolChanged, response.StatusCode)
+		return auth.LoginTokenResponse{}, fmt.Errorf("%w: status %d", auth.ErrRemoteProtocolChanged, response.StatusCode)
 	}
 	data, err := readAuthJSON(response)
 	if err != nil {
-		return GetLoginTokenResponse{}, err
+		return auth.LoginTokenResponse{}, err
 	}
 	var result loginTokenResult
 	if err := json.Unmarshal(data, &result); err != nil || result.Result.Data.Token == "" {
-		return GetLoginTokenResponse{}, fmt.Errorf("%w: response body", ErrProtocolChanged)
+		return auth.LoginTokenResponse{}, fmt.Errorf("%w: response body", auth.ErrRemoteProtocolChanged)
 	}
-	return GetLoginTokenResponse{Token: result.Result.Data.Token}, nil
+	return auth.LoginTokenResponse{Token: result.Result.Data.Token}, nil
 }
 
-func (client AuthClient) SignInWithCustomToken(ctx context.Context, token string) (SignInWithCustomTokenResponse, error) {
+func (client AuthClient) SignInWithCustomToken(
+	ctx context.Context,
+	token string,
+) (auth.SignInResponse, error) {
 	if client.HTTP == nil {
-		return SignInWithCustomTokenResponse{}, fmt.Errorf("%w: authentication transport", ErrUnavailable)
+		return auth.SignInResponse{}, fmt.Errorf("%w: authentication transport", auth.ErrRemoteUnavailable)
 	}
 	payload, _ := json.Marshal(signInRequest{Token: token, ReturnSecureToken: true})
 	url := firebaseIdentityHost + "/v1/accounts:signInWithCustomToken?key=" + firebaseProjectKey
 	request, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewReader(payload))
 	if err != nil {
-		return SignInWithCustomTokenResponse{}, fmt.Errorf("%w: request", ErrUnavailable)
+		return auth.SignInResponse{}, fmt.Errorf("%w: request", auth.ErrRemoteUnavailable)
 	}
 	request.Header.Set("Content-Type", "application/json")
 	request.Header.Set("Referer", "https://partiful.com/")
 	response, err := client.HTTP.Do(request)
 	if err != nil {
-		return SignInWithCustomTokenResponse{}, fmt.Errorf("%w: request failed", ErrUnavailable)
+		return auth.SignInResponse{}, fmt.Errorf("%w: request failed", auth.ErrRemoteUnavailable)
 	}
 	if response == nil || response.Body == nil {
-		return SignInWithCustomTokenResponse{}, fmt.Errorf("%w: missing response", ErrProtocolChanged)
+		return auth.SignInResponse{}, fmt.Errorf("%w: missing response", auth.ErrRemoteProtocolChanged)
 	}
 	defer response.Body.Close()
 	if response.StatusCode == http.StatusBadRequest {
 		data, err := readAuthJSON(response)
 		if err != nil || !validFirebaseValidationError(data) {
-			return SignInWithCustomTokenResponse{}, fmt.Errorf("%w: response body", ErrProtocolChanged)
+			return auth.SignInResponse{}, fmt.Errorf("%w: response body", auth.ErrRemoteProtocolChanged)
 		}
-		return SignInWithCustomTokenResponse{}, ErrAuthExpired
+		return auth.SignInResponse{}, auth.ErrRemoteTokenExpired
 	}
 	if response.StatusCode != http.StatusOK {
-		return SignInWithCustomTokenResponse{}, fmt.Errorf("%w: status %d", ErrProtocolChanged, response.StatusCode)
+		return auth.SignInResponse{}, fmt.Errorf("%w: status %d", auth.ErrRemoteProtocolChanged, response.StatusCode)
 	}
 	data, err := readAuthJSON(response)
 	if err != nil {
-		return SignInWithCustomTokenResponse{}, err
+		return auth.SignInResponse{}, err
 	}
 	var result signInResult
 	if err := json.Unmarshal(data, &result); err != nil ||
@@ -169,13 +144,13 @@ func (client AuthClient) SignInWithCustomToken(ctx context.Context, token string
 		result.RefreshToken == "" ||
 		result.ExpiresIn == "" ||
 		!validOptionalString(result.Kind) {
-		return SignInWithCustomTokenResponse{}, fmt.Errorf("%w: response body", ErrProtocolChanged)
+		return auth.SignInResponse{}, fmt.Errorf("%w: response body", auth.ErrRemoteProtocolChanged)
 	}
 	expiresIn, err := parseExpiresIn(result.ExpiresIn)
 	if err != nil {
-		return SignInWithCustomTokenResponse{}, fmt.Errorf("%w: expiresIn", ErrProtocolChanged)
+		return auth.SignInResponse{}, fmt.Errorf("%w: expiresIn", auth.ErrRemoteProtocolChanged)
 	}
-	return SignInWithCustomTokenResponse{
+	return auth.SignInResponse{
 		IDToken:      result.IDToken,
 		RefreshToken: result.RefreshToken,
 		ExpiresIn:    expiresIn,
@@ -185,9 +160,9 @@ func (client AuthClient) SignInWithCustomToken(ctx context.Context, token string
 func (client AuthClient) RefreshToken(
 	ctx context.Context,
 	refreshToken string,
-) (RefreshTokenResponse, error) {
+) (auth.RefreshResponse, error) {
 	if client.HTTP == nil {
-		return RefreshTokenResponse{}, fmt.Errorf("%w: authentication transport", ErrUnavailable)
+		return auth.RefreshResponse{}, fmt.Errorf("%w: authentication transport", auth.ErrRemoteUnavailable)
 	}
 	form := url.Values{
 		"grant_type":    {"refresh_token"},
@@ -201,31 +176,31 @@ func (client AuthClient) RefreshToken(
 		bytes.NewBufferString(form),
 	)
 	if err != nil {
-		return RefreshTokenResponse{}, fmt.Errorf("%w: request", ErrUnavailable)
+		return auth.RefreshResponse{}, fmt.Errorf("%w: request", auth.ErrRemoteUnavailable)
 	}
 	request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	request.Header.Set("Referer", "https://partiful.com/")
 	response, err := client.HTTP.Do(request)
 	if err != nil {
-		return RefreshTokenResponse{}, fmt.Errorf("%w: request failed", ErrUnavailable)
+		return auth.RefreshResponse{}, fmt.Errorf("%w: request failed", auth.ErrRemoteUnavailable)
 	}
 	if response == nil || response.Body == nil {
-		return RefreshTokenResponse{}, fmt.Errorf("%w: missing response", ErrProtocolChanged)
+		return auth.RefreshResponse{}, fmt.Errorf("%w: missing response", auth.ErrRemoteProtocolChanged)
 	}
 	defer response.Body.Close()
 	if response.StatusCode == http.StatusBadRequest {
 		data, err := readAuthJSON(response)
 		if err != nil || !validFirebaseTokenError(data) {
-			return RefreshTokenResponse{}, fmt.Errorf("%w: response body", ErrProtocolChanged)
+			return auth.RefreshResponse{}, fmt.Errorf("%w: response body", auth.ErrRemoteProtocolChanged)
 		}
-		return RefreshTokenResponse{}, ErrAuthExpired
+		return auth.RefreshResponse{}, auth.ErrRemoteTokenExpired
 	}
 	if response.StatusCode != http.StatusOK {
-		return RefreshTokenResponse{}, fmt.Errorf("%w: status %d", ErrProtocolChanged, response.StatusCode)
+		return auth.RefreshResponse{}, fmt.Errorf("%w: status %d", auth.ErrRemoteProtocolChanged, response.StatusCode)
 	}
 	data, err := readAuthJSON(response)
 	if err != nil {
-		return RefreshTokenResponse{}, err
+		return auth.RefreshResponse{}, err
 	}
 	var result refreshResult
 	if json.Unmarshal(data, &result) != nil ||
@@ -236,13 +211,13 @@ func (client AuthClient) RefreshToken(
 		result.TokenType == "" ||
 		!validOptionalString(result.ProjectID) ||
 		!validOptionalString(result.UserID) {
-		return RefreshTokenResponse{}, fmt.Errorf("%w: response body", ErrProtocolChanged)
+		return auth.RefreshResponse{}, fmt.Errorf("%w: response body", auth.ErrRemoteProtocolChanged)
 	}
 	expiresIn, err := parseExpiresIn(result.ExpiresIn)
 	if err != nil {
-		return RefreshTokenResponse{}, fmt.Errorf("%w: expiresIn", ErrProtocolChanged)
+		return auth.RefreshResponse{}, fmt.Errorf("%w: expiresIn", auth.ErrRemoteProtocolChanged)
 	}
-	return RefreshTokenResponse{
+	return auth.RefreshResponse{
 		IDToken:      result.IDToken,
 		RefreshToken: result.RefreshToken,
 		ExpiresIn:    expiresIn,
@@ -252,34 +227,34 @@ func (client AuthClient) RefreshToken(
 func parseExpiresIn(value string) (time.Duration, error) {
 	seconds, err := strconv.ParseInt(value, 10, 64)
 	if err != nil || seconds <= 0 {
-		return 0, ErrProtocolChanged
+		return 0, auth.ErrRemoteProtocolChanged
 	}
 	duration, err := time.ParseDuration(strconv.FormatInt(seconds, 10) + "s")
 	if err != nil {
-		return 0, ErrProtocolChanged
+		return 0, auth.ErrRemoteProtocolChanged
 	}
 	return duration, nil
 }
 
 func (client AuthClient) callablePost(ctx context.Context, url string, body any) (*http.Response, error) {
 	if client.HTTP == nil {
-		return nil, fmt.Errorf("%w: authentication transport", ErrUnavailable)
+		return nil, fmt.Errorf("%w: authentication transport", auth.ErrRemoteUnavailable)
 	}
 	payload, err := json.Marshal(body)
 	if err != nil {
-		return nil, fmt.Errorf("%w: encode", ErrUnavailable)
+		return nil, fmt.Errorf("%w: encode", auth.ErrRemoteUnavailable)
 	}
 	request, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewReader(payload))
 	if err != nil {
-		return nil, fmt.Errorf("%w: request", ErrUnavailable)
+		return nil, fmt.Errorf("%w: request", auth.ErrRemoteUnavailable)
 	}
 	request.Header.Set("Content-Type", "application/json")
 	response, err := client.HTTP.Do(request)
 	if err != nil {
-		return nil, fmt.Errorf("%w: request failed", ErrUnavailable)
+		return nil, fmt.Errorf("%w: request failed", auth.ErrRemoteUnavailable)
 	}
 	if response == nil || response.Body == nil {
-		return nil, fmt.Errorf("%w: missing response", ErrProtocolChanged)
+		return nil, fmt.Errorf("%w: missing response", auth.ErrRemoteProtocolChanged)
 	}
 	return response, nil
 }
@@ -287,14 +262,14 @@ func (client AuthClient) callablePost(ctx context.Context, url string, body any)
 func readAuthJSON(response *http.Response) ([]byte, error) {
 	mediaType, _, err := mime.ParseMediaType(response.Header.Get("Content-Type"))
 	if err != nil || mediaType != "application/json" {
-		return nil, fmt.Errorf("%w: content type", ErrProtocolChanged)
+		return nil, fmt.Errorf("%w: content type", auth.ErrRemoteProtocolChanged)
 	}
 	data, err := readBoundedAuthBody(response)
 	if err != nil {
 		return nil, err
 	}
 	if !utf8.Valid(data) || !json.Valid(data) {
-		return nil, fmt.Errorf("%w: response body", ErrProtocolChanged)
+		return nil, fmt.Errorf("%w: response body", auth.ErrRemoteProtocolChanged)
 	}
 	return data, nil
 }
@@ -302,10 +277,10 @@ func readAuthJSON(response *http.Response) ([]byte, error) {
 func readBoundedAuthBody(response *http.Response) ([]byte, error) {
 	data, err := io.ReadAll(io.LimitReader(response.Body, maximumAuthBodyBytes+1))
 	if err != nil {
-		return nil, fmt.Errorf("%w: read body", ErrUnavailable)
+		return nil, fmt.Errorf("%w: read body", auth.ErrRemoteUnavailable)
 	}
 	if len(data) > maximumAuthBodyBytes {
-		return nil, fmt.Errorf("%w: response body", ErrProtocolChanged)
+		return nil, fmt.Errorf("%w: response body", auth.ErrRemoteProtocolChanged)
 	}
 	return data, nil
 }

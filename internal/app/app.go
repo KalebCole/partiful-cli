@@ -533,10 +533,10 @@ func Execute(ctx context.Context, request Request, dependencies Dependencies) Re
 					if errors.Is(err, auth.ErrInputInvalid) {
 						return authenticationInputInvalidFailure(definition.path, pretty)
 					}
-					if errors.Is(err, remote.ErrAuthCodeRejected) {
+					if errors.Is(err, auth.ErrAuthCodeRejected) {
 						return authCodeRejectedFailure(definition.path, pretty)
 					}
-					if errors.Is(err, remote.ErrAuthExpired) {
+					if errors.Is(err, auth.ErrRemoteTokenExpired) {
 						return authenticationExpiredFailure(
 							definition.path,
 							"INVALID_CUSTOM_TOKEN",
@@ -544,10 +544,10 @@ func Execute(ctx context.Context, request Request, dependencies Dependencies) Re
 							pretty,
 						)
 					}
-					if errors.Is(err, remote.ErrProtocolChanged) {
+					if errors.Is(err, auth.ErrRemoteProtocolChanged) {
 						return authenticationProtocolChangedFailure(definition.path, pretty)
 					}
-					if errors.Is(err, remote.ErrUnavailable) {
+					if errors.Is(err, auth.ErrRemoteUnavailable) {
 						return authenticationUnavailableFailure(definition.path, pretty)
 					}
 					if errors.Is(err, auth.ErrPersistence) {
@@ -572,7 +572,7 @@ func Execute(ctx context.Context, request Request, dependencies Dependencies) Re
 					remote.AuthClient{HTTP: dependencies.HTTP},
 				)
 				if err != nil {
-					if errors.Is(err, remote.ErrAuthExpired) {
+					if errors.Is(err, auth.ErrRemoteTokenExpired) {
 						return authenticationExpiredFailure(
 							definition.path,
 							"INVALID_REFRESH_TOKEN",
@@ -580,10 +580,10 @@ func Execute(ctx context.Context, request Request, dependencies Dependencies) Re
 							pretty,
 						)
 					}
-					if errors.Is(err, remote.ErrProtocolChanged) {
+					if errors.Is(err, auth.ErrRemoteProtocolChanged) {
 						return authenticationProtocolChangedFailure(definition.path, pretty)
 					}
-					if errors.Is(err, remote.ErrUnavailable) {
+					if errors.Is(err, auth.ErrRemoteUnavailable) {
 						return authenticationUnavailableFailure(definition.path, pretty)
 					}
 					if errors.Is(err, auth.ErrPersistence) {
