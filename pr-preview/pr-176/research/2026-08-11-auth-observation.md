@@ -11,10 +11,13 @@ JSON paths/types is committed at
 confirmed no phone numbers, verification codes, tokens, API keys, or user IDs
 are present in the artifact.
 
-Additional privacy-safe negative probes were performed by the agent at
-approximately `02:33Z` using clearly fake tokens, empty/invalid phone numbers,
-and structurally malformed requests that could not contact a person, deliver a
-message, or authenticate. These probes observed only error responses.
+Initial privacy-safe negative probes were performed at approximately `02:33Z`
+using empty or invalid phone input and malformed requests that could not
+contact a person, deliver a message, or authenticate. Repeat fake-token probes
+for Firebase sign-in, refresh, and lookup were recorded at
+`2026-08-11T03:54:17Z` in
+`spec/research/auth-error-probes-redacted-20260811.json`. All probes observed
+only error responses.
 
 ## Direct observations
 
