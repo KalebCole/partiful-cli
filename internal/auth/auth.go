@@ -2,9 +2,7 @@ package auth
 
 import (
 	"context"
-	"crypto/sha256"
 	"encoding/base64"
-	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"io"
@@ -16,14 +14,12 @@ import (
 )
 
 var (
-	ErrNotConfigured  = errors.New("credential storage is not configured")
-	ErrUnavailable    = errors.New("credential storage is unavailable")
-	ErrInvalid        = errors.New("credential record is invalid")
-	ErrHumanRequired  = errors.New("a private terminal is required")
-	ErrInputInvalid   = errors.New("authentication input is invalid")
-	ErrPersistence    = errors.New("credential persistence failed")
-	ErrRequired       = errors.New("authentication is required")
-	ErrSessionExpired = errors.New("authentication session is expired")
+	ErrNotConfigured = errors.New("credential storage is not configured")
+	ErrUnavailable   = errors.New("credential storage is unavailable")
+	ErrInvalid       = errors.New("credential record is invalid")
+	ErrHumanRequired = errors.New("a private terminal is required")
+	ErrInputInvalid  = errors.New("authentication input is invalid")
+	ErrPersistence   = errors.New("credential persistence failed")
 )
 
 type FileSystem interface {
@@ -43,17 +39,10 @@ type State struct {
 	ExpiresAt     *time.Time `json:"expiresAt"`
 }
 
-type Session struct {
-	AccessToken        string
-	ExpiresAt          time.Time
-	AccountFingerprint string
-}
-
 type credentialRecord struct {
-	AccessToken        string    `json:"accessToken"`
-	RefreshToken       string    `json:"refreshToken"`
-	AccountFingerprint string    `json:"accountFingerprint,omitempty"`
-	ExpiresAt          time.Time `json:"expiresAt"`
+	AccessToken  string    `json:"accessToken"`
+	RefreshToken string    `json:"refreshToken"`
+	ExpiresAt    time.Time `json:"expiresAt"`
 }
 
 func Login(
@@ -123,10 +112,9 @@ func Login(
 	}
 	expiresAt := now.Add(session.ExpiresIn).UTC()
 	err = SaveCredentials(files, path, Credentials{
-		AccessToken:        session.IDToken,
-		RefreshToken:       session.RefreshToken,
-		AccountFingerprint: accountFingerprint(session.IDToken),
-		ExpiresAt:          expiresAt,
+		AccessToken:  session.IDToken,
+		RefreshToken: session.RefreshToken,
+		ExpiresAt:    expiresAt,
 	})
 	if err != nil {
 		return State{}, ErrPersistence
@@ -161,30 +149,6 @@ func StatusWithRefresh(
 ) (State, error) {
 	_, state, err := refreshCredentials(ctx, files, path, now, client)
 	return state, err
-}
-
-func AcquireSession(
-	ctx context.Context,
-	files FileSystem,
-	path string,
-	now time.Time,
-	client remote.AuthClient,
-) (Session, error) {
-	credentials, state, err := refreshCredentials(ctx, files, path, now, client)
-	if err != nil {
-		return Session{}, err
-	}
-	if state.TokenState == "missing" {
-		return Session{}, ErrRequired
-	}
-	if state.TokenState == "expired" || !state.Authenticated || state.ExpiresAt == nil {
-		return Session{}, ErrSessionExpired
-	}
-	return Session{
-		AccessToken:        credentials.AccessToken,
-		ExpiresAt:          state.ExpiresAt.UTC(),
-		AccountFingerprint: credentials.AccountFingerprint,
-	}, nil
 }
 
 func Logout(files FileSystem, path string) (State, error) {
@@ -241,17 +205,12 @@ func refreshCredentials(
 		credentials = credentialRecord{
 			AccessToken:  refreshed.IDToken,
 			RefreshToken: refreshed.RefreshToken,
-			AccountFingerprint: refreshedFingerprint(
-				credentials.AccountFingerprint,
-				refreshed.IDToken,
-			),
-			ExpiresAt: expiresAt,
+			ExpiresAt:    expiresAt,
 		}
 		operationErr = saveCredentialsUnlocked(files, path, Credentials{
-			AccessToken:        credentials.AccessToken,
-			RefreshToken:       credentials.RefreshToken,
-			AccountFingerprint: credentials.AccountFingerprint,
-			ExpiresAt:          credentials.ExpiresAt,
+			AccessToken:  credentials.AccessToken,
+			RefreshToken: credentials.RefreshToken,
+			ExpiresAt:    credentials.ExpiresAt,
 		})
 		if operationErr != nil {
 			operationErr = ErrPersistence
@@ -281,9 +240,6 @@ func loadCredentials(files FileSystem, path string) (credentialRecord, error) {
 		credentials.ExpiresAt.IsZero() {
 		return credentialRecord{}, ErrInvalid
 	}
-	if credentials.AccountFingerprint == "" {
-		credentials.AccountFingerprint = accountFingerprint(credentials.AccessToken)
-	}
 	return credentials, nil
 }
 
@@ -300,56 +256,4 @@ func stateFromCredentials(credentials credentialRecord, now time.Time) State {
 
 func missingState() State {
 	return State{Authenticated: false, TokenState: "missing", ExpiresAt: nil}
-}
-
-func refreshedFingerprint(current, idToken string) string {
-	if fingerprint, ok := accountIdentityFingerprint(idToken); ok {
-		return fingerprint
-	}
-	if current != "" {
-		return current
-	}
-	return opaqueTokenFingerprint(idToken)
-}
-
-func accountFingerprint(idToken string) string {
-	if fingerprint, ok := accountIdentityFingerprint(idToken); ok {
-		return fingerprint
-	}
-	return opaqueTokenFingerprint(idToken)
-}
-
-func accountIdentityFingerprint(idToken string) (string, bool) {
-	segments := strings.Split(idToken, ".")
-	if len(segments) != 3 {
-		return "", false
-	}
-	payload, err := base64.RawURLEncoding.DecodeString(segments[1])
-	if err != nil {
-		return "", false
-	}
-	var claims struct {
-		Subject string `json:"sub"`
-		UserID  string `json:"user_id"`
-	}
-	if json.Unmarshal(payload, &claims) != nil {
-		return "", false
-	}
-	identity := claims.UserID
-	if identity == "" {
-		identity = claims.Subject
-	}
-	if identity == "" {
-		return "", false
-	}
-	return fingerprint("partiful-account:v1:", identity), true
-}
-
-func opaqueTokenFingerprint(idToken string) string {
-	return fingerprint("partiful-session:v1:", idToken)
-}
-
-func fingerprint(domain, value string) string {
-	hash := sha256.Sum256([]byte(domain + value))
-	return hex.EncodeToString(hash[:])
 }

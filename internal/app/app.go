@@ -55,15 +55,15 @@ const (
 )
 
 type commandDefinition struct {
-	path            string
-	invocation      []string
-	kind            commandKind
-	positionals     []positionalDefinition
-	flags           []flagDefinition
-	inputSchema     jsonSchema
-	successSchema   jsonSchema
-	failureTypes    []string
-	safety          safetyDefinition
+	path          string
+	invocation    []string
+	kind          commandKind
+	positionals   []positionalDefinition
+	flags         []flagDefinition
+	inputSchema   jsonSchema
+	successSchema jsonSchema
+	failureTypes  []string
+	safety        safetyDefinition
 }
 
 var commandCatalog = []commandDefinition{
@@ -129,7 +129,11 @@ var commandCatalog = []commandDefinition{
 			"contract.protocol_changed",
 			"internal.failure",
 		},
-		safety: readOnlySafety(),
+		safety: safetyDefinition{
+			Kind:                 "local-mutation",
+			PlanRequired:         false,
+			ConfirmationRequired: false,
+		},
 	},
 	{
 		path:          "auth.logout",

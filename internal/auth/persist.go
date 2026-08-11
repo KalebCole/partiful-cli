@@ -6,10 +6,9 @@ import (
 )
 
 type Credentials struct {
-	AccessToken        string    `json:"accessToken"`
-	RefreshToken       string    `json:"refreshToken,omitempty"`
-	AccountFingerprint string    `json:"accountFingerprint,omitempty"`
-	ExpiresAt          time.Time `json:"expiresAt"`
+	AccessToken  string    `json:"accessToken"`
+	RefreshToken string    `json:"refreshToken,omitempty"`
+	ExpiresAt    time.Time `json:"expiresAt"`
 }
 
 func SaveCredentials(files FileSystem, path string, credentials Credentials) error {
