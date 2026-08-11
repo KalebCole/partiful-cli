@@ -14,6 +14,10 @@ import (
 
 const posterCatalogURL = "https://assets.getpartiful.com/posters.json"
 
+// maximumPosterCatalogBytes leaves substantial headroom above the observed
+// 1,125,932-byte catalog while keeping a finite local memory bound.
+const maximumPosterCatalogBytes = 8 << 20
+
 var (
 	ErrUnavailable     = errors.New("remote unavailable")
 	ErrProtocolChanged = errors.New("remote protocol changed")
@@ -66,9 +70,12 @@ func (client Client) GetPosterCatalog(ctx context.Context) (PosterCatalog, error
 	if err != nil || mediaType != "application/json" {
 		return PosterCatalog{}, fmt.Errorf("%w: content type", ErrProtocolChanged)
 	}
-	body, err := io.ReadAll(response.Body)
+	body, err := io.ReadAll(io.LimitReader(response.Body, maximumPosterCatalogBytes+1))
 	if err != nil {
 		return PosterCatalog{}, fmt.Errorf("%w: response read", ErrUnavailable)
+	}
+	if len(body) > maximumPosterCatalogBytes {
+		return PosterCatalog{}, fmt.Errorf("%w: response too large", ErrProtocolChanged)
 	}
 	posters, err := decodePosters(body)
 	if err != nil {

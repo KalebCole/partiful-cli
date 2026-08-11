@@ -684,6 +684,29 @@ func TestExecutePostersListProductionHTTPDoesNotFollowRedirects(t *testing.T) {
 	}
 }
 
+func TestExecutePostersListRejectsBodyAboveFiniteCeiling(t *testing.T) {
+	oversizedBody := io.MultiReader(
+		strings.NewReader("[]"),
+		strings.NewReader(strings.Repeat(" ", 8<<20)),
+	)
+	result := app.Execute(context.Background(), app.Request{
+		Argv:  []string{"posters", "list"},
+		Stdin: strings.NewReader(""),
+	}, app.Dependencies{
+		HTTP: scriptedHTTP{do: func(*http.Request) (*http.Response, error) {
+			return &http.Response{
+				StatusCode: http.StatusOK,
+				Header:     http.Header{"Content-Type": {"application/json"}},
+				Body:       io.NopCloser(oversizedBody),
+			}, nil
+		}},
+	})
+
+	if result.ExitCode != 9 || !strings.Contains(result.Stdout, `"type":"contract.protocol_changed"`) {
+		t.Fatalf("result = %#v, want oversized body protocol change", result)
+	}
+}
+
 func TestExecutePostersListFailsClosedOnMalformed200Body(t *testing.T) {
 	const malformedBody = `[{"id":"private-id","name":"Missing categories","url":"https://example.invalid/poster.png","contentType":"image/png","width":1,"height":1,"tags":[]}]`
 	result := app.Execute(context.Background(), app.Request{
