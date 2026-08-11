@@ -1,0 +1,3181 @@
+{
+  "purpose": "Privacy-safe Partiful event-read and contact remote-contract evidence",
+  "observedAt": "2026-08-11T22:42:33.146Z",
+  "redaction": "Only HTTP metadata, normalized JSON paths/types, allowlisted stable error codes, collection counts, and equality/projection facts are retained. No other body values, credentials, identities, names, event IDs, or contact details are written.",
+  "probeMethod": "Owner-attended authenticated read-only calls. No mutation, retry, pagination guess, or rate-limit probe.",
+  "observations": [
+    {
+      "operation": "getMyUpcomingEventsForHomePage",
+      "phase": "authenticated-first",
+      "endpoint": "/getMyUpcomingEventsForHomePage",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "bodyKind": "json",
+      "bodyBytes": 74747,
+      "shape": [
+        {
+          "path": "result",
+          "type": "object"
+        },
+        {
+          "path": "result.data",
+          "type": "object"
+        },
+        {
+          "path": "result.data.*",
+          "type": "array"
+        },
+        {
+          "path": "result.data.*",
+          "type": "object"
+        },
+        {
+          "path": "result.data.*.[]",
+          "type": "object"
+        },
+        {
+          "path": "result.data.*.[].*",
+          "type": "array"
+        },
+        {
+          "path": "result.data.*.[].*",
+          "type": "boolean"
+        },
+        {
+          "path": "result.data.*.[].*",
+          "type": "integer"
+        },
+        {
+          "path": "result.data.*.[].*",
+          "type": "null"
+        },
+        {
+          "path": "result.data.*.[].*",
+          "type": "object"
+        },
+        {
+          "path": "result.data.*.[].*",
+          "type": "string"
+        },
+        {
+          "path": "result.data.*.[].*.[]",
+          "type": "string"
+        },
+        {
+          "path": "result.data.*.[].*.*",
+          "type": "array"
+        },
+        {
+          "path": "result.data.*.[].*.*",
+          "type": "boolean"
+        },
+        {
+          "path": "result.data.*.[].*.*",
+          "type": "integer"
+        },
+        {
+          "path": "result.data.*.[].*.*",
+          "type": "object"
+        },
+        {
+          "path": "result.data.*.[].*.*",
+          "type": "string"
+        },
+        {
+          "path": "result.data.*.[].*.*.[]",
+          "type": "object"
+        },
+        {
+          "path": "result.data.*.[].*.*.[].*",
+          "type": "integer"
+        },
+        {
+          "path": "result.data.*.[].*.*.[].*",
+          "type": "object"
+        },
+        {
+          "path": "result.data.*.[].*.*.[].*.*",
+          "type": "integer"
+        },
+        {
+          "path": "result.data.*.[].*.*.[].id",
+          "type": "string"
+        },
+        {
+          "path": "result.data.*.[].*.*.[].text",
+          "type": "string"
+        },
+        {
+          "path": "result.data.*.[].*.*.*",
+          "type": "null"
+        },
+        {
+          "path": "result.data.*.[].*.*.*",
+          "type": "object"
+        },
+        {
+          "path": "result.data.*.[].*.*.*",
+          "type": "string"
+        },
+        {
+          "path": "result.data.*.[].*.*.*.*",
+          "type": "integer"
+        },
+        {
+          "path": "result.data.*.[].*.*.*.*",
+          "type": "object"
+        },
+        {
+          "path": "result.data.*.[].*.*.*.*.*",
+          "type": "integer"
+        },
+        {
+          "path": "result.data.*.[].*.*.*.id",
+          "type": "string"
+        },
+        {
+          "path": "result.data.*.[].*.*.*.text",
+          "type": "string"
+        },
+        {
+          "path": "result.data.*.[].*.createdAt",
+          "type": "string"
+        },
+        {
+          "path": "result.data.*.[].*.eventId",
+          "type": "string"
+        },
+        {
+          "path": "result.data.*.[].*.id",
+          "type": "string"
+        },
+        {
+          "path": "result.data.*.[].*.status",
+          "type": "string"
+        },
+        {
+          "path": "result.data.*.[].*.userId",
+          "type": "string"
+        },
+        {
+          "path": "result.data.*.[].displaySettings",
+          "type": "object"
+        },
+        {
+          "path": "result.data.*.[].displaySettings.*",
+          "type": "null"
+        },
+        {
+          "path": "result.data.*.[].displaySettings.*",
+          "type": "string"
+        },
+        {
+          "path": "result.data.*.[].endDate",
+          "type": "null"
+        },
+        {
+          "path": "result.data.*.[].endDate",
+          "type": "string"
+        },
+        {
+          "path": "result.data.*.[].id",
+          "type": "string"
+        },
+        {
+          "path": "result.data.*.[].image",
+          "type": "null"
+        },
+        {
+          "path": "result.data.*.[].image",
+          "type": "object"
+        },
+        {
+          "path": "result.data.*.[].image.*",
+          "type": "null"
+        },
+        {
+          "path": "result.data.*.[].image.*",
+          "type": "object"
+        },
+        {
+          "path": "result.data.*.[].image.*",
+          "type": "string"
+        },
+        {
+          "path": "result.data.*.[].image.*.*",
+          "type": "integer"
+        },
+        {
+          "path": "result.data.*.[].image.*.*",
+          "type": "null"
+        },
+        {
+          "path": "result.data.*.[].image.*.*",
+          "type": "string"
+        },
+        {
+          "path": "result.data.*.[].image.*.contentType",
+          "type": "string"
+        },
+        {
+          "path": "result.data.*.[].image.*.height",
+          "type": "integer"
+        },
+        {
+          "path": "result.data.*.[].image.*.id",
+          "type": "string"
+        },
+        {
+          "path": "result.data.*.[].image.*.images",
+          "type": "object"
+        },
+        {
+          "path": "result.data.*.[].image.*.images.*",
+          "type": "object"
+        },
+        {
+          "path": "result.data.*.[].image.*.images.*.*",
+          "type": "string"
+        },
+        {
+          "path": "result.data.*.[].image.*.images.*.height",
+          "type": "integer"
+        },
+        {
+          "path": "result.data.*.[].image.*.images.*.url",
+          "type": "string"
+        },
+        {
+          "path": "result.data.*.[].image.*.images.*.width",
+          "type": "integer"
+        },
+        {
+          "path": "result.data.*.[].image.*.name",
+          "type": "string"
+        },
+        {
+          "path": "result.data.*.[].image.*.title",
+          "type": "string"
+        },
+        {
+          "path": "result.data.*.[].image.*.url",
+          "type": "string"
+        },
+        {
+          "path": "result.data.*.[].image.*.width",
+          "type": "integer"
+        },
+        {
+          "path": "result.data.*.[].image.blurHash",
+          "type": "string"
+        },
+        {
+          "path": "result.data.*.[].image.contentType",
+          "type": "string"
+        },
+        {
+          "path": "result.data.*.[].image.height",
+          "type": "integer"
+        },
+        {
+          "path": "result.data.*.[].image.name",
+          "type": "string"
+        },
+        {
+          "path": "result.data.*.[].image.source",
+          "type": "string"
+        },
+        {
+          "path": "result.data.*.[].image.url",
+          "type": "string"
+        },
+        {
+          "path": "result.data.*.[].image.width",
+          "type": "integer"
+        },
+        {
+          "path": "result.data.*.[].location",
+          "type": "null"
+        },
+        {
+          "path": "result.data.*.[].location",
+          "type": "string"
+        },
+        {
+          "path": "result.data.*.[].startDate",
+          "type": "string"
+        },
+        {
+          "path": "result.data.*.[].status",
+          "type": "string"
+        },
+        {
+          "path": "result.data.*.[].timezone",
+          "type": "string"
+        },
+        {
+          "path": "result.data.*.[].title",
+          "type": "string"
+        },
+        {
+          "path": "result.data.*.*",
+          "type": "integer"
+        }
+      ],
+      "unknownKeyCount": 1699,
+      "normalizedErrorCode": null
+    },
+    {
+      "operation": "getMyUpcomingEventsForHomePage",
+      "phase": "authenticated-repeat",
+      "endpoint": "/getMyUpcomingEventsForHomePage",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "bodyKind": "json",
+      "bodyBytes": 74747,
+      "shape": [
+        {
+          "path": "result",
+          "type": "object"
+        },
+        {
+          "path": "result.data",
+          "type": "object"
+        },
+        {
+          "path": "result.data.*",
+          "type": "array"
+        },
+        {
+          "path": "result.data.*",
+          "type": "object"
+        },
+        {
+          "path": "result.data.*.[]",
+          "type": "object"
+        },
+        {
+          "path": "result.data.*.[].*",
+          "type": "array"
+        },
+        {
+          "path": "result.data.*.[].*",
+          "type": "boolean"
+        },
+        {
+          "path": "result.data.*.[].*",
+          "type": "integer"
+        },
+        {
+          "path": "result.data.*.[].*",
+          "type": "null"
+        },
+        {
+          "path": "result.data.*.[].*",
+          "type": "object"
+        },
+        {
+          "path": "result.data.*.[].*",
+          "type": "string"
+        },
+        {
+          "path": "result.data.*.[].*.[]",
+          "type": "string"
+        },
+        {
+          "path": "result.data.*.[].*.*",
+          "type": "array"
+        },
+        {
+          "path": "result.data.*.[].*.*",
+          "type": "boolean"
+        },
+        {
+          "path": "result.data.*.[].*.*",
+          "type": "integer"
+        },
+        {
+          "path": "result.data.*.[].*.*",
+          "type": "object"
+        },
+        {
+          "path": "result.data.*.[].*.*",
+          "type": "string"
+        },
+        {
+          "path": "result.data.*.[].*.*.[]",
+          "type": "object"
+        },
+        {
+          "path": "result.data.*.[].*.*.[].*",
+          "type": "integer"
+        },
+        {
+          "path": "result.data.*.[].*.*.[].*",
+          "type": "object"
+        },
+        {
+          "path": "result.data.*.[].*.*.[].*.*",
+          "type": "integer"
+        },
+        {
+          "path": "result.data.*.[].*.*.[].id",
+          "type": "string"
+        },
+        {
+          "path": "result.data.*.[].*.*.[].text",
+          "type": "string"
+        },
+        {
+          "path": "result.data.*.[].*.*.*",
+          "type": "null"
+        },
+        {
+          "path": "result.data.*.[].*.*.*",
+          "type": "object"
+        },
+        {
+          "path": "result.data.*.[].*.*.*",
+          "type": "string"
+        },
+        {
+          "path": "result.data.*.[].*.*.*.*",
+          "type": "integer"
+        },
+        {
+          "path": "result.data.*.[].*.*.*.*",
+          "type": "object"
+        },
+        {
+          "path": "result.data.*.[].*.*.*.*.*",
+          "type": "integer"
+        },
+        {
+          "path": "result.data.*.[].*.*.*.id",
+          "type": "string"
+        },
+        {
+          "path": "result.data.*.[].*.*.*.text",
+          "type": "string"
+        },
+        {
+          "path": "result.data.*.[].*.createdAt",
+          "type": "string"
+        },
+        {
+          "path": "result.data.*.[].*.eventId",
+          "type": "string"
+        },
+        {
+          "path": "result.data.*.[].*.id",
+          "type": "string"
+        },
+        {
+          "path": "result.data.*.[].*.status",
+          "type": "string"
+        },
+        {
+          "path": "result.data.*.[].*.userId",
+          "type": "string"
+        },
+        {
+          "path": "result.data.*.[].displaySettings",
+          "type": "object"
+        },
+        {
+          "path": "result.data.*.[].displaySettings.*",
+          "type": "null"
+        },
+        {
+          "path": "result.data.*.[].displaySettings.*",
+          "type": "string"
+        },
+        {
+          "path": "result.data.*.[].endDate",
+          "type": "null"
+        },
+        {
+          "path": "result.data.*.[].endDate",
+          "type": "string"
+        },
+        {
+          "path": "result.data.*.[].id",
+          "type": "string"
+        },
+        {
+          "path": "result.data.*.[].image",
+          "type": "null"
+        },
+        {
+          "path": "result.data.*.[].image",
+          "type": "object"
+        },
+        {
+          "path": "result.data.*.[].image.*",
+          "type": "null"
+        },
+        {
+          "path": "result.data.*.[].image.*",
+          "type": "object"
+        },
+        {
+          "path": "result.data.*.[].image.*",
+          "type": "string"
+        },
+        {
+          "path": "result.data.*.[].image.*.*",
+          "type": "integer"
+        },
+        {
+          "path": "result.data.*.[].image.*.*",
+          "type": "null"
+        },
+        {
+          "path": "result.data.*.[].image.*.*",
+          "type": "string"
+        },
+        {
+          "path": "result.data.*.[].image.*.contentType",
+          "type": "string"
+        },
+        {
+          "path": "result.data.*.[].image.*.height",
+          "type": "integer"
+        },
+        {
+          "path": "result.data.*.[].image.*.id",
+          "type": "string"
+        },
+        {
+          "path": "result.data.*.[].image.*.images",
+          "type": "object"
+        },
+        {
+          "path": "result.data.*.[].image.*.images.*",
+          "type": "object"
+        },
+        {
+          "path": "result.data.*.[].image.*.images.*.*",
+          "type": "string"
+        },
+        {
+          "path": "result.data.*.[].image.*.images.*.height",
+          "type": "integer"
+        },
+        {
+          "path": "result.data.*.[].image.*.images.*.url",
+          "type": "string"
+        },
+        {
+          "path": "result.data.*.[].image.*.images.*.width",
+          "type": "integer"
+        },
+        {
+          "path": "result.data.*.[].image.*.name",
+          "type": "string"
+        },
+        {
+          "path": "result.data.*.[].image.*.title",
+          "type": "string"
+        },
+        {
+          "path": "result.data.*.[].image.*.url",
+          "type": "string"
+        },
+        {
+          "path": "result.data.*.[].image.*.width",
+          "type": "integer"
+        },
+        {
+          "path": "result.data.*.[].image.blurHash",
+          "type": "string"
+        },
+        {
+          "path": "result.data.*.[].image.contentType",
+          "type": "string"
+        },
+        {
+          "path": "result.data.*.[].image.height",
+          "type": "integer"
+        },
+        {
+          "path": "result.data.*.[].image.name",
+          "type": "string"
+        },
+        {
+          "path": "result.data.*.[].image.source",
+          "type": "string"
+        },
+        {
+          "path": "result.data.*.[].image.url",
+          "type": "string"
+        },
+        {
+          "path": "result.data.*.[].image.width",
+          "type": "integer"
+        },
+        {
+          "path": "result.data.*.[].location",
+          "type": "null"
+        },
+        {
+          "path": "result.data.*.[].location",
+          "type": "string"
+        },
+        {
+          "path": "result.data.*.[].startDate",
+          "type": "string"
+        },
+        {
+          "path": "result.data.*.[].status",
+          "type": "string"
+        },
+        {
+          "path": "result.data.*.[].timezone",
+          "type": "string"
+        },
+        {
+          "path": "result.data.*.[].title",
+          "type": "string"
+        },
+        {
+          "path": "result.data.*.*",
+          "type": "integer"
+        }
+      ],
+      "unknownKeyCount": 1699,
+      "normalizedErrorCode": null
+    },
+    {
+      "operation": "getMyPastEventsForHomePage",
+      "phase": "authenticated-first",
+      "endpoint": "/getMyPastEventsForHomePage",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "bodyKind": "json",
+      "bodyBytes": 773455,
+      "shape": [
+        {
+          "path": "result",
+          "type": "object"
+        },
+        {
+          "path": "result.data",
+          "type": "object"
+        },
+        {
+          "path": "result.data.*",
+          "type": "array"
+        },
+        {
+          "path": "result.data.*.[]",
+          "type": "object"
+        },
+        {
+          "path": "result.data.*.[].*",
+          "type": "array"
+        },
+        {
+          "path": "result.data.*.[].*",
+          "type": "boolean"
+        },
+        {
+          "path": "result.data.*.[].*",
+          "type": "integer"
+        },
+        {
+          "path": "result.data.*.[].*",
+          "type": "null"
+        },
+        {
+          "path": "result.data.*.[].*",
+          "type": "object"
+        },
+        {
+          "path": "result.data.*.[].*",
+          "type": "string"
+        },
+        {
+          "path": "result.data.*.[].*.[]",
+          "type": "string"
+        },
+        {
+          "path": "result.data.*.[].*.*",
+          "type": "array"
+        },
+        {
+          "path": "result.data.*.[].*.*",
+          "type": "boolean"
+        },
+        {
+          "path": "result.data.*.[].*.*",
+          "type": "integer"
+        },
+        {
+          "path": "result.data.*.[].*.*",
+          "type": "object"
+        },
+        {
+          "path": "result.data.*.[].*.*",
+          "type": "string"
+        },
+        {
+          "path": "result.data.*.[].*.*.[]",
+          "type": "object"
+        },
+        {
+          "path": "result.data.*.[].*.*.[].*",
+          "type": "integer"
+        },
+        {
+          "path": "result.data.*.[].*.*.[].*",
+          "type": "object"
+        },
+        {
+          "path": "result.data.*.[].*.*.[].*.*",
+          "type": "integer"
+        },
+        {
+          "path": "result.data.*.[].*.*.[].id",
+          "type": "string"
+        },
+        {
+          "path": "result.data.*.[].*.*.[].text",
+          "type": "string"
+        },
+        {
+          "path": "result.data.*.[].*.*.*",
+          "type": "null"
+        },
+        {
+          "path": "result.data.*.[].*.*.*",
+          "type": "object"
+        },
+        {
+          "path": "result.data.*.[].*.*.*",
+          "type": "string"
+        },
+        {
+          "path": "result.data.*.[].*.*.*.*",
+          "type": "integer"
+        },
+        {
+          "path": "result.data.*.[].*.*.*.*",
+          "type": "object"
+        },
+        {
+          "path": "result.data.*.[].*.*.*.*.*",
+          "type": "integer"
+        },
+        {
+          "path": "result.data.*.[].*.*.*.id",
+          "type": "string"
+        },
+        {
+          "path": "result.data.*.[].*.*.*.text",
+          "type": "string"
+        },
+        {
+          "path": "result.data.*.[].*.createdAt",
+          "type": "string"
+        },
+        {
+          "path": "result.data.*.[].*.eventId",
+          "type": "string"
+        },
+        {
+          "path": "result.data.*.[].*.id",
+          "type": "string"
+        },
+        {
+          "path": "result.data.*.[].*.status",
+          "type": "string"
+        },
+        {
+          "path": "result.data.*.[].*.userId",
+          "type": "string"
+        },
+        {
+          "path": "result.data.*.[].displaySettings",
+          "type": "object"
+        },
+        {
+          "path": "result.data.*.[].displaySettings.*",
+          "type": "null"
+        },
+        {
+          "path": "result.data.*.[].displaySettings.*",
+          "type": "object"
+        },
+        {
+          "path": "result.data.*.[].displaySettings.*",
+          "type": "string"
+        },
+        {
+          "path": "result.data.*.[].displaySettings.*.*",
+          "type": "object"
+        },
+        {
+          "path": "result.data.*.[].displaySettings.*.*",
+          "type": "string"
+        },
+        {
+          "path": "result.data.*.[].displaySettings.*.*.*",
+          "type": "number"
+        },
+        {
+          "path": "result.data.*.[].displaySettings.*.image",
+          "type": "object"
+        },
+        {
+          "path": "result.data.*.[].displaySettings.*.image.*",
+          "type": "object"
+        },
+        {
+          "path": "result.data.*.[].displaySettings.*.image.*",
+          "type": "string"
+        },
+        {
+          "path": "result.data.*.[].displaySettings.*.image.*.*",
+          "type": "integer"
+        },
+        {
+          "path": "result.data.*.[].displaySettings.*.image.*.*",
+          "type": "string"
+        },
+        {
+          "path": "result.data.*.[].displaySettings.*.image.*.contentType",
+          "type": "string"
+        },
+        {
+          "path": "result.data.*.[].displaySettings.*.image.*.height",
+          "type": "integer"
+        },
+        {
+          "path": "result.data.*.[].displaySettings.*.image.*.name",
+          "type": "string"
+        },
+        {
+          "path": "result.data.*.[].displaySettings.*.image.*.url",
+          "type": "string"
+        },
+        {
+          "path": "result.data.*.[].displaySettings.*.image.*.width",
+          "type": "integer"
+        },
+        {
+          "path": "result.data.*.[].displaySettings.*.image.contentType",
+          "type": "string"
+        },
+        {
+          "path": "result.data.*.[].displaySettings.*.image.height",
+          "type": "integer"
+        },
+        {
+          "path": "result.data.*.[].displaySettings.*.image.name",
+          "type": "string"
+        },
+        {
+          "path": "result.data.*.[].displaySettings.*.image.source",
+          "type": "string"
+        },
+        {
+          "path": "result.data.*.[].displaySettings.*.image.url",
+          "type": "string"
+        },
+        {
+          "path": "result.data.*.[].displaySettings.*.image.width",
+          "type": "integer"
+        },
+        {
+          "path": "result.data.*.[].endDate",
+          "type": "null"
+        },
+        {
+          "path": "result.data.*.[].endDate",
+          "type": "string"
+        },
+        {
+          "path": "result.data.*.[].id",
+          "type": "string"
+        },
+        {
+          "path": "result.data.*.[].image",
+          "type": "null"
+        },
+        {
+          "path": "result.data.*.[].image",
+          "type": "object"
+        },
+        {
+          "path": "result.data.*.[].image.*",
+          "type": "null"
+        },
+        {
+          "path": "result.data.*.[].image.*",
+          "type": "object"
+        },
+        {
+          "path": "result.data.*.[].image.*",
+          "type": "string"
+        },
+        {
+          "path": "result.data.*.[].image.*.*",
+          "type": "integer"
+        },
+        {
+          "path": "result.data.*.[].image.*.*",
+          "type": "null"
+        },
+        {
+          "path": "result.data.*.[].image.*.*",
+          "type": "object"
+        },
+        {
+          "path": "result.data.*.[].image.*.*",
+          "type": "string"
+        },
+        {
+          "path": "result.data.*.[].image.*.*.*",
+          "type": "string"
+        },
+        {
+          "path": "result.data.*.[].image.*.contentType",
+          "type": "string"
+        },
+        {
+          "path": "result.data.*.[].image.*.height",
+          "type": "integer"
+        },
+        {
+          "path": "result.data.*.[].image.*.id",
+          "type": "string"
+        },
+        {
+          "path": "result.data.*.[].image.*.images",
+          "type": "object"
+        },
+        {
+          "path": "result.data.*.[].image.*.images.*",
+          "type": "object"
+        },
+        {
+          "path": "result.data.*.[].image.*.images.*.*",
+          "type": "integer"
+        },
+        {
+          "path": "result.data.*.[].image.*.images.*.*",
+          "type": "string"
+        },
+        {
+          "path": "result.data.*.[].image.*.images.*.height",
+          "type": "integer"
+        },
+        {
+          "path": "result.data.*.[].image.*.images.*.url",
+          "type": "string"
+        },
+        {
+          "path": "result.data.*.[].image.*.images.*.width",
+          "type": "integer"
+        },
+        {
+          "path": "result.data.*.[].image.*.name",
+          "type": "string"
+        },
+        {
+          "path": "result.data.*.[].image.*.title",
+          "type": "string"
+        },
+        {
+          "path": "result.data.*.[].image.*.url",
+          "type": "string"
+        },
+        {
+          "path": "result.data.*.[].image.*.width",
+          "type": "integer"
+        },
+        {
+          "path": "result.data.*.[].image.blurHash",
+          "type": "string"
+        },
+        {
+          "path": "result.data.*.[].image.contentType",
+          "type": "string"
+        },
+        {
+          "path": "result.data.*.[].image.height",
+          "type": "integer"
+        },
+        {
+          "path": "result.data.*.[].image.name",
+          "type": "string"
+        },
+        {
+          "path": "result.data.*.[].image.source",
+          "type": "string"
+        },
+        {
+          "path": "result.data.*.[].image.url",
+          "type": "string"
+        },
+        {
+          "path": "result.data.*.[].image.width",
+          "type": "integer"
+        },
+        {
+          "path": "result.data.*.[].location",
+          "type": "null"
+        },
+        {
+          "path": "result.data.*.[].location",
+          "type": "string"
+        },
+        {
+          "path": "result.data.*.[].startDate",
+          "type": "string"
+        },
+        {
+          "path": "result.data.*.[].status",
+          "type": "string"
+        },
+        {
+          "path": "result.data.*.[].timezone",
+          "type": "string"
+        },
+        {
+          "path": "result.data.*.[].title",
+          "type": "string"
+        }
+      ],
+      "unknownKeyCount": 14408,
+      "normalizedErrorCode": null
+    },
+    {
+      "operation": "getMyPastEventsForHomePage",
+      "phase": "authenticated-repeat",
+      "endpoint": "/getMyPastEventsForHomePage",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "bodyKind": "json",
+      "bodyBytes": 773455,
+      "shape": [
+        {
+          "path": "result",
+          "type": "object"
+        },
+        {
+          "path": "result.data",
+          "type": "object"
+        },
+        {
+          "path": "result.data.*",
+          "type": "array"
+        },
+        {
+          "path": "result.data.*.[]",
+          "type": "object"
+        },
+        {
+          "path": "result.data.*.[].*",
+          "type": "array"
+        },
+        {
+          "path": "result.data.*.[].*",
+          "type": "boolean"
+        },
+        {
+          "path": "result.data.*.[].*",
+          "type": "integer"
+        },
+        {
+          "path": "result.data.*.[].*",
+          "type": "null"
+        },
+        {
+          "path": "result.data.*.[].*",
+          "type": "object"
+        },
+        {
+          "path": "result.data.*.[].*",
+          "type": "string"
+        },
+        {
+          "path": "result.data.*.[].*.[]",
+          "type": "string"
+        },
+        {
+          "path": "result.data.*.[].*.*",
+          "type": "array"
+        },
+        {
+          "path": "result.data.*.[].*.*",
+          "type": "boolean"
+        },
+        {
+          "path": "result.data.*.[].*.*",
+          "type": "integer"
+        },
+        {
+          "path": "result.data.*.[].*.*",
+          "type": "object"
+        },
+        {
+          "path": "result.data.*.[].*.*",
+          "type": "string"
+        },
+        {
+          "path": "result.data.*.[].*.*.[]",
+          "type": "object"
+        },
+        {
+          "path": "result.data.*.[].*.*.[].*",
+          "type": "integer"
+        },
+        {
+          "path": "result.data.*.[].*.*.[].*",
+          "type": "object"
+        },
+        {
+          "path": "result.data.*.[].*.*.[].*.*",
+          "type": "integer"
+        },
+        {
+          "path": "result.data.*.[].*.*.[].id",
+          "type": "string"
+        },
+        {
+          "path": "result.data.*.[].*.*.[].text",
+          "type": "string"
+        },
+        {
+          "path": "result.data.*.[].*.*.*",
+          "type": "null"
+        },
+        {
+          "path": "result.data.*.[].*.*.*",
+          "type": "object"
+        },
+        {
+          "path": "result.data.*.[].*.*.*",
+          "type": "string"
+        },
+        {
+          "path": "result.data.*.[].*.*.*.*",
+          "type": "integer"
+        },
+        {
+          "path": "result.data.*.[].*.*.*.*",
+          "type": "object"
+        },
+        {
+          "path": "result.data.*.[].*.*.*.*.*",
+          "type": "integer"
+        },
+        {
+          "path": "result.data.*.[].*.*.*.id",
+          "type": "string"
+        },
+        {
+          "path": "result.data.*.[].*.*.*.text",
+          "type": "string"
+        },
+        {
+          "path": "result.data.*.[].*.createdAt",
+          "type": "string"
+        },
+        {
+          "path": "result.data.*.[].*.eventId",
+          "type": "string"
+        },
+        {
+          "path": "result.data.*.[].*.id",
+          "type": "string"
+        },
+        {
+          "path": "result.data.*.[].*.status",
+          "type": "string"
+        },
+        {
+          "path": "result.data.*.[].*.userId",
+          "type": "string"
+        },
+        {
+          "path": "result.data.*.[].displaySettings",
+          "type": "object"
+        },
+        {
+          "path": "result.data.*.[].displaySettings.*",
+          "type": "null"
+        },
+        {
+          "path": "result.data.*.[].displaySettings.*",
+          "type": "object"
+        },
+        {
+          "path": "result.data.*.[].displaySettings.*",
+          "type": "string"
+        },
+        {
+          "path": "result.data.*.[].displaySettings.*.*",
+          "type": "object"
+        },
+        {
+          "path": "result.data.*.[].displaySettings.*.*",
+          "type": "string"
+        },
+        {
+          "path": "result.data.*.[].displaySettings.*.*.*",
+          "type": "number"
+        },
+        {
+          "path": "result.data.*.[].displaySettings.*.image",
+          "type": "object"
+        },
+        {
+          "path": "result.data.*.[].displaySettings.*.image.*",
+          "type": "object"
+        },
+        {
+          "path": "result.data.*.[].displaySettings.*.image.*",
+          "type": "string"
+        },
+        {
+          "path": "result.data.*.[].displaySettings.*.image.*.*",
+          "type": "integer"
+        },
+        {
+          "path": "result.data.*.[].displaySettings.*.image.*.*",
+          "type": "string"
+        },
+        {
+          "path": "result.data.*.[].displaySettings.*.image.*.contentType",
+          "type": "string"
+        },
+        {
+          "path": "result.data.*.[].displaySettings.*.image.*.height",
+          "type": "integer"
+        },
+        {
+          "path": "result.data.*.[].displaySettings.*.image.*.name",
+          "type": "string"
+        },
+        {
+          "path": "result.data.*.[].displaySettings.*.image.*.url",
+          "type": "string"
+        },
+        {
+          "path": "result.data.*.[].displaySettings.*.image.*.width",
+          "type": "integer"
+        },
+        {
+          "path": "result.data.*.[].displaySettings.*.image.contentType",
+          "type": "string"
+        },
+        {
+          "path": "result.data.*.[].displaySettings.*.image.height",
+          "type": "integer"
+        },
+        {
+          "path": "result.data.*.[].displaySettings.*.image.name",
+          "type": "string"
+        },
+        {
+          "path": "result.data.*.[].displaySettings.*.image.source",
+          "type": "string"
+        },
+        {
+          "path": "result.data.*.[].displaySettings.*.image.url",
+          "type": "string"
+        },
+        {
+          "path": "result.data.*.[].displaySettings.*.image.width",
+          "type": "integer"
+        },
+        {
+          "path": "result.data.*.[].endDate",
+          "type": "null"
+        },
+        {
+          "path": "result.data.*.[].endDate",
+          "type": "string"
+        },
+        {
+          "path": "result.data.*.[].id",
+          "type": "string"
+        },
+        {
+          "path": "result.data.*.[].image",
+          "type": "null"
+        },
+        {
+          "path": "result.data.*.[].image",
+          "type": "object"
+        },
+        {
+          "path": "result.data.*.[].image.*",
+          "type": "null"
+        },
+        {
+          "path": "result.data.*.[].image.*",
+          "type": "object"
+        },
+        {
+          "path": "result.data.*.[].image.*",
+          "type": "string"
+        },
+        {
+          "path": "result.data.*.[].image.*.*",
+          "type": "integer"
+        },
+        {
+          "path": "result.data.*.[].image.*.*",
+          "type": "null"
+        },
+        {
+          "path": "result.data.*.[].image.*.*",
+          "type": "object"
+        },
+        {
+          "path": "result.data.*.[].image.*.*",
+          "type": "string"
+        },
+        {
+          "path": "result.data.*.[].image.*.*.*",
+          "type": "string"
+        },
+        {
+          "path": "result.data.*.[].image.*.contentType",
+          "type": "string"
+        },
+        {
+          "path": "result.data.*.[].image.*.height",
+          "type": "integer"
+        },
+        {
+          "path": "result.data.*.[].image.*.id",
+          "type": "string"
+        },
+        {
+          "path": "result.data.*.[].image.*.images",
+          "type": "object"
+        },
+        {
+          "path": "result.data.*.[].image.*.images.*",
+          "type": "object"
+        },
+        {
+          "path": "result.data.*.[].image.*.images.*.*",
+          "type": "integer"
+        },
+        {
+          "path": "result.data.*.[].image.*.images.*.*",
+          "type": "string"
+        },
+        {
+          "path": "result.data.*.[].image.*.images.*.height",
+          "type": "integer"
+        },
+        {
+          "path": "result.data.*.[].image.*.images.*.url",
+          "type": "string"
+        },
+        {
+          "path": "result.data.*.[].image.*.images.*.width",
+          "type": "integer"
+        },
+        {
+          "path": "result.data.*.[].image.*.name",
+          "type": "string"
+        },
+        {
+          "path": "result.data.*.[].image.*.title",
+          "type": "string"
+        },
+        {
+          "path": "result.data.*.[].image.*.url",
+          "type": "string"
+        },
+        {
+          "path": "result.data.*.[].image.*.width",
+          "type": "integer"
+        },
+        {
+          "path": "result.data.*.[].image.blurHash",
+          "type": "string"
+        },
+        {
+          "path": "result.data.*.[].image.contentType",
+          "type": "string"
+        },
+        {
+          "path": "result.data.*.[].image.height",
+          "type": "integer"
+        },
+        {
+          "path": "result.data.*.[].image.name",
+          "type": "string"
+        },
+        {
+          "path": "result.data.*.[].image.source",
+          "type": "string"
+        },
+        {
+          "path": "result.data.*.[].image.url",
+          "type": "string"
+        },
+        {
+          "path": "result.data.*.[].image.width",
+          "type": "integer"
+        },
+        {
+          "path": "result.data.*.[].location",
+          "type": "null"
+        },
+        {
+          "path": "result.data.*.[].location",
+          "type": "string"
+        },
+        {
+          "path": "result.data.*.[].startDate",
+          "type": "string"
+        },
+        {
+          "path": "result.data.*.[].status",
+          "type": "string"
+        },
+        {
+          "path": "result.data.*.[].timezone",
+          "type": "string"
+        },
+        {
+          "path": "result.data.*.[].title",
+          "type": "string"
+        }
+      ],
+      "unknownKeyCount": 14408,
+      "normalizedErrorCode": null
+    },
+    {
+      "operation": "getContacts",
+      "phase": "authenticated-first-page-1",
+      "endpoint": "/getContacts",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "bodyKind": "json",
+      "bodyBytes": 829708,
+      "shape": [
+        {
+          "path": "result",
+          "type": "object"
+        },
+        {
+          "path": "result.data",
+          "type": "array"
+        },
+        {
+          "path": "result.data.[]",
+          "type": "object"
+        },
+        {
+          "path": "result.data.[].*",
+          "type": "boolean"
+        },
+        {
+          "path": "result.data.[].*",
+          "type": "integer"
+        },
+        {
+          "path": "result.data.[].*",
+          "type": "null"
+        },
+        {
+          "path": "result.data.[].*",
+          "type": "object"
+        },
+        {
+          "path": "result.data.[].*.*",
+          "type": "object"
+        },
+        {
+          "path": "result.data.[].*.*",
+          "type": "string"
+        },
+        {
+          "path": "result.data.[].*.*.*",
+          "type": "integer"
+        },
+        {
+          "path": "result.data.[].*.*.*",
+          "type": "string"
+        },
+        {
+          "path": "result.data.[].*.*.contentType",
+          "type": "string"
+        },
+        {
+          "path": "result.data.[].*.*.height",
+          "type": "integer"
+        },
+        {
+          "path": "result.data.[].*.*.name",
+          "type": "string"
+        },
+        {
+          "path": "result.data.[].*.*.url",
+          "type": "string"
+        },
+        {
+          "path": "result.data.[].*.*.width",
+          "type": "integer"
+        },
+        {
+          "path": "result.data.[].*.contentType",
+          "type": "string"
+        },
+        {
+          "path": "result.data.[].*.height",
+          "type": "integer"
+        },
+        {
+          "path": "result.data.[].*.id",
+          "type": "string"
+        },
+        {
+          "path": "result.data.[].*.name",
+          "type": "string"
+        },
+        {
+          "path": "result.data.[].*.source",
+          "type": "string"
+        },
+        {
+          "path": "result.data.[].*.startDate",
+          "type": "string"
+        },
+        {
+          "path": "result.data.[].*.title",
+          "type": "string"
+        },
+        {
+          "path": "result.data.[].*.url",
+          "type": "string"
+        },
+        {
+          "path": "result.data.[].*.width",
+          "type": "integer"
+        },
+        {
+          "path": "result.data.[].id",
+          "type": "string"
+        },
+        {
+          "path": "result.data.[].name",
+          "type": "string"
+        },
+        {
+          "path": "result.paging",
+          "type": "object"
+        },
+        {
+          "path": "result.paging.*",
+          "type": "integer"
+        },
+        {
+          "path": "result.paging.nextCursor",
+          "type": "string"
+        }
+      ],
+      "unknownKeyCount": 12212,
+      "normalizedErrorCode": null
+    },
+    {
+      "operation": "getContacts",
+      "phase": "authenticated-first-page-2",
+      "endpoint": "/getContacts",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "bodyKind": "json",
+      "bodyBytes": 696727,
+      "shape": [
+        {
+          "path": "result",
+          "type": "object"
+        },
+        {
+          "path": "result.data",
+          "type": "array"
+        },
+        {
+          "path": "result.data.[]",
+          "type": "object"
+        },
+        {
+          "path": "result.data.[].*",
+          "type": "boolean"
+        },
+        {
+          "path": "result.data.[].*",
+          "type": "integer"
+        },
+        {
+          "path": "result.data.[].*",
+          "type": "null"
+        },
+        {
+          "path": "result.data.[].*",
+          "type": "object"
+        },
+        {
+          "path": "result.data.[].*.*",
+          "type": "object"
+        },
+        {
+          "path": "result.data.[].*.*",
+          "type": "string"
+        },
+        {
+          "path": "result.data.[].*.*.*",
+          "type": "integer"
+        },
+        {
+          "path": "result.data.[].*.*.*",
+          "type": "string"
+        },
+        {
+          "path": "result.data.[].*.*.contentType",
+          "type": "string"
+        },
+        {
+          "path": "result.data.[].*.*.height",
+          "type": "integer"
+        },
+        {
+          "path": "result.data.[].*.*.name",
+          "type": "string"
+        },
+        {
+          "path": "result.data.[].*.*.url",
+          "type": "string"
+        },
+        {
+          "path": "result.data.[].*.*.width",
+          "type": "integer"
+        },
+        {
+          "path": "result.data.[].*.contentType",
+          "type": "string"
+        },
+        {
+          "path": "result.data.[].*.height",
+          "type": "integer"
+        },
+        {
+          "path": "result.data.[].*.id",
+          "type": "string"
+        },
+        {
+          "path": "result.data.[].*.name",
+          "type": "string"
+        },
+        {
+          "path": "result.data.[].*.source",
+          "type": "string"
+        },
+        {
+          "path": "result.data.[].*.startDate",
+          "type": "string"
+        },
+        {
+          "path": "result.data.[].*.title",
+          "type": "string"
+        },
+        {
+          "path": "result.data.[].*.url",
+          "type": "string"
+        },
+        {
+          "path": "result.data.[].*.width",
+          "type": "integer"
+        },
+        {
+          "path": "result.data.[].id",
+          "type": "string"
+        },
+        {
+          "path": "result.data.[].name",
+          "type": "string"
+        },
+        {
+          "path": "result.paging",
+          "type": "object"
+        },
+        {
+          "path": "result.paging.*",
+          "type": "integer"
+        },
+        {
+          "path": "result.paging.nextCursor",
+          "type": "string"
+        }
+      ],
+      "unknownKeyCount": 10622,
+      "normalizedErrorCode": null
+    },
+    {
+      "operation": "getContacts",
+      "phase": "authenticated-first-page-3",
+      "endpoint": "/getContacts",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "bodyKind": "json",
+      "bodyBytes": 305819,
+      "shape": [
+        {
+          "path": "result",
+          "type": "object"
+        },
+        {
+          "path": "result.data",
+          "type": "array"
+        },
+        {
+          "path": "result.data.[]",
+          "type": "object"
+        },
+        {
+          "path": "result.data.[].*",
+          "type": "boolean"
+        },
+        {
+          "path": "result.data.[].*",
+          "type": "integer"
+        },
+        {
+          "path": "result.data.[].*",
+          "type": "null"
+        },
+        {
+          "path": "result.data.[].*",
+          "type": "object"
+        },
+        {
+          "path": "result.data.[].*.*",
+          "type": "object"
+        },
+        {
+          "path": "result.data.[].*.*",
+          "type": "string"
+        },
+        {
+          "path": "result.data.[].*.*.*",
+          "type": "integer"
+        },
+        {
+          "path": "result.data.[].*.*.*",
+          "type": "string"
+        },
+        {
+          "path": "result.data.[].*.*.contentType",
+          "type": "string"
+        },
+        {
+          "path": "result.data.[].*.*.height",
+          "type": "integer"
+        },
+        {
+          "path": "result.data.[].*.*.name",
+          "type": "string"
+        },
+        {
+          "path": "result.data.[].*.*.url",
+          "type": "string"
+        },
+        {
+          "path": "result.data.[].*.*.width",
+          "type": "integer"
+        },
+        {
+          "path": "result.data.[].*.contentType",
+          "type": "string"
+        },
+        {
+          "path": "result.data.[].*.height",
+          "type": "integer"
+        },
+        {
+          "path": "result.data.[].*.id",
+          "type": "string"
+        },
+        {
+          "path": "result.data.[].*.name",
+          "type": "string"
+        },
+        {
+          "path": "result.data.[].*.source",
+          "type": "string"
+        },
+        {
+          "path": "result.data.[].*.startDate",
+          "type": "string"
+        },
+        {
+          "path": "result.data.[].*.title",
+          "type": "string"
+        },
+        {
+          "path": "result.data.[].*.url",
+          "type": "string"
+        },
+        {
+          "path": "result.data.[].*.width",
+          "type": "integer"
+        },
+        {
+          "path": "result.data.[].id",
+          "type": "string"
+        },
+        {
+          "path": "result.data.[].name",
+          "type": "string"
+        },
+        {
+          "path": "result.paging",
+          "type": "object"
+        },
+        {
+          "path": "result.paging.*",
+          "type": "integer"
+        },
+        {
+          "path": "result.paging.nextCursor",
+          "type": "string"
+        }
+      ],
+      "unknownKeyCount": 4749,
+      "normalizedErrorCode": null
+    },
+    {
+      "operation": "getContacts",
+      "phase": "authenticated-first-page-4",
+      "endpoint": "/getContacts",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "bodyKind": "json",
+      "bodyBytes": 53,
+      "shape": [
+        {
+          "path": "result",
+          "type": "object"
+        },
+        {
+          "path": "result.data",
+          "type": "array"
+        },
+        {
+          "path": "result.paging",
+          "type": "object"
+        },
+        {
+          "path": "result.paging.*",
+          "type": "integer"
+        }
+      ],
+      "unknownKeyCount": 1,
+      "normalizedErrorCode": null
+    },
+    {
+      "operation": "getContacts",
+      "phase": "authenticated-repeat-page-1",
+      "endpoint": "/getContacts",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "bodyKind": "json",
+      "bodyBytes": 829708,
+      "shape": [
+        {
+          "path": "result",
+          "type": "object"
+        },
+        {
+          "path": "result.data",
+          "type": "array"
+        },
+        {
+          "path": "result.data.[]",
+          "type": "object"
+        },
+        {
+          "path": "result.data.[].*",
+          "type": "boolean"
+        },
+        {
+          "path": "result.data.[].*",
+          "type": "integer"
+        },
+        {
+          "path": "result.data.[].*",
+          "type": "null"
+        },
+        {
+          "path": "result.data.[].*",
+          "type": "object"
+        },
+        {
+          "path": "result.data.[].*.*",
+          "type": "object"
+        },
+        {
+          "path": "result.data.[].*.*",
+          "type": "string"
+        },
+        {
+          "path": "result.data.[].*.*.*",
+          "type": "integer"
+        },
+        {
+          "path": "result.data.[].*.*.*",
+          "type": "string"
+        },
+        {
+          "path": "result.data.[].*.*.contentType",
+          "type": "string"
+        },
+        {
+          "path": "result.data.[].*.*.height",
+          "type": "integer"
+        },
+        {
+          "path": "result.data.[].*.*.name",
+          "type": "string"
+        },
+        {
+          "path": "result.data.[].*.*.url",
+          "type": "string"
+        },
+        {
+          "path": "result.data.[].*.*.width",
+          "type": "integer"
+        },
+        {
+          "path": "result.data.[].*.contentType",
+          "type": "string"
+        },
+        {
+          "path": "result.data.[].*.height",
+          "type": "integer"
+        },
+        {
+          "path": "result.data.[].*.id",
+          "type": "string"
+        },
+        {
+          "path": "result.data.[].*.name",
+          "type": "string"
+        },
+        {
+          "path": "result.data.[].*.source",
+          "type": "string"
+        },
+        {
+          "path": "result.data.[].*.startDate",
+          "type": "string"
+        },
+        {
+          "path": "result.data.[].*.title",
+          "type": "string"
+        },
+        {
+          "path": "result.data.[].*.url",
+          "type": "string"
+        },
+        {
+          "path": "result.data.[].*.width",
+          "type": "integer"
+        },
+        {
+          "path": "result.data.[].id",
+          "type": "string"
+        },
+        {
+          "path": "result.data.[].name",
+          "type": "string"
+        },
+        {
+          "path": "result.paging",
+          "type": "object"
+        },
+        {
+          "path": "result.paging.*",
+          "type": "integer"
+        },
+        {
+          "path": "result.paging.nextCursor",
+          "type": "string"
+        }
+      ],
+      "unknownKeyCount": 12212,
+      "normalizedErrorCode": null
+    },
+    {
+      "operation": "getContacts",
+      "phase": "authenticated-repeat-page-2",
+      "endpoint": "/getContacts",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "bodyKind": "json",
+      "bodyBytes": 696727,
+      "shape": [
+        {
+          "path": "result",
+          "type": "object"
+        },
+        {
+          "path": "result.data",
+          "type": "array"
+        },
+        {
+          "path": "result.data.[]",
+          "type": "object"
+        },
+        {
+          "path": "result.data.[].*",
+          "type": "boolean"
+        },
+        {
+          "path": "result.data.[].*",
+          "type": "integer"
+        },
+        {
+          "path": "result.data.[].*",
+          "type": "null"
+        },
+        {
+          "path": "result.data.[].*",
+          "type": "object"
+        },
+        {
+          "path": "result.data.[].*.*",
+          "type": "object"
+        },
+        {
+          "path": "result.data.[].*.*",
+          "type": "string"
+        },
+        {
+          "path": "result.data.[].*.*.*",
+          "type": "integer"
+        },
+        {
+          "path": "result.data.[].*.*.*",
+          "type": "string"
+        },
+        {
+          "path": "result.data.[].*.*.contentType",
+          "type": "string"
+        },
+        {
+          "path": "result.data.[].*.*.height",
+          "type": "integer"
+        },
+        {
+          "path": "result.data.[].*.*.name",
+          "type": "string"
+        },
+        {
+          "path": "result.data.[].*.*.url",
+          "type": "string"
+        },
+        {
+          "path": "result.data.[].*.*.width",
+          "type": "integer"
+        },
+        {
+          "path": "result.data.[].*.contentType",
+          "type": "string"
+        },
+        {
+          "path": "result.data.[].*.height",
+          "type": "integer"
+        },
+        {
+          "path": "result.data.[].*.id",
+          "type": "string"
+        },
+        {
+          "path": "result.data.[].*.name",
+          "type": "string"
+        },
+        {
+          "path": "result.data.[].*.source",
+          "type": "string"
+        },
+        {
+          "path": "result.data.[].*.startDate",
+          "type": "string"
+        },
+        {
+          "path": "result.data.[].*.title",
+          "type": "string"
+        },
+        {
+          "path": "result.data.[].*.url",
+          "type": "string"
+        },
+        {
+          "path": "result.data.[].*.width",
+          "type": "integer"
+        },
+        {
+          "path": "result.data.[].id",
+          "type": "string"
+        },
+        {
+          "path": "result.data.[].name",
+          "type": "string"
+        },
+        {
+          "path": "result.paging",
+          "type": "object"
+        },
+        {
+          "path": "result.paging.*",
+          "type": "integer"
+        },
+        {
+          "path": "result.paging.nextCursor",
+          "type": "string"
+        }
+      ],
+      "unknownKeyCount": 10622,
+      "normalizedErrorCode": null
+    },
+    {
+      "operation": "getContacts",
+      "phase": "authenticated-repeat-page-3",
+      "endpoint": "/getContacts",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "bodyKind": "json",
+      "bodyBytes": 305819,
+      "shape": [
+        {
+          "path": "result",
+          "type": "object"
+        },
+        {
+          "path": "result.data",
+          "type": "array"
+        },
+        {
+          "path": "result.data.[]",
+          "type": "object"
+        },
+        {
+          "path": "result.data.[].*",
+          "type": "boolean"
+        },
+        {
+          "path": "result.data.[].*",
+          "type": "integer"
+        },
+        {
+          "path": "result.data.[].*",
+          "type": "null"
+        },
+        {
+          "path": "result.data.[].*",
+          "type": "object"
+        },
+        {
+          "path": "result.data.[].*.*",
+          "type": "object"
+        },
+        {
+          "path": "result.data.[].*.*",
+          "type": "string"
+        },
+        {
+          "path": "result.data.[].*.*.*",
+          "type": "integer"
+        },
+        {
+          "path": "result.data.[].*.*.*",
+          "type": "string"
+        },
+        {
+          "path": "result.data.[].*.*.contentType",
+          "type": "string"
+        },
+        {
+          "path": "result.data.[].*.*.height",
+          "type": "integer"
+        },
+        {
+          "path": "result.data.[].*.*.name",
+          "type": "string"
+        },
+        {
+          "path": "result.data.[].*.*.url",
+          "type": "string"
+        },
+        {
+          "path": "result.data.[].*.*.width",
+          "type": "integer"
+        },
+        {
+          "path": "result.data.[].*.contentType",
+          "type": "string"
+        },
+        {
+          "path": "result.data.[].*.height",
+          "type": "integer"
+        },
+        {
+          "path": "result.data.[].*.id",
+          "type": "string"
+        },
+        {
+          "path": "result.data.[].*.name",
+          "type": "string"
+        },
+        {
+          "path": "result.data.[].*.source",
+          "type": "string"
+        },
+        {
+          "path": "result.data.[].*.startDate",
+          "type": "string"
+        },
+        {
+          "path": "result.data.[].*.title",
+          "type": "string"
+        },
+        {
+          "path": "result.data.[].*.url",
+          "type": "string"
+        },
+        {
+          "path": "result.data.[].*.width",
+          "type": "integer"
+        },
+        {
+          "path": "result.data.[].id",
+          "type": "string"
+        },
+        {
+          "path": "result.data.[].name",
+          "type": "string"
+        },
+        {
+          "path": "result.paging",
+          "type": "object"
+        },
+        {
+          "path": "result.paging.*",
+          "type": "integer"
+        },
+        {
+          "path": "result.paging.nextCursor",
+          "type": "string"
+        }
+      ],
+      "unknownKeyCount": 4749,
+      "normalizedErrorCode": null
+    },
+    {
+      "operation": "getContacts",
+      "phase": "authenticated-repeat-page-4",
+      "endpoint": "/getContacts",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "bodyKind": "json",
+      "bodyBytes": 53,
+      "shape": [
+        {
+          "path": "result",
+          "type": "object"
+        },
+        {
+          "path": "result.data",
+          "type": "array"
+        },
+        {
+          "path": "result.paging",
+          "type": "object"
+        },
+        {
+          "path": "result.paging.*",
+          "type": "integer"
+        }
+      ],
+      "unknownKeyCount": 1,
+      "normalizedErrorCode": null
+    },
+    {
+      "operation": "getEventInfo",
+      "phase": "authenticated-selected-event",
+      "endpoint": "/getEventInfo",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "bodyKind": "json",
+      "bodyBytes": 4975,
+      "shape": [
+        {
+          "path": "result",
+          "type": "object"
+        },
+        {
+          "path": "result.data",
+          "type": "object"
+        },
+        {
+          "path": "result.data.*",
+          "type": "boolean"
+        },
+        {
+          "path": "result.data.event",
+          "type": "object"
+        },
+        {
+          "path": "result.data.event.*",
+          "type": "array"
+        },
+        {
+          "path": "result.data.event.*",
+          "type": "boolean"
+        },
+        {
+          "path": "result.data.event.*",
+          "type": "integer"
+        },
+        {
+          "path": "result.data.event.*",
+          "type": "null"
+        },
+        {
+          "path": "result.data.event.*",
+          "type": "object"
+        },
+        {
+          "path": "result.data.event.*",
+          "type": "string"
+        },
+        {
+          "path": "result.data.event.*.[]",
+          "type": "object"
+        },
+        {
+          "path": "result.data.event.*.[]",
+          "type": "string"
+        },
+        {
+          "path": "result.data.event.*.[].*",
+          "type": "array"
+        },
+        {
+          "path": "result.data.event.*.[].*.[]",
+          "type": "object"
+        },
+        {
+          "path": "result.data.event.*.[].*.[].*",
+          "type": "array"
+        },
+        {
+          "path": "result.data.event.*.[].*.[].*",
+          "type": "boolean"
+        },
+        {
+          "path": "result.data.event.*.[].*.[].*",
+          "type": "string"
+        },
+        {
+          "path": "result.data.event.*.[].*.[].*.[]",
+          "type": "string"
+        },
+        {
+          "path": "result.data.event.*.[].*.[].id",
+          "type": "string"
+        },
+        {
+          "path": "result.data.event.*.[].*.[].text",
+          "type": "string"
+        },
+        {
+          "path": "result.data.event.*.[].createdAt",
+          "type": "string"
+        },
+        {
+          "path": "result.data.event.*.*",
+          "type": "boolean"
+        },
+        {
+          "path": "result.data.event.*.*",
+          "type": "integer"
+        },
+        {
+          "path": "result.data.event.*.*",
+          "type": "null"
+        },
+        {
+          "path": "result.data.event.*.*",
+          "type": "object"
+        },
+        {
+          "path": "result.data.event.*.*",
+          "type": "string"
+        },
+        {
+          "path": "result.data.event.*.*.*",
+          "type": "array"
+        },
+        {
+          "path": "result.data.event.*.*.*",
+          "type": "null"
+        },
+        {
+          "path": "result.data.event.*.*.*",
+          "type": "string"
+        },
+        {
+          "path": "result.data.event.createdAt",
+          "type": "string"
+        },
+        {
+          "path": "result.data.event.description",
+          "type": "string"
+        },
+        {
+          "path": "result.data.event.displaySettings",
+          "type": "object"
+        },
+        {
+          "path": "result.data.event.displaySettings.*",
+          "type": "string"
+        },
+        {
+          "path": "result.data.event.endDate",
+          "type": "null"
+        },
+        {
+          "path": "result.data.event.id",
+          "type": "string"
+        },
+        {
+          "path": "result.data.event.image",
+          "type": "object"
+        },
+        {
+          "path": "result.data.event.image.*",
+          "type": "object"
+        },
+        {
+          "path": "result.data.event.image.*",
+          "type": "string"
+        },
+        {
+          "path": "result.data.event.image.*.*",
+          "type": "integer"
+        },
+        {
+          "path": "result.data.event.image.*.*",
+          "type": "string"
+        },
+        {
+          "path": "result.data.event.image.*.contentType",
+          "type": "string"
+        },
+        {
+          "path": "result.data.event.image.*.height",
+          "type": "integer"
+        },
+        {
+          "path": "result.data.event.image.*.name",
+          "type": "string"
+        },
+        {
+          "path": "result.data.event.image.*.url",
+          "type": "string"
+        },
+        {
+          "path": "result.data.event.image.*.width",
+          "type": "integer"
+        },
+        {
+          "path": "result.data.event.image.blurHash",
+          "type": "string"
+        },
+        {
+          "path": "result.data.event.image.contentType",
+          "type": "string"
+        },
+        {
+          "path": "result.data.event.image.height",
+          "type": "integer"
+        },
+        {
+          "path": "result.data.event.image.name",
+          "type": "string"
+        },
+        {
+          "path": "result.data.event.image.source",
+          "type": "string"
+        },
+        {
+          "path": "result.data.event.image.url",
+          "type": "string"
+        },
+        {
+          "path": "result.data.event.image.width",
+          "type": "integer"
+        },
+        {
+          "path": "result.data.event.startDate",
+          "type": "string"
+        },
+        {
+          "path": "result.data.event.status",
+          "type": "string"
+        },
+        {
+          "path": "result.data.event.timezone",
+          "type": "string"
+        },
+        {
+          "path": "result.data.event.title",
+          "type": "string"
+        },
+        {
+          "path": "result.data.event.visibility",
+          "type": "string"
+        }
+      ],
+      "unknownKeyCount": 90,
+      "normalizedErrorCode": null
+    },
+    {
+      "operation": "getCurrentGuest",
+      "phase": "authenticated-selected-event",
+      "endpoint": "/getCurrentGuest",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "bodyKind": "json",
+      "bodyBytes": 323,
+      "shape": [
+        {
+          "path": "result",
+          "type": "object"
+        },
+        {
+          "path": "result.data",
+          "type": "object"
+        },
+        {
+          "path": "result.data.*",
+          "type": "null"
+        },
+        {
+          "path": "result.data.*",
+          "type": "object"
+        },
+        {
+          "path": "result.data.*.*",
+          "type": "array"
+        },
+        {
+          "path": "result.data.*.*",
+          "type": "integer"
+        },
+        {
+          "path": "result.data.*.*",
+          "type": "null"
+        },
+        {
+          "path": "result.data.*.*",
+          "type": "object"
+        },
+        {
+          "path": "result.data.*.*.id",
+          "type": "string"
+        },
+        {
+          "path": "result.data.*.count",
+          "type": "integer"
+        },
+        {
+          "path": "result.data.*.id",
+          "type": "string"
+        },
+        {
+          "path": "result.data.*.name",
+          "type": "string"
+        },
+        {
+          "path": "result.data.*.plusOnes",
+          "type": "null"
+        },
+        {
+          "path": "result.data.*.status",
+          "type": "string"
+        },
+        {
+          "path": "result.data.*.userId",
+          "type": "string"
+        }
+      ],
+      "unknownKeyCount": 8,
+      "normalizedErrorCode": null
+    },
+    {
+      "operation": "firestoreGetEvent",
+      "phase": "authenticated-selected-event",
+      "endpoint": "/v1/projects/getpartiful/databases/(default)/documents/events/{eventId}",
+      "status": 403,
+      "contentType": "application/json; charset=utf-8",
+      "bodyKind": "json",
+      "bodyBytes": 127,
+      "shape": [
+        {
+          "path": "error",
+          "type": "object"
+        },
+        {
+          "path": "error.code",
+          "type": "integer"
+        },
+        {
+          "path": "error.message",
+          "type": "string"
+        },
+        {
+          "path": "error.status",
+          "type": "string"
+        }
+      ],
+      "unknownKeyCount": 0,
+      "normalizedErrorCode": "PERMISSION_DENIED"
+    },
+    {
+      "operation": "firestoreGetGuest",
+      "phase": "authenticated-selected-event",
+      "endpoint": "/v1/projects/getpartiful/databases/(default)/documents/events/{eventId}/guests/{guestId}",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "bodyKind": "json",
+      "bodyBytes": 1492,
+      "shape": [
+        {
+          "path": "createTime",
+          "type": "string"
+        },
+        {
+          "path": "fields",
+          "type": "object"
+        },
+        {
+          "path": "fields.*",
+          "type": "object"
+        },
+        {
+          "path": "fields.*.*",
+          "type": "boolean"
+        },
+        {
+          "path": "fields.*.*",
+          "type": "object"
+        },
+        {
+          "path": "fields.*.*",
+          "type": "string"
+        },
+        {
+          "path": "fields.*.*.*",
+          "type": "array"
+        },
+        {
+          "path": "fields.*.*.*.[]",
+          "type": "object"
+        },
+        {
+          "path": "fields.*.*.*.[].*",
+          "type": "string"
+        },
+        {
+          "path": "fields.*.*.fields",
+          "type": "object"
+        },
+        {
+          "path": "fields.*.*.fields.*",
+          "type": "object"
+        },
+        {
+          "path": "fields.*.*.fields.*.*",
+          "type": "string"
+        },
+        {
+          "path": "fields.count",
+          "type": "object"
+        },
+        {
+          "path": "fields.count.*",
+          "type": "string"
+        },
+        {
+          "path": "fields.createdAt",
+          "type": "object"
+        },
+        {
+          "path": "fields.createdAt.*",
+          "type": "string"
+        },
+        {
+          "path": "fields.name",
+          "type": "object"
+        },
+        {
+          "path": "fields.name.*",
+          "type": "string"
+        },
+        {
+          "path": "fields.status",
+          "type": "object"
+        },
+        {
+          "path": "fields.status.*",
+          "type": "string"
+        },
+        {
+          "path": "name",
+          "type": "string"
+        },
+        {
+          "path": "updateTime",
+          "type": "string"
+        }
+      ],
+      "unknownKeyCount": 24,
+      "normalizedErrorCode": null
+    },
+    {
+      "operation": "getEventInfo",
+      "phase": "authenticated-synthetic-not-found",
+      "endpoint": "/getEventInfo",
+      "status": 404,
+      "contentType": "application/json; charset=utf-8",
+      "bodyKind": "json",
+      "bodyBytes": 60,
+      "shape": [
+        {
+          "path": "error",
+          "type": "object"
+        },
+        {
+          "path": "error.message",
+          "type": "string"
+        },
+        {
+          "path": "error.status",
+          "type": "string"
+        }
+      ],
+      "unknownKeyCount": 0,
+      "normalizedErrorCode": "NOT_FOUND"
+    },
+    {
+      "operation": "firestoreGetEvent",
+      "phase": "authenticated-synthetic-not-found",
+      "endpoint": "/v1/projects/getpartiful/databases/(default)/documents/events/{eventId}",
+      "status": 403,
+      "contentType": "application/json; charset=utf-8",
+      "bodyKind": "json",
+      "bodyBytes": 127,
+      "shape": [
+        {
+          "path": "error",
+          "type": "object"
+        },
+        {
+          "path": "error.code",
+          "type": "integer"
+        },
+        {
+          "path": "error.message",
+          "type": "string"
+        },
+        {
+          "path": "error.status",
+          "type": "string"
+        }
+      ],
+      "unknownKeyCount": 0,
+      "normalizedErrorCode": "PERMISSION_DENIED"
+    },
+    {
+      "operation": "getEventInfo",
+      "phase": "signed-out-readable-event",
+      "endpoint": "/getEventInfo",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "bodyKind": "json",
+      "bodyBytes": 4975,
+      "shape": [
+        {
+          "path": "result",
+          "type": "object"
+        },
+        {
+          "path": "result.data",
+          "type": "object"
+        },
+        {
+          "path": "result.data.*",
+          "type": "boolean"
+        },
+        {
+          "path": "result.data.event",
+          "type": "object"
+        },
+        {
+          "path": "result.data.event.*",
+          "type": "array"
+        },
+        {
+          "path": "result.data.event.*",
+          "type": "boolean"
+        },
+        {
+          "path": "result.data.event.*",
+          "type": "integer"
+        },
+        {
+          "path": "result.data.event.*",
+          "type": "null"
+        },
+        {
+          "path": "result.data.event.*",
+          "type": "object"
+        },
+        {
+          "path": "result.data.event.*",
+          "type": "string"
+        },
+        {
+          "path": "result.data.event.*.[]",
+          "type": "object"
+        },
+        {
+          "path": "result.data.event.*.[]",
+          "type": "string"
+        },
+        {
+          "path": "result.data.event.*.[].*",
+          "type": "array"
+        },
+        {
+          "path": "result.data.event.*.[].*.[]",
+          "type": "object"
+        },
+        {
+          "path": "result.data.event.*.[].*.[].*",
+          "type": "array"
+        },
+        {
+          "path": "result.data.event.*.[].*.[].*",
+          "type": "boolean"
+        },
+        {
+          "path": "result.data.event.*.[].*.[].*",
+          "type": "string"
+        },
+        {
+          "path": "result.data.event.*.[].*.[].*.[]",
+          "type": "string"
+        },
+        {
+          "path": "result.data.event.*.[].*.[].id",
+          "type": "string"
+        },
+        {
+          "path": "result.data.event.*.[].*.[].text",
+          "type": "string"
+        },
+        {
+          "path": "result.data.event.*.[].createdAt",
+          "type": "string"
+        },
+        {
+          "path": "result.data.event.*.*",
+          "type": "boolean"
+        },
+        {
+          "path": "result.data.event.*.*",
+          "type": "integer"
+        },
+        {
+          "path": "result.data.event.*.*",
+          "type": "null"
+        },
+        {
+          "path": "result.data.event.*.*",
+          "type": "object"
+        },
+        {
+          "path": "result.data.event.*.*",
+          "type": "string"
+        },
+        {
+          "path": "result.data.event.*.*.*",
+          "type": "array"
+        },
+        {
+          "path": "result.data.event.*.*.*",
+          "type": "null"
+        },
+        {
+          "path": "result.data.event.*.*.*",
+          "type": "string"
+        },
+        {
+          "path": "result.data.event.createdAt",
+          "type": "string"
+        },
+        {
+          "path": "result.data.event.description",
+          "type": "string"
+        },
+        {
+          "path": "result.data.event.displaySettings",
+          "type": "object"
+        },
+        {
+          "path": "result.data.event.displaySettings.*",
+          "type": "string"
+        },
+        {
+          "path": "result.data.event.endDate",
+          "type": "null"
+        },
+        {
+          "path": "result.data.event.id",
+          "type": "string"
+        },
+        {
+          "path": "result.data.event.image",
+          "type": "object"
+        },
+        {
+          "path": "result.data.event.image.*",
+          "type": "object"
+        },
+        {
+          "path": "result.data.event.image.*",
+          "type": "string"
+        },
+        {
+          "path": "result.data.event.image.*.*",
+          "type": "integer"
+        },
+        {
+          "path": "result.data.event.image.*.*",
+          "type": "string"
+        },
+        {
+          "path": "result.data.event.image.*.contentType",
+          "type": "string"
+        },
+        {
+          "path": "result.data.event.image.*.height",
+          "type": "integer"
+        },
+        {
+          "path": "result.data.event.image.*.name",
+          "type": "string"
+        },
+        {
+          "path": "result.data.event.image.*.url",
+          "type": "string"
+        },
+        {
+          "path": "result.data.event.image.*.width",
+          "type": "integer"
+        },
+        {
+          "path": "result.data.event.image.blurHash",
+          "type": "string"
+        },
+        {
+          "path": "result.data.event.image.contentType",
+          "type": "string"
+        },
+        {
+          "path": "result.data.event.image.height",
+          "type": "integer"
+        },
+        {
+          "path": "result.data.event.image.name",
+          "type": "string"
+        },
+        {
+          "path": "result.data.event.image.source",
+          "type": "string"
+        },
+        {
+          "path": "result.data.event.image.url",
+          "type": "string"
+        },
+        {
+          "path": "result.data.event.image.width",
+          "type": "integer"
+        },
+        {
+          "path": "result.data.event.startDate",
+          "type": "string"
+        },
+        {
+          "path": "result.data.event.status",
+          "type": "string"
+        },
+        {
+          "path": "result.data.event.timezone",
+          "type": "string"
+        },
+        {
+          "path": "result.data.event.title",
+          "type": "string"
+        },
+        {
+          "path": "result.data.event.visibility",
+          "type": "string"
+        }
+      ],
+      "unknownKeyCount": 90,
+      "normalizedErrorCode": null
+    },
+    {
+      "operation": "getContacts",
+      "phase": "signed-out",
+      "endpoint": "/getContacts",
+      "status": 401,
+      "contentType": "application/json; charset=utf-8",
+      "bodyKind": "json",
+      "bodyBytes": 68,
+      "shape": [
+        {
+          "path": "error",
+          "type": "object"
+        },
+        {
+          "path": "error.message",
+          "type": "string"
+        },
+        {
+          "path": "error.status",
+          "type": "string"
+        }
+      ],
+      "unknownKeyCount": 0,
+      "normalizedErrorCode": "UNAUTHENTICATED"
+    }
+  ],
+  "aggregates": {
+    "eventLists": {
+      "upcoming": {
+        "observed": true,
+        "firstCount": 35,
+        "secondCount": 35,
+        "identityFieldComplete": true,
+        "sameIdentitySequence": true,
+        "sameIdentitySet": true,
+        "duplicateIdentityCount": 0,
+        "rawPath": "result.data.upcomingEvents"
+      },
+      "past": {
+        "observed": true,
+        "firstCount": 294,
+        "secondCount": 294,
+        "identityFieldComplete": true,
+        "sameIdentitySequence": true,
+        "sameIdentitySet": true,
+        "duplicateIdentityCount": 0,
+        "rawPath": "result.data.pastEvents"
+      }
+    },
+    "contacts": {
+      "observed": true,
+      "firstCount": 2451,
+      "secondCount": 2451,
+      "identityFieldComplete": true,
+      "sameIdentitySequence": true,
+      "sameIdentitySet": true,
+      "duplicateIdentityCount": 0,
+      "sharedEventCountPresent": 2451,
+      "sharedEventCountsAreNonNegativeIntegers": true,
+      "namesAreStrings": true,
+      "pagination": {
+        "observed": true,
+        "requestedMaxResults": 1000,
+        "firstRunPageCount": 4,
+        "secondRunPageCount": 4,
+        "firstRunPageItemCounts": [
+          1000,
+          1000,
+          451,
+          0
+        ],
+        "secondRunPageItemCounts": [
+          1000,
+          1000,
+          451,
+          0
+        ],
+        "firstRunCursorTypes": [
+          "string",
+          "string",
+          "string",
+          "undefined"
+        ],
+        "secondRunCursorTypes": [
+          "string",
+          "string",
+          "string",
+          "undefined"
+        ],
+        "terminalPageObserved": true,
+        "terminalPageItemCount": 0,
+        "repeatedCursorObserved": false,
+        "unpagedResponseObserved": false
+      },
+      "remoteFiltering": {
+        "observed": false,
+        "reason": "Current first-party assets filter names locally after complete cursor traversal; no remote filtering parameter was sent."
+      }
+    },
+    "selectedEventProjection": {
+      "source": "authenticated-list",
+      "ownerMatchObserved": false,
+      "guestObjectPresent": true,
+      "guestStatusType": "string",
+      "guestStatusPath": "result.data.upcomingEvents.[].guest.status"
+    },
+    "crossSourceProjection": {
+      "eventIdMatchesCallable": true,
+      "eventIdMatchesFirestoreName": null,
+      "currentGuestObserved": true,
+      "guestDocumentIdObserved": true,
+      "guestIdMatchesFirestoreName": true,
+      "guestStatusType": "string",
+      "guestStatusMatchesFirestore": true,
+      "currentGuestPath": "result.data.currentGuest"
+    },
+    "failureDistinctions": {
+      "permissionProbeObserved": false,
+      "callablePermissionDiffersFromNotFound": null,
+      "firestorePermissionDiffersFromNotFound": null,
+      "signedOutEventObserved": true,
+      "signedOutContactsObserved": true,
+      "callableNotFoundObserved": true,
+      "firestoreNotFoundObserved": false,
+      "firestoreSyntheticIdProbeObserved": true
+    }
+  }
+}
