@@ -88,7 +88,10 @@ func (client AuthClient) GetLoginToken(
 	if response.StatusCode != http.StatusOK {
 		if response.StatusCode == http.StatusForbidden {
 			data, err := readAuthJSON(response)
-			if err != nil || !validCallableAuthError(data) {
+			if err != nil {
+				return auth.LoginTokenResponse{}, err
+			}
+			if !validCallableAuthError(data) {
 				return auth.LoginTokenResponse{}, fmt.Errorf("%w: response body", auth.ErrRemoteProtocolChanged)
 			}
 			return auth.LoginTokenResponse{}, auth.ErrAuthCodeRejected
@@ -133,7 +136,10 @@ func (client AuthClient) SignInWithCustomToken(
 	}()
 	if response.StatusCode == http.StatusBadRequest {
 		data, err := readAuthJSON(response)
-		if err != nil || !validFirebaseValidationError(data) {
+		if err != nil {
+			return auth.SignInResponse{}, err
+		}
+		if !validFirebaseValidationError(data) {
 			return auth.SignInResponse{}, fmt.Errorf("%w: response body", auth.ErrRemoteProtocolChanged)
 		}
 		return auth.SignInResponse{}, auth.ErrRemoteTokenExpired
@@ -199,7 +205,10 @@ func (client AuthClient) RefreshToken(
 	}()
 	if response.StatusCode == http.StatusBadRequest {
 		data, err := readAuthJSON(response)
-		if err != nil || !validFirebaseTokenError(data) {
+		if err != nil {
+			return auth.RefreshResponse{}, err
+		}
+		if !validFirebaseTokenError(data) {
 			return auth.RefreshResponse{}, fmt.Errorf("%w: response body", auth.ErrRemoteProtocolChanged)
 		}
 		return auth.RefreshResponse{}, auth.ErrRemoteTokenExpired

@@ -94,28 +94,41 @@ func readSecretWithSignalRestore(input *os.File) ([]byte, error) {
 func readRawSecret(input io.Reader) ([]byte, error) {
 	value := make([]byte, 0, 32)
 	oneByte := []byte{0}
-	for len(value) < maximumSecretInputBytes {
+	oversized := false
+	for {
 		count, err := input.Read(oneByte)
 		if count > 0 {
 			switch oneByte[0] {
 			case '\r', '\n':
+				if oversized {
+					return nil, ErrInputInvalid
+				}
 				return value, nil
 			case 3:
 				return nil, errTerminalInterrupted
 			case 8, 127:
-				if len(value) > 0 {
+				if !oversized && len(value) > 0 {
 					_, size := utf8.DecodeLastRune(value)
 					value = value[:len(value)-size]
 				}
 			case 21:
 				value = value[:0]
+				oversized = false
 			default:
+				if oversized {
+					break
+				}
 				value = append(value, oneByte[0])
+				if len(value) >= maximumSecretInputBytes {
+					oversized = true
+				}
 			}
 		}
 		if err != nil {
+			if oversized {
+				return nil, ErrInputInvalid
+			}
 			return nil, err
 		}
 	}
-	return nil, ErrInputInvalid
 }

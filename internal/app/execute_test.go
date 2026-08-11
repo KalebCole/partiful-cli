@@ -25,6 +25,18 @@ type scriptedHTTP struct {
 	do func(*http.Request) (*http.Response, error)
 }
 
+type failingReadCloser struct {
+	err error
+}
+
+func (reader failingReadCloser) Read([]byte) (int, error) {
+	return 0, reader.err
+}
+
+func (failingReadCloser) Close() error {
+	return nil
+}
+
 type scriptedRoundTripper struct {
 	roundTrip func(*http.Request) (*http.Response, error)
 }
@@ -1516,6 +1528,40 @@ func TestExecuteAuthLoginMapsReviewedWrongCodeWithoutEchoingIt(t *testing.T) {
 		if strings.Contains(result.Stdout+result.Stderr, privateValue) {
 			t.Fatalf("failure output contains private value %q", privateValue)
 		}
+	}
+}
+
+func TestExecuteAuthLoginPreservesErrorResponseReadFailure(t *testing.T) {
+	const privateReadError = "private response read failure"
+	call := 0
+	result := app.Execute(context.Background(), app.Request{
+		Argv: []string{"auth", "login"},
+	}, app.Dependencies{
+		Files:           &memoryFilesystem{files: map[string][]byte{}},
+		CredentialsPath: "/config/partiful/credentials.json",
+		Terminal:        &scriptedPrivateTerminal{values: []string{"+15555550123", "123456"}},
+		AuthRandom:      strings.NewReader("0123456789abcdef"),
+		Now: func() time.Time {
+			return time.Date(2026, time.August, 11, 0, 0, 0, 0, time.UTC)
+		},
+		HTTP: scriptedHTTP{do: func(*http.Request) (*http.Response, error) {
+			call++
+			if call == 1 {
+				return jsonResponse(http.StatusOK, `{}`), nil
+			}
+			return &http.Response{
+				StatusCode: http.StatusForbidden,
+				Header:     http.Header{"Content-Type": {"application/json"}},
+				Body:       failingReadCloser{err: errors.New(privateReadError)},
+			}, nil
+		}},
+	})
+	if result.ExitCode != 8 ||
+		!strings.Contains(result.Stdout, `"code":"AUTH_SERVICE_UNAVAILABLE"`) {
+		t.Fatalf("result = %#v, want response read failure to stay unavailable", result)
+	}
+	if strings.Contains(result.Stdout+result.Stderr, privateReadError) {
+		t.Fatal("response read failure leaked private detail")
 	}
 }
 
