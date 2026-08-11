@@ -334,6 +334,16 @@ describe('remote API contract', () => {
     expect(poster.properties.height.type).toEqual(['integer', 'null']);
     expect(poster.properties.tags.items.type).toBe('string');
     expect(poster.properties.categories.items.type).toBe('string');
+    for (const pointer of [
+      '#/components/schemas/Poster/properties/blurHash',
+      '#/components/schemas/Poster/properties/blurHash/type',
+      '#/components/schemas/Poster/additionalProperties',
+    ]) {
+      expect(evidence.claims[pointer]).toEqual({
+        classification: 'typescript-derived-inference',
+        citation: evidence.sources.posterInterface,
+      });
+    }
 
     expect(evidence.posterCatalogObservation).toMatchObject({
       sourceCitation: 'docs/research/2026-08-11-poster-catalog-observation.md#scope-and-provenance',
@@ -358,6 +368,11 @@ describe('remote API contract', () => {
       requestCondition: 'unsatisfiable-byte-range',
       status: 416,
       bodyBytes: 0,
+    });
+    expect(evidence.posterCatalogObservation.failureBoundary).toEqual({
+      noResponse: 'remote.unavailable',
+      receivedNon200: 'contract.protocol_changed',
+      rateLimiting: 'not-claimed',
     });
   });
 });

@@ -84,6 +84,7 @@ used for this claim.
 The unauthenticated, read-only observation in
 `docs/research/2026-08-11-poster-catalog-observation.md` establishes the
 catalog's HTTP `200` success, complete JSON-array response, required product
-fields and their observed types, one non-success response, and the facts needed
-to bind bounded local pagination to one response representation. It does not
-claim global catalog exhaustiveness or ordinary-request failure statuses.
+fields and their observed types, a `416` specific to an unsatisfiable Range
+request, and the facts needed to bind bounded local pagination to one response
+representation. It does not claim global catalog exhaustiveness, ordinary
+request failure statuses, or rate limiting.

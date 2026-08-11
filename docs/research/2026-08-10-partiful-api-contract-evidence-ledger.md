@@ -46,9 +46,16 @@ The event-image observation remains unrelated to the catalog. The
 unauthenticated August 11 observation directly establishes the public
 `/posters.json` HTTP `200` response as a complete array representation and
 establishes every field needed by the product `Poster`. It also establishes a
-bodyless `416` for an unsatisfiable read range. Exact ordinary-request failure
-statuses remain unknown, so a schema-free `default` response distinguishes
-non-success without inventing an error body.
+bodyless `416` for an unsatisfiable read range, but the implementation will not
+send Range requests and this does not establish ordinary failure mapping.
+Exact ordinary-request failure statuses remain unknown, so the schema-free
+`default` remains explicit unknown.
+
+Only HTTP `200` is recognized as catalog success. Local no-response or network
+failures may map to `remote.unavailable`; any received non-`200` status is
+unrecognized and must fail closed as `contract.protocol_changed`. Rate
+limiting is not claimed. This boundary lets S1 close without guessing while
+preserving the implementation gate until owner approval and merge.
 
 The observed array contained 2,114 entries and one repeated ID. Local
 pagination must preserve response order and duplicates. Exact resumption can

@@ -3636,12 +3636,12 @@
       "citation": "docs/research/2026-08-10-contract-evidence-sources.md#dated-poster-catalog-observation"
     },
     "#/components/schemas/Poster/properties/blurHash": {
-      "classification": "dated-live-observation",
-      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#dated-poster-catalog-observation"
+      "classification": "typescript-derived-inference",
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#poster-interface"
     },
     "#/components/schemas/Poster/properties/blurHash/type": {
-      "classification": "dated-live-observation",
-      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#dated-poster-catalog-observation"
+      "classification": "typescript-derived-inference",
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#poster-interface"
     },
     "#/components/schemas/Poster/properties/contentType": {
       "classification": "dated-live-observation",
@@ -3700,8 +3700,8 @@
       "citation": "docs/research/2026-08-10-contract-evidence-sources.md#dated-poster-catalog-observation"
     },
     "#/components/schemas/Poster/additionalProperties": {
-      "classification": "dated-live-observation",
-      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#dated-poster-catalog-observation"
+      "classification": "typescript-derived-inference",
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#poster-interface"
     }
   },
   "posterCatalogObservation": {
@@ -3726,6 +3726,11 @@
       "requestCondition": "unsatisfiable-byte-range",
       "status": 416,
       "bodyBytes": 0
+    },
+    "failureBoundary": {
+      "noResponse": "remote.unavailable",
+      "receivedNon200": "contract.protocol_changed",
+      "rateLimiting": "not-claimed"
     }
   }
 }
