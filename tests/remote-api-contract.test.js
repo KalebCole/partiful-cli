@@ -335,6 +335,11 @@ describe('remote API contract', () => {
       },
     });
     expect(operation.responses.default).not.toHaveProperty('content');
+    expect(evidence.claims['#/paths/~1posters.json/get/operationId']).toEqual({
+      classification: 'typescript-derived-inference',
+      citation:
+        'spec/research/historical-27-operation-draft.json#/paths/~1posters.json/get/operationId',
+    });
 
     const poster = spec.components.schemas.Poster;
     expect(poster.required).toEqual([
@@ -389,6 +394,7 @@ describe('remote API contract', () => {
     expect(evidence.posterCatalogObservation.failureBoundary).toEqual({
       noResponse: 'remote.unavailable',
       receivedNon200: 'contract.protocol_changed',
+      malformedSuccess: 'contract.protocol_changed',
       rateLimiting: 'not-claimed',
     });
   });

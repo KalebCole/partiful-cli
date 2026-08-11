@@ -3544,8 +3544,8 @@
       "citation": "spec/research/historical-27-operation-draft.json#/components/schemas/UploadPhotoResponse/additionalProperties"
     },
     "#/paths/~1posters.json/get/operationId": {
-      "classification": "dated-live-observation",
-      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#dated-poster-catalog-observation"
+      "classification": "typescript-derived-inference",
+      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1posters.json/get/operationId"
     },
     "#/paths/~1posters.json/get/responses/200": {
       "classification": "dated-live-observation",
@@ -3730,6 +3730,7 @@
     "failureBoundary": {
       "noResponse": "remote.unavailable",
       "receivedNon200": "contract.protocol_changed",
+      "malformedSuccess": "contract.protocol_changed",
       "rateLimiting": "not-claimed"
     }
   }
