@@ -729,17 +729,32 @@ describe('remote API contract', () => {
       { path: '/v1/accounts:lookup', id: 'lookupFirebaseUser' },
     ];
     for (const { path: opPath, id } of firebaseOps) {
-      const operation = spec.paths[opPath].post;
-      expect(operation.parameters, `${id} has parameters`).toBeDefined();
-      const referer = operation.parameters.find((p) => p.name === 'Referer' && p.in === 'header');
+      const pathItem = spec.paths[opPath];
+      const parameterGroups = [
+        { parameters: pathItem.parameters ?? [], pointer: 'parameters' },
+        { parameters: pathItem.post.parameters ?? [], pointer: 'post/parameters' },
+      ];
+      const refererGroup = parameterGroups.find(({ parameters }) =>
+        parameters.some(
+          (parameter) =>
+            parameter.in === 'header' &&
+            parameter.name?.toLowerCase() === 'referer',
+        ),
+      );
+      const referer = refererGroup?.parameters.find(
+        (parameter) =>
+          parameter.in === 'header' &&
+          parameter.name?.toLowerCase() === 'referer',
+      );
       expect(referer, `${id} has Referer parameter`).toBeDefined();
       expect(referer.required, `${id} Referer is required`).toBe(true);
       expect(referer.schema.const, `${id} Referer value`).toBe('https://partiful.com/');
 
       // Referer claim must have observation-backed provenance
       const escaped = escapePointerSegment(opPath);
-      const refererIdx = operation.parameters.indexOf(referer);
-      const constPointer = `#/paths/${escaped}/post/parameters/${refererIdx}/schema/const`;
+      const refererIdx = refererGroup.parameters.indexOf(referer);
+      const constPointer =
+        `#/paths/${escaped}/${refererGroup.pointer}/${refererIdx}/schema/const`;
       expect(evidence.claims[constPointer], `${id} Referer const claim`).toBeDefined();
       expect(evidence.claims[constPointer].classification).toBe('dated-live-observation');
       expect(evidence.claims[constPointer].citation)
@@ -774,7 +789,8 @@ describe('remote API contract', () => {
     expect(evidence.sources.firebasePublicApiKeyRedacted).toBe(safeFirebaseKeySource);
     expect(citationResolves(safeFirebaseKeySource)).toBe(true);
 
-    const originStatements = [];
+    const originStatements = stringValues(evidence)
+      .filter((statement) => /\borigins?\b/i.test(statement));
     for (const evidencePath of originEvidencePaths) {
       const content = fs.readFileSync(evidencePath, 'utf8');
       expect(content, evidencePath).not.toContain(unsafeAuthSourcePath);
