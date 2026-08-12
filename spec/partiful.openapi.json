@@ -2,8 +2,8 @@
   "openapi": "3.1.0",
   "info": {
     "title": "Partiful remote API contract",
-    "version": "2026-08-12.2",
-    "description": "Owner-reviewed remote-only transport snapshot. Evidence classifications and uncertainty are recorded in spec/partiful.api-evidence.json."
+    "version": "2026-08-12.3",
+    "description": "Proposed remote-only transport snapshot pending delegated review. Evidence classifications and uncertainty are recorded in spec/partiful.api-evidence.json."
   },
   "servers": [
     {
@@ -2779,9 +2779,6 @@
             "properties": {
               "data": {
                 "type": "object",
-                "required": [
-                  "currentGuest"
-                ],
                 "properties": {
                   "currentGuest": {
                     "$ref": "#/components/schemas/CurrentGuest"

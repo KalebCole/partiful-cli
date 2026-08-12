@@ -1,8 +1,8 @@
 # Partiful remote API contract evidence ledger
 
-**Owner-reviewed contract revision:** `2026-08-12.2`
-**Owner-reviewed baseline:** `2026-08-12.1`
-**Status:** Owner-reviewed under the issue #114 delegation
+**Proposed contract revision:** `2026-08-12.3`
+**Owner-reviewed baseline:** `2026-08-12.2`
+**Status:** Proposed pending delegated review
 **Contract:** `spec/partiful.openapi.json`
 **Machine-readable ledger:** `spec/partiful.api-evidence.json`
 **Stable citation sources:** `docs/research/2026-08-10-contract-evidence-sources.md`
@@ -71,7 +71,7 @@ HTTP `200` status and two operations with protocol-specified callable
 completion have typed response bodies. The schema-free send-code `200` and
 OpenAPI `default` responses do not claim a body.
 
-The 1285 material claims are audited by
+The 1284 material claims are audited by
 `tests/remote-api-contract.test.js`. Each ledger citation resolves either to a
 JSON Pointer in the committed non-authoritative historical artifact or to a
 heading in the committed stable source index. This keeps the audit independent
@@ -229,9 +229,23 @@ remote response type claims or live observations of stored Partiful state.
 Every unobserved error and status remains explicit unknown.
 
 `CurrentGuest.status` references the existing closed `GuestStatus` vocabulary,
-but remains optional. Current-guest nullability, no-guest create behavior,
-required profile name, selected-event mutation preconditions, endpoint
+but remains optional. The dated response evidence still establishes only one
+object. Current-guest nullability, omission, alternate variants, endpoint
 failure mappings, and post-write business state remain unknown.
+
+Revision `2026-08-12.3` adds only a current-client selection predicate. The
+client reads `currentGuest` null-safely, includes `rsvp.guestId` when an object
+supplies an ID, and omits `guestId` when there is no guest. The product accepts
+only an object with a nonempty string ID and reviewed status, or a null/missing
+guest marker; other variants are protocol drift. This is not a dated remote
+null observation. The OpenAPI response no longer requires the
+`currentGuest` property, so it does not convert the one object sample into an
+operation-wide presence claim.
+
+S5 obtains the required RSVP name from explicit product input. Selected-event
+party, questionnaire, password, and ticketing facts remain remotely unknown
+and are not S5 preconditions. Server-side request rejection remains protocol
+drift; no post-write business state is claimed.
 
 ## Contact read evidence
 
@@ -293,7 +307,7 @@ by the Go implementation's Firebase requests:
 Origin is unmodelled and remains unknown because the reviewed evidence
 establishes no Origin request fact.
 
-The 1285 material claims are audited by `tests/remote-api-contract.test.js`.
+The 1284 material claims are audited by `tests/remote-api-contract.test.js`.
 
 ## Resolved conflict
 

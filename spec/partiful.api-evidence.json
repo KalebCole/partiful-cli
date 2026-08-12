@@ -1,5 +1,6 @@
 {
-  "contractRevision": "2026-08-12.2",
+  "contractRevision": "2026-08-12.3",
+  "ownerReviewedBaseline": "2026-08-12.2",
   "contractPath": "spec/partiful.openapi.json",
   "allowedClassifications": [
     "dated-live-observation",
@@ -409,9 +410,9 @@
     "Only one CurrentGuest object was observed; operation-wide field presence, nullability, alternate variants, plus-one shape, unsupported statuses, and failure bodies remain unknown.",
     "Firestore event GET returned PERMISSION_DENIED for selected readable and synthetic IDs with one credential; success, not-found, attendee-denial, and other credential behavior remain unknown.",
     "Contact invalid-cursor behavior, cursor lifetime and reuse, ordering key, snapshot behavior, useAuthUser, rate limiting, unsupported statuses, future catalog completeness, server duplicate behavior, and duplicates outside two traversals remain unknown.",
-    "getCurrentGuest null and alternate responses, no-guest addGuest name and create behavior, selected-event RSVP preconditions, mutation failures, and post-write RSVP business state remain unknown."
+    "getCurrentGuest null, omission, and alternate responses remain unobserved; null-safe create/update selection is current-client behavior, not a dated remote response claim. addGuest and markEventInterest server-side input rejection, mutation failures, and post-write RSVP business state remain unknown. Selected-event party, questionnaire, password, and ticketing facts remain unknown and are not S5 preconditions."
   ],
-  "status": "owner-reviewed",
+  "status": "proposed-pending-delegated-review",
   "claims": {
     "#/servers/0/url": {
       "classification": "typescript-derived-inference",
@@ -5041,10 +5042,6 @@
       "classification": "dated-live-observation",
       "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#guest-and-firestore-observations"
     },
-    "#/components/schemas/GetCurrentGuestResponse/properties/result/properties/data/required/0": {
-      "classification": "dated-live-observation",
-      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#guest-and-firestore-observations"
-    },
     "#/components/schemas/GetCurrentGuestResponse/properties/result/properties/data/properties/currentGuest": {
       "classification": "dated-live-observation",
       "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#guest-and-firestore-observations"
@@ -5907,6 +5904,17 @@
       "clientCompletionPredicate": "truthy-success-and-interested-equals-submitted"
     },
     "successSemantics": "submitted-request-only",
+    "currentGuestSelection": {
+      "classification": "current-first-party-public-asset-research",
+      "selectionCitation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#addguest-request",
+      "nullSafeCitation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#getcurrentguest",
+      "present": "object-with-nonempty-string-id-and-reviewed-status",
+      "presentGuestIdProjection": "include-rsvp.guestId",
+      "absent": "null-or-missing-currentGuest",
+      "absentGuestIdProjection": "omit-rsvp.guestId",
+      "unsupported": "protocol-drift",
+      "remoteNullObservation": false
+    },
     "currentGuestNullability": "explicit-unknown",
     "errorsAndOtherStatuses": "explicit-unknown"
   }

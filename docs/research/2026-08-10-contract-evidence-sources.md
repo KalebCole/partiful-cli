@@ -181,8 +181,8 @@ module IDs, and privacy-safe integrity metadata.
 Its “addGuest request” section supports the narrow `GOING` and `DECLINED`
 request projections, named plus-one shape, questionnaire response, omitted
 null message, timezone, and stripped private contact fields. Its “addGuest
-completion” section records that the client requires decoded `data` to be an
-object but does not require a business field.
+completion” section records JavaScript destructuring of decoded `data`
+without an operation-wide type or required business-field claim.
 
 Its “markEventInterest request and completion” section supports boolean
 interest and removal requests, optional `source` with direct-page omission,
@@ -190,3 +190,10 @@ and the exact `success`/`interested` completion check. Its
 “getCurrentGuest” section supports the event-ID request and documents why
 callable null and alternate responses remain unknown. No live mutation or
 account-scoped read was used.
+
+The “getCurrentGuest” and “addGuest request” sections also support the
+current-client selection predicate used by proposed revision `2026-08-12.3`:
+client state access is null-safe, an existing guest ID is included, and
+`guestId` is omitted when no guest exists. This supports product
+create/update selection only. It does not establish that a remote null or
+missing response was observed.

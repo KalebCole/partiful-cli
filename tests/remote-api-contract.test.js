@@ -13,6 +13,7 @@ const eventAssetResearchPath =
 const rsvpAssetResearchPath =
   'docs/research/2026-08-12-rsvp-mapping-public-assets.md';
 const productContractPath = 'docs/CLI-PRODUCT-CONTRACT.md';
+const remoteContractPath = 'docs/REMOTE-API-CONTRACT.md';
 const sourceCache = new Map([
   [historicalDraftPath, historicalDraft],
   [readEvidencePath, readEvidence],
@@ -244,9 +245,10 @@ function citationResolves(citation) {
 describe('remote API contract', () => {
   it('is a consistently versioned OpenAPI 3.1 document with unique operation IDs', () => {
     expect(spec.openapi).toBe('3.1.0');
-    expect(evidence.contractRevision).toBe('2026-08-12.2');
+    expect(evidence.contractRevision).toBe('2026-08-12.3');
+    expect(evidence.ownerReviewedBaseline).toBe('2026-08-12.2');
     expect(spec.info.version).toBe(evidence.contractRevision);
-    expect(evidence.status).toBe('owner-reviewed');
+    expect(evidence.status).toBe('proposed-pending-delegated-review');
     expect(evidence.sources.publicEventMapping20260812)
       .toBe(`${eventAssetResearchPath}#scope-and-provenance`);
     expect(citationResolves(evidence.sources.publicEventMapping20260812)).toBe(true);
@@ -303,7 +305,7 @@ describe('remote API contract', () => {
       ...materialClaimPointers(spec.paths, '#/paths', 'paths'),
       ...materialClaimPointers(spec.components, '#/components', 'components'),
     ]);
-    expect(pointers).toHaveLength(1285);
+    expect(pointers).toHaveLength(1284);
     for (const pointer of pointers) {
       const claim = evidence.claims[pointer];
       expect(claim, pointer).toBeDefined();
@@ -364,12 +366,12 @@ describe('remote API contract', () => {
     expect(ledger).toContain(
       'Two additional callable operations have protocol-specified HTTP `200` completion responses.',
     );
-    expect(ledger.match(/The 1285 material claims/g)).toHaveLength(2);
+    expect(ledger.match(/The 1284 material claims/g)).toHaveLength(2);
     expect(ledger).toContain(
-      '**Owner-reviewed contract revision:** `2026-08-12.2`',
+      '**Proposed contract revision:** `2026-08-12.3`',
     );
     expect(ledger).toContain(
-      '**Status:** Owner-reviewed under the issue #114 delegation',
+      '**Status:** Proposed pending delegated review',
     );
     expect(ledger).toContain('Current first-party public-asset research');
   });
@@ -1020,15 +1022,24 @@ describe('remote API contract', () => {
         removeInterest: { interested: false, source: 'omitted-on-direct-event-page' },
       },
       successSemantics: 'submitted-request-only',
+      currentGuestSelection: {
+        classification: 'current-first-party-public-asset-research',
+        present: 'object-with-nonempty-string-id-and-reviewed-status',
+        presentGuestIdProjection: 'include-rsvp.guestId',
+        absent: 'null-or-missing-currentGuest',
+        absentGuestIdProjection: 'omit-rsvp.guestId',
+        unsupported: 'protocol-drift',
+        remoteNullObservation: false,
+      },
     });
   });
 
   it('defines conservative nullable event reads and bounded local snapshots', () => {
     const product = fs.readFileSync(productContractPath, 'utf8');
     for (const expected of [
-      '**Status:** Approved product contract',
-      '**Product contract revision:** `2026-08-12.2`',
-      '**Remote API contract revision:** `2026-08-12.2`',
+      '**Status:** Proposed pending delegated review',
+      '**Product contract revision:** `2026-08-12.3`',
+      '**Remote API contract revision:** `2026-08-12.3`',
       '**Currently shipped Go revisions:** product and remote `2026-08-12.1`',
       '`PUBLISHED` → `active`',
       '`CANCELED` → `cancelled`',
@@ -1055,8 +1066,8 @@ describe('remote API contract', () => {
       '`not-going` → `addGuest.rsvp.status = "DECLINED"`',
       '`interested` → `markEventInterest.interested = true`',
       '`source` is omitted for a direct event-page-equivalent request',
-      'does not prove that the remote RSVP state changed',
-      'does not automatically retry either mutation',
+      'does not prove persisted RSVP state',
+      'It never retries automatically.',
       'private stable account fingerprint',
       'five minutes',
       'single-use',
@@ -1076,6 +1087,76 @@ describe('remote API contract', () => {
     const appSource = fs.readFileSync('internal/app/app.go', 'utf8');
     expect(appSource).toContain('ProductContractRevision = "2026-08-12.1"');
     expect(appSource).toContain('RemoteContractRevision  = "2026-08-12.1"');
+  });
+
+  it('defines the executable RSVP selection, plan, and submitted-result policy', () => {
+    const product = fs.readFileSync(productContractPath, 'utf8');
+    const rsvpSection = product.slice(
+      product.indexOf('### RSVP'),
+      product.indexOf('### Contacts'),
+    );
+    const adr = fs.readFileSync(
+      'docs/adr/0001-greenfield-go-module-seams.md',
+      'utf8',
+    );
+    const remote = fs.readFileSync(remoteContractPath, 'utf8');
+
+    for (const expected of [
+      '`displayName`',
+      '`addGuest.rsvp.name`',
+      'unavailable private profile lookup',
+      'null or missing `currentGuest`',
+      'omits `guestId`',
+      'current-guest identity/status snapshot',
+      'explicit no-current-guest marker',
+      'performs these steps and no mutation',
+      'consumes the token immediately before dispatch',
+      'exactly one transport attempt',
+      'requires a new plan',
+      '`result.data.success` is truthy',
+      '`result.data.interested` strictly equals the submitted boolean',
+      '`contract.protocol_changed`',
+      'does not perform a post-write read',
+      'never echoes `displayName`',
+      'fingerprint is never output.',
+      '`safety.plan_stale`',
+    ]) {
+      expect(rsvpSection, expected).toContain(expected);
+    }
+    expect(rsvpSection).toContain(
+      '{"eventId":"evt_example","intent":"going","submitted":true}',
+    );
+    expect(rsvpSection).toContain(
+      '{"eventId":"evt_example","status":null}',
+    );
+    expect(rsvpSection).not.toContain(
+      'selected event facts needed for party-size, questionnaire, password, ticketing',
+    );
+    expect(rsvpSection).not.toMatch(
+      /submitted version to\s+equal the current event's latest questionnaire version/,
+    );
+    expect(rsvpSection).toMatch(
+      /`displayName` is required for `going` and `not-going`/,
+    );
+    expect(rsvpSection).toMatch(
+      /`displayName`[\s\S]+invalid with `interested`/,
+    );
+    expect(rsvpSection).toMatch(
+      /only remote precondition read[\s\S]+`getCurrentGuest`/,
+    );
+    expect(remote).toMatch(
+      /All `2026-08-12\.2` endpoint request and completion facts remain\s+unchanged\./,
+    );
+    expect(remote).toContain(
+      'These are current-client selection predicates, not a dated',
+    );
+    expect(remote).toContain(
+      'Nullability, omission, alternate variants, and failure',
+    );
+    expect(adr).toContain('current-guest identity and status');
+    expect(adr).toContain('explicit no-current-guest marker');
+    expect(adr).toContain('immediately before dispatch');
+    expect(adr).toContain('requires a new plan');
   });
 
   it('formalizes only the observed event-detail and guest read variants', () => {
@@ -1159,7 +1240,7 @@ describe('remote API contract', () => {
       .toEqual({ $ref: '#/components/schemas/CurrentGuest' });
     expect(spec.components.schemas.GetCurrentGuestResponse.properties.result
       .properties.data.required)
-      .toEqual(['currentGuest']);
+      .toBeUndefined();
     expect(spec.components.schemas.CurrentGuest).not.toHaveProperty('type');
     expect(evidence.claims['#/components/schemas/CurrentGuest/type']).toBeUndefined();
     expect(spec.components.schemas.CurrentGuest).toMatchObject({
@@ -1468,7 +1549,7 @@ describe('remote API contract', () => {
     expect(evidence.readObservation.artifactPath).toBe(readEvidencePath);
   });
 
-  it('keeps shipped Go revisions on the reviewed baseline while RSVP is proposed', () => {
+  it('keeps shipped Go revisions unchanged while RSVP is proposed', () => {
     const productContract = fs.readFileSync(
       'docs/CLI-PRODUCT-CONTRACT.md',
       'utf8',
@@ -1492,11 +1573,11 @@ describe('remote API contract', () => {
     )].map((match) => match[1]);
 
     expect(shippedRevision).toBe('2026-08-12.1');
-    expect(documentedRevision).toBe('2026-08-12.2');
-    expect(documentedProductRevision).toBe('2026-08-12.2');
+    expect(documentedRevision).toBe('2026-08-12.3');
+    expect(documentedProductRevision).toBe('2026-08-12.3');
     expect(new Set(envelopeRevisions)).toEqual(new Set([documentedRevision]));
     expect(spec.info.version).toBe(documentedRevision);
-    expect(evidence.status).toBe('owner-reviewed');
+    expect(evidence.status).toBe('proposed-pending-delegated-review');
     expect(spec.info.version).not.toBe(shippedRevision);
     expect(appSource).toContain('ProductContractRevision = "2026-08-12.1"');
     expect(productContract)

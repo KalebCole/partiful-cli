@@ -1,8 +1,8 @@
 # Remote API contract
 
-`spec/partiful.openapi.json` is owner-reviewed revision `2026-08-12.2` of the
-remote transport snapshot. Its owner-reviewed baseline is
-`2026-08-12.1`, which is based on owner-reviewed revision `2026-08-11.5`. It
+`spec/partiful.openapi.json` is proposed revision `2026-08-12.3` of the remote
+transport snapshot, pending delegated review. Its owner-reviewed baseline is
+`2026-08-12.2`, which is based on owner-reviewed revision `2026-08-12.1`. It
 describes only network operations and wire shapes. It does not prescribe
 commands, output, credentials, mutation safeguards, or implementation
 architecture.
@@ -99,7 +99,7 @@ reviewed `200` and `404 NOT_FOUND`; an unobserved `403` remains protocol drift.
 because its selected and synthetic requests both returned
 `403 PERMISSION_DENIED`.
 
-## RSVP mapping proposal
+## RSVP mapping baseline
 
 Revision `2026-08-12.2` adds unauthenticated first-party public-asset research
 from
@@ -107,7 +107,7 @@ from
 `z1npyrEHkwRMn_JlKXQXR` establishes the current client request and completion
 behavior without making a live mutation.
 
-The proposal corrects only these request facts:
+The revision corrects only these request facts:
 
 - `getCurrentGuest` sends `params.eventId`;
 - `addGuest` maps product going and not-going to `GOING` and `DECLINED`,
@@ -139,11 +139,37 @@ vocabulary. No current-guest property becomes required. The single live
 object and matching Firestore document remain the only response observation;
 callable null, alternate, and failure variants remain unknown.
 
-The proposal does not make RSVP releasable. Safe create-versus-update
-selection still lacks a reviewed null-current-guest response, and the
-selected-event precondition read does not guarantee all facts used by the
-current client. Those blockers are recorded in the research note and product
-contract.
+Revision `2026-08-12.2` did not select product behavior for an absent current
+guest and therefore did not make RSVP releasable.
+
+## RSVP execution-selection proposal
+
+Revision `2026-08-12.3` adds no live response, status, failure, or persisted
+state claim. All `2026-08-12.2` endpoint request and completion facts remain
+unchanged.
+
+The current first-party client reads `data.currentGuest` null-safely and adds
+`rsvp.guestId` only when a current guest supplies an ID. The product selection
+therefore treats an object with a nonempty string ID and reviewed status as
+present and includes that private ID in `addGuest`. Null or missing
+`currentGuest` is an explicit no-current-guest marker and omits `guestId`.
+Non-object, non-null values and objects without a valid ID and status are
+protocol drift. These are current-client selection predicates, not a dated
+claim that the remote endpoint returned null or omitted the property.
+
+To avoid converting a one-object observation into an operation-wide presence
+claim, the OpenAPI response no longer requires the `currentGuest` property.
+The one observed object and matching Firestore status remain the only dated
+response evidence. Nullability, omission, alternate variants, and failure
+bodies remain explicit unknowns at the remote boundary.
+
+For `addGuest`, only the reviewed callable HTTP `200` and `result` envelope
+establish submitted-request completion; no business response field or stored
+RSVP state is claimed. For `markEventInterest`, current-client completion
+still additionally requires truthy `data.success` and `data.interested`
+strictly equal to the submitted boolean. Every failed predicate,
+unrecognized status, unsupported envelope, and server-side input rejection
+remains protocol drift. No post-write read is added.
 
 ## Historical provenance
 
