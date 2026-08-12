@@ -6,7 +6,12 @@ import spec from '../spec/partiful.openapi.json';
 
 const historicalDraftPath = 'spec/research/historical-27-operation-draft.json';
 const historicalDraft = JSON.parse(fs.readFileSync(historicalDraftPath, 'utf8'));
-const sourceCache = new Map([[historicalDraftPath, historicalDraft]]);
+const readEvidencePath = 'spec/research/read-evidence-redacted-20260811.json';
+const readEvidence = JSON.parse(fs.readFileSync(readEvidencePath, 'utf8'));
+const sourceCache = new Map([
+  [historicalDraftPath, historicalDraft],
+  [readEvidencePath, readEvidence],
+]);
 const unsafeAuthSourcePath = 'docs/research/2026-03-24-auth-flow-endpoints.md';
 const safeFirebaseKeySource =
   'docs/research/2026-08-11-firebase-public-api-key-redacted.md#firebase-public-api-key';
@@ -38,6 +43,87 @@ const hosts = {
   upload: 'https://us-central1-getpartiful.cloudfunctions.net',
   posters: 'https://assets.getpartiful.com',
 };
+const expectedReadAggregates = {
+  eventLists: {
+    upcoming: {
+      observed: true,
+      firstCount: 35,
+      secondCount: 35,
+      identityFieldComplete: true,
+      sameIdentitySequence: true,
+      sameIdentitySet: true,
+      duplicateIdentityCount: 0,
+      rawPath: 'result.data.upcomingEvents',
+    },
+    past: {
+      observed: true,
+      firstCount: 294,
+      secondCount: 294,
+      identityFieldComplete: true,
+      sameIdentitySequence: true,
+      sameIdentitySet: true,
+      duplicateIdentityCount: 0,
+      rawPath: 'result.data.pastEvents',
+    },
+  },
+  contacts: {
+    observed: true,
+    firstCount: 2451,
+    secondCount: 2451,
+    identityFieldComplete: true,
+    sameIdentitySequence: true,
+    sameIdentitySet: true,
+    duplicateIdentityCount: 0,
+    sharedEventCountPresent: 2451,
+    sharedEventCountsAreNonNegativeIntegers: true,
+    namesAreStrings: true,
+    pagination: {
+      observed: true,
+      requestedMaxResults: 1000,
+      firstRunPageCount: 4,
+      secondRunPageCount: 4,
+      firstRunPageItemCounts: [1000, 1000, 451, 0],
+      secondRunPageItemCounts: [1000, 1000, 451, 0],
+      firstRunCursorTypes: ['string', 'string', 'string', 'undefined'],
+      secondRunCursorTypes: ['string', 'string', 'string', 'undefined'],
+      terminalPageObserved: true,
+      terminalPageItemCount: 0,
+      repeatedCursorObserved: false,
+      unpagedResponseObserved: false,
+    },
+    remoteFiltering: {
+      observed: false,
+      reason: 'Current first-party assets filter names locally after complete cursor traversal; no remote filtering parameter was sent.',
+    },
+  },
+  selectedEventProjection: {
+    source: 'authenticated-list',
+    ownerMatchObserved: false,
+    guestObjectPresent: true,
+    guestStatusType: 'string',
+    guestStatusPath: 'result.data.upcomingEvents.[].guest.status',
+  },
+  crossSourceProjection: {
+    eventIdMatchesCallable: true,
+    eventIdMatchesFirestoreName: null,
+    currentGuestObserved: true,
+    guestDocumentIdObserved: true,
+    guestIdMatchesFirestoreName: true,
+    guestStatusType: 'string',
+    guestStatusMatchesFirestore: true,
+    currentGuestPath: 'result.data.currentGuest',
+  },
+  failureDistinctions: {
+    permissionProbeObserved: false,
+    callablePermissionDiffersFromNotFound: null,
+    firestorePermissionDiffersFromNotFound: null,
+    signedOutEventObserved: true,
+    signedOutContactsObserved: true,
+    callableNotFoundObserved: true,
+    firestoreNotFoundObserved: false,
+    firestoreSyntheticIdProbeObserved: true,
+  },
+};
 
 function operations() {
   return Object.entries(spec.paths).flatMap(([path, item]) =>
@@ -67,7 +153,9 @@ function materialClaimPointers(value, pointer, parentKey = '') {
       materialClaimPointers(item, `${pointer}/${index}`, parentKey),
     );
   }
-  return Object.entries(value).flatMap(([key, child]) => {
+  const entries = Object.entries(value);
+  if (entries.length === 0 && parentKey === 'security') return [pointer];
+  return entries.flatMap(([key, child]) => {
     const childPointer = `${pointer}/${escapePointerSegment(key)}`;
     const namedClaim = materialMapKeys.has(parentKey) ? [childPointer] : [];
     return [
@@ -75,6 +163,27 @@ function materialClaimPointers(value, pointer, parentKey = '') {
       ...(ignoredKeys.has(key) ? [] : materialClaimPointers(child, childPointer, key)),
     ];
   });
+}
+
+function assertExactAllowlistedValue(actual, expected, pointer = 'aggregates') {
+  if (Array.isArray(expected)) {
+    expect(Array.isArray(actual), pointer).toBe(true);
+    expect(actual, pointer).toHaveLength(expected.length);
+    expected.forEach((item, index) =>
+      assertExactAllowlistedValue(actual[index], item, `${pointer}/${index}`));
+    return;
+  }
+  if (expected !== null && typeof expected === 'object') {
+    expect(actual !== null && typeof actual === 'object' && !Array.isArray(actual), pointer)
+      .toBe(true);
+    expect(Object.keys(actual).sort(), pointer)
+      .toEqual(Object.keys(expected).sort());
+    for (const [key, child] of Object.entries(expected)) {
+      assertExactAllowlistedValue(actual[key], child, `${pointer}/${key}`);
+    }
+    return;
+  }
+  expect(actual, pointer).toBe(expected);
 }
 
 function jsonPointerValue(value, pointer) {
@@ -130,7 +239,7 @@ function citationResolves(citation) {
 describe('remote API contract', () => {
   it('is a consistently versioned OpenAPI 3.1 document with unique operation IDs', () => {
     expect(spec.openapi).toBe('3.1.0');
-    expect(evidence.contractRevision).toBe('2026-08-11.4');
+    expect(evidence.contractRevision).toBe('2026-08-11.5');
     expect(spec.info.version).toBe(evidence.contractRevision);
     expect(evidence.status).toBe('owner-reviewed');
     const ids = operations().map(({ operation }) => operation.operationId);
@@ -158,6 +267,13 @@ describe('remote API contract', () => {
         'signInWithCustomToken',
         'refreshToken',
         'lookupFirebaseUser',
+        'getMyUpcomingEventsForHomePage',
+        'getMyPastEventsForHomePage',
+        'getEventInfo',
+        'getCurrentGuest',
+        'firestoreGetEvent',
+        'firestoreGetGuest',
+        'getContacts',
       ]);
       expect(claim.status).toBe(
         observedStatusOps.has(operation.operationId)
@@ -171,7 +287,7 @@ describe('remote API contract', () => {
       ...materialClaimPointers(spec.paths, '#/paths', 'paths'),
       ...materialClaimPointers(spec.components, '#/components', 'components'),
     ]);
-    expect(pointers).toHaveLength(1008);
+    expect(pointers).toHaveLength(1230);
     for (const pointer of pointers) {
       const claim = evidence.claims[pointer];
       expect(claim, pointer).toBeDefined();
@@ -188,6 +304,48 @@ describe('remote API contract', () => {
         expect(sourceValue, pointer).toEqual(canonicalValue);
       }
     }
+  });
+
+  it('keeps getEventInfo bearer-only and audits empty security alternatives', () => {
+    const security = spec.paths['/getEventInfo'].post.security;
+    expect(security).toEqual([{ firebaseBearer: [] }]);
+    const hypotheticalSecurity = [...security, {}];
+    expect(materialClaimPointers(
+      hypotheticalSecurity,
+      '#/paths/~1getEventInfo/post/security',
+      'security',
+    )).toContain('#/paths/~1getEventInfo/post/security/1');
+    expect(evidence.readObservation.getEventInfo).toMatchObject({
+      selectedSignedOutStatus: 200,
+      signedOutScope: 'selected-readable-event-only',
+    });
+  });
+
+  it('reports twelve observed 200 statuses and eleven typed 200 bodies', () => {
+    const withObserved200 = operations()
+      .filter(({ operation }) => operation.responses['200'])
+      .map(({ operation }) => operation.operationId)
+      .sort();
+    const withTyped200Body = operations()
+      .filter(({ operation }) => operation.responses['200']?.content)
+      .map(({ operation }) => operation.operationId)
+      .sort();
+    expect(withObserved200).toHaveLength(12);
+    expect(withTyped200Body).toHaveLength(11);
+    expect(withObserved200.filter((id) => !withTyped200Body.includes(id)))
+      .toEqual(['sendAuthCodeTrusted']);
+
+    const ledger = fs.readFileSync(
+      'docs/research/2026-08-10-partiful-api-contract-evidence-ledger.md',
+      'utf8',
+    );
+    expect(ledger).toContain(
+      'Twelve operations have an observed HTTP `200` status.',
+    );
+    expect(ledger).toMatch(
+      /Eleven of those\s+operations have a typed `200` response body\./,
+    );
+    expect(ledger.match(/The 1230 material claims/g)).toHaveLength(2);
   });
 
   it('contains remote transport facts rather than product or implementation policy', () => {
@@ -217,12 +375,26 @@ describe('remote API contract', () => {
       'signInWithCustomToken',
       'refreshToken',
       'lookupFirebaseUser',
+      'getMyUpcomingEventsForHomePage',
+      'getMyPastEventsForHomePage',
+      'getEventInfo',
+      'getCurrentGuest',
+      'firestoreGetEvent',
+      'firestoreGetGuest',
+      'getContacts',
     ]);
     const observedErrorOps = {
       getLoginToken: ['200', '403', 'default'],
       signInWithCustomToken: ['200', '400', 'default'],
       refreshToken: ['200', '400', 'default'],
       lookupFirebaseUser: ['200', '400', 'default'],
+      getMyUpcomingEventsForHomePage: ['200', 'default'],
+      getMyPastEventsForHomePage: ['200', 'default'],
+      getEventInfo: ['200', '404', 'default'],
+      getCurrentGuest: ['200', 'default'],
+      firestoreGetEvent: ['403', 'default'],
+      firestoreGetGuest: ['200', 'default'],
+      getContacts: ['200', '401', 'default'],
     };
     for (const { operation } of operations()) {
       if (observedStatusOps.has(operation.operationId)) {
@@ -257,6 +429,13 @@ describe('remote API contract', () => {
       'signInWithCustomToken',
       'refreshToken',
       'lookupFirebaseUser',
+      'getMyUpcomingEventsForHomePage',
+      'getMyPastEventsForHomePage',
+      'getEventInfo',
+      'getCurrentGuest',
+      'firestoreGetEvent',
+      'firestoreGetGuest',
+      'getContacts',
     ]);
     const observedResponseSources = new Map([
       ['getPosterCatalog', evidence.sources.posterCatalogObservation],
@@ -265,6 +444,13 @@ describe('remote API contract', () => {
       ['signInWithCustomToken', evidence.sources.authSignIn20260811],
       ['refreshToken', evidence.sources.authRefresh20260811],
       ['lookupFirebaseUser', evidence.sources.authLookup20260811],
+      ['getMyUpcomingEventsForHomePage', evidence.sources.readEventLists20260811],
+      ['getMyPastEventsForHomePage', evidence.sources.readEventLists20260811],
+      ['getEventInfo', evidence.sources.readEventInfo20260811],
+      ['getCurrentGuest', evidence.sources.readGuestFirestore20260811],
+      ['firestoreGetEvent', evidence.sources.readGuestFirestore20260811],
+      ['firestoreGetGuest', evidence.sources.readGuestFirestore20260811],
+      ['getContacts', evidence.sources.readContacts20260811],
     ]);
     for (const { path, method, operation } of operations()) {
       const base = `#/paths/${escapePointerSegment(path)}/${method}/responses/default`;
@@ -362,10 +548,10 @@ describe('remote API contract', () => {
       const start = ledger.indexOf(marker);
       expect(start, heading).toBeGreaterThanOrEqual(0);
       const section = ledger.slice(start + marker.length).split(/\n#{2,6} /)[0];
-      return [...section.matchAll(/`([^`]+)`/g)]
+      const operationIds = [...section.matchAll(/`([^`]+)`/g)]
         .map((match) => match[1])
-        .filter((operationId) => knownOperationIds.has(operationId))
-        .sort();
+        .filter((operationId) => knownOperationIds.has(operationId));
+      return [...new Set(operationIds)].sort();
     };
     for (const [heading, classification] of [
       ['Dated-live operations', 'dated-live-observation'],
@@ -474,6 +660,515 @@ describe('remote API contract', () => {
       malformedSuccess: 'contract.protocol_changed',
       rateLimiting: 'not-claimed',
     });
+  });
+
+  it('formalizes the observed one-response event lists without inventing remote pagination', () => {
+    const cases = [
+      {
+        operationId: 'getMyUpcomingEventsForHomePage',
+        path: '/getMyUpcomingEventsForHomePage',
+        rawField: 'upcomingEvents',
+        count: 35,
+      },
+      {
+        operationId: 'getMyPastEventsForHomePage',
+        path: '/getMyPastEventsForHomePage',
+        rawField: 'pastEvents',
+        count: 294,
+      },
+    ];
+
+    for (const { operationId, path: operationPath, rawField, count } of cases) {
+      const operation = spec.paths[operationPath].post;
+      const response = operation.responses['200'].content['application/json'].schema;
+      const array = response.properties.result.properties.data.properties[rawField];
+      expect(array.type).toBe('array');
+      expect(array.items).toEqual({ $ref: '#/components/schemas/HomePageEvent' });
+      expect(response.properties.result.properties.data.properties)
+        .not.toHaveProperty('paging');
+      expect(operation.requestBody.content['application/json'].schema.properties.data.properties)
+        .not.toHaveProperty('paging');
+      expect(evidence.operationClaims[operationId]).toMatchObject({
+        request: 'typescript-derived-inference',
+        response: 'dated-live-observation',
+        status: 'dated-live-observation',
+      });
+      expect(evidence.readObservation.eventLists[rawField]).toMatchObject({
+        rawPath: `result.data.${rawField}`,
+        firstCount: count,
+        secondCount: count,
+        sameIdentitySequence: true,
+        duplicateIdentityCount: 0,
+        representation: 'one-response-observed-complete-array',
+        remotePagination: 'explicit-unknown',
+      });
+      const artifactList = readEvidence.aggregates.eventLists[
+        rawField === 'upcomingEvents' ? 'upcoming' : 'past'
+      ];
+      expect(artifactList).toMatchObject({
+        firstCount: count,
+        secondCount: count,
+        sameIdentitySequence: true,
+        sameIdentitySet: true,
+        duplicateIdentityCount: 0,
+      });
+      expect(evidence.readObservation.eventLists[rawField].firstCount)
+        .toBe(artifactList.firstCount);
+      expect(evidence.readObservation.eventLists[rawField].secondCount)
+        .toBe(artifactList.secondCount);
+    }
+
+    expect(spec.components.schemas.HomePageEvent).toMatchObject({
+      type: 'object',
+      required: ['id'],
+      properties: {
+        id: { type: 'string' },
+        title: { type: 'string' },
+        startDate: { type: 'string' },
+        endDate: { type: ['string', 'null'] },
+        timezone: { type: 'string' },
+        status: { type: 'string' },
+        location: { type: ['string', 'null'] },
+        displaySettings: { type: 'object' },
+        image: { type: ['object', 'null'] },
+        guest: {
+          type: 'object',
+          properties: { status: { type: 'string' } },
+        },
+      },
+    });
+    expect(evidence.readObservation.productProjection).toMatchObject({
+      eventId: 'supported-by-complete-item-id',
+      titleStartEndTimezone: 'observed-types-only-presence-not-proven',
+      myRsvp: 'selected-item-guest-status-observed',
+      stateMapping: 'explicit-unknown',
+      userRoleMapping: 'explicit-unknown',
+    });
+  });
+
+  it('formalizes only the observed event-detail and guest read variants', () => {
+    const eventInfo = spec.paths['/getEventInfo'].post;
+    expect(Object.keys(eventInfo.responses).sort()).toEqual(['200', '404', 'default']);
+    expect(eventInfo.responses['200'].content['application/json'].schema)
+      .toEqual({ $ref: '#/components/schemas/GetEventInfoResponse' });
+    expect(eventInfo.responses['404'].content['application/json'].schema)
+      .toEqual({ $ref: '#/components/schemas/CallableNotFoundError' });
+    expect(eventInfo.responses['200'].description).toContain('selected readable event');
+    expect(eventInfo.responses['200'].description).not.toContain('signed out');
+    const eventInfoSchema = spec.components.schemas.EventInfo;
+    expect(eventInfoSchema).not.toHaveProperty('type');
+    expect(evidence.claims['#/components/schemas/EventInfo/type']).toBeUndefined();
+    expect(eventInfoSchema.required ?? []).toEqual([]);
+    expect(eventInfoSchema.properties).toMatchObject({
+      id: { type: 'string' },
+      title: { type: 'string' },
+      startDate: { type: 'string' },
+      endDate: { type: ['string', 'null'] },
+      timezone: { type: 'string' },
+      status: { type: 'string' },
+      description: {},
+      displaySettings: { type: 'object' },
+      image: { type: ['object', 'null'] },
+      visibility: {},
+    });
+    expect(eventInfoSchema.properties.description).toEqual({});
+    expect(eventInfoSchema.properties.visibility).toEqual({});
+    expect(evidence.readObservation.getEventInfo).toMatchObject({
+      selectedAuthenticatedStatus: 200,
+      selectedSignedOutStatus: 200,
+      signedOutScope: 'selected-readable-event-only',
+      syntheticMissingStatus: 404,
+      syntheticMissingCode: 'NOT_FOUND',
+      authenticatedPermission: 'not-observed',
+      inaccessibleEvent: 'not-observed',
+      sampleScope: 'one-selected-event',
+      fieldPresence: 'selected-object-only',
+      fieldNullabilityAndAlternateVariants: 'explicit-unknown',
+      relatedEventRepresentationTypes: {
+        endDate: ['string', 'null'],
+        image: ['object', 'null'],
+      },
+    });
+    const eventListCitation =
+      'docs/research/2026-08-11-event-contacts-read-observation.md#event-list-observations';
+    for (const field of ['id', 'startDate', 'timezone', 'status', 'displaySettings']) {
+      expect(evidence.claims[
+        `#/components/schemas/EventInfo/properties/${field}/type`
+      ]?.citation).toBe(eventListCitation);
+    }
+    for (const field of ['endDate', 'image']) {
+      for (const index of [0, 1]) {
+        expect(evidence.claims[
+          `#/components/schemas/EventInfo/properties/${field}/type/${index}`
+        ]?.citation).toBe(eventListCitation);
+      }
+      expect(evidence.claims[
+        `#/components/schemas/EventInfo/properties/${field}/type`
+      ]).toBeUndefined();
+    }
+    expect(evidence.claims[
+      '#/components/schemas/EventInfo/properties/visibility/type'
+    ]).toBeUndefined();
+    for (let index = 0; index < 10; index += 1) {
+      expect(evidence.claims[
+        `#/components/schemas/EventInfo/required/${index}`
+      ]).toBeUndefined();
+    }
+
+    const currentGuest = spec.paths['/getCurrentGuest'].post.responses['200']
+      .content['application/json'].schema;
+    expect(currentGuest).toEqual({ $ref: '#/components/schemas/GetCurrentGuestResponse' });
+    const currentGuestProperty = spec.components.schemas.GetCurrentGuestResponse
+      .properties.result.properties.data.properties.currentGuest;
+    expect(currentGuestProperty)
+      .toEqual({ $ref: '#/components/schemas/CurrentGuest' });
+    expect(spec.components.schemas.GetCurrentGuestResponse.properties.result
+      .properties.data.required)
+      .toEqual(['currentGuest']);
+    expect(spec.components.schemas.CurrentGuest).not.toHaveProperty('type');
+    expect(evidence.claims['#/components/schemas/CurrentGuest/type']).toBeUndefined();
+    expect(spec.components.schemas.CurrentGuest).toMatchObject({
+      properties: {
+        id: { type: 'string' },
+        count: {},
+        name: { type: 'string' },
+        plusOnes: {},
+        status: { type: 'string' },
+        userId: {},
+      },
+    });
+    expect(spec.components.schemas.CurrentGuest.properties.count).toEqual({});
+    expect(spec.components.schemas.CurrentGuest.properties.plusOnes).toEqual({});
+    expect(spec.components.schemas.CurrentGuest.properties.userId).toEqual({});
+    expect(spec.components.schemas.CurrentGuest.required ?? []).toEqual([]);
+    expect(evidence.readObservation.getCurrentGuest.otherVariants)
+      .toBe('explicit-unknown');
+    expect(evidence.readObservation.getCurrentGuest.currentGuestNullability)
+      .toBe('explicit-unknown');
+    expect(evidence.readObservation.getCurrentGuest).toMatchObject({
+      sampleScope: 'one-selected-event',
+      fieldPresence: 'selected-object-only',
+      fieldNullabilityAndAlternateVariants: 'explicit-unknown',
+      plusOnesVariants: 'explicit-unknown',
+    });
+    for (const field of ['count', 'plusOnes', 'userId']) {
+      expect(evidence.claims[
+        `#/components/schemas/CurrentGuest/properties/${field}/type`
+      ]).toBeUndefined();
+    }
+    for (let index = 0; index < 6; index += 1) {
+      expect(evidence.claims[
+        `#/components/schemas/CurrentGuest/required/${index}`
+      ]).toBeUndefined();
+    }
+    expect(evidence.unresolvedUncertainty).toEqual(expect.arrayContaining([
+      'Only one selected EventInfo object was observed; operation-wide field presence, nullability, and alternate variants remain unknown. Related event-list representations support only the optional endDate string/null and image object/null unions.',
+      'Only one CurrentGuest object was observed; operation-wide field presence, nullability, alternate variants, plus-one shape, unsupported statuses, and failure bodies remain unknown.',
+    ]));
+  });
+
+  it('distinguishes the observed Firestore guest success from event-document denial', () => {
+    const guest = spec.paths[
+      '/v1/projects/getpartiful/databases/(default)/documents/events/{eventId}/guests/{guestId}'
+    ].get;
+    expect(guest.responses['200'].content['application/json'].schema)
+      .toEqual({ $ref: '#/components/schemas/FirestoreGuestDocument' });
+    expect(spec.components.schemas.FirestoreGuestDocument).toMatchObject({
+      required: ['name', 'fields', 'createTime', 'updateTime'],
+      properties: {
+        fields: {
+          type: 'object',
+          required: ['count', 'createdAt', 'name', 'status'],
+        },
+      },
+    });
+    expect(evidence.readObservation.firestoreGuest).toMatchObject({
+      status: 200,
+      documentIdMatchesCurrentGuestId: true,
+      statusMatchesCurrentGuest: true,
+    });
+
+    const event = spec.paths[
+      '/v1/projects/getpartiful/databases/(default)/documents/events/{eventId}'
+    ].get;
+    expect(Object.keys(event.responses).sort()).toEqual(['403', 'default']);
+    expect(event.responses['403'].content['application/json'].schema)
+      .toEqual({ $ref: '#/components/schemas/FirestorePermissionDeniedError' });
+    expect(evidence.readObservation.firestoreEvent).toMatchObject({
+      selectedReadableEventStatus: 403,
+      syntheticMissingIdStatus: 403,
+      normalizedCode: 'PERMISSION_DENIED',
+      attendeeDenial: 'not-claimed',
+      notFoundBehavior: 'explicit-unknown',
+    });
+  });
+
+  it('formalizes exact contact cursor traversal and keeps identity private', () => {
+    const operation = spec.paths['/getContacts'].post;
+    const requestData = operation.requestBody.content['application/json'].schema
+      .properties.data;
+    expect(requestData.required).toEqual(expect.arrayContaining(['params', 'paging']));
+    expect(requestData.properties.params).toEqual({
+      type: 'object',
+      properties: {
+        useAuthUser: { type: 'boolean' },
+      },
+      additionalProperties: false,
+    });
+    expect(requestData.properties.params.required ?? []).not.toContain('useAuthUser');
+    expect(requestData.properties.paging).toEqual({
+      type: 'object',
+      required: ['maxResults', 'cursor'],
+      properties: {
+        maxResults: { type: 'integer', const: 1000 },
+        cursor: { type: ['string', 'null'] },
+      },
+      additionalProperties: false,
+    });
+
+    expect(operation.responses['200'].content['application/json'].schema)
+      .toEqual({ $ref: '#/components/schemas/GetContactsResponse' });
+    expect(operation.responses['401'].content['application/json'].schema)
+      .toEqual({ $ref: '#/components/schemas/CallableUnauthenticatedError' });
+    expect(spec.components.schemas.GetContactsResponse.properties.result
+      .properties.paging.properties.nextCursor)
+      .toEqual({ type: 'string' });
+    expect(spec.components.schemas.GetContactsResponse.properties.result
+      .properties.paging.required ?? [])
+      .not.toContain('nextCursor');
+    expect(spec.components.schemas.Contact).toMatchObject({
+      required: ['id', 'name', 'sharedEventCount'],
+      properties: {
+        id: { type: 'string' },
+        name: { type: 'string' },
+        sharedEventCount: { type: 'integer', minimum: 0 },
+      },
+    });
+
+    expect(evidence.operationClaims.getContacts.request)
+      .toBe('reviewed-first-party-repository-research');
+    expect(citationResolves(evidence.sources.publicContactDeduplication20260811))
+      .toBe(true);
+    expect(evidence.readObservation.contacts).toMatchObject({
+      catalogCount: 2451,
+      runPageItemCounts: [[1000, 1000, 451, 0], [1000, 1000, 451, 0]],
+      dataPageNextCursorType: 'string',
+      terminalNextCursor: 'missing',
+      sameIdentitySequence: true,
+      sameIdentitySet: true,
+      duplicateIdentityCount: 0,
+      filtering: 'client-side-name-filter-over-complete-traversed-catalog',
+      publicProjection: ['displayName', 'sharedEventCount'],
+      privateIdentityField: 'id',
+      signedOutStatus: 401,
+      signedOutCode: 'UNAUTHENTICATED',
+      normalParams: {},
+      useAuthUserBehavior: 'explicit-unknown',
+      clientDeduplication: {
+        classification: 'reviewed-first-party-repository-research',
+        citation: evidence.sources.publicContactDeduplication20260811,
+        identityField: 'id',
+        duplicateResolution: 'first-occurrence-wins',
+      },
+      rateLimiting: 'explicit-unknown',
+      futureCatalogCompleteness: 'explicit-unknown',
+      serverDuplicateBehavior: 'explicit-unknown',
+      serverOrderingBehavior: 'explicit-unknown',
+    });
+    expect(evidence.readObservation.contacts.unknowns).toEqual([
+      'invalid-cursor behavior',
+      'cursor lifetime and reuse',
+      'backend ordering key',
+      'snapshot behavior',
+      'useAuthUser behavior',
+      'duplicates outside the two observations',
+      'rate limiting',
+      'future catalog completeness',
+    ]);
+    expect(evidence.unresolvedUncertainty).toContain(
+      'Contact invalid-cursor behavior, cursor lifetime and reuse, ordering key, snapshot behavior, useAuthUser, rate limiting, unsupported statuses, future catalog completeness, server duplicate behavior, and duplicates outside two traversals remain unknown.',
+    );
+    const artifactContacts = readEvidence.aggregates.contacts;
+    expect(artifactContacts.firstCount).toBe(evidence.readObservation.contacts.catalogCount);
+    expect(artifactContacts.secondCount).toBe(evidence.readObservation.contacts.catalogCount);
+    expect([
+      artifactContacts.pagination.firstRunPageItemCounts,
+      artifactContacts.pagination.secondRunPageItemCounts,
+    ]).toEqual(evidence.readObservation.contacts.runPageItemCounts);
+    expect(artifactContacts.pagination.firstRunPageItemCounts.reduce(
+      (total, pageCount) => total + pageCount,
+      0,
+    )).toBe(artifactContacts.firstCount);
+  });
+
+  it('keeps the read artifact sanitized and corrects unsupported failure labels', () => {
+    expect(Object.keys(readEvidence).sort()).toEqual([
+      'aggregates',
+      'observations',
+      'observedAt',
+      'probeMethod',
+      'purpose',
+      'redaction',
+    ]);
+    expect(readEvidence.observedAt).toBe(evidence.readObservation.observedAt);
+    expect(readEvidence.purpose)
+      .toBe('Privacy-safe Partiful event-read and contact remote-contract evidence');
+    expect(readEvidence.probeMethod)
+      .toBe('Owner-attended authenticated read-only calls. No mutation, retry, pagination guess, or rate-limit probe.');
+    expect(readEvidence.redaction)
+      .toBe('Only HTTP metadata, normalized JSON paths/types, allowlisted stable error codes, collection counts, and equality/projection facts are retained. No other body values, credentials, identities, names, event IDs, or contact details are written.');
+    const safeEndpoints = new Map([
+      ['getMyUpcomingEventsForHomePage', '/getMyUpcomingEventsForHomePage'],
+      ['getMyPastEventsForHomePage', '/getMyPastEventsForHomePage'],
+      ['getEventInfo', '/getEventInfo'],
+      ['getCurrentGuest', '/getCurrentGuest'],
+      ['getContacts', '/getContacts'],
+      [
+        'firestoreGetEvent',
+        '/v1/projects/getpartiful/databases/(default)/documents/events/{eventId}',
+      ],
+      [
+        'firestoreGetGuest',
+        '/v1/projects/getpartiful/databases/(default)/documents/events/{eventId}/guests/{guestId}',
+      ],
+    ]);
+    const safePhases = new Set([
+      'authenticated-first',
+      'authenticated-repeat',
+      'authenticated-first-page-1',
+      'authenticated-first-page-2',
+      'authenticated-first-page-3',
+      'authenticated-first-page-4',
+      'authenticated-repeat-page-1',
+      'authenticated-repeat-page-2',
+      'authenticated-repeat-page-3',
+      'authenticated-repeat-page-4',
+      'authenticated-selected-event',
+      'authenticated-synthetic-not-found',
+      'signed-out',
+      'signed-out-readable-event',
+    ]);
+    const safePathSegments = new Set([
+      '*', '[]', 'blurHash', 'code', 'contentType', 'count', 'createTime',
+      'createdAt', 'data', 'description', 'displaySettings', 'endDate', 'error',
+      'event', 'eventId', 'fields', 'height', 'id', 'image', 'images',
+      'location', 'message', 'name', 'nextCursor', 'paging', 'plusOnes',
+      'result', 'source', 'startDate', 'status', 'text', 'timezone', 'title',
+      'updateTime', 'url', 'userId', 'visibility', 'width',
+    ]);
+    const safeShapeTypes = new Set([
+      'array', 'boolean', 'integer', 'null', 'number', 'object', 'string',
+    ]);
+    for (const observation of readEvidence.observations) {
+      expect(Object.keys(observation).sort()).toEqual([
+        'bodyBytes',
+        'bodyKind',
+        'contentType',
+        'endpoint',
+        'normalizedErrorCode',
+        'operation',
+        'phase',
+        'shape',
+        'status',
+        'unknownKeyCount',
+      ]);
+      expect(observation.endpoint).toBe(safeEndpoints.get(observation.operation));
+      expect(safePhases.has(observation.phase)).toBe(true);
+      expect(observation.bodyKind).toBe('json');
+      expect(observation.contentType).toBe('application/json; charset=utf-8');
+      expect([null, 'NOT_FOUND', 'PERMISSION_DENIED', 'UNAUTHENTICATED'])
+        .toContain(observation.normalizedErrorCode);
+      for (const shape of observation.shape) {
+        expect(Object.keys(shape).sort()).toEqual(['path', 'type']);
+        expect(safeShapeTypes.has(shape.type)).toBe(true);
+        for (const segment of shape.path.split('.')) {
+          expect(safePathSegments.has(segment), shape.path).toBe(true);
+        }
+      }
+    }
+    assertExactAllowlistedValue(readEvidence.aggregates, expectedReadAggregates);
+    for (const mutate of [
+      (aggregates) => {
+        aggregates.contacts.rawContactName = 'synthetic-private-name';
+      },
+      (aggregates) => {
+        aggregates.contacts.rawContactId = 'synthetic-private-id';
+      },
+      (aggregates) => {
+        aggregates.selectedEventProjection.source = 'synthetic-private-id';
+      },
+      (aggregates) => {
+        aggregates.contacts.remoteFiltering.reason = 'synthetic-private-name';
+      },
+    ]) {
+      const mutated = structuredClone(readEvidence.aggregates);
+      mutate(mutated);
+      expect(() => assertExactAllowlistedValue(mutated, expectedReadAggregates))
+        .toThrow();
+    }
+
+    expect(readEvidence.aggregates.failureDistinctions).toMatchObject({
+      permissionProbeObserved: false,
+      signedOutEventObserved: true,
+      signedOutContactsObserved: true,
+      callableNotFoundObserved: true,
+      firestoreNotFoundObserved: false,
+    });
+    expect(readEvidence.aggregates.failureDistinctions)
+      .not.toHaveProperty('callablePermissionDiffersFromNotFound', true);
+    expect(readEvidence.aggregates.failureDistinctions)
+      .not.toHaveProperty('firestorePermissionDiffersFromNotFound', true);
+
+    const serialized = JSON.stringify(readEvidence);
+    for (const unsafe of [
+      /(?<![\w])\+[1-9]\d{9,14}(?!\d)/,
+      /\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/i,
+      /\beyJ[A-Za-z0-9_-]{12,}\.[A-Za-z0-9_-]{8,}\./,
+      /"(?:eventId|guestId|userId|id|name)"\s*:\s*"[^"]+"/,
+      /"(?:accessToken|refreshToken|authorization|credential)"\s*:/i,
+    ]) {
+      expect(serialized).not.toMatch(unsafe);
+    }
+    expect(readEvidence.redaction).toContain('No other body values');
+    expect(evidence.readObservation.artifactPath).toBe(readEvidencePath);
+  });
+
+  it('keeps the approved remote revision separate from the shipped revision', () => {
+    const productContract = fs.readFileSync(
+      'docs/CLI-PRODUCT-CONTRACT.md',
+      'utf8',
+    );
+    const appSource = fs.readFileSync('internal/app/app.go', 'utf8');
+    const contactResearch = fs.readFileSync(
+      'docs/research/2026-08-11-contacts-pagination-public-assets.md',
+      'utf8',
+    );
+    const shippedRevision = appSource.match(
+      /RemoteContractRevision\s*=\s*"([^"]+)"/,
+    )?.[1];
+    const documentedRevision = productContract.match(
+      /\*\*Remote API contract revision:\*\* `([^`]+)`/,
+    )?.[1];
+    const envelopeRevisions = [...productContract.matchAll(
+      /"remoteContractRevision": "([^"]+)"/g,
+    )].map((match) => match[1]);
+
+    expect(shippedRevision).toBe('2026-08-11.4');
+    expect(documentedRevision).toBe(shippedRevision);
+    expect(new Set(envelopeRevisions)).toEqual(new Set([shippedRevision]));
+    expect(spec.info.version).toBe('2026-08-11.5');
+    expect(evidence.status).toBe('owner-reviewed');
+    expect(spec.info.version).not.toBe(shippedRevision);
+    expect(productContract)
+      .not.toContain('currently leaves every operation response status and body unknown');
+    expect(contactResearch)
+      .not.toContain('The owner-reviewed remote contract still permits');
+    expect(contactResearch)
+      .not.toContain('Owner-attended authenticated observation is still required');
+    expect(contactResearch).toMatch(
+      /previous owner-reviewed remote contract[\s\S]+2026-08-11\.4/,
+    );
+    expect(contactResearch).toMatch(/Proposed revision `2026-08-11\.5`/);
   });
 
   it('captures the observed authentication response shapes from the attended session', () => {

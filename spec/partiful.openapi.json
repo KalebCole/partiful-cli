@@ -2,7 +2,7 @@
   "openapi": "3.1.0",
   "info": {
     "title": "Partiful remote API contract",
-    "version": "2026-08-11.4",
+    "version": "2026-08-11.5",
     "description": "Owner-reviewed, versioned remote-only transport snapshot. Evidence classifications and uncertainty are recorded in spec/partiful.api-evidence.json."
   },
   "servers": [
@@ -206,8 +206,28 @@
           }
         },
         "responses": {
+          "200": {
+            "description": "Observed selected readable event response.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetEventInfoResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Observed synthetic missing event response.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CallableNotFoundError"
+                }
+              }
+            }
+          },
           "default": {
-            "description": "Response status and body are unknown."
+            "description": "Unobserved response status or body."
           }
         },
         "security": [
@@ -234,12 +254,17 @@
                     "type": "object",
                     "required": [
                       "params",
-                      "amplitudeDeviceId"
+                      "amplitudeDeviceId",
+                      "paging"
                     ],
                     "properties": {
                       "params": {
                         "type": "object",
-                        "properties": {},
+                        "properties": {
+                          "useAuthUser": {
+                            "type": "boolean"
+                          }
+                        },
                         "additionalProperties": false
                       },
                       "amplitudeDeviceId": {
@@ -254,6 +279,26 @@
                           "string",
                           "null"
                         ]
+                      },
+                      "paging": {
+                        "type": "object",
+                        "required": [
+                          "maxResults",
+                          "cursor"
+                        ],
+                        "properties": {
+                          "maxResults": {
+                            "type": "integer",
+                            "const": 1000
+                          },
+                          "cursor": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          }
+                        },
+                        "additionalProperties": false
                       }
                     },
                     "additionalProperties": false
@@ -265,8 +310,28 @@
           }
         },
         "responses": {
+          "200": {
+            "description": "Observed authenticated cursor page response.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetContactsResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Observed signed-out response.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CallableUnauthenticatedError"
+                }
+              }
+            }
+          },
           "default": {
-            "description": "Response status and body are unknown."
+            "description": "Unobserved response status or body."
           }
         },
         "security": [
@@ -835,8 +900,45 @@
           }
         },
         "responses": {
+          "200": {
+            "description": "Observed one-response upcomingEvents array.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "result"
+                  ],
+                  "properties": {
+                    "result": {
+                      "type": "object",
+                      "required": [
+                        "data"
+                      ],
+                      "properties": {
+                        "data": {
+                          "type": "object",
+                          "required": [
+                            "upcomingEvents"
+                          ],
+                          "properties": {
+                            "upcomingEvents": {
+                              "type": "array",
+                              "items": {
+                                "$ref": "#/components/schemas/HomePageEvent"
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
           "default": {
-            "description": "Response status and body are unknown."
+            "description": "Unobserved response status or body."
           }
         },
         "security": [
@@ -894,8 +996,45 @@
           }
         },
         "responses": {
+          "200": {
+            "description": "Observed one-response pastEvents array.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "result"
+                  ],
+                  "properties": {
+                    "result": {
+                      "type": "object",
+                      "required": [
+                        "data"
+                      ],
+                      "properties": {
+                        "data": {
+                          "type": "object",
+                          "required": [
+                            "pastEvents"
+                          ],
+                          "properties": {
+                            "pastEvents": {
+                              "type": "array",
+                              "items": {
+                                "$ref": "#/components/schemas/HomePageEvent"
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
           "default": {
-            "description": "Response status and body are unknown."
+            "description": "Unobserved response status or body."
           }
         },
         "security": [
@@ -1104,8 +1243,18 @@
           }
         },
         "responses": {
+          "200": {
+            "description": "Observed current guest response for the selected event.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetCurrentGuestResponse"
+                }
+              }
+            }
+          },
           "default": {
-            "description": "Response status and body are unknown."
+            "description": "Unobserved response status or body."
           }
         },
         "security": [
@@ -1129,8 +1278,18 @@
           }
         ],
         "responses": {
+          "403": {
+            "description": "Observed with the authenticated request context for both the selected readable event ID and a synthetic missing ID; resource existence and attendee denial are not inferred.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FirestorePermissionDeniedError"
+                }
+              }
+            }
+          },
           "default": {
-            "description": "Response status and body are unknown."
+            "description": "Unobserved response status or body."
           }
         },
         "security": [
@@ -1218,8 +1377,18 @@
           }
         ],
         "responses": {
+          "200": {
+            "description": "Observed current-guest document response.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FirestoreGuestDocument"
+                }
+              }
+            }
+          },
           "default": {
-            "description": "Response status and body are unknown."
+            "description": "Unobserved response status or body."
           }
         },
         "security": [
@@ -2338,6 +2507,340 @@
           }
         },
         "additionalProperties": true
+      },
+      "HomePageEvent": {
+        "type": "object",
+        "required": [
+          "id"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "startDate": {
+            "type": "string"
+          },
+          "endDate": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "timezone": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "location": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "displaySettings": {
+            "type": "object"
+          },
+          "image": {
+            "type": [
+              "object",
+              "null"
+            ]
+          },
+          "guest": {
+            "type": "object",
+            "properties": {
+              "status": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      },
+      "EventInfo": {
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "startDate": {
+            "type": "string"
+          },
+          "endDate": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "timezone": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "description": {},
+          "displaySettings": {
+            "type": "object"
+          },
+          "image": {
+            "type": [
+              "object",
+              "null"
+            ]
+          },
+          "visibility": {}
+        }
+      },
+      "GetEventInfoResponse": {
+        "type": "object",
+        "required": [
+          "result"
+        ],
+        "properties": {
+          "result": {
+            "type": "object",
+            "required": [
+              "data"
+            ],
+            "properties": {
+              "data": {
+                "type": "object",
+                "required": [
+                  "event"
+                ],
+                "properties": {
+                  "event": {
+                    "$ref": "#/components/schemas/EventInfo"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "CallableNotFoundError": {
+        "type": "object",
+        "required": [
+          "error"
+        ],
+        "properties": {
+          "error": {
+            "type": "object",
+            "required": [
+              "message",
+              "status"
+            ],
+            "properties": {
+              "message": {
+                "type": "string"
+              },
+              "status": {
+                "type": "string",
+                "const": "NOT_FOUND"
+              }
+            }
+          }
+        }
+      },
+      "CurrentGuest": {
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "count": {},
+          "name": {
+            "type": "string"
+          },
+          "plusOnes": {},
+          "status": {
+            "type": "string"
+          },
+          "userId": {}
+        }
+      },
+      "GetCurrentGuestResponse": {
+        "type": "object",
+        "required": [
+          "result"
+        ],
+        "properties": {
+          "result": {
+            "type": "object",
+            "required": [
+              "data"
+            ],
+            "properties": {
+              "data": {
+                "type": "object",
+                "required": [
+                  "currentGuest"
+                ],
+                "properties": {
+                  "currentGuest": {
+                    "$ref": "#/components/schemas/CurrentGuest"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "FirestoreObservedStringValue": {
+        "type": "object",
+        "additionalProperties": {
+          "type": "string"
+        }
+      },
+      "FirestoreGuestDocument": {
+        "type": "object",
+        "required": [
+          "name",
+          "fields",
+          "createTime",
+          "updateTime"
+        ],
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "fields": {
+            "type": "object",
+            "required": [
+              "count",
+              "createdAt",
+              "name",
+              "status"
+            ],
+            "properties": {
+              "count": {
+                "$ref": "#/components/schemas/FirestoreObservedStringValue"
+              },
+              "createdAt": {
+                "$ref": "#/components/schemas/FirestoreObservedStringValue"
+              },
+              "name": {
+                "$ref": "#/components/schemas/FirestoreObservedStringValue"
+              },
+              "status": {
+                "$ref": "#/components/schemas/FirestoreObservedStringValue"
+              }
+            }
+          },
+          "createTime": {
+            "type": "string"
+          },
+          "updateTime": {
+            "type": "string"
+          }
+        }
+      },
+      "FirestorePermissionDeniedError": {
+        "type": "object",
+        "required": [
+          "error"
+        ],
+        "properties": {
+          "error": {
+            "type": "object",
+            "required": [
+              "code",
+              "message",
+              "status"
+            ],
+            "properties": {
+              "code": {
+                "type": "integer"
+              },
+              "message": {
+                "type": "string"
+              },
+              "status": {
+                "type": "string",
+                "const": "PERMISSION_DENIED"
+              }
+            }
+          }
+        }
+      },
+      "Contact": {
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "sharedEventCount"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "sharedEventCount": {
+            "type": "integer",
+            "minimum": 0
+          }
+        }
+      },
+      "GetContactsResponse": {
+        "type": "object",
+        "required": [
+          "result"
+        ],
+        "properties": {
+          "result": {
+            "type": "object",
+            "required": [
+              "data",
+              "paging"
+            ],
+            "properties": {
+              "data": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/Contact"
+                }
+              },
+              "paging": {
+                "type": "object",
+                "properties": {
+                  "nextCursor": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "CallableUnauthenticatedError": {
+        "type": "object",
+        "required": [
+          "error"
+        ],
+        "properties": {
+          "error": {
+            "type": "object",
+            "required": [
+              "message",
+              "status"
+            ],
+            "properties": {
+              "message": {
+                "type": "string"
+              },
+              "status": {
+                "type": "string",
+                "const": "UNAUTHENTICATED"
+              }
+            }
+          }
+        }
       }
     }
   }

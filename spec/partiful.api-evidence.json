@@ -1,5 +1,5 @@
 {
-  "contractRevision": "2026-08-11.4",
+  "contractRevision": "2026-08-11.5",
   "contractPath": "spec/partiful.openapi.json",
   "allowedClassifications": [
     "dated-live-observation",
@@ -23,7 +23,16 @@
     "authRefresh20260811": "docs/research/2026-08-11-auth-observation.md#refreshtoken",
     "authLookup20260811": "docs/research/2026-08-11-auth-observation.md#lookupfirebaseuser",
     "firebasePublicApiKeyRedacted": "docs/research/2026-08-11-firebase-public-api-key-redacted.md#firebase-public-api-key",
-    "augRefererRestriction": "docs/research/2026-08-11-auth-observation.md#firebase-api-key-referrer-restriction"
+    "augRefererRestriction": "docs/research/2026-08-11-auth-observation.md#firebase-api-key-referrer-restriction",
+    "readObservation20260811": "docs/research/2026-08-11-event-contacts-read-observation.md#scope-and-provenance",
+    "readEventLists20260811": "docs/research/2026-08-11-event-contacts-read-observation.md#event-list-observations",
+    "readEventInfo20260811": "docs/research/2026-08-11-event-contacts-read-observation.md#event-detail-observations",
+    "readGuestFirestore20260811": "docs/research/2026-08-11-event-contacts-read-observation.md#guest-and-firestore-observations",
+    "readContacts20260811": "docs/research/2026-08-11-event-contacts-read-observation.md#contact-observations",
+    "readPrivacy20260811": "docs/research/2026-08-11-event-contacts-read-observation.md#privacy-boundary",
+    "readUnknowns20260811": "docs/research/2026-08-11-event-contacts-read-observation.md#remaining-unknowns",
+    "publicContactPaging20260811": "docs/research/2026-08-11-contacts-pagination-public-assets.md#exact-callable-argument",
+    "publicContactDeduplication20260811": "docs/research/2026-08-11-contacts-pagination-public-assets.md#ordering-duplicates-and-filtering"
   },
   "operations": {
     "createEvent": {
@@ -35,12 +44,12 @@
       "citation": "spec/research/historical-27-operation-draft.json#/paths/~1cancelEvent/post"
     },
     "getEventInfo": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1getEventInfo/post"
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#event-detail-observations"
     },
     "getContacts": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1getContacts/post"
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#contact-observations"
     },
     "createTextBlast": {
       "classification": "dated-live-observation",
@@ -71,12 +80,12 @@
       "citation": "spec/research/historical-27-operation-draft.json#/paths/~1revokeEventCohostLink/post"
     },
     "getMyUpcomingEventsForHomePage": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1getMyUpcomingEventsForHomePage/post"
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#event-list-observations"
     },
     "getMyPastEventsForHomePage": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1getMyPastEventsForHomePage/post"
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#event-list-observations"
     },
     "addGuest": {
       "classification": "typescript-derived-inference",
@@ -87,20 +96,20 @@
       "citation": "spec/research/historical-27-operation-draft.json#/paths/~1markEventInterest/post"
     },
     "getCurrentGuest": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1getCurrentGuest/post"
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#guest-and-firestore-observations"
     },
     "firestoreGetEvent": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1events~1{eventId}/get"
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#guest-and-firestore-observations"
     },
     "firestorePatchEvent": {
       "classification": "typescript-derived-inference",
       "citation": "spec/research/historical-27-operation-draft.json#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1events~1{eventId}/patch"
     },
     "firestoreGetGuest": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1events~1{eventId}~1guests~1{guestId}/get"
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#guest-and-firestore-observations"
     },
     "firestoreListDocuments": {
       "classification": "typescript-derived-inference",
@@ -155,18 +164,18 @@
     "getEventInfo": {
       "request": "typescript-derived-inference",
       "requestCitation": "spec/research/historical-27-operation-draft.json#/paths/~1getEventInfo/post",
-      "response": "explicit-unknown",
-      "responseCitation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision",
-      "status": "explicit-unknown",
-      "statusCitation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision"
+      "response": "dated-live-observation",
+      "responseCitation": "docs/research/2026-08-11-event-contacts-read-observation.md#event-detail-observations",
+      "status": "dated-live-observation",
+      "statusCitation": "docs/research/2026-08-11-event-contacts-read-observation.md#event-detail-observations"
     },
     "getContacts": {
-      "request": "typescript-derived-inference",
-      "requestCitation": "spec/research/historical-27-operation-draft.json#/paths/~1getContacts/post",
-      "response": "explicit-unknown",
-      "responseCitation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision",
-      "status": "explicit-unknown",
-      "statusCitation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision"
+      "request": "reviewed-first-party-repository-research",
+      "requestCitation": "docs/research/2026-08-11-contacts-pagination-public-assets.md#exact-callable-argument",
+      "response": "dated-live-observation",
+      "responseCitation": "docs/research/2026-08-11-event-contacts-read-observation.md#contact-observations",
+      "status": "dated-live-observation",
+      "statusCitation": "docs/research/2026-08-11-event-contacts-read-observation.md#contact-observations"
     },
     "createTextBlast": {
       "request": "dated-live-observation",
@@ -227,18 +236,18 @@
     "getMyUpcomingEventsForHomePage": {
       "request": "typescript-derived-inference",
       "requestCitation": "spec/research/historical-27-operation-draft.json#/paths/~1getMyUpcomingEventsForHomePage/post",
-      "response": "explicit-unknown",
-      "responseCitation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision",
-      "status": "explicit-unknown",
-      "statusCitation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision"
+      "response": "dated-live-observation",
+      "responseCitation": "docs/research/2026-08-11-event-contacts-read-observation.md#event-list-observations",
+      "status": "dated-live-observation",
+      "statusCitation": "docs/research/2026-08-11-event-contacts-read-observation.md#event-list-observations"
     },
     "getMyPastEventsForHomePage": {
       "request": "typescript-derived-inference",
       "requestCitation": "spec/research/historical-27-operation-draft.json#/paths/~1getMyPastEventsForHomePage/post",
-      "response": "explicit-unknown",
-      "responseCitation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision",
-      "status": "explicit-unknown",
-      "statusCitation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision"
+      "response": "dated-live-observation",
+      "responseCitation": "docs/research/2026-08-11-event-contacts-read-observation.md#event-list-observations",
+      "status": "dated-live-observation",
+      "statusCitation": "docs/research/2026-08-11-event-contacts-read-observation.md#event-list-observations"
     },
     "addGuest": {
       "request": "typescript-derived-inference",
@@ -259,18 +268,18 @@
     "getCurrentGuest": {
       "request": "typescript-derived-inference",
       "requestCitation": "spec/research/historical-27-operation-draft.json#/paths/~1getCurrentGuest/post",
-      "response": "explicit-unknown",
-      "responseCitation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision",
-      "status": "explicit-unknown",
-      "statusCitation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision"
+      "response": "dated-live-observation",
+      "responseCitation": "docs/research/2026-08-11-event-contacts-read-observation.md#guest-and-firestore-observations",
+      "status": "dated-live-observation",
+      "statusCitation": "docs/research/2026-08-11-event-contacts-read-observation.md#guest-and-firestore-observations"
     },
     "firestoreGetEvent": {
       "request": "typescript-derived-inference",
       "requestCitation": "spec/research/historical-27-operation-draft.json#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1events~1{eventId}/get",
-      "response": "explicit-unknown",
-      "responseCitation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision",
-      "status": "explicit-unknown",
-      "statusCitation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision"
+      "response": "dated-live-observation",
+      "responseCitation": "docs/research/2026-08-11-event-contacts-read-observation.md#guest-and-firestore-observations",
+      "status": "dated-live-observation",
+      "statusCitation": "docs/research/2026-08-11-event-contacts-read-observation.md#guest-and-firestore-observations"
     },
     "firestorePatchEvent": {
       "request": "typescript-derived-inference",
@@ -283,10 +292,10 @@
     "firestoreGetGuest": {
       "request": "typescript-derived-inference",
       "requestCitation": "spec/research/historical-27-operation-draft.json#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1events~1{eventId}~1guests~1{guestId}/get",
-      "response": "explicit-unknown",
-      "responseCitation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision",
-      "status": "explicit-unknown",
-      "statusCitation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision"
+      "response": "dated-live-observation",
+      "responseCitation": "docs/research/2026-08-11-event-contacts-read-observation.md#guest-and-firestore-observations",
+      "status": "dated-live-observation",
+      "statusCitation": "docs/research/2026-08-11-event-contacts-read-observation.md#guest-and-firestore-observations"
     },
     "firestoreListDocuments": {
       "request": "typescript-derived-inference",
@@ -377,7 +386,13 @@
     "Status codes and error bodies for operations without dated observations.",
     "Unconditional poster-catalog failure statuses and bodies remain unknown; only HTTP 200 is an accepted catalog success.",
     "The full set of Referer values accepted by the Firebase API-key restriction remains unknown; https://partiful.com/ is the only observed accepted value.",
-    "Origin is unmodelled and remains unknown because the reviewed evidence establishes no Origin request fact."
+    "Origin is unmodelled and remains unknown because the reviewed evidence establishes no Origin request fact.",
+    "Event-list remote pagination, limits, ordering key, snapshot behavior, unsupported statuses, and failure bodies remain unknown.",
+    "Only the selected getEventInfo event was observed signed out; readability of other events and authenticated inaccessible-event denial remain unknown.",
+    "Only one selected EventInfo object was observed; operation-wide field presence, nullability, and alternate variants remain unknown. Related event-list representations support only the optional endDate string/null and image object/null unions.",
+    "Only one CurrentGuest object was observed; operation-wide field presence, nullability, alternate variants, plus-one shape, unsupported statuses, and failure bodies remain unknown.",
+    "Firestore event GET returned PERMISSION_DENIED for selected readable and synthetic IDs with one credential; success, not-found, attendee-denial, and other credential behavior remain unknown.",
+    "Contact invalid-cursor behavior, cursor lifetime and reuse, ordering key, snapshot behavior, useAuthUser, rate limiting, unsupported statuses, future catalog completeness, server duplicate behavior, and duplicates outside two traversals remain unknown."
   ],
   "status": "owner-reviewed",
   "claims": {
@@ -717,6 +732,30 @@
       "classification": "typescript-derived-inference",
       "citation": "spec/research/historical-27-operation-draft.json#/paths/~1getEventInfo/post/requestBody/content/application~1json/schema/additionalProperties"
     },
+    "#/paths/~1getEventInfo/post/responses/200": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#event-detail-observations"
+    },
+    "#/paths/~1getEventInfo/post/responses/200/content/application~1json": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#event-detail-observations"
+    },
+    "#/paths/~1getEventInfo/post/responses/200/content/application~1json/schema/$ref": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#event-detail-observations"
+    },
+    "#/paths/~1getEventInfo/post/responses/404": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#event-detail-observations"
+    },
+    "#/paths/~1getEventInfo/post/responses/404/content/application~1json": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#event-detail-observations"
+    },
+    "#/paths/~1getEventInfo/post/responses/404/content/application~1json/schema/$ref": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#event-detail-observations"
+    },
     "#/paths/~1getEventInfo/post/responses/default": {
       "classification": "explicit-unknown",
       "citation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision"
@@ -734,8 +773,8 @@
       "citation": "spec/research/historical-27-operation-draft.json#/paths/~1getContacts/post/requestBody/required"
     },
     "#/paths/~1getContacts/post/requestBody/content/application~1json": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1getContacts/post/requestBody/content/application~1json"
+      "classification": "reviewed-first-party-repository-research",
+      "citation": "docs/research/2026-08-11-contacts-pagination-public-assets.md#exact-callable-argument"
     },
     "#/paths/~1getContacts/post/requestBody/content/application~1json/schema/type": {
       "classification": "typescript-derived-inference",
@@ -746,8 +785,8 @@
       "citation": "spec/research/historical-27-operation-draft.json#/paths/~1getContacts/post/requestBody/content/application~1json/schema/required/0"
     },
     "#/paths/~1getContacts/post/requestBody/content/application~1json/schema/properties/data": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1getContacts/post/requestBody/content/application~1json/schema/properties/data"
+      "classification": "reviewed-first-party-repository-research",
+      "citation": "docs/research/2026-08-11-contacts-pagination-public-assets.md#exact-callable-argument"
     },
     "#/paths/~1getContacts/post/requestBody/content/application~1json/schema/properties/data/type": {
       "classification": "typescript-derived-inference",
@@ -761,13 +800,25 @@
       "classification": "typescript-derived-inference",
       "citation": "spec/research/historical-27-operation-draft.json#/paths/~1getContacts/post/requestBody/content/application~1json/schema/properties/data/required/1"
     },
+    "#/paths/~1getContacts/post/requestBody/content/application~1json/schema/properties/data/required/2": {
+      "classification": "reviewed-first-party-repository-research",
+      "citation": "docs/research/2026-08-11-contacts-pagination-public-assets.md#exact-callable-argument"
+    },
     "#/paths/~1getContacts/post/requestBody/content/application~1json/schema/properties/data/properties/params": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1getContacts/post/requestBody/content/application~1json/schema/properties/data/properties/params"
+      "classification": "reviewed-first-party-repository-research",
+      "citation": "docs/research/2026-08-11-contacts-pagination-public-assets.md#exact-callable-argument"
     },
     "#/paths/~1getContacts/post/requestBody/content/application~1json/schema/properties/data/properties/params/type": {
       "classification": "typescript-derived-inference",
       "citation": "spec/research/historical-27-operation-draft.json#/paths/~1getContacts/post/requestBody/content/application~1json/schema/properties/data/properties/params/type"
+    },
+    "#/paths/~1getContacts/post/requestBody/content/application~1json/schema/properties/data/properties/params/properties/useAuthUser": {
+      "classification": "reviewed-first-party-repository-research",
+      "citation": "docs/research/2026-08-11-contacts-pagination-public-assets.md#exact-callable-argument"
+    },
+    "#/paths/~1getContacts/post/requestBody/content/application~1json/schema/properties/data/properties/params/properties/useAuthUser/type": {
+      "classification": "reviewed-first-party-repository-research",
+      "citation": "docs/research/2026-08-11-contacts-pagination-public-assets.md#exact-callable-argument"
     },
     "#/paths/~1getContacts/post/requestBody/content/application~1json/schema/properties/data/properties/params/additionalProperties": {
       "classification": "typescript-derived-inference",
@@ -805,6 +856,50 @@
       "classification": "typescript-derived-inference",
       "citation": "spec/research/historical-27-operation-draft.json#/paths/~1getContacts/post/requestBody/content/application~1json/schema/properties/data/properties/userId/type/1"
     },
+    "#/paths/~1getContacts/post/requestBody/content/application~1json/schema/properties/data/properties/paging": {
+      "classification": "reviewed-first-party-repository-research",
+      "citation": "docs/research/2026-08-11-contacts-pagination-public-assets.md#exact-callable-argument"
+    },
+    "#/paths/~1getContacts/post/requestBody/content/application~1json/schema/properties/data/properties/paging/type": {
+      "classification": "reviewed-first-party-repository-research",
+      "citation": "docs/research/2026-08-11-contacts-pagination-public-assets.md#exact-callable-argument"
+    },
+    "#/paths/~1getContacts/post/requestBody/content/application~1json/schema/properties/data/properties/paging/required/0": {
+      "classification": "reviewed-first-party-repository-research",
+      "citation": "docs/research/2026-08-11-contacts-pagination-public-assets.md#exact-callable-argument"
+    },
+    "#/paths/~1getContacts/post/requestBody/content/application~1json/schema/properties/data/properties/paging/required/1": {
+      "classification": "reviewed-first-party-repository-research",
+      "citation": "docs/research/2026-08-11-contacts-pagination-public-assets.md#exact-callable-argument"
+    },
+    "#/paths/~1getContacts/post/requestBody/content/application~1json/schema/properties/data/properties/paging/properties/maxResults": {
+      "classification": "reviewed-first-party-repository-research",
+      "citation": "docs/research/2026-08-11-contacts-pagination-public-assets.md#exact-callable-argument"
+    },
+    "#/paths/~1getContacts/post/requestBody/content/application~1json/schema/properties/data/properties/paging/properties/maxResults/type": {
+      "classification": "reviewed-first-party-repository-research",
+      "citation": "docs/research/2026-08-11-contacts-pagination-public-assets.md#exact-callable-argument"
+    },
+    "#/paths/~1getContacts/post/requestBody/content/application~1json/schema/properties/data/properties/paging/properties/maxResults/const": {
+      "classification": "reviewed-first-party-repository-research",
+      "citation": "docs/research/2026-08-11-contacts-pagination-public-assets.md#exact-callable-argument"
+    },
+    "#/paths/~1getContacts/post/requestBody/content/application~1json/schema/properties/data/properties/paging/properties/cursor": {
+      "classification": "reviewed-first-party-repository-research",
+      "citation": "docs/research/2026-08-11-contacts-pagination-public-assets.md#exact-callable-argument"
+    },
+    "#/paths/~1getContacts/post/requestBody/content/application~1json/schema/properties/data/properties/paging/properties/cursor/type/0": {
+      "classification": "reviewed-first-party-repository-research",
+      "citation": "docs/research/2026-08-11-contacts-pagination-public-assets.md#exact-callable-argument"
+    },
+    "#/paths/~1getContacts/post/requestBody/content/application~1json/schema/properties/data/properties/paging/properties/cursor/type/1": {
+      "classification": "reviewed-first-party-repository-research",
+      "citation": "docs/research/2026-08-11-contacts-pagination-public-assets.md#exact-callable-argument"
+    },
+    "#/paths/~1getContacts/post/requestBody/content/application~1json/schema/properties/data/properties/paging/additionalProperties": {
+      "classification": "reviewed-first-party-repository-research",
+      "citation": "docs/research/2026-08-11-contacts-pagination-public-assets.md#exact-callable-argument"
+    },
     "#/paths/~1getContacts/post/requestBody/content/application~1json/schema/properties/data/additionalProperties": {
       "classification": "typescript-derived-inference",
       "citation": "spec/research/historical-27-operation-draft.json#/paths/~1getContacts/post/requestBody/content/application~1json/schema/properties/data/additionalProperties"
@@ -812,6 +907,30 @@
     "#/paths/~1getContacts/post/requestBody/content/application~1json/schema/additionalProperties": {
       "classification": "typescript-derived-inference",
       "citation": "spec/research/historical-27-operation-draft.json#/paths/~1getContacts/post/requestBody/content/application~1json/schema/additionalProperties"
+    },
+    "#/paths/~1getContacts/post/responses/200": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#contact-observations"
+    },
+    "#/paths/~1getContacts/post/responses/200/content/application~1json": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#contact-observations"
+    },
+    "#/paths/~1getContacts/post/responses/200/content/application~1json/schema/$ref": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#contact-observations"
+    },
+    "#/paths/~1getContacts/post/responses/401": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#contact-observations"
+    },
+    "#/paths/~1getContacts/post/responses/401/content/application~1json": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#contact-observations"
+    },
+    "#/paths/~1getContacts/post/responses/401/content/application~1json/schema/$ref": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#contact-observations"
     },
     "#/paths/~1getContacts/post/responses/default": {
       "classification": "explicit-unknown",
@@ -1793,6 +1912,58 @@
       "classification": "typescript-derived-inference",
       "citation": "spec/research/historical-27-operation-draft.json#/paths/~1getMyUpcomingEventsForHomePage/post/requestBody/content/application~1json/schema/additionalProperties"
     },
+    "#/paths/~1getMyUpcomingEventsForHomePage/post/responses/200": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#event-list-observations"
+    },
+    "#/paths/~1getMyUpcomingEventsForHomePage/post/responses/200/content/application~1json": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#event-list-observations"
+    },
+    "#/paths/~1getMyUpcomingEventsForHomePage/post/responses/200/content/application~1json/schema/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#event-list-observations"
+    },
+    "#/paths/~1getMyUpcomingEventsForHomePage/post/responses/200/content/application~1json/schema/required/0": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#event-list-observations"
+    },
+    "#/paths/~1getMyUpcomingEventsForHomePage/post/responses/200/content/application~1json/schema/properties/result": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#event-list-observations"
+    },
+    "#/paths/~1getMyUpcomingEventsForHomePage/post/responses/200/content/application~1json/schema/properties/result/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#event-list-observations"
+    },
+    "#/paths/~1getMyUpcomingEventsForHomePage/post/responses/200/content/application~1json/schema/properties/result/required/0": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#event-list-observations"
+    },
+    "#/paths/~1getMyUpcomingEventsForHomePage/post/responses/200/content/application~1json/schema/properties/result/properties/data": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#event-list-observations"
+    },
+    "#/paths/~1getMyUpcomingEventsForHomePage/post/responses/200/content/application~1json/schema/properties/result/properties/data/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#event-list-observations"
+    },
+    "#/paths/~1getMyUpcomingEventsForHomePage/post/responses/200/content/application~1json/schema/properties/result/properties/data/required/0": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#event-list-observations"
+    },
+    "#/paths/~1getMyUpcomingEventsForHomePage/post/responses/200/content/application~1json/schema/properties/result/properties/data/properties/upcomingEvents": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#event-list-observations"
+    },
+    "#/paths/~1getMyUpcomingEventsForHomePage/post/responses/200/content/application~1json/schema/properties/result/properties/data/properties/upcomingEvents/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#event-list-observations"
+    },
+    "#/paths/~1getMyUpcomingEventsForHomePage/post/responses/200/content/application~1json/schema/properties/result/properties/data/properties/upcomingEvents/items/$ref": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#event-list-observations"
+    },
     "#/paths/~1getMyUpcomingEventsForHomePage/post/responses/default": {
       "classification": "explicit-unknown",
       "citation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision"
@@ -1888,6 +2059,58 @@
     "#/paths/~1getMyPastEventsForHomePage/post/requestBody/content/application~1json/schema/additionalProperties": {
       "classification": "typescript-derived-inference",
       "citation": "spec/research/historical-27-operation-draft.json#/paths/~1getMyPastEventsForHomePage/post/requestBody/content/application~1json/schema/additionalProperties"
+    },
+    "#/paths/~1getMyPastEventsForHomePage/post/responses/200": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#event-list-observations"
+    },
+    "#/paths/~1getMyPastEventsForHomePage/post/responses/200/content/application~1json": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#event-list-observations"
+    },
+    "#/paths/~1getMyPastEventsForHomePage/post/responses/200/content/application~1json/schema/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#event-list-observations"
+    },
+    "#/paths/~1getMyPastEventsForHomePage/post/responses/200/content/application~1json/schema/required/0": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#event-list-observations"
+    },
+    "#/paths/~1getMyPastEventsForHomePage/post/responses/200/content/application~1json/schema/properties/result": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#event-list-observations"
+    },
+    "#/paths/~1getMyPastEventsForHomePage/post/responses/200/content/application~1json/schema/properties/result/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#event-list-observations"
+    },
+    "#/paths/~1getMyPastEventsForHomePage/post/responses/200/content/application~1json/schema/properties/result/required/0": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#event-list-observations"
+    },
+    "#/paths/~1getMyPastEventsForHomePage/post/responses/200/content/application~1json/schema/properties/result/properties/data": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#event-list-observations"
+    },
+    "#/paths/~1getMyPastEventsForHomePage/post/responses/200/content/application~1json/schema/properties/result/properties/data/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#event-list-observations"
+    },
+    "#/paths/~1getMyPastEventsForHomePage/post/responses/200/content/application~1json/schema/properties/result/properties/data/required/0": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#event-list-observations"
+    },
+    "#/paths/~1getMyPastEventsForHomePage/post/responses/200/content/application~1json/schema/properties/result/properties/data/properties/pastEvents": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#event-list-observations"
+    },
+    "#/paths/~1getMyPastEventsForHomePage/post/responses/200/content/application~1json/schema/properties/result/properties/data/properties/pastEvents/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#event-list-observations"
+    },
+    "#/paths/~1getMyPastEventsForHomePage/post/responses/200/content/application~1json/schema/properties/result/properties/data/properties/pastEvents/items/$ref": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#event-list-observations"
     },
     "#/paths/~1getMyPastEventsForHomePage/post/responses/default": {
       "classification": "explicit-unknown",
@@ -2249,6 +2472,18 @@
       "classification": "typescript-derived-inference",
       "citation": "spec/research/historical-27-operation-draft.json#/paths/~1getCurrentGuest/post/requestBody/content/application~1json/schema/additionalProperties"
     },
+    "#/paths/~1getCurrentGuest/post/responses/200": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#guest-and-firestore-observations"
+    },
+    "#/paths/~1getCurrentGuest/post/responses/200/content/application~1json": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#guest-and-firestore-observations"
+    },
+    "#/paths/~1getCurrentGuest/post/responses/200/content/application~1json/schema/$ref": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#guest-and-firestore-observations"
+    },
     "#/paths/~1getCurrentGuest/post/responses/default": {
       "classification": "explicit-unknown",
       "citation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision"
@@ -2276,6 +2511,18 @@
     "#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1events~1{eventId}/get/parameters/0/schema/type": {
       "classification": "typescript-derived-inference",
       "citation": "spec/research/historical-27-operation-draft.json#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1events~1{eventId}/get/parameters/0/schema/type"
+    },
+    "#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1events~1{eventId}/get/responses/403": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#guest-and-firestore-observations"
+    },
+    "#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1events~1{eventId}/get/responses/403/content/application~1json": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#guest-and-firestore-observations"
+    },
+    "#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1events~1{eventId}/get/responses/403/content/application~1json/schema/$ref": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#guest-and-firestore-observations"
     },
     "#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1events~1{eventId}/get/responses/default": {
       "classification": "explicit-unknown",
@@ -2396,6 +2643,18 @@
     "#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1events~1{eventId}~1guests~1{guestId}/get/parameters/1/schema/type": {
       "classification": "typescript-derived-inference",
       "citation": "spec/research/historical-27-operation-draft.json#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1events~1{eventId}~1guests~1{guestId}/get/parameters/1/schema/type"
+    },
+    "#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1events~1{eventId}~1guests~1{guestId}/get/responses/200": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#guest-and-firestore-observations"
+    },
+    "#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1events~1{eventId}~1guests~1{guestId}/get/responses/200/content/application~1json": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#guest-and-firestore-observations"
+    },
+    "#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1events~1{eventId}~1guests~1{guestId}/get/responses/200/content/application~1json/schema/$ref": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#guest-and-firestore-observations"
     },
     "#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1events~1{eventId}~1guests~1{guestId}/get/responses/default": {
       "classification": "explicit-unknown",
@@ -2521,9 +2780,33 @@
       "classification": "typescript-derived-inference",
       "citation": "spec/research/historical-27-operation-draft.json#/paths/~1v1~1token/post/requestBody/content/application~1x-www-form-urlencoded/schema/additionalProperties"
     },
+    "#/paths/~1v1~1token/post/responses/200": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#refreshtoken"
+    },
+    "#/paths/~1v1~1token/post/responses/200/content/application~1json": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#refreshtoken"
+    },
+    "#/paths/~1v1~1token/post/responses/200/content/application~1json/schema/$ref": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#refreshtoken"
+    },
     "#/paths/~1v1~1token/post/responses/default": {
       "classification": "explicit-unknown",
       "citation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision"
+    },
+    "#/paths/~1v1~1token/post/responses/400": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#refreshtoken"
+    },
+    "#/paths/~1v1~1token/post/responses/400/content/application~1json": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#refreshtoken"
+    },
+    "#/paths/~1v1~1token/post/responses/400/content/application~1json/schema/$ref": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#refreshtoken"
     },
     "#/paths/~1v1~1token/post/security/0/firebaseApiKey": {
       "classification": "typescript-derived-inference",
@@ -2532,6 +2815,26 @@
     "#/paths/~1v1~1token/post/servers/0/url": {
       "classification": "typescript-derived-inference",
       "citation": "spec/research/historical-27-operation-draft.json#/paths/~1v1~1token/post/servers/0/url"
+    },
+    "#/paths/~1v1~1token/post/parameters/0/name": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#firebase-api-key-referrer-restriction"
+    },
+    "#/paths/~1v1~1token/post/parameters/0/in": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#firebase-api-key-referrer-restriction"
+    },
+    "#/paths/~1v1~1token/post/parameters/0/required": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#firebase-api-key-referrer-restriction"
+    },
+    "#/paths/~1v1~1token/post/parameters/0/schema/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#firebase-api-key-referrer-restriction"
+    },
+    "#/paths/~1v1~1token/post/parameters/0/schema/const": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#firebase-api-key-referrer-restriction"
     },
     "#/paths/~1sendAuthCodeTrusted/post/operationId": {
       "classification": "typescript-derived-inference",
@@ -2689,6 +2992,10 @@
       "classification": "typescript-derived-inference",
       "citation": "spec/research/historical-27-operation-draft.json#/paths/~1sendAuthCodeTrusted/post/requestBody/content/application~1json/schema/additionalProperties"
     },
+    "#/paths/~1sendAuthCodeTrusted/post/responses/200": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#sendauthcodetrusted"
+    },
     "#/paths/~1sendAuthCodeTrusted/post/responses/default": {
       "classification": "explicit-unknown",
       "citation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision"
@@ -2825,9 +3132,33 @@
       "classification": "typescript-derived-inference",
       "citation": "spec/research/historical-27-operation-draft.json#/paths/~1getLoginToken/post/requestBody/content/application~1json/schema/additionalProperties"
     },
+    "#/paths/~1getLoginToken/post/responses/200": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#getlogintoken"
+    },
+    "#/paths/~1getLoginToken/post/responses/200/content/application~1json": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#getlogintoken"
+    },
+    "#/paths/~1getLoginToken/post/responses/200/content/application~1json/schema/$ref": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#getlogintoken"
+    },
     "#/paths/~1getLoginToken/post/responses/default": {
       "classification": "explicit-unknown",
       "citation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision"
+    },
+    "#/paths/~1getLoginToken/post/responses/403": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#getlogintoken"
+    },
+    "#/paths/~1getLoginToken/post/responses/403/content/application~1json": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#getlogintoken"
+    },
+    "#/paths/~1getLoginToken/post/responses/403/content/application~1json/schema/$ref": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#getlogintoken"
     },
     "#/paths/~1v1~1accounts:signInWithCustomToken/post/operationId": {
       "classification": "typescript-derived-inference",
@@ -2873,9 +3204,33 @@
       "classification": "typescript-derived-inference",
       "citation": "spec/research/historical-27-operation-draft.json#/paths/~1v1~1accounts:signInWithCustomToken/post/requestBody/content/application~1json/schema/additionalProperties"
     },
+    "#/paths/~1v1~1accounts:signInWithCustomToken/post/responses/200": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#signinwithcustomtoken"
+    },
+    "#/paths/~1v1~1accounts:signInWithCustomToken/post/responses/200/content/application~1json": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#signinwithcustomtoken"
+    },
+    "#/paths/~1v1~1accounts:signInWithCustomToken/post/responses/200/content/application~1json/schema/$ref": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#signinwithcustomtoken"
+    },
     "#/paths/~1v1~1accounts:signInWithCustomToken/post/responses/default": {
       "classification": "explicit-unknown",
       "citation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision"
+    },
+    "#/paths/~1v1~1accounts:signInWithCustomToken/post/responses/400": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#signinwithcustomtoken"
+    },
+    "#/paths/~1v1~1accounts:signInWithCustomToken/post/responses/400/content/application~1json": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#signinwithcustomtoken"
+    },
+    "#/paths/~1v1~1accounts:signInWithCustomToken/post/responses/400/content/application~1json/schema/$ref": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#signinwithcustomtoken"
     },
     "#/paths/~1v1~1accounts:signInWithCustomToken/post/security/0/firebaseApiKey": {
       "classification": "typescript-derived-inference",
@@ -2884,6 +3239,26 @@
     "#/paths/~1v1~1accounts:signInWithCustomToken/post/servers/0/url": {
       "classification": "typescript-derived-inference",
       "citation": "spec/research/historical-27-operation-draft.json#/paths/~1v1~1accounts:signInWithCustomToken/post/servers/0/url"
+    },
+    "#/paths/~1v1~1accounts:signInWithCustomToken/post/parameters/0/name": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#firebase-api-key-referrer-restriction"
+    },
+    "#/paths/~1v1~1accounts:signInWithCustomToken/post/parameters/0/in": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#firebase-api-key-referrer-restriction"
+    },
+    "#/paths/~1v1~1accounts:signInWithCustomToken/post/parameters/0/required": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#firebase-api-key-referrer-restriction"
+    },
+    "#/paths/~1v1~1accounts:signInWithCustomToken/post/parameters/0/schema/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#firebase-api-key-referrer-restriction"
+    },
+    "#/paths/~1v1~1accounts:signInWithCustomToken/post/parameters/0/schema/const": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#firebase-api-key-referrer-restriction"
     },
     "#/paths/~1v1~1accounts:lookup/post/operationId": {
       "classification": "typescript-derived-inference",
@@ -2917,9 +3292,33 @@
       "classification": "typescript-derived-inference",
       "citation": "spec/research/historical-27-operation-draft.json#/paths/~1v1~1accounts:lookup/post/requestBody/content/application~1json/schema/additionalProperties"
     },
+    "#/paths/~1v1~1accounts:lookup/post/responses/200": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#lookupfirebaseuser"
+    },
+    "#/paths/~1v1~1accounts:lookup/post/responses/200/content/application~1json": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#lookupfirebaseuser"
+    },
+    "#/paths/~1v1~1accounts:lookup/post/responses/200/content/application~1json/schema/$ref": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#lookupfirebaseuser"
+    },
     "#/paths/~1v1~1accounts:lookup/post/responses/default": {
       "classification": "explicit-unknown",
       "citation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision"
+    },
+    "#/paths/~1v1~1accounts:lookup/post/responses/400": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#lookupfirebaseuser"
+    },
+    "#/paths/~1v1~1accounts:lookup/post/responses/400/content/application~1json": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#lookupfirebaseuser"
+    },
+    "#/paths/~1v1~1accounts:lookup/post/responses/400/content/application~1json/schema/$ref": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#lookupfirebaseuser"
     },
     "#/paths/~1v1~1accounts:lookup/post/security/0/firebaseApiKey": {
       "classification": "typescript-derived-inference",
@@ -2928,6 +3327,26 @@
     "#/paths/~1v1~1accounts:lookup/post/servers/0/url": {
       "classification": "typescript-derived-inference",
       "citation": "spec/research/historical-27-operation-draft.json#/paths/~1v1~1accounts:lookup/post/servers/0/url"
+    },
+    "#/paths/~1v1~1accounts:lookup/post/parameters/0/name": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#firebase-api-key-referrer-restriction"
+    },
+    "#/paths/~1v1~1accounts:lookup/post/parameters/0/in": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#firebase-api-key-referrer-restriction"
+    },
+    "#/paths/~1v1~1accounts:lookup/post/parameters/0/required": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#firebase-api-key-referrer-restriction"
+    },
+    "#/paths/~1v1~1accounts:lookup/post/parameters/0/schema/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#firebase-api-key-referrer-restriction"
+    },
+    "#/paths/~1v1~1accounts:lookup/post/parameters/0/schema/const": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#firebase-api-key-referrer-restriction"
     },
     "#/paths/~1uploadPhoto/post/operationId": {
       "classification": "typescript-derived-inference",
@@ -2997,6 +3416,34 @@
       "classification": "typescript-derived-inference",
       "citation": "spec/research/historical-27-operation-draft.json#/paths/~1uploadPhoto/post/servers/0/url"
     },
+    "#/paths/~1posters.json/get/operationId": {
+      "classification": "typescript-derived-inference",
+      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1posters.json/get/operationId"
+    },
+    "#/paths/~1posters.json/get/responses/200": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#dated-poster-catalog-observation"
+    },
+    "#/paths/~1posters.json/get/responses/200/content/application~1json": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#dated-poster-catalog-observation"
+    },
+    "#/paths/~1posters.json/get/responses/200/content/application~1json/schema/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#dated-poster-catalog-observation"
+    },
+    "#/paths/~1posters.json/get/responses/200/content/application~1json/schema/items/$ref": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#dated-poster-catalog-observation"
+    },
+    "#/paths/~1posters.json/get/responses/default": {
+      "classification": "explicit-unknown",
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision"
+    },
+    "#/paths/~1posters.json/get/servers/0/url": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#dated-poster-catalog-observation"
+    },
     "#/components/securitySchemes/firebaseBearer/type": {
       "classification": "typescript-derived-inference",
       "citation": "spec/research/historical-27-operation-draft.json#/components/securitySchemes/firebaseBearer/type"
@@ -3016,6 +3463,10 @@
     "#/components/securitySchemes/firebaseApiKey/name": {
       "classification": "typescript-derived-inference",
       "citation": "spec/research/historical-27-operation-draft.json#/components/securitySchemes/firebaseApiKey/name"
+    },
+    "#/components/securitySchemes/firebaseApiKey/x-publicValue": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-firebase-public-api-key-redacted.md#firebase-public-api-key"
     },
     "#/components/schemas/EventDraft/type": {
       "classification": "typescript-derived-inference",
@@ -3449,6 +3900,82 @@
       "classification": "typescript-derived-inference",
       "citation": "spec/research/historical-27-operation-draft.json#/components/schemas/RefreshTokenResponse/type"
     },
+    "#/components/schemas/RefreshTokenResponse/required/0": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#refreshtoken"
+    },
+    "#/components/schemas/RefreshTokenResponse/required/1": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#refreshtoken"
+    },
+    "#/components/schemas/RefreshTokenResponse/required/2": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#refreshtoken"
+    },
+    "#/components/schemas/RefreshTokenResponse/required/3": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#refreshtoken"
+    },
+    "#/components/schemas/RefreshTokenResponse/required/4": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#refreshtoken"
+    },
+    "#/components/schemas/RefreshTokenResponse/properties/access_token": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#refreshtoken"
+    },
+    "#/components/schemas/RefreshTokenResponse/properties/access_token/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#refreshtoken"
+    },
+    "#/components/schemas/RefreshTokenResponse/properties/expires_in": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#refreshtoken"
+    },
+    "#/components/schemas/RefreshTokenResponse/properties/expires_in/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#refreshtoken"
+    },
+    "#/components/schemas/RefreshTokenResponse/properties/id_token": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#refreshtoken"
+    },
+    "#/components/schemas/RefreshTokenResponse/properties/id_token/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#refreshtoken"
+    },
+    "#/components/schemas/RefreshTokenResponse/properties/project_id": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#refreshtoken"
+    },
+    "#/components/schemas/RefreshTokenResponse/properties/project_id/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#refreshtoken"
+    },
+    "#/components/schemas/RefreshTokenResponse/properties/refresh_token": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#refreshtoken"
+    },
+    "#/components/schemas/RefreshTokenResponse/properties/refresh_token/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#refreshtoken"
+    },
+    "#/components/schemas/RefreshTokenResponse/properties/token_type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#refreshtoken"
+    },
+    "#/components/schemas/RefreshTokenResponse/properties/token_type/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#refreshtoken"
+    },
+    "#/components/schemas/RefreshTokenResponse/properties/user_id": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#refreshtoken"
+    },
+    "#/components/schemas/RefreshTokenResponse/properties/user_id/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#refreshtoken"
+    },
     "#/components/schemas/RefreshTokenResponse/additionalProperties": {
       "classification": "typescript-derived-inference",
       "citation": "spec/research/historical-27-operation-draft.json#/components/schemas/RefreshTokenResponse/additionalProperties"
@@ -3457,6 +3984,50 @@
       "classification": "typescript-derived-inference",
       "citation": "spec/research/historical-27-operation-draft.json#/components/schemas/FirebaseSignInResponse/type"
     },
+    "#/components/schemas/FirebaseSignInResponse/required/0": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#signinwithcustomtoken"
+    },
+    "#/components/schemas/FirebaseSignInResponse/required/1": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#signinwithcustomtoken"
+    },
+    "#/components/schemas/FirebaseSignInResponse/required/2": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#signinwithcustomtoken"
+    },
+    "#/components/schemas/FirebaseSignInResponse/properties/idToken": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#signinwithcustomtoken"
+    },
+    "#/components/schemas/FirebaseSignInResponse/properties/idToken/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#signinwithcustomtoken"
+    },
+    "#/components/schemas/FirebaseSignInResponse/properties/refreshToken": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#signinwithcustomtoken"
+    },
+    "#/components/schemas/FirebaseSignInResponse/properties/refreshToken/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#signinwithcustomtoken"
+    },
+    "#/components/schemas/FirebaseSignInResponse/properties/expiresIn": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#signinwithcustomtoken"
+    },
+    "#/components/schemas/FirebaseSignInResponse/properties/expiresIn/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#signinwithcustomtoken"
+    },
+    "#/components/schemas/FirebaseSignInResponse/properties/kind": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#signinwithcustomtoken"
+    },
+    "#/components/schemas/FirebaseSignInResponse/properties/kind/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#signinwithcustomtoken"
+    },
     "#/components/schemas/FirebaseSignInResponse/additionalProperties": {
       "classification": "typescript-derived-inference",
       "citation": "spec/research/historical-27-operation-draft.json#/components/schemas/FirebaseSignInResponse/additionalProperties"
@@ -3464,6 +4035,30 @@
     "#/components/schemas/FirebaseLookupResponse/type": {
       "classification": "typescript-derived-inference",
       "citation": "spec/research/historical-27-operation-draft.json#/components/schemas/FirebaseLookupResponse/type"
+    },
+    "#/components/schemas/FirebaseLookupResponse/required/0": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#lookupfirebaseuser"
+    },
+    "#/components/schemas/FirebaseLookupResponse/properties/kind": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#lookupfirebaseuser"
+    },
+    "#/components/schemas/FirebaseLookupResponse/properties/kind/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#lookupfirebaseuser"
+    },
+    "#/components/schemas/FirebaseLookupResponse/properties/users": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#lookupfirebaseuser"
+    },
+    "#/components/schemas/FirebaseLookupResponse/properties/users/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#lookupfirebaseuser"
+    },
+    "#/components/schemas/FirebaseLookupResponse/properties/users/items/$ref": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#lookupfirebaseuser"
     },
     "#/components/schemas/FirebaseLookupResponse/additionalProperties": {
       "classification": "typescript-derived-inference",
@@ -3553,67 +4148,7 @@
       "classification": "typescript-derived-inference",
       "citation": "spec/research/historical-27-operation-draft.json#/components/schemas/UploadPhotoResponse/additionalProperties"
     },
-    "#/paths/~1posters.json/get/operationId": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1posters.json/get/operationId"
-    },
-    "#/paths/~1posters.json/get/responses/200": {
-      "classification": "dated-live-observation",
-      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#dated-poster-catalog-observation"
-    },
-    "#/paths/~1posters.json/get/responses/200/content/application~1json": {
-      "classification": "dated-live-observation",
-      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#dated-poster-catalog-observation"
-    },
-    "#/paths/~1posters.json/get/responses/200/content/application~1json/schema/type": {
-      "classification": "dated-live-observation",
-      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#dated-poster-catalog-observation"
-    },
-    "#/paths/~1posters.json/get/responses/200/content/application~1json/schema/items/$ref": {
-      "classification": "dated-live-observation",
-      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#dated-poster-catalog-observation"
-    },
-    "#/paths/~1posters.json/get/responses/default": {
-      "classification": "explicit-unknown",
-      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision"
-    },
-    "#/paths/~1posters.json/get/servers/0/url": {
-      "classification": "dated-live-observation",
-      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#dated-poster-catalog-observation"
-    },
     "#/components/schemas/Poster/type": {
-      "classification": "dated-live-observation",
-      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#dated-poster-catalog-observation"
-    },
-    "#/components/schemas/Poster/required/0": {
-      "classification": "dated-live-observation",
-      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#dated-poster-catalog-observation"
-    },
-    "#/components/schemas/Poster/required/1": {
-      "classification": "dated-live-observation",
-      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#dated-poster-catalog-observation"
-    },
-    "#/components/schemas/Poster/required/2": {
-      "classification": "dated-live-observation",
-      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#dated-poster-catalog-observation"
-    },
-    "#/components/schemas/Poster/required/3": {
-      "classification": "dated-live-observation",
-      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#dated-poster-catalog-observation"
-    },
-    "#/components/schemas/Poster/required/4": {
-      "classification": "dated-live-observation",
-      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#dated-poster-catalog-observation"
-    },
-    "#/components/schemas/Poster/required/5": {
-      "classification": "dated-live-observation",
-      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#dated-poster-catalog-observation"
-    },
-    "#/components/schemas/Poster/required/6": {
-      "classification": "dated-live-observation",
-      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#dated-poster-catalog-observation"
-    },
-    "#/components/schemas/Poster/required/7": {
       "classification": "dated-live-observation",
       "citation": "docs/research/2026-08-10-contract-evidence-sources.md#dated-poster-catalog-observation"
     },
@@ -3713,71 +4248,95 @@
       "classification": "typescript-derived-inference",
       "citation": "docs/research/2026-08-10-contract-evidence-sources.md#poster-interface"
     },
-    "#/components/schemas/FirebaseLookupResponse/properties/kind": {
+    "#/components/schemas/Poster/required/0": {
       "classification": "dated-live-observation",
-      "citation": "docs/research/2026-08-11-auth-observation.md#lookupfirebaseuser"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#dated-poster-catalog-observation"
     },
-    "#/components/schemas/FirebaseLookupResponse/properties/kind/type": {
+    "#/components/schemas/Poster/required/1": {
       "classification": "dated-live-observation",
-      "citation": "docs/research/2026-08-11-auth-observation.md#lookupfirebaseuser"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#dated-poster-catalog-observation"
     },
-    "#/components/schemas/FirebaseLookupResponse/properties/users": {
+    "#/components/schemas/Poster/required/2": {
       "classification": "dated-live-observation",
-      "citation": "docs/research/2026-08-11-auth-observation.md#lookupfirebaseuser"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#dated-poster-catalog-observation"
     },
-    "#/components/schemas/FirebaseLookupResponse/properties/users/items/$ref": {
+    "#/components/schemas/Poster/required/3": {
       "classification": "dated-live-observation",
-      "citation": "docs/research/2026-08-11-auth-observation.md#lookupfirebaseuser"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#dated-poster-catalog-observation"
     },
-    "#/components/schemas/FirebaseLookupResponse/properties/users/type": {
+    "#/components/schemas/Poster/required/4": {
       "classification": "dated-live-observation",
-      "citation": "docs/research/2026-08-11-auth-observation.md#lookupfirebaseuser"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#dated-poster-catalog-observation"
     },
-    "#/components/schemas/FirebaseLookupResponse/required/0": {
+    "#/components/schemas/Poster/required/5": {
       "classification": "dated-live-observation",
-      "citation": "docs/research/2026-08-11-auth-observation.md#lookupfirebaseuser"
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#dated-poster-catalog-observation"
     },
-    "#/components/schemas/FirebaseLookupUser/additionalProperties": {
+    "#/components/schemas/Poster/required/6": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#dated-poster-catalog-observation"
+    },
+    "#/components/schemas/Poster/required/7": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#dated-poster-catalog-observation"
+    },
+    "#/components/schemas/LoginTokenResponse/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#getlogintoken"
+    },
+    "#/components/schemas/LoginTokenResponse/required/0": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#getlogintoken"
+    },
+    "#/components/schemas/LoginTokenResponse/properties/result": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#getlogintoken"
+    },
+    "#/components/schemas/LoginTokenResponse/properties/result/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#getlogintoken"
+    },
+    "#/components/schemas/LoginTokenResponse/properties/result/required/0": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#getlogintoken"
+    },
+    "#/components/schemas/LoginTokenResponse/properties/result/properties/data": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#getlogintoken"
+    },
+    "#/components/schemas/LoginTokenResponse/properties/result/properties/data/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#getlogintoken"
+    },
+    "#/components/schemas/LoginTokenResponse/properties/result/properties/data/required/0": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#getlogintoken"
+    },
+    "#/components/schemas/LoginTokenResponse/properties/result/properties/data/properties/token": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#getlogintoken"
+    },
+    "#/components/schemas/LoginTokenResponse/properties/result/properties/data/properties/token/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#getlogintoken"
+    },
+    "#/components/schemas/LoginTokenResponse/properties/result/properties/data/additionalProperties": {
       "classification": "typescript-derived-inference",
-      "citation": "docs/research/2026-08-11-auth-observation.md#lookupfirebaseuser"
+      "citation": "docs/research/2026-08-11-auth-observation.md#getlogintoken"
     },
-    "#/components/schemas/FirebaseLookupUser/properties/createdAt": {
+    "#/components/schemas/LoginTokenResponse/properties/result/additionalProperties": {
+      "classification": "typescript-derived-inference",
+      "citation": "docs/research/2026-08-11-auth-observation.md#getlogintoken"
+    },
+    "#/components/schemas/LoginTokenResponse/additionalProperties": {
+      "classification": "typescript-derived-inference",
+      "citation": "docs/research/2026-08-11-auth-observation.md#getlogintoken"
+    },
+    "#/components/schemas/FirebaseLookupUser/type": {
       "classification": "dated-live-observation",
       "citation": "docs/research/2026-08-11-auth-observation.md#lookupfirebaseuser"
     },
-    "#/components/schemas/FirebaseLookupUser/properties/createdAt/type": {
-      "classification": "dated-live-observation",
-      "citation": "docs/research/2026-08-11-auth-observation.md#lookupfirebaseuser"
-    },
-    "#/components/schemas/FirebaseLookupUser/properties/customAuth": {
-      "classification": "dated-live-observation",
-      "citation": "docs/research/2026-08-11-auth-observation.md#lookupfirebaseuser"
-    },
-    "#/components/schemas/FirebaseLookupUser/properties/customAuth/type": {
-      "classification": "dated-live-observation",
-      "citation": "docs/research/2026-08-11-auth-observation.md#lookupfirebaseuser"
-    },
-    "#/components/schemas/FirebaseLookupUser/properties/displayName": {
-      "classification": "dated-live-observation",
-      "citation": "docs/research/2026-08-11-auth-observation.md#lookupfirebaseuser"
-    },
-    "#/components/schemas/FirebaseLookupUser/properties/displayName/type": {
-      "classification": "dated-live-observation",
-      "citation": "docs/research/2026-08-11-auth-observation.md#lookupfirebaseuser"
-    },
-    "#/components/schemas/FirebaseLookupUser/properties/lastLoginAt": {
-      "classification": "dated-live-observation",
-      "citation": "docs/research/2026-08-11-auth-observation.md#lookupfirebaseuser"
-    },
-    "#/components/schemas/FirebaseLookupUser/properties/lastLoginAt/type": {
-      "classification": "dated-live-observation",
-      "citation": "docs/research/2026-08-11-auth-observation.md#lookupfirebaseuser"
-    },
-    "#/components/schemas/FirebaseLookupUser/properties/lastRefreshAt": {
-      "classification": "dated-live-observation",
-      "citation": "docs/research/2026-08-11-auth-observation.md#lookupfirebaseuser"
-    },
-    "#/components/schemas/FirebaseLookupUser/properties/lastRefreshAt/type": {
+    "#/components/schemas/FirebaseLookupUser/required/0": {
       "classification": "dated-live-observation",
       "citation": "docs/research/2026-08-11-auth-observation.md#lookupfirebaseuser"
     },
@@ -3786,6 +4345,14 @@
       "citation": "docs/research/2026-08-11-auth-observation.md#lookupfirebaseuser"
     },
     "#/components/schemas/FirebaseLookupUser/properties/localId/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#lookupfirebaseuser"
+    },
+    "#/components/schemas/FirebaseLookupUser/properties/displayName": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#lookupfirebaseuser"
+    },
+    "#/components/schemas/FirebaseLookupUser/properties/displayName/type": {
       "classification": "dated-live-observation",
       "citation": "docs/research/2026-08-11-auth-observation.md#lookupfirebaseuser"
     },
@@ -3805,15 +4372,35 @@
       "classification": "dated-live-observation",
       "citation": "docs/research/2026-08-11-auth-observation.md#lookupfirebaseuser"
     },
-    "#/components/schemas/FirebaseLookupUser/properties/providerUserInfo": {
+    "#/components/schemas/FirebaseLookupUser/properties/customAuth": {
       "classification": "dated-live-observation",
       "citation": "docs/research/2026-08-11-auth-observation.md#lookupfirebaseuser"
     },
-    "#/components/schemas/FirebaseLookupUser/properties/providerUserInfo/items/$ref": {
+    "#/components/schemas/FirebaseLookupUser/properties/customAuth/type": {
       "classification": "dated-live-observation",
       "citation": "docs/research/2026-08-11-auth-observation.md#lookupfirebaseuser"
     },
-    "#/components/schemas/FirebaseLookupUser/properties/providerUserInfo/type": {
+    "#/components/schemas/FirebaseLookupUser/properties/createdAt": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#lookupfirebaseuser"
+    },
+    "#/components/schemas/FirebaseLookupUser/properties/createdAt/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#lookupfirebaseuser"
+    },
+    "#/components/schemas/FirebaseLookupUser/properties/lastLoginAt": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#lookupfirebaseuser"
+    },
+    "#/components/schemas/FirebaseLookupUser/properties/lastLoginAt/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#lookupfirebaseuser"
+    },
+    "#/components/schemas/FirebaseLookupUser/properties/lastRefreshAt": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#lookupfirebaseuser"
+    },
+    "#/components/schemas/FirebaseLookupUser/properties/lastRefreshAt/type": {
       "classification": "dated-live-observation",
       "citation": "docs/research/2026-08-11-auth-observation.md#lookupfirebaseuser"
     },
@@ -3825,23 +4412,23 @@
       "classification": "dated-live-observation",
       "citation": "docs/research/2026-08-11-auth-observation.md#lookupfirebaseuser"
     },
-    "#/components/schemas/FirebaseLookupUser/required/0": {
+    "#/components/schemas/FirebaseLookupUser/properties/providerUserInfo": {
       "classification": "dated-live-observation",
       "citation": "docs/research/2026-08-11-auth-observation.md#lookupfirebaseuser"
     },
-    "#/components/schemas/FirebaseLookupUser/type": {
+    "#/components/schemas/FirebaseLookupUser/properties/providerUserInfo/type": {
       "classification": "dated-live-observation",
       "citation": "docs/research/2026-08-11-auth-observation.md#lookupfirebaseuser"
     },
-    "#/components/schemas/FirebaseProviderUserInfo/additionalProperties": {
+    "#/components/schemas/FirebaseLookupUser/properties/providerUserInfo/items/$ref": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#lookupfirebaseuser"
+    },
+    "#/components/schemas/FirebaseLookupUser/additionalProperties": {
       "classification": "typescript-derived-inference",
       "citation": "docs/research/2026-08-11-auth-observation.md#lookupfirebaseuser"
     },
-    "#/components/schemas/FirebaseProviderUserInfo/properties/phoneNumber": {
-      "classification": "dated-live-observation",
-      "citation": "docs/research/2026-08-11-auth-observation.md#lookupfirebaseuser"
-    },
-    "#/components/schemas/FirebaseProviderUserInfo/properties/phoneNumber/type": {
+    "#/components/schemas/FirebaseProviderUserInfo/type": {
       "classification": "dated-live-observation",
       "citation": "docs/research/2026-08-11-auth-observation.md#lookupfirebaseuser"
     },
@@ -3853,6 +4440,14 @@
       "classification": "dated-live-observation",
       "citation": "docs/research/2026-08-11-auth-observation.md#lookupfirebaseuser"
     },
+    "#/components/schemas/FirebaseProviderUserInfo/properties/phoneNumber": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#lookupfirebaseuser"
+    },
+    "#/components/schemas/FirebaseProviderUserInfo/properties/phoneNumber/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#lookupfirebaseuser"
+    },
     "#/components/schemas/FirebaseProviderUserInfo/properties/rawId": {
       "classification": "dated-live-observation",
       "citation": "docs/research/2026-08-11-auth-observation.md#lookupfirebaseuser"
@@ -3861,263 +4456,31 @@
       "classification": "dated-live-observation",
       "citation": "docs/research/2026-08-11-auth-observation.md#lookupfirebaseuser"
     },
-    "#/components/schemas/FirebaseProviderUserInfo/type": {
-      "classification": "dated-live-observation",
+    "#/components/schemas/FirebaseProviderUserInfo/additionalProperties": {
+      "classification": "typescript-derived-inference",
       "citation": "docs/research/2026-08-11-auth-observation.md#lookupfirebaseuser"
     },
-    "#/components/schemas/FirebaseSignInResponse/properties/expiresIn": {
-      "classification": "dated-live-observation",
-      "citation": "docs/research/2026-08-11-auth-observation.md#signinwithcustomtoken"
-    },
-    "#/components/schemas/FirebaseSignInResponse/properties/expiresIn/type": {
-      "classification": "dated-live-observation",
-      "citation": "docs/research/2026-08-11-auth-observation.md#signinwithcustomtoken"
-    },
-    "#/components/schemas/FirebaseSignInResponse/properties/idToken": {
-      "classification": "dated-live-observation",
-      "citation": "docs/research/2026-08-11-auth-observation.md#signinwithcustomtoken"
-    },
-    "#/components/schemas/FirebaseSignInResponse/properties/idToken/type": {
-      "classification": "dated-live-observation",
-      "citation": "docs/research/2026-08-11-auth-observation.md#signinwithcustomtoken"
-    },
-    "#/components/schemas/FirebaseSignInResponse/properties/kind": {
-      "classification": "dated-live-observation",
-      "citation": "docs/research/2026-08-11-auth-observation.md#signinwithcustomtoken"
-    },
-    "#/components/schemas/FirebaseSignInResponse/properties/kind/type": {
-      "classification": "dated-live-observation",
-      "citation": "docs/research/2026-08-11-auth-observation.md#signinwithcustomtoken"
-    },
-    "#/components/schemas/FirebaseSignInResponse/properties/refreshToken": {
-      "classification": "dated-live-observation",
-      "citation": "docs/research/2026-08-11-auth-observation.md#signinwithcustomtoken"
-    },
-    "#/components/schemas/FirebaseSignInResponse/properties/refreshToken/type": {
-      "classification": "dated-live-observation",
-      "citation": "docs/research/2026-08-11-auth-observation.md#signinwithcustomtoken"
-    },
-    "#/components/schemas/FirebaseSignInResponse/required/0": {
-      "classification": "dated-live-observation",
-      "citation": "docs/research/2026-08-11-auth-observation.md#signinwithcustomtoken"
-    },
-    "#/components/schemas/FirebaseSignInResponse/required/1": {
-      "classification": "dated-live-observation",
-      "citation": "docs/research/2026-08-11-auth-observation.md#signinwithcustomtoken"
-    },
-    "#/components/schemas/FirebaseSignInResponse/required/2": {
-      "classification": "dated-live-observation",
-      "citation": "docs/research/2026-08-11-auth-observation.md#signinwithcustomtoken"
-    },
-    "#/components/schemas/LoginTokenResponse/additionalProperties": {
-      "classification": "typescript-derived-inference",
-      "citation": "docs/research/2026-08-11-auth-observation.md#getlogintoken"
-    },
-    "#/components/schemas/LoginTokenResponse/properties/result": {
+    "#/components/schemas/CallableAuthError/type": {
       "classification": "dated-live-observation",
       "citation": "docs/research/2026-08-11-auth-observation.md#getlogintoken"
     },
-    "#/components/schemas/LoginTokenResponse/properties/result/additionalProperties": {
-      "classification": "typescript-derived-inference",
-      "citation": "docs/research/2026-08-11-auth-observation.md#getlogintoken"
-    },
-    "#/components/schemas/LoginTokenResponse/properties/result/properties/data": {
+    "#/components/schemas/CallableAuthError/required/0": {
       "classification": "dated-live-observation",
-      "citation": "docs/research/2026-08-11-auth-observation.md#getlogintoken"
-    },
-    "#/components/schemas/LoginTokenResponse/properties/result/properties/data/additionalProperties": {
-      "classification": "typescript-derived-inference",
-      "citation": "docs/research/2026-08-11-auth-observation.md#getlogintoken"
-    },
-    "#/components/schemas/LoginTokenResponse/properties/result/properties/data/properties/token": {
-      "classification": "dated-live-observation",
-      "citation": "docs/research/2026-08-11-auth-observation.md#getlogintoken"
-    },
-    "#/components/schemas/LoginTokenResponse/properties/result/properties/data/properties/token/type": {
-      "classification": "dated-live-observation",
-      "citation": "docs/research/2026-08-11-auth-observation.md#getlogintoken"
-    },
-    "#/components/schemas/LoginTokenResponse/properties/result/properties/data/required/0": {
-      "classification": "dated-live-observation",
-      "citation": "docs/research/2026-08-11-auth-observation.md#getlogintoken"
-    },
-    "#/components/schemas/LoginTokenResponse/properties/result/properties/data/type": {
-      "classification": "dated-live-observation",
-      "citation": "docs/research/2026-08-11-auth-observation.md#getlogintoken"
-    },
-    "#/components/schemas/LoginTokenResponse/properties/result/required/0": {
-      "classification": "dated-live-observation",
-      "citation": "docs/research/2026-08-11-auth-observation.md#getlogintoken"
-    },
-    "#/components/schemas/LoginTokenResponse/properties/result/type": {
-      "classification": "dated-live-observation",
-      "citation": "docs/research/2026-08-11-auth-observation.md#getlogintoken"
-    },
-    "#/components/schemas/LoginTokenResponse/required/0": {
-      "classification": "dated-live-observation",
-      "citation": "docs/research/2026-08-11-auth-observation.md#getlogintoken"
-    },
-    "#/components/schemas/LoginTokenResponse/type": {
-      "classification": "dated-live-observation",
-      "citation": "docs/research/2026-08-11-auth-observation.md#getlogintoken"
-    },
-    "#/components/schemas/RefreshTokenResponse/properties/access_token": {
-      "classification": "dated-live-observation",
-      "citation": "docs/research/2026-08-11-auth-observation.md#refreshtoken"
-    },
-    "#/components/schemas/RefreshTokenResponse/properties/access_token/type": {
-      "classification": "dated-live-observation",
-      "citation": "docs/research/2026-08-11-auth-observation.md#refreshtoken"
-    },
-    "#/components/schemas/RefreshTokenResponse/properties/expires_in": {
-      "classification": "dated-live-observation",
-      "citation": "docs/research/2026-08-11-auth-observation.md#refreshtoken"
-    },
-    "#/components/schemas/RefreshTokenResponse/properties/expires_in/type": {
-      "classification": "dated-live-observation",
-      "citation": "docs/research/2026-08-11-auth-observation.md#refreshtoken"
-    },
-    "#/components/schemas/RefreshTokenResponse/properties/id_token": {
-      "classification": "dated-live-observation",
-      "citation": "docs/research/2026-08-11-auth-observation.md#refreshtoken"
-    },
-    "#/components/schemas/RefreshTokenResponse/properties/id_token/type": {
-      "classification": "dated-live-observation",
-      "citation": "docs/research/2026-08-11-auth-observation.md#refreshtoken"
-    },
-    "#/components/schemas/RefreshTokenResponse/properties/project_id": {
-      "classification": "dated-live-observation",
-      "citation": "docs/research/2026-08-11-auth-observation.md#refreshtoken"
-    },
-    "#/components/schemas/RefreshTokenResponse/properties/project_id/type": {
-      "classification": "dated-live-observation",
-      "citation": "docs/research/2026-08-11-auth-observation.md#refreshtoken"
-    },
-    "#/components/schemas/RefreshTokenResponse/properties/refresh_token": {
-      "classification": "dated-live-observation",
-      "citation": "docs/research/2026-08-11-auth-observation.md#refreshtoken"
-    },
-    "#/components/schemas/RefreshTokenResponse/properties/refresh_token/type": {
-      "classification": "dated-live-observation",
-      "citation": "docs/research/2026-08-11-auth-observation.md#refreshtoken"
-    },
-    "#/components/schemas/RefreshTokenResponse/properties/token_type": {
-      "classification": "dated-live-observation",
-      "citation": "docs/research/2026-08-11-auth-observation.md#refreshtoken"
-    },
-    "#/components/schemas/RefreshTokenResponse/properties/token_type/type": {
-      "classification": "dated-live-observation",
-      "citation": "docs/research/2026-08-11-auth-observation.md#refreshtoken"
-    },
-    "#/components/schemas/RefreshTokenResponse/properties/user_id": {
-      "classification": "dated-live-observation",
-      "citation": "docs/research/2026-08-11-auth-observation.md#refreshtoken"
-    },
-    "#/components/schemas/RefreshTokenResponse/properties/user_id/type": {
-      "classification": "dated-live-observation",
-      "citation": "docs/research/2026-08-11-auth-observation.md#refreshtoken"
-    },
-    "#/components/schemas/RefreshTokenResponse/required/0": {
-      "classification": "dated-live-observation",
-      "citation": "docs/research/2026-08-11-auth-observation.md#refreshtoken"
-    },
-    "#/components/schemas/RefreshTokenResponse/required/1": {
-      "classification": "dated-live-observation",
-      "citation": "docs/research/2026-08-11-auth-observation.md#refreshtoken"
-    },
-    "#/components/schemas/RefreshTokenResponse/required/2": {
-      "classification": "dated-live-observation",
-      "citation": "docs/research/2026-08-11-auth-observation.md#refreshtoken"
-    },
-    "#/components/schemas/RefreshTokenResponse/required/3": {
-      "classification": "dated-live-observation",
-      "citation": "docs/research/2026-08-11-auth-observation.md#refreshtoken"
-    },
-    "#/components/schemas/RefreshTokenResponse/required/4": {
-      "classification": "dated-live-observation",
-      "citation": "docs/research/2026-08-11-auth-observation.md#refreshtoken"
-    },
-    "#/paths/~1getLoginToken/post/responses/200": {
-      "classification": "dated-live-observation",
-      "citation": "docs/research/2026-08-11-auth-observation.md#getlogintoken"
-    },
-    "#/paths/~1getLoginToken/post/responses/200/content/application~1json": {
-      "classification": "dated-live-observation",
-      "citation": "docs/research/2026-08-11-auth-observation.md#getlogintoken"
-    },
-    "#/paths/~1getLoginToken/post/responses/200/content/application~1json/schema/$ref": {
-      "classification": "dated-live-observation",
-      "citation": "docs/research/2026-08-11-auth-observation.md#getlogintoken"
-    },
-    "#/paths/~1sendAuthCodeTrusted/post/responses/200": {
-      "classification": "dated-live-observation",
-      "citation": "docs/research/2026-08-11-auth-observation.md#sendauthcodetrusted"
-    },
-    "#/paths/~1v1~1accounts:lookup/post/responses/200": {
-      "classification": "dated-live-observation",
-      "citation": "docs/research/2026-08-11-auth-observation.md#lookupfirebaseuser"
-    },
-    "#/paths/~1v1~1accounts:lookup/post/responses/200/content/application~1json": {
-      "classification": "dated-live-observation",
-      "citation": "docs/research/2026-08-11-auth-observation.md#lookupfirebaseuser"
-    },
-    "#/paths/~1v1~1accounts:lookup/post/responses/200/content/application~1json/schema/$ref": {
-      "classification": "dated-live-observation",
-      "citation": "docs/research/2026-08-11-auth-observation.md#lookupfirebaseuser"
-    },
-    "#/paths/~1v1~1accounts:signInWithCustomToken/post/responses/200": {
-      "classification": "dated-live-observation",
-      "citation": "docs/research/2026-08-11-auth-observation.md#signinwithcustomtoken"
-    },
-    "#/paths/~1v1~1accounts:signInWithCustomToken/post/responses/200/content/application~1json": {
-      "classification": "dated-live-observation",
-      "citation": "docs/research/2026-08-11-auth-observation.md#signinwithcustomtoken"
-    },
-    "#/paths/~1v1~1accounts:signInWithCustomToken/post/responses/200/content/application~1json/schema/$ref": {
-      "classification": "dated-live-observation",
-      "citation": "docs/research/2026-08-11-auth-observation.md#signinwithcustomtoken"
-    },
-    "#/paths/~1v1~1token/post/responses/200": {
-      "classification": "dated-live-observation",
-      "citation": "docs/research/2026-08-11-auth-observation.md#refreshtoken"
-    },
-    "#/paths/~1v1~1token/post/responses/200/content/application~1json": {
-      "classification": "dated-live-observation",
-      "citation": "docs/research/2026-08-11-auth-observation.md#refreshtoken"
-    },
-    "#/paths/~1v1~1token/post/responses/200/content/application~1json/schema/$ref": {
-      "classification": "dated-live-observation",
-      "citation": "docs/research/2026-08-11-auth-observation.md#refreshtoken"
-    },
-    "#/components/schemas/CallableAuthError/additionalProperties": {
-      "classification": "typescript-derived-inference",
       "citation": "docs/research/2026-08-11-auth-observation.md#getlogintoken"
     },
     "#/components/schemas/CallableAuthError/properties/error": {
       "classification": "dated-live-observation",
       "citation": "docs/research/2026-08-11-auth-observation.md#getlogintoken"
     },
-    "#/components/schemas/CallableAuthError/properties/error/additionalProperties": {
-      "classification": "typescript-derived-inference",
-      "citation": "docs/research/2026-08-11-auth-observation.md#getlogintoken"
-    },
-    "#/components/schemas/CallableAuthError/properties/error/properties/details": {
+    "#/components/schemas/CallableAuthError/properties/error/type": {
       "classification": "dated-live-observation",
       "citation": "docs/research/2026-08-11-auth-observation.md#getlogintoken"
     },
-    "#/components/schemas/CallableAuthError/properties/error/properties/details/additionalProperties": {
-      "classification": "typescript-derived-inference",
-      "citation": "docs/research/2026-08-11-auth-observation.md#getlogintoken"
-    },
-    "#/components/schemas/CallableAuthError/properties/error/properties/details/properties/authErrorCode": {
+    "#/components/schemas/CallableAuthError/properties/error/required/0": {
       "classification": "dated-live-observation",
       "citation": "docs/research/2026-08-11-auth-observation.md#getlogintoken"
     },
-    "#/components/schemas/CallableAuthError/properties/error/properties/details/properties/authErrorCode/type": {
-      "classification": "dated-live-observation",
-      "citation": "docs/research/2026-08-11-auth-observation.md#getlogintoken"
-    },
-    "#/components/schemas/CallableAuthError/properties/error/properties/details/type": {
+    "#/components/schemas/CallableAuthError/properties/error/required/1": {
       "classification": "dated-live-observation",
       "citation": "docs/research/2026-08-11-auth-observation.md#getlogintoken"
     },
@@ -4137,92 +4500,56 @@
       "classification": "dated-live-observation",
       "citation": "docs/research/2026-08-11-auth-observation.md#getlogintoken"
     },
-    "#/components/schemas/CallableAuthError/properties/error/required/0": {
+    "#/components/schemas/CallableAuthError/properties/error/properties/details": {
       "classification": "dated-live-observation",
       "citation": "docs/research/2026-08-11-auth-observation.md#getlogintoken"
     },
-    "#/components/schemas/CallableAuthError/properties/error/required/1": {
+    "#/components/schemas/CallableAuthError/properties/error/properties/details/type": {
       "classification": "dated-live-observation",
       "citation": "docs/research/2026-08-11-auth-observation.md#getlogintoken"
     },
-    "#/components/schemas/CallableAuthError/properties/error/type": {
+    "#/components/schemas/CallableAuthError/properties/error/properties/details/properties/authErrorCode": {
       "classification": "dated-live-observation",
       "citation": "docs/research/2026-08-11-auth-observation.md#getlogintoken"
     },
-    "#/components/schemas/CallableAuthError/required/0": {
+    "#/components/schemas/CallableAuthError/properties/error/properties/details/properties/authErrorCode/type": {
       "classification": "dated-live-observation",
       "citation": "docs/research/2026-08-11-auth-observation.md#getlogintoken"
     },
-    "#/components/schemas/CallableAuthError/type": {
-      "classification": "dated-live-observation",
-      "citation": "docs/research/2026-08-11-auth-observation.md#getlogintoken"
-    },
-    "#/components/schemas/FirebaseTokenError/additionalProperties": {
+    "#/components/schemas/CallableAuthError/properties/error/properties/details/additionalProperties": {
       "classification": "typescript-derived-inference",
-      "citation": "docs/research/2026-08-11-auth-observation.md#refreshtoken"
+      "citation": "docs/research/2026-08-11-auth-observation.md#getlogintoken"
     },
-    "#/components/schemas/FirebaseTokenError/properties/error": {
-      "classification": "dated-live-observation",
-      "citation": "docs/research/2026-08-11-auth-observation.md#refreshtoken"
-    },
-    "#/components/schemas/FirebaseTokenError/properties/error/additionalProperties": {
+    "#/components/schemas/CallableAuthError/properties/error/additionalProperties": {
       "classification": "typescript-derived-inference",
-      "citation": "docs/research/2026-08-11-auth-observation.md#refreshtoken"
+      "citation": "docs/research/2026-08-11-auth-observation.md#getlogintoken"
     },
-    "#/components/schemas/FirebaseTokenError/properties/error/properties/code": {
-      "classification": "dated-live-observation",
-      "citation": "docs/research/2026-08-11-auth-observation.md#refreshtoken"
-    },
-    "#/components/schemas/FirebaseTokenError/properties/error/properties/code/type": {
-      "classification": "dated-live-observation",
-      "citation": "docs/research/2026-08-11-auth-observation.md#refreshtoken"
-    },
-    "#/components/schemas/FirebaseTokenError/properties/error/properties/message": {
-      "classification": "dated-live-observation",
-      "citation": "docs/research/2026-08-11-auth-observation.md#refreshtoken"
-    },
-    "#/components/schemas/FirebaseTokenError/properties/error/properties/message/type": {
-      "classification": "dated-live-observation",
-      "citation": "docs/research/2026-08-11-auth-observation.md#refreshtoken"
-    },
-    "#/components/schemas/FirebaseTokenError/properties/error/properties/status": {
-      "classification": "dated-live-observation",
-      "citation": "docs/research/2026-08-11-auth-observation.md#refreshtoken"
-    },
-    "#/components/schemas/FirebaseTokenError/properties/error/properties/status/type": {
-      "classification": "dated-live-observation",
-      "citation": "docs/research/2026-08-11-auth-observation.md#refreshtoken"
-    },
-    "#/components/schemas/FirebaseTokenError/properties/error/required/0": {
-      "classification": "dated-live-observation",
-      "citation": "docs/research/2026-08-11-auth-observation.md#refreshtoken"
-    },
-    "#/components/schemas/FirebaseTokenError/properties/error/required/1": {
-      "classification": "dated-live-observation",
-      "citation": "docs/research/2026-08-11-auth-observation.md#refreshtoken"
-    },
-    "#/components/schemas/FirebaseTokenError/properties/error/type": {
-      "classification": "dated-live-observation",
-      "citation": "docs/research/2026-08-11-auth-observation.md#refreshtoken"
-    },
-    "#/components/schemas/FirebaseTokenError/required/0": {
-      "classification": "dated-live-observation",
-      "citation": "docs/research/2026-08-11-auth-observation.md#refreshtoken"
-    },
-    "#/components/schemas/FirebaseTokenError/type": {
-      "classification": "dated-live-observation",
-      "citation": "docs/research/2026-08-11-auth-observation.md#refreshtoken"
-    },
-    "#/components/schemas/FirebaseValidationError/additionalProperties": {
+    "#/components/schemas/CallableAuthError/additionalProperties": {
       "classification": "typescript-derived-inference",
+      "citation": "docs/research/2026-08-11-auth-observation.md#getlogintoken"
+    },
+    "#/components/schemas/FirebaseValidationError/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#signinwithcustomtoken"
+    },
+    "#/components/schemas/FirebaseValidationError/required/0": {
+      "classification": "dated-live-observation",
       "citation": "docs/research/2026-08-11-auth-observation.md#signinwithcustomtoken"
     },
     "#/components/schemas/FirebaseValidationError/properties/error": {
       "classification": "dated-live-observation",
       "citation": "docs/research/2026-08-11-auth-observation.md#signinwithcustomtoken"
     },
-    "#/components/schemas/FirebaseValidationError/properties/error/additionalProperties": {
-      "classification": "typescript-derived-inference",
+    "#/components/schemas/FirebaseValidationError/properties/error/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#signinwithcustomtoken"
+    },
+    "#/components/schemas/FirebaseValidationError/properties/error/required/0": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#signinwithcustomtoken"
+    },
+    "#/components/schemas/FirebaseValidationError/properties/error/required/1": {
+      "classification": "dated-live-observation",
       "citation": "docs/research/2026-08-11-auth-observation.md#signinwithcustomtoken"
     },
     "#/components/schemas/FirebaseValidationError/properties/error/properties/code": {
@@ -4233,12 +4560,24 @@
       "classification": "dated-live-observation",
       "citation": "docs/research/2026-08-11-auth-observation.md#signinwithcustomtoken"
     },
+    "#/components/schemas/FirebaseValidationError/properties/error/properties/message": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#signinwithcustomtoken"
+    },
+    "#/components/schemas/FirebaseValidationError/properties/error/properties/message/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#signinwithcustomtoken"
+    },
     "#/components/schemas/FirebaseValidationError/properties/error/properties/errors": {
       "classification": "dated-live-observation",
       "citation": "docs/research/2026-08-11-auth-observation.md#signinwithcustomtoken"
     },
-    "#/components/schemas/FirebaseValidationError/properties/error/properties/errors/items/additionalProperties": {
-      "classification": "typescript-derived-inference",
+    "#/components/schemas/FirebaseValidationError/properties/error/properties/errors/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-auth-observation.md#signinwithcustomtoken"
+    },
+    "#/components/schemas/FirebaseValidationError/properties/error/properties/errors/items/type": {
+      "classification": "dated-live-observation",
       "citation": "docs/research/2026-08-11-auth-observation.md#signinwithcustomtoken"
     },
     "#/components/schemas/FirebaseValidationError/properties/error/properties/errors/items/properties/domain": {
@@ -4265,153 +4604,717 @@
       "classification": "dated-live-observation",
       "citation": "docs/research/2026-08-11-auth-observation.md#signinwithcustomtoken"
     },
-    "#/components/schemas/FirebaseValidationError/properties/error/properties/errors/items/type": {
-      "classification": "dated-live-observation",
+    "#/components/schemas/FirebaseValidationError/properties/error/properties/errors/items/additionalProperties": {
+      "classification": "typescript-derived-inference",
       "citation": "docs/research/2026-08-11-auth-observation.md#signinwithcustomtoken"
     },
-    "#/components/schemas/FirebaseValidationError/properties/error/properties/errors/type": {
-      "classification": "dated-live-observation",
+    "#/components/schemas/FirebaseValidationError/properties/error/additionalProperties": {
+      "classification": "typescript-derived-inference",
       "citation": "docs/research/2026-08-11-auth-observation.md#signinwithcustomtoken"
     },
-    "#/components/schemas/FirebaseValidationError/properties/error/properties/message": {
-      "classification": "dated-live-observation",
+    "#/components/schemas/FirebaseValidationError/additionalProperties": {
+      "classification": "typescript-derived-inference",
       "citation": "docs/research/2026-08-11-auth-observation.md#signinwithcustomtoken"
     },
-    "#/components/schemas/FirebaseValidationError/properties/error/properties/message/type": {
-      "classification": "dated-live-observation",
-      "citation": "docs/research/2026-08-11-auth-observation.md#signinwithcustomtoken"
-    },
-    "#/components/schemas/FirebaseValidationError/properties/error/required/0": {
-      "classification": "dated-live-observation",
-      "citation": "docs/research/2026-08-11-auth-observation.md#signinwithcustomtoken"
-    },
-    "#/components/schemas/FirebaseValidationError/properties/error/required/1": {
-      "classification": "dated-live-observation",
-      "citation": "docs/research/2026-08-11-auth-observation.md#signinwithcustomtoken"
-    },
-    "#/components/schemas/FirebaseValidationError/properties/error/type": {
-      "classification": "dated-live-observation",
-      "citation": "docs/research/2026-08-11-auth-observation.md#signinwithcustomtoken"
-    },
-    "#/components/schemas/FirebaseValidationError/required/0": {
-      "classification": "dated-live-observation",
-      "citation": "docs/research/2026-08-11-auth-observation.md#signinwithcustomtoken"
-    },
-    "#/components/schemas/FirebaseValidationError/type": {
-      "classification": "dated-live-observation",
-      "citation": "docs/research/2026-08-11-auth-observation.md#signinwithcustomtoken"
-    },
-    "#/paths/~1getLoginToken/post/responses/403": {
-      "classification": "dated-live-observation",
-      "citation": "docs/research/2026-08-11-auth-observation.md#getlogintoken"
-    },
-    "#/paths/~1getLoginToken/post/responses/403/content/application~1json": {
-      "classification": "dated-live-observation",
-      "citation": "docs/research/2026-08-11-auth-observation.md#getlogintoken"
-    },
-    "#/paths/~1getLoginToken/post/responses/403/content/application~1json/schema/$ref": {
-      "classification": "dated-live-observation",
-      "citation": "docs/research/2026-08-11-auth-observation.md#getlogintoken"
-    },
-    "#/paths/~1v1~1accounts:lookup/post/responses/400": {
-      "classification": "dated-live-observation",
-      "citation": "docs/research/2026-08-11-auth-observation.md#lookupfirebaseuser"
-    },
-    "#/paths/~1v1~1accounts:lookup/post/responses/400/content/application~1json": {
-      "classification": "dated-live-observation",
-      "citation": "docs/research/2026-08-11-auth-observation.md#lookupfirebaseuser"
-    },
-    "#/paths/~1v1~1accounts:lookup/post/responses/400/content/application~1json/schema/$ref": {
-      "classification": "dated-live-observation",
-      "citation": "docs/research/2026-08-11-auth-observation.md#lookupfirebaseuser"
-    },
-    "#/paths/~1v1~1accounts:signInWithCustomToken/post/responses/400": {
-      "classification": "dated-live-observation",
-      "citation": "docs/research/2026-08-11-auth-observation.md#signinwithcustomtoken"
-    },
-    "#/paths/~1v1~1accounts:signInWithCustomToken/post/responses/400/content/application~1json": {
-      "classification": "dated-live-observation",
-      "citation": "docs/research/2026-08-11-auth-observation.md#signinwithcustomtoken"
-    },
-    "#/paths/~1v1~1accounts:signInWithCustomToken/post/responses/400/content/application~1json/schema/$ref": {
-      "classification": "dated-live-observation",
-      "citation": "docs/research/2026-08-11-auth-observation.md#signinwithcustomtoken"
-    },
-    "#/paths/~1v1~1token/post/responses/400": {
+    "#/components/schemas/FirebaseTokenError/type": {
       "classification": "dated-live-observation",
       "citation": "docs/research/2026-08-11-auth-observation.md#refreshtoken"
     },
-    "#/paths/~1v1~1token/post/responses/400/content/application~1json": {
+    "#/components/schemas/FirebaseTokenError/required/0": {
       "classification": "dated-live-observation",
       "citation": "docs/research/2026-08-11-auth-observation.md#refreshtoken"
     },
-    "#/paths/~1v1~1token/post/responses/400/content/application~1json/schema/$ref": {
+    "#/components/schemas/FirebaseTokenError/properties/error": {
       "classification": "dated-live-observation",
       "citation": "docs/research/2026-08-11-auth-observation.md#refreshtoken"
     },
-    "#/components/securitySchemes/firebaseApiKey/x-publicValue": {
+    "#/components/schemas/FirebaseTokenError/properties/error/type": {
       "classification": "dated-live-observation",
-      "citation": "docs/research/2026-08-11-firebase-public-api-key-redacted.md#firebase-public-api-key"
+      "citation": "docs/research/2026-08-11-auth-observation.md#refreshtoken"
     },
-    "#/paths/~1v1~1accounts:lookup/post/parameters/0/in": {
+    "#/components/schemas/FirebaseTokenError/properties/error/required/0": {
       "classification": "dated-live-observation",
-      "citation": "docs/research/2026-08-11-auth-observation.md#firebase-api-key-referrer-restriction"
+      "citation": "docs/research/2026-08-11-auth-observation.md#refreshtoken"
     },
-    "#/paths/~1v1~1accounts:lookup/post/parameters/0/name": {
+    "#/components/schemas/FirebaseTokenError/properties/error/required/1": {
       "classification": "dated-live-observation",
-      "citation": "docs/research/2026-08-11-auth-observation.md#firebase-api-key-referrer-restriction"
+      "citation": "docs/research/2026-08-11-auth-observation.md#refreshtoken"
     },
-    "#/paths/~1v1~1accounts:lookup/post/parameters/0/required": {
+    "#/components/schemas/FirebaseTokenError/properties/error/properties/code": {
       "classification": "dated-live-observation",
-      "citation": "docs/research/2026-08-11-auth-observation.md#firebase-api-key-referrer-restriction"
+      "citation": "docs/research/2026-08-11-auth-observation.md#refreshtoken"
     },
-    "#/paths/~1v1~1accounts:lookup/post/parameters/0/schema/const": {
+    "#/components/schemas/FirebaseTokenError/properties/error/properties/code/type": {
       "classification": "dated-live-observation",
-      "citation": "docs/research/2026-08-11-auth-observation.md#firebase-api-key-referrer-restriction"
+      "citation": "docs/research/2026-08-11-auth-observation.md#refreshtoken"
     },
-    "#/paths/~1v1~1accounts:lookup/post/parameters/0/schema/type": {
+    "#/components/schemas/FirebaseTokenError/properties/error/properties/message": {
       "classification": "dated-live-observation",
-      "citation": "docs/research/2026-08-11-auth-observation.md#firebase-api-key-referrer-restriction"
+      "citation": "docs/research/2026-08-11-auth-observation.md#refreshtoken"
     },
-    "#/paths/~1v1~1accounts:signInWithCustomToken/post/parameters/0/in": {
+    "#/components/schemas/FirebaseTokenError/properties/error/properties/message/type": {
       "classification": "dated-live-observation",
-      "citation": "docs/research/2026-08-11-auth-observation.md#firebase-api-key-referrer-restriction"
+      "citation": "docs/research/2026-08-11-auth-observation.md#refreshtoken"
     },
-    "#/paths/~1v1~1accounts:signInWithCustomToken/post/parameters/0/name": {
+    "#/components/schemas/FirebaseTokenError/properties/error/properties/status": {
       "classification": "dated-live-observation",
-      "citation": "docs/research/2026-08-11-auth-observation.md#firebase-api-key-referrer-restriction"
+      "citation": "docs/research/2026-08-11-auth-observation.md#refreshtoken"
     },
-    "#/paths/~1v1~1accounts:signInWithCustomToken/post/parameters/0/required": {
+    "#/components/schemas/FirebaseTokenError/properties/error/properties/status/type": {
       "classification": "dated-live-observation",
-      "citation": "docs/research/2026-08-11-auth-observation.md#firebase-api-key-referrer-restriction"
+      "citation": "docs/research/2026-08-11-auth-observation.md#refreshtoken"
     },
-    "#/paths/~1v1~1accounts:signInWithCustomToken/post/parameters/0/schema/const": {
-      "classification": "dated-live-observation",
-      "citation": "docs/research/2026-08-11-auth-observation.md#firebase-api-key-referrer-restriction"
+    "#/components/schemas/FirebaseTokenError/properties/error/additionalProperties": {
+      "classification": "typescript-derived-inference",
+      "citation": "docs/research/2026-08-11-auth-observation.md#refreshtoken"
     },
-    "#/paths/~1v1~1accounts:signInWithCustomToken/post/parameters/0/schema/type": {
-      "classification": "dated-live-observation",
-      "citation": "docs/research/2026-08-11-auth-observation.md#firebase-api-key-referrer-restriction"
+    "#/components/schemas/FirebaseTokenError/additionalProperties": {
+      "classification": "typescript-derived-inference",
+      "citation": "docs/research/2026-08-11-auth-observation.md#refreshtoken"
     },
-    "#/paths/~1v1~1token/post/parameters/0/in": {
+    "#/components/schemas/HomePageEvent/type": {
       "classification": "dated-live-observation",
-      "citation": "docs/research/2026-08-11-auth-observation.md#firebase-api-key-referrer-restriction"
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#event-list-observations"
     },
-    "#/paths/~1v1~1token/post/parameters/0/name": {
+    "#/components/schemas/HomePageEvent/required/0": {
       "classification": "dated-live-observation",
-      "citation": "docs/research/2026-08-11-auth-observation.md#firebase-api-key-referrer-restriction"
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#event-list-observations"
     },
-    "#/paths/~1v1~1token/post/parameters/0/required": {
+    "#/components/schemas/HomePageEvent/properties/id": {
       "classification": "dated-live-observation",
-      "citation": "docs/research/2026-08-11-auth-observation.md#firebase-api-key-referrer-restriction"
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#event-list-observations"
     },
-    "#/paths/~1v1~1token/post/parameters/0/schema/const": {
+    "#/components/schemas/HomePageEvent/properties/id/type": {
       "classification": "dated-live-observation",
-      "citation": "docs/research/2026-08-11-auth-observation.md#firebase-api-key-referrer-restriction"
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#event-list-observations"
     },
-    "#/paths/~1v1~1token/post/parameters/0/schema/type": {
+    "#/components/schemas/HomePageEvent/properties/title": {
       "classification": "dated-live-observation",
-      "citation": "docs/research/2026-08-11-auth-observation.md#firebase-api-key-referrer-restriction"
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#event-list-observations"
+    },
+    "#/components/schemas/HomePageEvent/properties/startDate": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#event-list-observations"
+    },
+    "#/components/schemas/HomePageEvent/properties/startDate/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#event-list-observations"
+    },
+    "#/components/schemas/HomePageEvent/properties/endDate": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#event-list-observations"
+    },
+    "#/components/schemas/HomePageEvent/properties/endDate/type/0": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#event-list-observations"
+    },
+    "#/components/schemas/HomePageEvent/properties/endDate/type/1": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#event-list-observations"
+    },
+    "#/components/schemas/HomePageEvent/properties/timezone": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#event-list-observations"
+    },
+    "#/components/schemas/HomePageEvent/properties/timezone/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#event-list-observations"
+    },
+    "#/components/schemas/HomePageEvent/properties/status": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#event-list-observations"
+    },
+    "#/components/schemas/HomePageEvent/properties/status/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#event-list-observations"
+    },
+    "#/components/schemas/HomePageEvent/properties/location": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#event-list-observations"
+    },
+    "#/components/schemas/HomePageEvent/properties/location/type/0": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#event-list-observations"
+    },
+    "#/components/schemas/HomePageEvent/properties/location/type/1": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#event-list-observations"
+    },
+    "#/components/schemas/HomePageEvent/properties/displaySettings": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#event-list-observations"
+    },
+    "#/components/schemas/HomePageEvent/properties/displaySettings/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#event-list-observations"
+    },
+    "#/components/schemas/HomePageEvent/properties/image": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#event-list-observations"
+    },
+    "#/components/schemas/HomePageEvent/properties/image/type/0": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#event-list-observations"
+    },
+    "#/components/schemas/HomePageEvent/properties/image/type/1": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#event-list-observations"
+    },
+    "#/components/schemas/HomePageEvent/properties/guest": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#event-list-observations"
+    },
+    "#/components/schemas/HomePageEvent/properties/guest/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#event-list-observations"
+    },
+    "#/components/schemas/HomePageEvent/properties/guest/properties/status": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#event-list-observations"
+    },
+    "#/components/schemas/HomePageEvent/properties/guest/properties/status/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#event-list-observations"
+    },
+    "#/components/schemas/EventInfo/properties/id": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#event-detail-observations"
+    },
+    "#/components/schemas/EventInfo/properties/id/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#event-list-observations"
+    },
+    "#/components/schemas/EventInfo/properties/title": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#event-detail-observations"
+    },
+    "#/components/schemas/EventInfo/properties/startDate": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#event-detail-observations"
+    },
+    "#/components/schemas/EventInfo/properties/startDate/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#event-list-observations"
+    },
+    "#/components/schemas/EventInfo/properties/endDate": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#event-detail-observations"
+    },
+    "#/components/schemas/EventInfo/properties/endDate/type/0": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#event-list-observations"
+    },
+    "#/components/schemas/EventInfo/properties/endDate/type/1": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#event-list-observations"
+    },
+    "#/components/schemas/EventInfo/properties/timezone": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#event-detail-observations"
+    },
+    "#/components/schemas/EventInfo/properties/timezone/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#event-list-observations"
+    },
+    "#/components/schemas/EventInfo/properties/status": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#event-detail-observations"
+    },
+    "#/components/schemas/EventInfo/properties/status/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#event-list-observations"
+    },
+    "#/components/schemas/EventInfo/properties/description": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#event-detail-observations"
+    },
+    "#/components/schemas/EventInfo/properties/displaySettings": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#event-detail-observations"
+    },
+    "#/components/schemas/EventInfo/properties/displaySettings/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#event-list-observations"
+    },
+    "#/components/schemas/EventInfo/properties/image": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#event-detail-observations"
+    },
+    "#/components/schemas/EventInfo/properties/image/type/0": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#event-list-observations"
+    },
+    "#/components/schemas/EventInfo/properties/image/type/1": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#event-list-observations"
+    },
+    "#/components/schemas/EventInfo/properties/visibility": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#event-detail-observations"
+    },
+    "#/components/schemas/GetEventInfoResponse/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#event-detail-observations"
+    },
+    "#/components/schemas/GetEventInfoResponse/required/0": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#event-detail-observations"
+    },
+    "#/components/schemas/GetEventInfoResponse/properties/result": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#event-detail-observations"
+    },
+    "#/components/schemas/GetEventInfoResponse/properties/result/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#event-detail-observations"
+    },
+    "#/components/schemas/GetEventInfoResponse/properties/result/required/0": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#event-detail-observations"
+    },
+    "#/components/schemas/GetEventInfoResponse/properties/result/properties/data": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#event-detail-observations"
+    },
+    "#/components/schemas/GetEventInfoResponse/properties/result/properties/data/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#event-detail-observations"
+    },
+    "#/components/schemas/GetEventInfoResponse/properties/result/properties/data/required/0": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#event-detail-observations"
+    },
+    "#/components/schemas/GetEventInfoResponse/properties/result/properties/data/properties/event": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#event-detail-observations"
+    },
+    "#/components/schemas/GetEventInfoResponse/properties/result/properties/data/properties/event/$ref": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#event-detail-observations"
+    },
+    "#/components/schemas/CallableNotFoundError/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#event-detail-observations"
+    },
+    "#/components/schemas/CallableNotFoundError/required/0": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#event-detail-observations"
+    },
+    "#/components/schemas/CallableNotFoundError/properties/error": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#event-detail-observations"
+    },
+    "#/components/schemas/CallableNotFoundError/properties/error/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#event-detail-observations"
+    },
+    "#/components/schemas/CallableNotFoundError/properties/error/required/0": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#event-detail-observations"
+    },
+    "#/components/schemas/CallableNotFoundError/properties/error/required/1": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#event-detail-observations"
+    },
+    "#/components/schemas/CallableNotFoundError/properties/error/properties/message": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#event-detail-observations"
+    },
+    "#/components/schemas/CallableNotFoundError/properties/error/properties/message/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#event-detail-observations"
+    },
+    "#/components/schemas/CallableNotFoundError/properties/error/properties/status": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#event-detail-observations"
+    },
+    "#/components/schemas/CallableNotFoundError/properties/error/properties/status/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#event-detail-observations"
+    },
+    "#/components/schemas/CallableNotFoundError/properties/error/properties/status/const": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#event-detail-observations"
+    },
+    "#/components/schemas/CurrentGuest/properties/id": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#guest-and-firestore-observations"
+    },
+    "#/components/schemas/CurrentGuest/properties/id/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#guest-and-firestore-observations"
+    },
+    "#/components/schemas/CurrentGuest/properties/count": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#guest-and-firestore-observations"
+    },
+    "#/components/schemas/CurrentGuest/properties/name": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#guest-and-firestore-observations"
+    },
+    "#/components/schemas/CurrentGuest/properties/name/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#guest-and-firestore-observations"
+    },
+    "#/components/schemas/CurrentGuest/properties/plusOnes": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#guest-and-firestore-observations"
+    },
+    "#/components/schemas/CurrentGuest/properties/status": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#guest-and-firestore-observations"
+    },
+    "#/components/schemas/CurrentGuest/properties/status/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#guest-and-firestore-observations"
+    },
+    "#/components/schemas/CurrentGuest/properties/userId": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#guest-and-firestore-observations"
+    },
+    "#/components/schemas/GetCurrentGuestResponse/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#guest-and-firestore-observations"
+    },
+    "#/components/schemas/GetCurrentGuestResponse/required/0": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#guest-and-firestore-observations"
+    },
+    "#/components/schemas/GetCurrentGuestResponse/properties/result": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#guest-and-firestore-observations"
+    },
+    "#/components/schemas/GetCurrentGuestResponse/properties/result/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#guest-and-firestore-observations"
+    },
+    "#/components/schemas/GetCurrentGuestResponse/properties/result/required/0": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#guest-and-firestore-observations"
+    },
+    "#/components/schemas/GetCurrentGuestResponse/properties/result/properties/data": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#guest-and-firestore-observations"
+    },
+    "#/components/schemas/GetCurrentGuestResponse/properties/result/properties/data/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#guest-and-firestore-observations"
+    },
+    "#/components/schemas/GetCurrentGuestResponse/properties/result/properties/data/required/0": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#guest-and-firestore-observations"
+    },
+    "#/components/schemas/GetCurrentGuestResponse/properties/result/properties/data/properties/currentGuest": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#guest-and-firestore-observations"
+    },
+    "#/components/schemas/GetCurrentGuestResponse/properties/result/properties/data/properties/currentGuest/$ref": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#guest-and-firestore-observations"
+    },
+    "#/components/schemas/FirestoreObservedStringValue/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#guest-and-firestore-observations"
+    },
+    "#/components/schemas/FirestoreObservedStringValue/additionalProperties/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#guest-and-firestore-observations"
+    },
+    "#/components/schemas/FirestoreGuestDocument/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#guest-and-firestore-observations"
+    },
+    "#/components/schemas/FirestoreGuestDocument/required/0": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#guest-and-firestore-observations"
+    },
+    "#/components/schemas/FirestoreGuestDocument/required/1": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#guest-and-firestore-observations"
+    },
+    "#/components/schemas/FirestoreGuestDocument/required/2": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#guest-and-firestore-observations"
+    },
+    "#/components/schemas/FirestoreGuestDocument/required/3": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#guest-and-firestore-observations"
+    },
+    "#/components/schemas/FirestoreGuestDocument/properties/name": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#guest-and-firestore-observations"
+    },
+    "#/components/schemas/FirestoreGuestDocument/properties/name/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#guest-and-firestore-observations"
+    },
+    "#/components/schemas/FirestoreGuestDocument/properties/fields": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#guest-and-firestore-observations"
+    },
+    "#/components/schemas/FirestoreGuestDocument/properties/fields/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#guest-and-firestore-observations"
+    },
+    "#/components/schemas/FirestoreGuestDocument/properties/fields/required/0": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#guest-and-firestore-observations"
+    },
+    "#/components/schemas/FirestoreGuestDocument/properties/fields/required/1": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#guest-and-firestore-observations"
+    },
+    "#/components/schemas/FirestoreGuestDocument/properties/fields/required/2": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#guest-and-firestore-observations"
+    },
+    "#/components/schemas/FirestoreGuestDocument/properties/fields/required/3": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#guest-and-firestore-observations"
+    },
+    "#/components/schemas/FirestoreGuestDocument/properties/fields/properties/count": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#guest-and-firestore-observations"
+    },
+    "#/components/schemas/FirestoreGuestDocument/properties/fields/properties/count/$ref": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#guest-and-firestore-observations"
+    },
+    "#/components/schemas/FirestoreGuestDocument/properties/fields/properties/createdAt": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#guest-and-firestore-observations"
+    },
+    "#/components/schemas/FirestoreGuestDocument/properties/fields/properties/createdAt/$ref": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#guest-and-firestore-observations"
+    },
+    "#/components/schemas/FirestoreGuestDocument/properties/fields/properties/name": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#guest-and-firestore-observations"
+    },
+    "#/components/schemas/FirestoreGuestDocument/properties/fields/properties/name/$ref": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#guest-and-firestore-observations"
+    },
+    "#/components/schemas/FirestoreGuestDocument/properties/fields/properties/status": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#guest-and-firestore-observations"
+    },
+    "#/components/schemas/FirestoreGuestDocument/properties/fields/properties/status/$ref": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#guest-and-firestore-observations"
+    },
+    "#/components/schemas/FirestoreGuestDocument/properties/createTime": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#guest-and-firestore-observations"
+    },
+    "#/components/schemas/FirestoreGuestDocument/properties/createTime/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#guest-and-firestore-observations"
+    },
+    "#/components/schemas/FirestoreGuestDocument/properties/updateTime": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#guest-and-firestore-observations"
+    },
+    "#/components/schemas/FirestoreGuestDocument/properties/updateTime/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#guest-and-firestore-observations"
+    },
+    "#/components/schemas/FirestorePermissionDeniedError/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#guest-and-firestore-observations"
+    },
+    "#/components/schemas/FirestorePermissionDeniedError/required/0": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#guest-and-firestore-observations"
+    },
+    "#/components/schemas/FirestorePermissionDeniedError/properties/error": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#guest-and-firestore-observations"
+    },
+    "#/components/schemas/FirestorePermissionDeniedError/properties/error/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#guest-and-firestore-observations"
+    },
+    "#/components/schemas/FirestorePermissionDeniedError/properties/error/required/0": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#guest-and-firestore-observations"
+    },
+    "#/components/schemas/FirestorePermissionDeniedError/properties/error/required/1": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#guest-and-firestore-observations"
+    },
+    "#/components/schemas/FirestorePermissionDeniedError/properties/error/required/2": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#guest-and-firestore-observations"
+    },
+    "#/components/schemas/FirestorePermissionDeniedError/properties/error/properties/code": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#guest-and-firestore-observations"
+    },
+    "#/components/schemas/FirestorePermissionDeniedError/properties/error/properties/code/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#guest-and-firestore-observations"
+    },
+    "#/components/schemas/FirestorePermissionDeniedError/properties/error/properties/message": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#guest-and-firestore-observations"
+    },
+    "#/components/schemas/FirestorePermissionDeniedError/properties/error/properties/message/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#guest-and-firestore-observations"
+    },
+    "#/components/schemas/FirestorePermissionDeniedError/properties/error/properties/status": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#guest-and-firestore-observations"
+    },
+    "#/components/schemas/FirestorePermissionDeniedError/properties/error/properties/status/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#guest-and-firestore-observations"
+    },
+    "#/components/schemas/FirestorePermissionDeniedError/properties/error/properties/status/const": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#guest-and-firestore-observations"
+    },
+    "#/components/schemas/Contact/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#contact-observations"
+    },
+    "#/components/schemas/Contact/required/0": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#contact-observations"
+    },
+    "#/components/schemas/Contact/required/1": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#contact-observations"
+    },
+    "#/components/schemas/Contact/required/2": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#contact-observations"
+    },
+    "#/components/schemas/Contact/properties/id": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#contact-observations"
+    },
+    "#/components/schemas/Contact/properties/id/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#contact-observations"
+    },
+    "#/components/schemas/Contact/properties/name": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#contact-observations"
+    },
+    "#/components/schemas/Contact/properties/name/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#contact-observations"
+    },
+    "#/components/schemas/Contact/properties/sharedEventCount": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#contact-observations"
+    },
+    "#/components/schemas/Contact/properties/sharedEventCount/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#contact-observations"
+    },
+    "#/components/schemas/Contact/properties/sharedEventCount/minimum": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#contact-observations"
+    },
+    "#/components/schemas/GetContactsResponse/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#contact-observations"
+    },
+    "#/components/schemas/GetContactsResponse/required/0": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#contact-observations"
+    },
+    "#/components/schemas/GetContactsResponse/properties/result": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#contact-observations"
+    },
+    "#/components/schemas/GetContactsResponse/properties/result/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#contact-observations"
+    },
+    "#/components/schemas/GetContactsResponse/properties/result/required/0": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#contact-observations"
+    },
+    "#/components/schemas/GetContactsResponse/properties/result/required/1": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#contact-observations"
+    },
+    "#/components/schemas/GetContactsResponse/properties/result/properties/data": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#contact-observations"
+    },
+    "#/components/schemas/GetContactsResponse/properties/result/properties/data/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#contact-observations"
+    },
+    "#/components/schemas/GetContactsResponse/properties/result/properties/data/items/$ref": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#contact-observations"
+    },
+    "#/components/schemas/GetContactsResponse/properties/result/properties/paging": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#contact-observations"
+    },
+    "#/components/schemas/GetContactsResponse/properties/result/properties/paging/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#contact-observations"
+    },
+    "#/components/schemas/GetContactsResponse/properties/result/properties/paging/properties/nextCursor": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#contact-observations"
+    },
+    "#/components/schemas/GetContactsResponse/properties/result/properties/paging/properties/nextCursor/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#contact-observations"
+    },
+    "#/components/schemas/CallableUnauthenticatedError/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#contact-observations"
+    },
+    "#/components/schemas/CallableUnauthenticatedError/required/0": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#contact-observations"
+    },
+    "#/components/schemas/CallableUnauthenticatedError/properties/error": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#contact-observations"
+    },
+    "#/components/schemas/CallableUnauthenticatedError/properties/error/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#contact-observations"
+    },
+    "#/components/schemas/CallableUnauthenticatedError/properties/error/required/0": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#contact-observations"
+    },
+    "#/components/schemas/CallableUnauthenticatedError/properties/error/required/1": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#contact-observations"
+    },
+    "#/components/schemas/CallableUnauthenticatedError/properties/error/properties/message": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#contact-observations"
+    },
+    "#/components/schemas/CallableUnauthenticatedError/properties/error/properties/message/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#contact-observations"
+    },
+    "#/components/schemas/CallableUnauthenticatedError/properties/error/properties/status": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#contact-observations"
+    },
+    "#/components/schemas/CallableUnauthenticatedError/properties/error/properties/status/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#contact-observations"
+    },
+    "#/components/schemas/CallableUnauthenticatedError/properties/error/properties/status/const": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#contact-observations"
     }
   },
   "posterCatalogObservation": {
@@ -4511,5 +5414,142 @@
       }
     },
     "probeArtifactPath": "spec/research/auth-error-probes-redacted-20260811.json"
+  },
+  "readObservation": {
+    "artifactPath": "spec/research/read-evidence-redacted-20260811.json",
+    "sourceCitation": "docs/research/2026-08-11-event-contacts-read-observation.md#scope-and-provenance",
+    "observedAt": "2026-08-11T22:42:33.146Z",
+    "eventLists": {
+      "upcomingEvents": {
+        "rawPath": "result.data.upcomingEvents",
+        "firstCount": 35,
+        "secondCount": 35,
+        "sameIdentitySequence": true,
+        "sameIdentitySet": true,
+        "duplicateIdentityCount": 0,
+        "representation": "one-response-observed-complete-array",
+        "remotePagination": "explicit-unknown"
+      },
+      "pastEvents": {
+        "rawPath": "result.data.pastEvents",
+        "firstCount": 294,
+        "secondCount": 294,
+        "sameIdentitySequence": true,
+        "sameIdentitySet": true,
+        "duplicateIdentityCount": 0,
+        "representation": "one-response-observed-complete-array",
+        "remotePagination": "explicit-unknown"
+      }
+    },
+    "productProjection": {
+      "eventId": "supported-by-complete-item-id",
+      "titleStartEndTimezone": "observed-types-only-presence-not-proven",
+      "myRsvp": "selected-item-guest-status-observed",
+      "stateMapping": "explicit-unknown",
+      "userRoleMapping": "explicit-unknown"
+    },
+    "getEventInfo": {
+      "selectedAuthenticatedStatus": 200,
+      "selectedSignedOutStatus": 200,
+      "signedOutScope": "selected-readable-event-only",
+      "syntheticMissingStatus": 404,
+      "syntheticMissingCode": "NOT_FOUND",
+      "authenticatedPermission": "not-observed",
+      "inaccessibleEvent": "not-observed",
+      "sampleScope": "one-selected-event",
+      "fieldPresence": "selected-object-only",
+      "fieldNullabilityAndAlternateVariants": "explicit-unknown",
+      "relatedEventRepresentationTypes": {
+        "endDate": [
+          "string",
+          "null"
+        ],
+        "image": [
+          "object",
+          "null"
+        ]
+      }
+    },
+    "getCurrentGuest": {
+      "status": 200,
+      "rawPath": "result.data.currentGuest",
+      "otherVariants": "explicit-unknown",
+      "currentGuestNullability": "explicit-unknown",
+      "sampleScope": "one-selected-event",
+      "fieldPresence": "selected-object-only",
+      "fieldNullabilityAndAlternateVariants": "explicit-unknown",
+      "plusOnesVariants": "explicit-unknown"
+    },
+    "firestoreGuest": {
+      "status": 200,
+      "documentIdMatchesCurrentGuestId": true,
+      "statusMatchesCurrentGuest": true,
+      "completeTypedValueGrammar": "explicit-unknown"
+    },
+    "firestoreEvent": {
+      "selectedReadableEventStatus": 403,
+      "syntheticMissingIdStatus": 403,
+      "normalizedCode": "PERMISSION_DENIED",
+      "attendeeDenial": "not-claimed",
+      "notFoundBehavior": "explicit-unknown"
+    },
+    "contacts": {
+      "catalogCount": 2451,
+      "runPageItemCounts": [
+        [
+          1000,
+          1000,
+          451,
+          0
+        ],
+        [
+          1000,
+          1000,
+          451,
+          0
+        ]
+      ],
+      "dataPageNextCursorType": "string",
+      "terminalNextCursor": "missing",
+      "sameIdentitySequence": true,
+      "sameIdentitySet": true,
+      "duplicateIdentityCount": 0,
+      "filtering": "client-side-name-filter-over-complete-traversed-catalog",
+      "publicProjection": [
+        "displayName",
+        "sharedEventCount"
+      ],
+      "privateIdentityField": "id",
+      "clientDeduplication": {
+        "classification": "reviewed-first-party-repository-research",
+        "citation": "docs/research/2026-08-11-contacts-pagination-public-assets.md#ordering-duplicates-and-filtering",
+        "identityField": "id",
+        "duplicateResolution": "first-occurrence-wins"
+      },
+      "signedOutStatus": 401,
+      "signedOutCode": "UNAUTHENTICATED",
+      "unknowns": [
+        "invalid-cursor behavior",
+        "cursor lifetime and reuse",
+        "backend ordering key",
+        "snapshot behavior",
+        "useAuthUser behavior",
+        "duplicates outside the two observations",
+        "rate limiting",
+        "future catalog completeness"
+      ],
+      "normalParams": {},
+      "useAuthUserBehavior": "explicit-unknown",
+      "rateLimiting": "explicit-unknown",
+      "futureCatalogCompleteness": "explicit-unknown",
+      "serverDuplicateBehavior": "explicit-unknown",
+      "serverOrderingBehavior": "explicit-unknown"
+    },
+    "failureBoundary": {
+      "unsupportedStatuses": "explicit-unknown",
+      "inaccessibleEventPermission": "not-observed",
+      "listFailures": "explicit-unknown",
+      "currentGuestFailures": "explicit-unknown"
+    }
   }
 }

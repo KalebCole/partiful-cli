@@ -689,8 +689,9 @@ hatch.
 
 ## Implementation gates and remote changes
 
-The remote API contract currently leaves every operation response status and
-body unknown. Before a public command ships, its implementation slice must:
+The proposed remote API contract records observed response statuses and bodies
+for some operations. Unobserved mappings remain unknown. Before a public
+command ships, its implementation slice must:
 
 1. obtain privacy-safe evidence for every remote response and failure mapping
    it needs;
