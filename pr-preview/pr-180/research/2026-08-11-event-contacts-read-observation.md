@@ -43,9 +43,10 @@ future completeness remain unknown.
 response used `result.data.event`. The one object had the field presence and
 value types recorded by the sanitized aggregate. It does not establish
 operation-wide field presence, nullability, or alternate variants, so
-`EventInfo` has no required field list. Related event-list representations
-support only the optional `endDate` string/null and `image` object/null
-unions; selected-only fields without related support remain unconstrained.
+`EventInfo` has no operation-wide top-level type and no required field list.
+Related event-list representations support only the optional `endDate`
+string/null and `image` object/null unions; selected-only fields without
+related support remain unconstrained.
 The same selected event returned HTTP `200` while signed out. This is a fact
 about that selected event only. It does not establish that all events are
 public.
@@ -60,10 +61,11 @@ callable permission denial was not observed and is not claimed.
 path was `result.data.currentGuest`. It was an object with string `id`,
 `name`, `status`, and `userId`, integer `count`, and null `plusOnes`.
 This one object does not establish operation-wide field presence,
-nullability, or alternate variants, so `CurrentGuest` has no required field
-list. The proposed schema leaves `count`, `plusOnes`, and `userId`
-unconstrained. In particular, the shape of an ordinary non-null plus-one
-value is unknown. No null `currentGuest` or other variant was observed.
+nullability, or alternate variants, so `CurrentGuest` has no operation-wide
+top-level type and no required field list. The proposed schema leaves `count`,
+`plusOnes`, and `userId` unconstrained. In particular, the shape of an
+ordinary non-null plus-one value is unknown. No null `currentGuest` or other
+variant was observed.
 
 `firestoreGetGuest` returned HTTP `200` for the document selected by the
 observed current guest ID. The document had `name`, `fields`, `createTime`,
