@@ -1,6 +1,6 @@
 # CLI product contract
 
-**Status:** Proposed pending delegated review
+**Status:** Approved product contract
 
 **Product contract revision:** `2026-08-12.3`
 
@@ -854,8 +854,8 @@ reviewed callable and client completion condition. It does not prove
 persisted RSVP state, delivery, notification, or another business side
 effect.
 
-This `2026-08-12.3` contract is proposed pending delegated review. Shipped Go
-revisions remain unchanged until implementation.
+This `2026-08-12.3` contract is owner-reviewed under the issue #114
+delegation. Shipped Go revisions remain unchanged until implementation.
 
 ### Contacts
 

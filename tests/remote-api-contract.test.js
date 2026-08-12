@@ -482,7 +482,7 @@ describe('remote API contract', () => {
     expect(evidence.contractRevision).toBe('2026-08-12.3');
     expect(evidence.ownerReviewedBaseline).toBe('2026-08-12.2');
     expect(spec.info.version).toBe(evidence.contractRevision);
-    expect(evidence.status).toBe('proposed-pending-delegated-review');
+    expect(evidence.status).toBe('owner-reviewed');
     expect(evidence.sources.publicEventMapping20260812)
       .toBe(`${eventAssetResearchPath}#scope-and-provenance`);
     expect(citationResolves(evidence.sources.publicEventMapping20260812)).toBe(true);
@@ -605,10 +605,10 @@ describe('remote API contract', () => {
     );
     expect(ledger.match(/The 1316 material claims/g)).toHaveLength(2);
     expect(ledger).toContain(
-      '**Proposed contract revision:** `2026-08-12.3`',
+      '**Owner-reviewed contract revision:** `2026-08-12.3`',
     );
     expect(ledger).toContain(
-      '**Status:** Proposed pending delegated review',
+      '**Status:** Owner-reviewed under the issue #114 delegation',
     );
     expect(ledger).toContain('Current first-party public-asset research');
   });
@@ -1340,7 +1340,7 @@ describe('remote API contract', () => {
   it('defines conservative nullable event reads and bounded local snapshots', () => {
     const product = fs.readFileSync(productContractPath, 'utf8');
     for (const expected of [
-      '**Status:** Proposed pending delegated review',
+      '**Status:** Approved product contract',
       '**Product contract revision:** `2026-08-12.3`',
       '**Remote API contract revision:** `2026-08-12.3`',
       '**Currently shipped Go revisions:** product and remote `2026-08-12.1`',
@@ -1925,7 +1925,7 @@ describe('remote API contract', () => {
     expect(documentedProductRevision).toBe('2026-08-12.3');
     expect(new Set(envelopeRevisions)).toEqual(new Set([documentedRevision]));
     expect(spec.info.version).toBe(documentedRevision);
-    expect(evidence.status).toBe('proposed-pending-delegated-review');
+    expect(evidence.status).toBe('owner-reviewed');
     expect(spec.info.version).not.toBe(shippedRevision);
     expect(appSource).toContain('ProductContractRevision = "2026-08-12.1"');
     expect(productContract)
