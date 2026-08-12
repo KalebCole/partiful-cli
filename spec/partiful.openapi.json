@@ -2,7 +2,7 @@
   "openapi": "3.1.0",
   "info": {
     "title": "Partiful remote API contract",
-    "version": "2026-08-12.2",
+    "version": "2026-08-12.3",
     "description": "Owner-reviewed remote-only transport snapshot. Evidence classifications and uncertainty are recorded in spec/partiful.api-evidence.json."
   },
   "servers": [
@@ -2695,7 +2695,57 @@
               "null"
             ]
           },
-          "visibility": {}
+          "visibility": {},
+          "rsvpsEnabled": {
+            "type": "boolean"
+          },
+          "atCapacity": {
+            "type": "boolean"
+          },
+          "plusOneNamesRequired": {
+            "type": "boolean"
+          },
+          "questionnaireEnabled": {
+            "type": "boolean"
+          },
+          "questionnaireVersions": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {}
+          },
+          "ticketing": {
+            "type": [
+              "object",
+              "null"
+            ]
+          },
+          "guestAction": {
+            "type": "string",
+            "enum": [
+              "APPLY",
+              "RSVP"
+            ]
+          },
+          "maxCountPerGuest": {
+            "type": "number"
+          },
+          "maxCapacity": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "remainingCapacity": {
+            "type": "number"
+          },
+          "enableWaitlist": {
+            "type": [
+              "boolean",
+              "null"
+            ]
+          }
         }
       },
       "GetEventInfoResponse": {
@@ -2750,11 +2800,17 @@
         }
       },
       "CurrentGuest": {
+        "type": [
+          "object",
+          "null"
+        ],
         "properties": {
           "id": {
             "type": "string"
           },
-          "count": {},
+          "count": {
+            "type": "number"
+          },
           "name": {
             "type": "string"
           },

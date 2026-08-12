@@ -190,3 +190,23 @@ and the exact `success`/`interested` completion check. Its
 “getCurrentGuest” section supports the event-ID request and documents why
 callable null and alternate responses remain unknown. No live mutation or
 account-scoped read was used.
+
+## Dated RSVP read observation
+
+The owner-authorized read-only observation in
+`docs/research/2026-08-12-rsvp-read-observation.md`, under “Scope and
+provenance,” records the sanitized artifact
+`spec/research/rsvp-read-evidence-redacted-20260812.json`. The agent did not
+use credentials or make live requests during contract work.
+
+Its “Current-guest variants” section supports one HTTP `200` explicit null and
+one HTTP `200` object with selected field types. Its “Event safeguard
+observations” section supports HTTP `200` for 330 listed event details and the
+field-presence and type/value aggregates used by S5. Raw presence counts
+remain separate from normalized null buckets.
+
+The “Narrow compatibility policy” combines those read facts with the already
+reviewed request behavior in the public RSVP mapping note. Compatibility
+exclusions are product safety policy; they do not establish server rejection
+or mutation-success behavior. The “Privacy boundary” defines the exact
+allowlist and mutation tests for the sanitized artifact.

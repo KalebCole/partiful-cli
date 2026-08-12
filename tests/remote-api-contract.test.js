@@ -8,10 +8,17 @@ const historicalDraftPath = 'spec/research/historical-27-operation-draft.json';
 const historicalDraft = JSON.parse(fs.readFileSync(historicalDraftPath, 'utf8'));
 const readEvidencePath = 'spec/research/read-evidence-redacted-20260811.json';
 const readEvidence = JSON.parse(fs.readFileSync(readEvidencePath, 'utf8'));
+const rsvpReadEvidencePath =
+  'spec/research/rsvp-read-evidence-redacted-20260812.json';
+const rsvpReadEvidence = JSON.parse(
+  fs.readFileSync(rsvpReadEvidencePath, 'utf8'),
+);
 const eventAssetResearchPath =
   'docs/research/2026-08-12-event-read-mapping-public-assets.md';
 const rsvpAssetResearchPath =
   'docs/research/2026-08-12-rsvp-mapping-public-assets.md';
+const rsvpReadObservationPath =
+  'docs/research/2026-08-12-rsvp-read-observation.md';
 const productContractPath = 'docs/CLI-PRODUCT-CONTRACT.md';
 const sourceCache = new Map([
   [historicalDraftPath, historicalDraft],
@@ -129,6 +136,159 @@ const expectedReadAggregates = {
     firestoreSyntheticIdProbeObserved: true,
   },
 };
+const safeRsvpEventFieldNames = new Set([
+  '_disableTwoWeekReminders',
+  'address',
+  'allowGuestPhotoUpload',
+  'allowGuestsToInviteMutuals',
+  'allowResponsesAfterRsvpDeadline',
+  'approvedGuestCount',
+  'atCapacity',
+  'attendedGuestCount',
+  'calendarFile',
+  'cancelSkipNotify',
+  'canceledAt',
+  'cancellationMessage',
+  'checkInStaffIds',
+  'cohostIds',
+  'createdAt',
+  'customFields',
+  'customSections',
+  'declinedGuestCount',
+  'description',
+  'disableMaybe',
+  'discoverableAudience',
+  'displayInviteButton',
+  'displaySettings',
+  'emailInvitesSentCount',
+  'enableGuestReminders',
+  'enableWaitlist',
+  'endDate',
+  'feedbackShortUrl',
+  'findATime',
+  'followerInvitesSentCount',
+  'goingGuestCount',
+  'guestAction',
+  'guestCount',
+  'guestLimit',
+  'guestStatusCounts',
+  'hasGuests',
+  'hostName',
+  'id',
+  'image',
+  'interestedGuestCount',
+  'invitationMessage',
+  'invitedGuestCount',
+  'invitesSentCount',
+  'isCapped',
+  'isPartyCartEnabled',
+  'isPublic',
+  'isPublicUpdatedAt',
+  'location',
+  'locationInfo',
+  'maxCapacity',
+  'maxCountPerGuest',
+  'maybeGuestCount',
+  'mutualsProcessedAt',
+  'otherMutualsInvitedCount',
+  'ownerIds',
+  'pendingGuestCount',
+  'plusOneNamesRequired',
+  'publicShortUrl',
+  'publishedAt',
+  'questionnaire',
+  'questionnaireEnabled',
+  'questionnaireVersions',
+  'rejectedGuestCount',
+  'remainingCapacity',
+  'removedGuestCount',
+  'respondedGuestCount',
+  'respondedToFindATimeGuestCount',
+  'rsvpButtonGlyphType',
+  'rsvpDeadline',
+  'rsvpsEnabled',
+  'sentGuestReminderDates',
+  'sentGuestReminders',
+  'sentHostReminderDates',
+  'sentHostReminders',
+  'showActivityTimestamps',
+  'showGuestCount',
+  'showGuestList',
+  'showGuestsInviteMutualsField',
+  'showHostList',
+  'sitemapLastModifiedAt',
+  'startDate',
+  'status',
+  'ticketing',
+  'timezone',
+  'title',
+  'unreadRemovedGuestCount',
+  'updatedAt',
+  'visibility',
+  'waitlistGuestCount',
+  'withdrawnGuestCount',
+]);
+const expectedRsvpSafeguards = {
+  questionnaireEnabled: [
+    { type: 'boolean', count: 93 },
+    { type: 'null', count: 237 },
+  ],
+  questionnaireEnabledValues: [
+    { value: false, count: 46 },
+    { value: true, count: 47 },
+  ],
+  questionnaireVersionTypes: [
+    { type: 'array', count: 89 },
+    { type: 'null', count: 241 },
+  ],
+  questionnaireVersionLengths: [
+    { length: 1, count: 44 },
+    { length: 2, count: 39 },
+    { length: 3, count: 6 },
+  ],
+  questionnaireItemFields: ['createdAt', 'questions'],
+  maxCountPerGuest: [
+    { type: 'null', count: 294, min: null, max: null },
+    { type: 'number', count: 36, min: 1, max: 10 },
+  ],
+  maxCapacity: [
+    { type: 'null', count: 278, min: null, max: null },
+    { type: 'number', count: 52, min: 8, max: 300 },
+  ],
+  remainingCapacity: [
+    { type: 'null', count: 278, min: null, max: null },
+    { type: 'number', count: 52, min: -9, max: 116 },
+  ],
+  ticketing: [
+    { type: 'null', count: 239 },
+    { type: 'object', count: 91 },
+  ],
+  ticketingFields: ['currency', 'mode', 'payment', 'price', 'type'],
+  guestAction: [
+    { value: null, count: 308 },
+    { value: 'APPLY', count: 18 },
+    { value: 'RSVP', count: 4 },
+  ],
+  rsvpsEnabled: [
+    { value: false, count: 5 },
+    { value: true, count: 325 },
+  ],
+  atCapacity: [
+    { value: false, count: 315 },
+    { value: true, count: 15 },
+  ],
+  enableWaitlist: [
+    { value: null, count: 266 },
+    { value: false, count: 31 },
+    { value: true, count: 33 },
+  ],
+  plusOneNamesRequired: [
+    { value: false, count: 317 },
+    { value: true, count: 13 },
+  ],
+  password: [{ type: 'null', count: 330 }],
+  passwordProtected: [{ type: 'null', count: 330 }],
+};
 
 function operations() {
   return Object.entries(spec.paths).flatMap(([path, item]) =>
@@ -191,6 +351,81 @@ function assertExactAllowlistedValue(actual, expected, pointer = 'aggregates') {
   expect(actual, pointer).toBe(expected);
 }
 
+function assertRsvpReadArtifact(actual) {
+  expect(Object.keys(actual).sort()).toEqual([
+    'capturedAt',
+    'currentGuestVariants',
+    'eventDetails',
+    'listCounts',
+    'purpose',
+  ]);
+  expect(actual.purpose).toBe('Privacy-safe RSVP read facts');
+  expect(actual.capturedAt).toBe('2026-08-12T13:49:55.431Z');
+  assertExactAllowlistedValue(actual.listCounts, {
+    upcoming: 36,
+    past: 294,
+    unique: 330,
+    noGuestCandidates: 41,
+    guestCandidates: 289,
+  }, 'rsvp/listCounts');
+  assertExactAllowlistedValue(actual.currentGuestVariants, [
+    {
+      sourceGuest: 'absent',
+      status: 200,
+      currentGuest: { type: 'null' },
+    },
+    {
+      sourceGuest: 'present',
+      status: 200,
+      currentGuest: {
+        type: 'object',
+        fields: [
+          { name: 'anchorGuestId', type: 'null' },
+          { name: 'count', type: 'number' },
+          { name: 'id', type: 'string' },
+          { name: 'invitedBy', type: 'object' },
+          { name: 'name', type: 'string' },
+          { name: 'plusOneCount', type: 'number' },
+          { name: 'plusOnes', type: 'null' },
+          { name: 'rsvpDate', type: 'null' },
+          { name: 'rsvpHistory', type: 'array' },
+          { name: 'status', type: 'string' },
+          { name: 'userId', type: 'string' },
+        ],
+      },
+    },
+  ], 'rsvp/currentGuestVariants');
+  expect(Object.keys(actual.eventDetails).sort()).toEqual([
+    'count',
+    'fields',
+    'safeguards',
+    'statuses',
+  ]);
+  expect(actual.eventDetails.count).toBe(330);
+  assertExactAllowlistedValue(
+    actual.eventDetails.statuses,
+    [{ status: 200, count: 330 }],
+    'rsvp/eventDetails/statuses',
+  );
+  expect(actual.eventDetails.fields).toHaveLength(safeRsvpEventFieldNames.size);
+  const fieldNames = [];
+  for (const field of actual.eventDetails.fields) {
+    expect(Object.keys(field).sort()).toEqual(['name', 'presentCount']);
+    expect(safeRsvpEventFieldNames.has(field.name), field.name).toBe(true);
+    expect(Number.isInteger(field.presentCount)).toBe(true);
+    expect(field.presentCount).toBeGreaterThanOrEqual(0);
+    expect(field.presentCount).toBeLessThanOrEqual(330);
+    fieldNames.push(field.name);
+  }
+  expect(new Set(fieldNames).size).toBe(fieldNames.length);
+  expect([...fieldNames].sort()).toEqual([...safeRsvpEventFieldNames].sort());
+  assertExactAllowlistedValue(
+    actual.eventDetails.safeguards,
+    expectedRsvpSafeguards,
+    'rsvp/eventDetails/safeguards',
+  );
+}
+
 function jsonPointerValue(value, pointer) {
   for (const rawSegment of pointer.replace(/^#/, '').replace(/^\//, '').split('/')) {
     if (!rawSegment) continue;
@@ -244,7 +479,8 @@ function citationResolves(citation) {
 describe('remote API contract', () => {
   it('is a consistently versioned OpenAPI 3.1 document with unique operation IDs', () => {
     expect(spec.openapi).toBe('3.1.0');
-    expect(evidence.contractRevision).toBe('2026-08-12.2');
+    expect(evidence.contractRevision).toBe('2026-08-12.3');
+    expect(evidence.ownerReviewedBaseline).toBe('2026-08-12.2');
     expect(spec.info.version).toBe(evidence.contractRevision);
     expect(evidence.status).toBe('owner-reviewed');
     expect(evidence.sources.publicEventMapping20260812)
@@ -253,6 +489,9 @@ describe('remote API contract', () => {
     expect(evidence.sources.publicRsvpMapping20260812)
       .toBe(`${rsvpAssetResearchPath}#scope-and-provenance`);
     expect(citationResolves(evidence.sources.publicRsvpMapping20260812)).toBe(true);
+    expect(evidence.sources.rsvpReadObservation20260812)
+      .toBe(`${rsvpReadObservationPath}#scope-and-provenance`);
+    expect(citationResolves(evidence.sources.rsvpReadObservation20260812)).toBe(true);
     const appSource = fs.readFileSync('internal/app/app.go', 'utf8');
     expect(appSource).toContain('ProductContractRevision = "2026-08-12.1"');
     expect(appSource).toContain('RemoteContractRevision  = "2026-08-12.1"');
@@ -303,7 +542,7 @@ describe('remote API contract', () => {
       ...materialClaimPointers(spec.paths, '#/paths', 'paths'),
       ...materialClaimPointers(spec.components, '#/components', 'components'),
     ]);
-    expect(pointers).toHaveLength(1285);
+    expect(pointers).toHaveLength(1316);
     for (const pointer of pointers) {
       const claim = evidence.claims[pointer];
       expect(claim, pointer).toBeDefined();
@@ -364,9 +603,9 @@ describe('remote API contract', () => {
     expect(ledger).toContain(
       'Two additional callable operations have protocol-specified HTTP `200` completion responses.',
     );
-    expect(ledger.match(/The 1285 material claims/g)).toHaveLength(2);
+    expect(ledger.match(/The 1316 material claims/g)).toHaveLength(2);
     expect(ledger).toContain(
-      '**Owner-reviewed contract revision:** `2026-08-12.2`',
+      '**Owner-reviewed contract revision:** `2026-08-12.3`',
     );
     expect(ledger).toContain(
       '**Status:** Owner-reviewed under the issue #114 delegation',
@@ -480,7 +719,7 @@ describe('remote API contract', () => {
       ['getMyUpcomingEventsForHomePage', evidence.sources.readEventLists20260811],
       ['getMyPastEventsForHomePage', evidence.sources.readEventLists20260811],
       ['getEventInfo', evidence.sources.readEventInfo20260811],
-      ['getCurrentGuest', evidence.sources.readGuestFirestore20260811],
+      ['getCurrentGuest', evidence.sources.rsvpReadCurrentGuest20260812],
       ['firestoreGetEvent', evidence.sources.readGuestFirestore20260811],
       ['firestoreGetGuest', evidence.sources.readGuestFirestore20260811],
       ['getContacts', evidence.sources.readContacts20260811],
@@ -981,7 +1220,7 @@ describe('remote API contract', () => {
     expect(spec.components.schemas.CurrentGuest.properties.status)
       .toEqual({ $ref: '#/components/schemas/GuestStatus' });
     expect(evidence.readObservation.getCurrentGuest).toMatchObject({
-      currentGuestNullability: 'explicit-unknown',
+      currentGuestNullability: 'null-observed',
       otherVariants: 'explicit-unknown',
     });
 
@@ -1023,12 +1262,87 @@ describe('remote API contract', () => {
     });
   });
 
+  it('records exact sanitized RSVP read variants and safeguard facts', () => {
+    assertRsvpReadArtifact(rsvpReadEvidence);
+
+    expect(evidence.rsvpReadObservation).toMatchObject({
+      classification: 'dated-live-observation',
+      citation: evidence.sources.rsvpReadObservation20260812,
+      artifactPath: rsvpReadEvidencePath,
+      capturedAt: '2026-08-12T13:49:55.431Z',
+      listCounts: {
+        upcoming: 36,
+        past: 294,
+        unique: 330,
+        noGuestCandidates: 41,
+        guestCandidates: 289,
+      },
+      getEventInfo: {
+        status: 200,
+        count: 330,
+      },
+      currentGuest: {
+        status: 200,
+        nullCount: 1,
+        objectCount: 1,
+        objectFields: {
+          id: 'string',
+          count: 'number',
+          status: 'string',
+          name: 'string',
+          plusOnes: 'null',
+          userId: 'string',
+        },
+      },
+      eventSafeguards: {
+        fieldPresence: {
+          rsvpsEnabled: 330,
+          atCapacity: 330,
+          plusOneNamesRequired: 330,
+          questionnaireEnabled: 93,
+          questionnaireVersions: 330,
+          ticketing: 101,
+          guestAction: 22,
+          maxCountPerGuest: 36,
+          maxCapacity: 68,
+          remainingCapacity: 52,
+          enableWaitlist: 78,
+          password: 0,
+          passwordProtected: 0,
+        },
+        aggregates: expectedRsvpSafeguards,
+      },
+    });
+
+    const event = spec.components.schemas.EventInfo.properties;
+    expect(event).toMatchObject({
+      rsvpsEnabled: { type: 'boolean' },
+      atCapacity: { type: 'boolean' },
+      plusOneNamesRequired: { type: 'boolean' },
+      questionnaireEnabled: { type: 'boolean' },
+      questionnaireVersions: { type: ['array', 'null'], items: {} },
+      ticketing: { type: ['object', 'null'] },
+      guestAction: { type: 'string', enum: ['APPLY', 'RSVP'] },
+      maxCountPerGuest: { type: 'number' },
+      maxCapacity: { type: ['number', 'null'] },
+      remainingCapacity: { type: 'number' },
+      enableWaitlist: { type: ['boolean', 'null'] },
+    });
+    expect(spec.components.schemas.CurrentGuest.type)
+      .toEqual(['object', 'null']);
+    expect(spec.components.schemas.CurrentGuest.properties.count)
+      .toEqual({ type: 'number' });
+    expect(spec.components.schemas.GetCurrentGuestResponse.properties.result
+      .properties.data.required)
+      .toEqual(['currentGuest']);
+  });
+
   it('defines conservative nullable event reads and bounded local snapshots', () => {
     const product = fs.readFileSync(productContractPath, 'utf8');
     for (const expected of [
       '**Status:** Approved product contract',
-      '**Product contract revision:** `2026-08-12.2`',
-      '**Remote API contract revision:** `2026-08-12.2`',
+      '**Product contract revision:** `2026-08-12.3`',
+      '**Remote API contract revision:** `2026-08-12.3`',
       '**Currently shipped Go revisions:** product and remote `2026-08-12.1`',
       '`PUBLISHED` → `active`',
       '`CANCELED` → `cancelled`',
@@ -1055,8 +1369,8 @@ describe('remote API contract', () => {
       '`not-going` → `addGuest.rsvp.status = "DECLINED"`',
       '`interested` → `markEventInterest.interested = true`',
       '`source` is omitted for a direct event-page-equivalent request',
-      'does not prove that the remote RSVP state changed',
-      'does not automatically retry either mutation',
+      'persisted RSVP state',
+      'It never retries automatically.',
       'private stable account fingerprint',
       'five minutes',
       'single-use',
@@ -1076,6 +1390,81 @@ describe('remote API contract', () => {
     const appSource = fs.readFileSync('internal/app/app.go', 'utf8');
     expect(appSource).toContain('ProductContractRevision = "2026-08-12.1"');
     expect(appSource).toContain('RemoteContractRevision  = "2026-08-12.1"');
+  });
+
+  it('defines evidence-backed RSVP planning and submitted-only completion', () => {
+    const product = fs.readFileSync(productContractPath, 'utf8');
+    const rsvpSection = product.slice(
+      product.indexOf('### RSVP'),
+      product.indexOf('### Contacts'),
+    );
+    const adr = fs.readFileSync(
+      'docs/adr/0001-greenfield-go-module-seams.md',
+      'utf8',
+    );
+
+    for (const expected of [
+      '`displayName` is required for `going` and `not-going`',
+      '`currentGuest: null` is the authoritative no-current-guest marker',
+      'A missing `currentGuest` property',
+      '`contract.protocol_changed`',
+      '`getEventInfo` once and `getCurrentGuest` once',
+      '`rsvpsEnabled` must be present, boolean, and `true`',
+      '`guestAction: "APPLY"` is unsupported',
+      '`ticketing` must be absent or null',
+      '`password` and `passwordProtected` must be absent',
+      '`atCapacity: true` is unsupported for `going`',
+      'does not enter a waitlist',
+      '`partySize <= maxCountPerGuest`',
+      '`currentGuest.count` only when the current status is `GOING` or `APPROVED`',
+      '`additionalCount = max(0, partySize - currentCapacityCount)`',
+      '`additionalCount <= remainingCapacity`',
+      '`partySize = 1 + plusOnes.length`',
+      '`questionnaireEnabled: true`',
+      '`questionnaireVersions.length - 1`',
+      '`not-going` omits `questionnaireResponse`',
+      'normalized event safeguard snapshot',
+      'five-minute, single-use',
+      'consumes the token immediately before dispatch',
+      'exactly one transport attempt',
+      'requires a new plan',
+      'does not perform a post-write read',
+      '{"eventId":"evt_example","intent":"going","submitted":true}',
+      '`result.data.success` is truthy',
+      '`result.data.interested` strictly equals the submitted boolean',
+      'Input violations return `input.invalid`',
+    ]) {
+      expect(rsvpSection, expected).toContain(expected);
+    }
+    expect(rsvpSection).toMatch(
+      /Apply re-reads `getEventInfo` once and `getCurrentGuest` once[\s\S]+`safety\.plan_stale`/,
+    );
+    expect(rsvpSection).toMatch(
+      /server\s+rejection[\s\S]+`contract\.protocol_changed`/,
+    );
+    expect(rsvpSection).toContain(
+      '{"eventId":"evt_example","status":null}',
+    );
+
+    const publicPlanMatch = rsvpSection.match(
+      /Public RSVP plan example:\n\n```json\n([\s\S]*?)\n```/,
+    );
+    expect(publicPlanMatch).not.toBeNull();
+    const publicPlan = JSON.parse(publicPlanMatch[1]);
+    expect(publicPlan.request.rsvp.guestId).toBe('<redacted>');
+    expect(publicPlan).not.toHaveProperty('accountFingerprint');
+    expect(JSON.stringify(publicPlan)).not.toMatch(
+      /"(?:accountId|userId)"\s*:/,
+    );
+    expect(JSON.stringify(publicPlan)).not.toMatch(
+      /"guestId"\s*:\s*"(?!<redacted>)/,
+    );
+
+    expect(adr).toContain('normalized event safeguard snapshot');
+    expect(adr).toContain('current-guest marker, ID, status, and count');
+    expect(adr).toMatch(/immediately before\s+dispatch/);
+    expect(adr).toMatch(/requires a\s+new plan/);
+    expect(adr).toContain('submitted request');
   });
 
   it('formalizes only the observed event-detail and guest read variants', () => {
@@ -1160,33 +1549,37 @@ describe('remote API contract', () => {
     expect(spec.components.schemas.GetCurrentGuestResponse.properties.result
       .properties.data.required)
       .toEqual(['currentGuest']);
-    expect(spec.components.schemas.CurrentGuest).not.toHaveProperty('type');
-    expect(evidence.claims['#/components/schemas/CurrentGuest/type']).toBeUndefined();
+    expect(spec.components.schemas.CurrentGuest.type).toEqual(['object', 'null']);
+    expect(evidence.claims['#/components/schemas/CurrentGuest/type/0']
+      .classification).toBe('dated-live-observation');
+    expect(evidence.claims['#/components/schemas/CurrentGuest/type/1']
+      .classification).toBe('dated-live-observation');
     expect(spec.components.schemas.CurrentGuest).toMatchObject({
       properties: {
         id: { type: 'string' },
-        count: {},
+        count: { type: 'number' },
         name: { type: 'string' },
         plusOnes: {},
         status: { $ref: '#/components/schemas/GuestStatus' },
         userId: {},
       },
     });
-    expect(spec.components.schemas.CurrentGuest.properties.count).toEqual({});
+    expect(spec.components.schemas.CurrentGuest.properties.count)
+      .toEqual({ type: 'number' });
     expect(spec.components.schemas.CurrentGuest.properties.plusOnes).toEqual({});
     expect(spec.components.schemas.CurrentGuest.properties.userId).toEqual({});
     expect(spec.components.schemas.CurrentGuest.required ?? []).toEqual([]);
     expect(evidence.readObservation.getCurrentGuest.otherVariants)
       .toBe('explicit-unknown');
     expect(evidence.readObservation.getCurrentGuest.currentGuestNullability)
-      .toBe('explicit-unknown');
+      .toBe('null-observed');
     expect(evidence.readObservation.getCurrentGuest).toMatchObject({
-      sampleScope: 'one-selected-event',
+      sampleScope: 'two-selected-events-one-object-one-null',
       fieldPresence: 'selected-object-only',
       fieldNullabilityAndAlternateVariants: 'explicit-unknown',
       plusOnesVariants: 'explicit-unknown',
     });
-    for (const field of ['count', 'plusOnes', 'userId']) {
+    for (const field of ['plusOnes', 'userId']) {
       expect(evidence.claims[
         `#/components/schemas/CurrentGuest/properties/${field}/type`
       ]).toBeUndefined();
@@ -1197,8 +1590,8 @@ describe('remote API contract', () => {
       ]).toBeUndefined();
     }
     expect(evidence.unresolvedUncertainty).toEqual(expect.arrayContaining([
-      'Only one selected EventInfo object was observed; operation-wide field presence, nullability, and alternate variants remain unknown. Related event-list representations support only the optional endDate string/null and image object/null unions.',
-      'Only one CurrentGuest object was observed; operation-wide field presence, nullability, alternate variants, plus-one shape, unsupported statuses, and failure bodies remain unknown.',
+      'The RSVP read observation establishes aggregate presence and safeguard variants for 330 listed EventInfo objects; behavior outside that account-visible set, other field types, inaccessible events, and alternate responses remain unknown.',
+      'One CurrentGuest null and one object variant are observed; operation-wide object field presence, non-null plus-one shapes, unsupported statuses, other variants, and failure bodies remain unknown.',
     ]));
   });
 
@@ -1468,6 +1861,42 @@ describe('remote API contract', () => {
     expect(evidence.readObservation.artifactPath).toBe(readEvidencePath);
   });
 
+  it('strictly limits the RSVP read artifact to privacy-safe aggregates', () => {
+    assertRsvpReadArtifact(rsvpReadEvidence);
+
+    for (const mutate of [
+      (artifact) => {
+        artifact.rawGuestId = 'synthetic-private-id';
+      },
+      (artifact) => {
+        artifact.currentGuestVariants[0].currentGuest.value = 'synthetic-private-id';
+      },
+      (artifact) => {
+        artifact.eventDetails.fields[0].name = 'syntheticPrivateField';
+      },
+      (artifact) => {
+        artifact.eventDetails.safeguards.rawGuestName = 'synthetic-private-name';
+      },
+    ]) {
+      const mutated = structuredClone(rsvpReadEvidence);
+      mutate(mutated);
+      expect(() => assertRsvpReadArtifact(mutated)).toThrow();
+    }
+
+    const serialized = JSON.stringify(rsvpReadEvidence);
+    for (const unsafe of [
+      /(?<![\w])\+[1-9]\d{9,14}(?!\d)/,
+      /\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/i,
+      /\beyJ[A-Za-z0-9_-]{12,}\.[A-Za-z0-9_-]{8,}\./,
+      /"(?:eventId|guestId|userId|accountId|accessToken|refreshToken|authorization|credential)"\s*:/i,
+      /"(?:displayName|phone|phoneNumber|message|answer)"\s*:/i,
+    ]) {
+      expect(serialized).not.toMatch(unsafe);
+    }
+    expect(evidence.rsvpReadObservation.artifactPath)
+      .toBe(rsvpReadEvidencePath);
+  });
+
   it('keeps shipped Go revisions on the reviewed baseline while RSVP is proposed', () => {
     const productContract = fs.readFileSync(
       'docs/CLI-PRODUCT-CONTRACT.md',
@@ -1492,8 +1921,8 @@ describe('remote API contract', () => {
     )].map((match) => match[1]);
 
     expect(shippedRevision).toBe('2026-08-12.1');
-    expect(documentedRevision).toBe('2026-08-12.2');
-    expect(documentedProductRevision).toBe('2026-08-12.2');
+    expect(documentedRevision).toBe('2026-08-12.3');
+    expect(documentedProductRevision).toBe('2026-08-12.3');
     expect(new Set(envelopeRevisions)).toEqual(new Set([documentedRevision]));
     expect(spec.info.version).toBe(documentedRevision);
     expect(evidence.status).toBe('owner-reviewed');

@@ -1,8 +1,8 @@
 # Remote API contract
 
-`spec/partiful.openapi.json` is owner-reviewed revision `2026-08-12.2` of the
+`spec/partiful.openapi.json` is owner-reviewed revision `2026-08-12.3` of the
 remote transport snapshot. Its owner-reviewed baseline is
-`2026-08-12.1`, which is based on owner-reviewed revision `2026-08-11.5`. It
+`2026-08-12.2`, which is based on owner-reviewed revision `2026-08-12.1`. It
 describes only network operations and wire shapes. It does not prescribe
 commands, output, credentials, mutation safeguards, or implementation
 architecture.
@@ -45,12 +45,15 @@ Related event-list representations support only optional `endDate`
 string/null and `image` object/null unions; unsupported selected-only variants
 remain unconstrained.
 
-The current guest callable and its Firestore guest document returned `200`,
+At the `2026-08-11.5` baseline, the current guest callable and its Firestore
+guest document returned `200`,
 and their guest status matched. The one current-guest object does not
 establish operation-wide field presence or variants, so `CurrentGuest` has no
 operation-wide top-level type and no required field list. `count`, `plusOnes`,
-and `userId` remain unconstrained; ordinary non-null plus-one shape is
-unknown. Firestore event GET returned
+and `userId` remained unconstrained; ordinary non-null plus-one shape was
+unknown. The RSVP read-evidence proposal below supersedes only the observed
+top-level object/null union and selected count type. Firestore event GET
+returned
 `403 PERMISSION_DENIED` for both the selected readable ID and a synthetic ID
 with the observed authenticated request context. This does not establish
 attendee denial or Firestore not-found behavior.
@@ -99,7 +102,7 @@ reviewed `200` and `404 NOT_FOUND`; an unobserved `403` remains protocol drift.
 because its selected and synthetic requests both returned
 `403 PERMISSION_DENIED`.
 
-## RSVP mapping proposal
+## RSVP mapping baseline
 
 Revision `2026-08-12.2` adds unauthenticated first-party public-asset research
 from
@@ -107,7 +110,7 @@ from
 `z1npyrEHkwRMn_JlKXQXR` establishes the current client request and completion
 behavior without making a live mutation.
 
-The proposal corrects only these request facts:
+The revision corrects only these request facts:
 
 - `getCurrentGuest` sends `params.eventId`;
 - `addGuest` maps product going and not-going to `GOING` and `DECLINED`,
@@ -139,11 +142,57 @@ vocabulary. No current-guest property becomes required. The single live
 object and matching Firestore document remain the only response observation;
 callable null, alternate, and failure variants remain unknown.
 
-The proposal does not make RSVP releasable. Safe create-versus-update
-selection still lacks a reviewed null-current-guest response, and the
-selected-event precondition read does not guarantee all facts used by the
-current client. Those blockers are recorded in the research note and product
-contract.
+Revision `2026-08-12.2` did not include a dated null-current-guest response or
+the event safeguard aggregates needed by S5.
+
+## RSVP read-evidence proposal
+
+Revision `2026-08-12.3` adds the owner-authorized, sanitized read evidence in
+`docs/research/2026-08-12-rsvp-read-observation.md`. The source artifact is
+`spec/research/rsvp-read-evidence-redacted-20260812.json`. No credential,
+identifier, name, message, answer, or other raw value is present.
+
+The observation covered 36 upcoming and 294 past events, 330 unique details,
+and HTTP `200` for every `getEventInfo` call. This account-visible set adds
+optional `EventInfo` schemas for the exact RSVP safeguard fields. It does not
+establish behavior outside the set, inaccessible-event responses, or types for
+unretained event fields.
+
+The following fields were present as booleans on all 330 details:
+`rsvpsEnabled`, `atCapacity`, and `plusOneNamesRequired`.
+`questionnaireVersions` was present on all details as an array or null.
+Optional observed variants add schemas for boolean `questionnaireEnabled`,
+object/null `ticketing`, string `guestAction` values `APPLY` and `RSVP`,
+number `maxCountPerGuest`, number/null `maxCapacity`, number
+`remainingCapacity`, and boolean/null `enableWaitlist`. Optional means absence
+was observed; it does not make the property remotely required.
+
+The artifact's normalized null buckets include absent properties. Its raw
+field-presence counts remain authoritative. In particular:
+
+- `questionnaireEnabled` was absent 237 times and boolean 93 times;
+- `guestAction` was absent 308 times, `APPLY` 18 times, and `RSVP` 4 times;
+- `maxCountPerGuest` was absent 294 times and numeric 36 times;
+- `remainingCapacity` was absent 278 times and numeric 52 times; and
+- `password` and `passwordProtected` were absent on all 330 details.
+
+The proposal does not add password properties to OpenAPI or convert raw
+absence to an observed JSON null.
+
+One `getCurrentGuest` call returned HTTP `200` with explicit
+`result.data.currentGuest: null`. Another returned HTTP `200` with an object
+whose selected fields included string ID, string status, and number count.
+`CurrentGuest` therefore permits only the observed object/null top-level
+union, while no object property becomes operation-wide required. The
+`currentGuest` envelope property remains required because it was present in
+both variants. A missing property, scalar, array, other object shape,
+unsupported status, and failure response remain unknown and must fail closed.
+
+All `2026-08-12.2` RSVP mutation request and completion facts remain
+unchanged. This read evidence adds no `addGuest` or `markEventInterest`
+business-success claim. Every server rejection, unobserved status or body,
+persisted state, post-write read, delivery, waitlist, ticketing, application,
+and protected-event behavior remains explicit unknown.
 
 ## Historical provenance
 
