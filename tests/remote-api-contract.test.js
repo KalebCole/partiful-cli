@@ -554,7 +554,7 @@ describe('remote API contract', () => {
       ...materialClaimPointers(spec.paths, '#/paths', 'paths'),
       ...materialClaimPointers(spec.components, '#/components', 'components'),
     ]);
-    expect(pointers).toHaveLength(1640);
+    expect(pointers).toHaveLength(1639);
     for (const pointer of pointers) {
       const claim = evidence.claims[pointer];
       expect(claim, pointer).toBeDefined();
@@ -618,7 +618,7 @@ describe('remote API contract', () => {
     expect(ledger).toContain(
       '`firestorePatchEvent` uses the official Firestore PATCH path',
     );
-    expect(ledger.match(/The 1640 material claims/g)).toHaveLength(2);
+    expect(ledger.match(/The 1639 material claims/g)).toHaveLength(2);
     expect(ledger).toContain(
       '**Proposed contract revision:** `2026-08-12.4`',
     );
@@ -940,6 +940,8 @@ describe('remote API contract', () => {
       'arrayValue',
       'mapValue',
     ]);
+    expect(spec.components.schemas.FirestoreValue.oneOf[0].properties.nullValue)
+      .toEqual({ type: 'null' });
 
     expect(evidence.eventWriteAssetResearch).toMatchObject({
       sourceCitation: evidence.sources.publicEventWriteMapping20260812,

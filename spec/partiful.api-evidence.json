@@ -4307,10 +4307,6 @@
       "classification": "official-protocol-specification",
       "citation": "docs/research/2026-08-10-contract-evidence-sources.md#official-firestore-rest-protocol"
     },
-    "#/components/schemas/FirestoreValue/oneOf/0/properties/nullValue/const": {
-      "classification": "official-protocol-specification",
-      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#official-firestore-rest-protocol"
-    },
     "#/components/schemas/FirestoreValue/oneOf/0/additionalProperties": {
       "classification": "official-protocol-specification",
       "citation": "docs/research/2026-08-10-contract-evidence-sources.md#official-firestore-rest-protocol"

@@ -82,7 +82,7 @@ completion, and one official Firestore PATCH completion have typed response
 bodies. The schema-free send-code `200` and OpenAPI `default` responses do not
 claim a body.
 
-The 1640 material claims are audited by
+The 1639 material claims are audited by
 `tests/remote-api-contract.test.js`. Each ledger citation resolves either to a
 JSON Pointer in the committed non-authoritative historical artifact or to a
 heading in the committed stable source index. This keeps the audit independent
@@ -370,7 +370,7 @@ by the Go implementation's Firebase requests:
 Origin is unmodelled and remains unknown because the reviewed evidence
 establishes no Origin request fact.
 
-The 1640 material claims are audited by `tests/remote-api-contract.test.js`.
+The 1639 material claims are audited by `tests/remote-api-contract.test.js`.
 
 ## Resolved conflict
 

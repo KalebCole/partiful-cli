@@ -2300,8 +2300,7 @@
             ],
             "properties": {
               "nullValue": {
-                "type": "string",
-                "const": "NULL_VALUE"
+                "type": "null"
               }
             },
             "additionalProperties": false
