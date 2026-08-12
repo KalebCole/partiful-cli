@@ -249,8 +249,8 @@ describe('remote API contract', () => {
       .toBe(`${eventAssetResearchPath}#scope-and-provenance`);
     expect(citationResolves(evidence.sources.publicEventMapping20260812)).toBe(true);
     const appSource = fs.readFileSync('internal/app/app.go', 'utf8');
-    expect(appSource).toContain('ProductContractRevision = "2026-08-10.1"');
-    expect(appSource).toContain('RemoteContractRevision  = "2026-08-11.5"');
+    expect(appSource).toContain('ProductContractRevision = "2026-08-12.1"');
+    expect(appSource).toContain('RemoteContractRevision  = "2026-08-12.1"');
     const ids = operations().map(({ operation }) => operation.operationId);
     expect(ids).toHaveLength(27);
     expect(new Set(ids).size).toBe(ids.length);
@@ -934,8 +934,8 @@ describe('remote API contract', () => {
     );
 
     const appSource = fs.readFileSync('internal/app/app.go', 'utf8');
-    expect(appSource).toContain('ProductContractRevision = "2026-08-10.1"');
-    expect(appSource).toContain('RemoteContractRevision  = "2026-08-11.5"');
+    expect(appSource).toContain('ProductContractRevision = "2026-08-12.1"');
+    expect(appSource).toContain('RemoteContractRevision  = "2026-08-12.1"');
   });
 
   it('formalizes only the observed event-detail and guest read variants', () => {
@@ -1328,7 +1328,7 @@ describe('remote API contract', () => {
     expect(evidence.readObservation.artifactPath).toBe(readEvidencePath);
   });
 
-  it('keeps shipped Go revisions unchanged while the event contracts are proposed', () => {
+  it('ships the owner-reviewed event contract revisions', () => {
     const productContract = fs.readFileSync(
       'docs/CLI-PRODUCT-CONTRACT.md',
       'utf8',
@@ -1351,14 +1351,14 @@ describe('remote API contract', () => {
       /"remoteContractRevision": "([^"]+)"/g,
     )].map((match) => match[1]);
 
-    expect(shippedRevision).toBe('2026-08-11.5');
+    expect(shippedRevision).toBe('2026-08-12.1');
     expect(documentedRevision).toBe('2026-08-12.1');
     expect(documentedProductRevision).toBe('2026-08-12.1');
     expect(new Set(envelopeRevisions)).toEqual(new Set([documentedRevision]));
     expect(spec.info.version).toBe(documentedRevision);
     expect(evidence.status).toBe('owner-reviewed');
-    expect(spec.info.version).not.toBe(shippedRevision);
-    expect(appSource).toContain('ProductContractRevision = "2026-08-10.1"');
+    expect(spec.info.version).toBe(shippedRevision);
+    expect(appSource).toContain('ProductContractRevision = "2026-08-12.1"');
     expect(productContract)
       .not.toContain('currently leaves every operation response status and body unknown');
     expect(contactResearch)

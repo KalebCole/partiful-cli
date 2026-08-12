@@ -25,6 +25,20 @@ type scriptedHTTP struct {
 	do func(*http.Request) (*http.Response, error)
 }
 
+type synchronizedReader struct {
+	mutex sync.Mutex
+	value byte
+}
+
+func (reader *synchronizedReader) Read(buffer []byte) (int, error) {
+	reader.mutex.Lock()
+	defer reader.mutex.Unlock()
+	for index := range buffer {
+		buffer[index] = reader.value
+	}
+	return len(buffer), nil
+}
+
 type failingReadCloser struct {
 	err error
 }
@@ -47,6 +61,963 @@ func (script scriptedRoundTripper) RoundTrip(request *http.Request) (*http.Respo
 
 func (script scriptedHTTP) Do(request *http.Request) (*http.Response, error) {
 	return script.do(request)
+}
+
+func TestExecuteEventsListProjectsReviewedUpcomingEventWithoutPrompting(t *testing.T) {
+	const (
+		currentAccount = "private-current-account"
+		otherOwner     = "private-other-owner"
+		credentials    = `{"accessToken":"private-access-token","userId":"` +
+			currentAccount +
+			`","expiresAt":"2026-08-12T02:00:00Z"}`
+	)
+	terminal := &scriptedPrivateTerminal{values: []string{"must-not-be-read"}}
+	requestCount := 0
+	result := app.Execute(context.Background(), app.Request{
+		Argv:  []string{"events", "list", "--when", "upcoming"},
+		Stdin: strings.NewReader("must-not-be-read"),
+	}, app.Dependencies{
+		Files: fakeFilesystem{
+			readFile: func(string) ([]byte, error) {
+				return []byte(credentials), nil
+			},
+		},
+		CredentialsPath: "/config/partiful/credentials.json",
+		Now: func() time.Time {
+			return time.Date(2026, time.August, 12, 0, 0, 0, 0, time.UTC)
+		},
+		AuthRandom: strings.NewReader("0123456789abcdef"),
+		Terminal:   terminal,
+		HTTP: scriptedHTTP{do: func(request *http.Request) (*http.Response, error) {
+			requestCount++
+			if request.Method != http.MethodPost ||
+				request.URL.String() != "https://api.partiful.com/getMyUpcomingEventsForHomePage" {
+				t.Fatalf("request = %s %s, want reviewed upcoming operation", request.Method, request.URL)
+			}
+			if got := request.Header.Get("Authorization"); got != "Bearer private-access-token" {
+				t.Fatalf("authorization = %q, want bearer credential", got)
+			}
+			body, err := io.ReadAll(request.Body)
+			if err != nil {
+				t.Fatalf("read request body: %v", err)
+			}
+			const wantBody = `{"data":{"params":{},"amplitudeDeviceId":"MDEyMzQ1Njc4OWFiY2RlZg"}}`
+			if string(body) != wantBody {
+				t.Fatalf("request body = %s, want %s", body, wantBody)
+			}
+			return jsonResponse(
+				http.StatusOK,
+				`{"result":{"data":{"upcomingEvents":[{"id":"event-example","title":"Example event","startDate":"2026-09-12T19:00:00-07:00","endDate":null,"timezone":"America/Los_Angeles","status":"PUBLISHED","ownerIds":["`+otherOwner+`","`+currentAccount+`"],"guest":{"status":"GOING"}}]}}}`,
+			), nil
+		}},
+	})
+
+	const want = `{"ok":true,"data":{"items":[{"eventId":"event-example","title":"Example event","start":"2026-09-12T19:00:00-07:00","end":null,"timezone":"America/Los_Angeles","state":"active","userRole":"host","myRsvp":"going"}]},"meta":{"command":"events.list","cliVersion":"1.0.0","productContractRevision":"2026-08-12.1","remoteContractRevision":"2026-08-12.1","warnings":[],"page":{"limit":25,"nextCursor":null,"hasMore":false}}}` + "\n"
+	if result.ExitCode != 0 || result.Stdout != want || result.Stderr != "" {
+		t.Fatalf("result = %#v, want reviewed upcoming event projection", result)
+	}
+	if requestCount != 1 {
+		t.Fatalf("request count = %d, want one complete list call", requestCount)
+	}
+	if len(terminal.prompts) != 0 {
+		t.Fatalf("protected command prompted: %#v", terminal.prompts)
+	}
+	for _, privateValue := range []string{currentAccount, otherOwner, "private-access-token"} {
+		if strings.Contains(result.Stdout+result.Stderr, privateValue) {
+			t.Fatalf("output exposed private value %q", privateValue)
+		}
+	}
+}
+
+func TestExecuteEventsListRefreshesAndUsesTokenIdentityWithoutPrompting(t *testing.T) {
+	const (
+		currentAccount = "private-current-account"
+		newAccessToken = "eyJhbGciOiJub25lIn0." +
+			"eyJzdWIiOiJwcml2YXRlLWN1cnJlbnQtYWNjb3VudCJ9." +
+			"private-signature"
+		credentialsPath = "/config/partiful/credentials.json"
+	)
+	files := &memoryFilesystem{files: map[string][]byte{
+		credentialsPath: []byte(
+			`{"accessToken":"private-expired-access","refreshToken":"private-refresh-token","expiresAt":"2026-08-11T23:59:00Z"}`,
+		),
+	}}
+	terminal := &scriptedPrivateTerminal{values: []string{"must-not-be-read"}}
+	call := 0
+	result := app.Execute(context.Background(), app.Request{
+		Argv: []string{"events", "list", "--when", "upcoming"},
+	}, app.Dependencies{
+		Files:           files,
+		CredentialsPath: credentialsPath,
+		Now: func() time.Time {
+			return time.Date(2026, time.August, 12, 0, 0, 0, 0, time.UTC)
+		},
+		AuthRandom: strings.NewReader("0123456789abcdef"),
+		Terminal:   terminal,
+		HTTP: scriptedHTTP{do: func(request *http.Request) (*http.Response, error) {
+			call++
+			switch call {
+			case 1:
+				if request.URL.Host != "securetoken.googleapis.com" {
+					t.Fatalf("first request host = %q, want refresh", request.URL.Host)
+				}
+				return jsonResponse(
+					http.StatusOK,
+					`{"access_token":"private-access-alias","id_token":"`+newAccessToken+`","refresh_token":"private-new-refresh","expires_in":"3600","token_type":"Bearer","project_id":"private-project"}`,
+				), nil
+			case 2:
+				if request.URL.String() !=
+					"https://api.partiful.com/getMyUpcomingEventsForHomePage" {
+					t.Fatalf("second request = %s, want upcoming events", request.URL)
+				}
+				if got := request.Header.Get("Authorization"); got != "Bearer "+newAccessToken {
+					t.Fatalf("authorization = %q, want refreshed bearer", got)
+				}
+				return jsonResponse(
+					http.StatusOK,
+					`{"result":{"data":{"upcomingEvents":[{"id":"event-example","ownerIds":["`+currentAccount+`"]}]}}}`,
+				), nil
+			default:
+				t.Fatalf("unexpected request %d: %s", call, request.URL)
+				return nil, nil
+			}
+		}},
+	})
+
+	const want = `{"ok":true,"data":{"items":[{"eventId":"event-example","title":null,"start":null,"end":null,"timezone":null,"state":null,"userRole":"host","myRsvp":null}]},"meta":{"command":"events.list","cliVersion":"1.0.0","productContractRevision":"2026-08-12.1","remoteContractRevision":"2026-08-12.1","warnings":[],"page":{"limit":25,"nextCursor":null,"hasMore":false}}}` + "\n"
+	if result.ExitCode != 0 || result.Stdout != want || result.Stderr != "" {
+		t.Fatalf("result = %#v, want refreshed identity projection", result)
+	}
+	if call != 2 || files.atomicWrites != 1 {
+		t.Fatalf("requests = %d, writes = %d, want one refresh and one event read", call, files.atomicWrites)
+	}
+	if len(terminal.prompts) != 0 {
+		t.Fatalf("protected refresh prompted: %#v", terminal.prompts)
+	}
+	for _, privateValue := range []string{
+		currentAccount,
+		newAccessToken,
+		"private-refresh-token",
+		"private-new-refresh",
+	} {
+		if strings.Contains(result.Stdout+result.Stderr, privateValue) {
+			t.Fatalf("output exposed private value %q", privateValue)
+		}
+	}
+}
+
+func TestExecuteProtectedEventSessionSerializesRefresh(t *testing.T) {
+	const credentialsPath = "/config/partiful/credentials.json"
+	files := &memoryFilesystem{files: map[string][]byte{
+		credentialsPath: []byte(
+			`{"accessToken":"private-expired-access","refreshToken":"private-refresh-token","expiresAt":"2026-08-11T23:59:00Z"}`,
+		),
+	}}
+	terminal := &scriptedPrivateTerminal{values: []string{"must-not-be-read"}}
+	random := &synchronizedReader{value: 'x'}
+	var httpMutex sync.Mutex
+	refreshCalls := 0
+	eventCalls := 0
+	dependencies := app.Dependencies{
+		Files:           files,
+		CredentialsPath: credentialsPath,
+		Now: func() time.Time {
+			return time.Date(2026, time.August, 12, 0, 0, 0, 0, time.UTC)
+		},
+		AuthRandom: random,
+		Terminal:   terminal,
+		HTTP: scriptedHTTP{do: func(request *http.Request) (*http.Response, error) {
+			httpMutex.Lock()
+			defer httpMutex.Unlock()
+			switch request.URL.Host {
+			case "securetoken.googleapis.com":
+				refreshCalls++
+				return jsonResponse(
+					http.StatusOK,
+					`{"access_token":"private-access-alias","id_token":"private-new-access","refresh_token":"private-new-refresh","expires_in":"3600","token_type":"Bearer"}`,
+				), nil
+			case "api.partiful.com":
+				eventCalls++
+				return jsonResponse(
+					http.StatusOK,
+					`{"result":{"data":{"upcomingEvents":[]}}}`,
+				), nil
+			default:
+				t.Fatalf("unexpected request %s", request.URL)
+				return nil, nil
+			}
+		}},
+	}
+
+	results := make(chan app.Result, 2)
+	var group sync.WaitGroup
+	for range 2 {
+		group.Add(1)
+		go func() {
+			defer group.Done()
+			results <- app.Execute(context.Background(), app.Request{
+				Argv: []string{"events", "list", "--when", "upcoming"},
+			}, dependencies)
+		}()
+	}
+	group.Wait()
+	close(results)
+	for result := range results {
+		if result.ExitCode != 0 ||
+			!strings.Contains(result.Stdout, `"items":[]`) ||
+			result.Stderr != "" {
+			t.Fatalf("result = %#v, want serialized protected read", result)
+		}
+	}
+	if refreshCalls != 1 || eventCalls != 2 || files.atomicWrites != 1 {
+		t.Fatalf(
+			"refreshes = %d, events = %d, writes = %d, want 1/2/1",
+			refreshCalls,
+			eventCalls,
+			files.atomicWrites,
+		)
+	}
+	if len(terminal.prompts) != 0 {
+		t.Fatalf("protected commands prompted: %#v", terminal.prompts)
+	}
+}
+
+func TestExecuteEventsListMapsInvalidCredentialStorageWithoutPrompting(t *testing.T) {
+	const privateCredential = "private-invalid-credential"
+	terminal := &scriptedPrivateTerminal{values: []string{"must-not-be-read"}}
+	result := app.Execute(context.Background(), app.Request{
+		Argv: []string{"events", "list", "--when", "upcoming"},
+	}, app.Dependencies{
+		Files: fakeFilesystem{
+			readFile: func(string) ([]byte, error) {
+				return []byte(privateCredential), nil
+			},
+		},
+		CredentialsPath: "/config/partiful/credentials.json",
+		Terminal:        terminal,
+		HTTP: scriptedHTTP{do: func(*http.Request) (*http.Response, error) {
+			t.Fatal("remote must not be called")
+			return nil, nil
+		}},
+	})
+
+	if result.ExitCode != 10 ||
+		!strings.Contains(result.Stdout, `"type":"internal.failure"`) ||
+		!strings.Contains(result.Stdout, `"code":"CREDENTIALS_INVALID"`) {
+		t.Fatalf("result = %#v, want invalid credential storage mapping", result)
+	}
+	if len(terminal.prompts) != 0 {
+		t.Fatalf("protected command prompted: %#v", terminal.prompts)
+	}
+	if strings.Contains(result.Stdout+result.Stderr, privateCredential) {
+		t.Fatal("invalid storage failure exposed private content")
+	}
+}
+
+func TestExecuteProtectedEventReadsRequireAuthenticationWithoutPrompting(t *testing.T) {
+	terminal := &scriptedPrivateTerminal{values: []string{"must-not-be-read"}}
+	for _, argv := range [][]string{
+		{"events", "list", "--when", "upcoming"},
+		{"events", "get", "event-example"},
+	} {
+		result := app.Execute(context.Background(), app.Request{
+			Argv: argv,
+		}, app.Dependencies{
+			Files: fakeFilesystem{
+				readFile: func(string) ([]byte, error) {
+					return nil, fs.ErrNotExist
+				},
+			},
+			CredentialsPath: "/config/partiful/credentials.json",
+			Terminal:        terminal,
+			AuthRandom:      strings.NewReader("must-not-be-read"),
+			HTTP: scriptedHTTP{do: func(*http.Request) (*http.Response, error) {
+				t.Fatal("remote must not be called")
+				return nil, nil
+			}},
+		})
+
+		if result.ExitCode != 3 ||
+			!strings.Contains(result.Stdout, `"type":"auth.required"`) ||
+			!strings.Contains(result.Stdout, `"code":"AUTHENTICATION_REQUIRED"`) {
+			t.Fatalf("%v result = %#v, want authentication requirement", argv, result)
+		}
+	}
+	if len(terminal.prompts) != 0 {
+		t.Fatalf("protected commands prompted: %#v", terminal.prompts)
+	}
+}
+
+func TestExecuteEventsListProjectsPastRolesAndEveryReviewedRSVP(t *testing.T) {
+	const credentials = `{"accessToken":"private-access-token","userId":"private-current-account","expiresAt":"2026-08-12T02:00:00Z"}`
+	statuses := []string{
+		"READY_TO_SEND",
+		"SENDING",
+		"SEND_ERROR",
+		"DELIVERY_ERROR",
+		"SENT",
+		"INTERESTED",
+		"WAITLIST",
+		"MAYBE",
+		"DECLINED",
+		"GOING",
+		"PENDING_APPROVAL",
+		"APPROVED",
+		"WITHDRAWN",
+		"WAITLISTED_FOR_APPROVAL",
+		"REJECTED",
+		"RESPONDED_TO_FIND_A_TIME",
+	}
+	readValues := []string{
+		"ready-to-send",
+		"sending",
+		"send-error",
+		"delivery-error",
+		"sent",
+		"interested",
+		"waitlist",
+		"maybe",
+		"declined",
+		"going",
+		"pending-approval",
+		"approved",
+		"withdrawn",
+		"waitlisted-for-approval",
+		"rejected",
+		"responded-to-find-a-time",
+	}
+	items := make([]string, 0, len(statuses))
+	for index, status := range statuses {
+		owners := `["private-other-owner"]`
+		switch index {
+		case 0:
+			owners = `["private-current-account"]`
+		case 2:
+			owners = `[]`
+		case 3:
+			owners = ""
+		}
+		ownerProperty := ""
+		if owners != "" {
+			ownerProperty = `,"ownerIds":` + owners
+		}
+		items = append(items, fmt.Sprintf(
+			`{"id":"event-%02d","status":"CANCELED"%s,"guest":{"status":"%s"}}`,
+			index,
+			ownerProperty,
+			status,
+		))
+	}
+	items = append(
+		items,
+		`{"id":"event-none","ownerIds":["private-other-owner"]}`,
+	)
+	terminal := &scriptedPrivateTerminal{values: []string{"must-not-be-read"}}
+	result := app.Execute(context.Background(), app.Request{
+		Argv: []string{
+			"events",
+			"list",
+			"--when",
+			"past",
+			"--all",
+			"--max-items",
+			"1000",
+		},
+	}, app.Dependencies{
+		Files: fakeFilesystem{
+			readFile: func(string) ([]byte, error) {
+				return []byte(credentials), nil
+			},
+		},
+		CredentialsPath: "/config/partiful/credentials.json",
+		Now: func() time.Time {
+			return time.Date(2026, time.August, 12, 0, 0, 0, 0, time.UTC)
+		},
+		AuthRandom: strings.NewReader("0123456789abcdef"),
+		Terminal:   terminal,
+		HTTP: scriptedHTTP{do: func(request *http.Request) (*http.Response, error) {
+			if request.URL.String() !=
+				"https://api.partiful.com/getMyPastEventsForHomePage" {
+				t.Fatalf("request = %s, want reviewed past operation", request.URL)
+			}
+			body, err := io.ReadAll(request.Body)
+			if err != nil {
+				t.Fatalf("read request body: %v", err)
+			}
+			const wantBody = `{"data":{"params":{},"amplitudeDeviceId":"MDEyMzQ1Njc4OWFiY2RlZg"}}`
+			if string(body) != wantBody {
+				t.Fatalf("request body = %s, want %s", body, wantBody)
+			}
+			return jsonResponse(
+				http.StatusOK,
+				`{"result":{"data":{"pastEvents":[`+strings.Join(items, ",")+`]}}}`,
+			), nil
+		}},
+	})
+
+	var envelope struct {
+		OK   bool `json:"ok"`
+		Data struct {
+			Items []struct {
+				EventID  string  `json:"eventId"`
+				State    *string `json:"state"`
+				UserRole *string `json:"userRole"`
+				MyRSVP   *string `json:"myRsvp"`
+			} `json:"items"`
+		} `json:"data"`
+		Meta struct {
+			Page struct {
+				Limit      int     `json:"limit"`
+				NextCursor *string `json:"nextCursor"`
+				HasMore    bool    `json:"hasMore"`
+			} `json:"page"`
+		} `json:"meta"`
+	}
+	if err := json.Unmarshal([]byte(result.Stdout), &envelope); err != nil {
+		t.Fatalf("decode output: %v", err)
+	}
+	if result.ExitCode != 0 ||
+		!envelope.OK ||
+		len(envelope.Data.Items) != len(statuses)+1 {
+		t.Fatalf("result = %#v, output = %#v, want all reviewed RSVP projections", result, envelope)
+	}
+	wantRoles := []*string{
+		stringPointer("host"),
+		stringPointer("attendee"),
+		stringPointer("attendee"),
+		nil,
+	}
+	for index, item := range envelope.Data.Items[:len(statuses)] {
+		if item.EventID != fmt.Sprintf("event-%02d", index) ||
+			item.State == nil ||
+			*item.State != "cancelled" ||
+			item.MyRSVP == nil ||
+			*item.MyRSVP != readValues[index] {
+			t.Fatalf("item %d = %#v, want exact lossless mapping", index, item)
+		}
+		if index < len(wantRoles) && !reflect.DeepEqual(item.UserRole, wantRoles[index]) {
+			t.Fatalf("item %d role = %#v, want %#v", index, item.UserRole, wantRoles[index])
+		}
+	}
+	noneItem := envelope.Data.Items[len(statuses)]
+	if noneItem.EventID != "event-none" ||
+		noneItem.State != nil ||
+		noneItem.UserRole == nil ||
+		*noneItem.UserRole != "none" ||
+		noneItem.MyRSVP != nil {
+		t.Fatalf("non-attendee item = %#v, want none role and null RSVP", noneItem)
+	}
+	if envelope.Meta.Page.Limit != 1000 ||
+		envelope.Meta.Page.NextCursor != nil ||
+		envelope.Meta.Page.HasMore {
+		t.Fatalf("page = %#v, want complete local representation", envelope.Meta.Page)
+	}
+	if len(terminal.prompts) != 0 {
+		t.Fatalf("protected command prompted: %#v", terminal.prompts)
+	}
+}
+
+func TestExecuteEventsListRejectsUnmappedStatusOutsideRequestedPage(t *testing.T) {
+	const privateDraftTitle = "private draft event"
+	result := app.Execute(context.Background(), app.Request{
+		Argv: []string{"events", "list", "--when", "upcoming", "--limit", "1"},
+	}, withTestCursorCrypto(app.Dependencies{
+		Files: fakeFilesystem{
+			readFile: func(string) ([]byte, error) {
+				return []byte(
+					`{"accessToken":"private-access-token","expiresAt":"2026-08-12T02:00:00Z"}`,
+				), nil
+			},
+		},
+		CredentialsPath: "/config/partiful/credentials.json",
+		Now: func() time.Time {
+			return time.Date(2026, time.August, 12, 0, 0, 0, 0, time.UTC)
+		},
+		AuthRandom: strings.NewReader("0123456789abcdef"),
+		HTTP: scriptedHTTP{do: func(*http.Request) (*http.Response, error) {
+			return jsonResponse(
+				http.StatusOK,
+				`{"result":{"data":{"upcomingEvents":[{"id":"event-visible","status":"PUBLISHED"},{"id":"event-hidden","title":"`+privateDraftTitle+`","status":"UNSAVED"}]}}}`,
+			), nil
+		}},
+	}))
+
+	if result.ExitCode != 9 ||
+		!strings.Contains(result.Stdout, `"type":"contract.protocol_changed"`) ||
+		!strings.Contains(result.Stdout, `"code":"EVENT_LIST_PROTOCOL_CHANGED"`) {
+		t.Fatalf("result = %#v, want unmapped complete-response status failure", result)
+	}
+	if strings.Contains(result.Stdout+result.Stderr, privateDraftTitle) {
+		t.Fatal("protocol failure exposed hidden event data")
+	}
+}
+
+func TestExecuteEventsListUsesDigestAndFilterBoundLocalCursor(t *testing.T) {
+	const (
+		credentials = `{"accessToken":"private-access-token","expiresAt":"2026-08-12T02:00:00Z"}`
+		firstBody   = `{"result":{"data":{"upcomingEvents":[{"id":"event-a"},{"id":"event-b"}]}}}`
+		changedBody = `{"result":{"data":{"upcomingEvents":[{"id":"event-replacement"},{"id":"event-b"}]}}}`
+	)
+	call := 0
+	dependencies := withTestCursorCrypto(app.Dependencies{
+		Files: fakeFilesystem{
+			readFile: func(string) ([]byte, error) {
+				return []byte(credentials), nil
+			},
+		},
+		CredentialsPath: "/config/partiful/credentials.json",
+		Now: func() time.Time {
+			return time.Date(2026, time.August, 12, 0, 0, 0, 0, time.UTC)
+		},
+		AuthRandom: strings.NewReader(strings.Repeat("0123456789abcdef", 4)),
+		HTTP: scriptedHTTP{do: func(request *http.Request) (*http.Response, error) {
+			call++
+			if request.URL.String() !=
+				"https://api.partiful.com/getMyUpcomingEventsForHomePage" {
+				t.Fatalf("request = %s, want upcoming refetch", request.URL)
+			}
+			if call <= 2 {
+				return jsonResponse(http.StatusOK, firstBody), nil
+			}
+			return jsonResponse(http.StatusOK, changedBody), nil
+		}},
+	})
+	first := app.Execute(context.Background(), app.Request{
+		Argv: []string{"events", "list", "--when", "upcoming", "--limit", "1"},
+	}, dependencies)
+	var firstEnvelope struct {
+		Data struct {
+			Items []struct {
+				EventID string `json:"eventId"`
+			} `json:"items"`
+		} `json:"data"`
+		Meta struct {
+			Page struct {
+				NextCursor *string `json:"nextCursor"`
+				HasMore    bool    `json:"hasMore"`
+			} `json:"page"`
+		} `json:"meta"`
+	}
+	if json.Unmarshal([]byte(first.Stdout), &firstEnvelope) != nil ||
+		first.ExitCode != 0 ||
+		len(firstEnvelope.Data.Items) != 1 ||
+		firstEnvelope.Data.Items[0].EventID != "event-a" ||
+		firstEnvelope.Meta.Page.NextCursor == nil ||
+		!firstEnvelope.Meta.Page.HasMore {
+		t.Fatalf("first result = %#v, output = %#v, want resumable local page", first, firstEnvelope)
+	}
+	cursor := *firstEnvelope.Meta.Page.NextCursor
+
+	second := app.Execute(context.Background(), app.Request{
+		Argv: []string{
+			"events", "list", "--when", "upcoming", "--limit", "1", "--cursor", cursor,
+		},
+	}, dependencies)
+	if second.ExitCode != 0 ||
+		!strings.Contains(second.Stdout, `"eventId":"event-b"`) ||
+		!strings.Contains(second.Stdout, `"nextCursor":null`) {
+		t.Fatalf("second result = %#v, want exact local resume", second)
+	}
+
+	filterMismatch := app.Execute(context.Background(), app.Request{
+		Argv: []string{
+			"events", "list", "--when", "past", "--limit", "1", "--cursor", cursor,
+		},
+	}, dependencies)
+	if filterMismatch.ExitCode != 2 ||
+		!strings.Contains(filterMismatch.Stdout, `"code":"CURSOR_FILTER_MISMATCH"`) {
+		t.Fatalf("filter mismatch = %#v, want cursor filter rejection", filterMismatch)
+	}
+	if call != 2 {
+		t.Fatalf("request count after filter mismatch = %d, want no mismatched refetch", call)
+	}
+
+	changed := app.Execute(context.Background(), app.Request{
+		Argv: []string{
+			"events", "list", "--when", "upcoming", "--limit", "1", "--cursor", cursor,
+		},
+	}, dependencies)
+	if changed.ExitCode != 6 ||
+		!strings.Contains(changed.Stdout, `"type":"state.conflict"`) ||
+		!strings.Contains(changed.Stdout, `"code":"CURSOR_SNAPSHOT_CHANGED"`) {
+		t.Fatalf("changed result = %#v, want digest conflict", changed)
+	}
+	for _, privateValue := range []string{"event-a", "event-b", "event-replacement"} {
+		if strings.Contains(changed.Stdout+changed.Stderr, privateValue) {
+			t.Fatalf("snapshot conflict exposed event value %q", privateValue)
+		}
+	}
+}
+
+func TestExecuteEventsListFailsClosedInsteadOfTruncatingLocalBounds(t *testing.T) {
+	itemDocuments := make([]string, 1001)
+	for index := range itemDocuments {
+		itemDocuments[index] = fmt.Sprintf(`{"id":"event-%04d"}`, index)
+	}
+	cases := []struct {
+		name string
+		body string
+	}{
+		{
+			name: "item count",
+			body: `{"result":{"data":{"upcomingEvents":[` +
+				strings.Join(itemDocuments, ",") +
+				`]}}}`,
+		},
+		{
+			name: "body bytes",
+			body: `{"result":{"data":{"upcomingEvents":[{"id":"event-large","title":"` +
+				strings.Repeat("private-large-value", (8<<20)/len("private-large-value")+1) +
+				`"}]}}}`,
+		},
+	}
+	for _, testCase := range cases {
+		t.Run(testCase.name, func(t *testing.T) {
+			result := app.Execute(context.Background(), app.Request{
+				Argv: []string{"events", "list", "--when", "upcoming", "--all", "--max-items", "1000"},
+			}, app.Dependencies{
+				Files: fakeFilesystem{
+					readFile: func(string) ([]byte, error) {
+						return []byte(
+							`{"accessToken":"private-access-token","expiresAt":"2026-08-12T02:00:00Z"}`,
+						), nil
+					},
+				},
+				CredentialsPath: "/config/partiful/credentials.json",
+				Now: func() time.Time {
+					return time.Date(2026, time.August, 12, 0, 0, 0, 0, time.UTC)
+				},
+				AuthRandom: strings.NewReader("0123456789abcdef"),
+				HTTP: scriptedHTTP{do: func(*http.Request) (*http.Response, error) {
+					return jsonResponse(http.StatusOK, testCase.body), nil
+				}},
+			})
+
+			if result.ExitCode != 9 ||
+				!strings.Contains(result.Stdout, `"type":"contract.protocol_changed"`) ||
+				!strings.Contains(result.Stdout, `"code":"EVENT_LIST_BOUND_EXCEEDED"`) ||
+				strings.Contains(result.Stdout, `"ok":true`) {
+				t.Fatalf("result = %#v, want closed bound failure without truncation", result)
+			}
+		})
+	}
+}
+
+func TestExecuteEventsGetProjectsReviewedDetailAndNullUnavailableFields(t *testing.T) {
+	const (
+		credentials        = `{"accessToken":"private-access-token","expiresAt":"2026-08-12T02:00:00Z"}`
+		privateRemoteID    = "private-different-remote-event"
+		privateDescription = "private unprojected description"
+	)
+	terminal := &scriptedPrivateTerminal{values: []string{"must-not-be-read"}}
+	result := app.Execute(context.Background(), app.Request{
+		Argv: []string{"events", "get", "event-example"},
+	}, app.Dependencies{
+		Files: fakeFilesystem{
+			readFile: func(string) ([]byte, error) {
+				return []byte(credentials), nil
+			},
+		},
+		CredentialsPath: "/config/partiful/credentials.json",
+		Now: func() time.Time {
+			return time.Date(2026, time.August, 12, 0, 0, 0, 0, time.UTC)
+		},
+		AuthRandom: strings.NewReader("0123456789abcdef"),
+		Terminal:   terminal,
+		HTTP: scriptedHTTP{do: func(request *http.Request) (*http.Response, error) {
+			if request.Method != http.MethodPost ||
+				request.URL.String() != "https://api.partiful.com/getEventInfo" {
+				t.Fatalf("request = %s %s, want reviewed event detail operation", request.Method, request.URL)
+			}
+			if got := request.Header.Get("Authorization"); got != "Bearer private-access-token" {
+				t.Fatalf("authorization = %q, want bearer credential", got)
+			}
+			body, err := io.ReadAll(request.Body)
+			if err != nil {
+				t.Fatalf("read request body: %v", err)
+			}
+			const wantBody = `{"data":{"params":{"eventId":"event-example"},"amplitudeDeviceId":"MDEyMzQ1Njc4OWFiY2RlZg"}}`
+			if string(body) != wantBody {
+				t.Fatalf("request body = %s, want %s", body, wantBody)
+			}
+			return jsonResponse(
+				http.StatusOK,
+				`{"result":{"data":{"event":{"id":"`+privateRemoteID+`","title":"Example event","startDate":"2026-09-12T19:00:00-07:00","endDate":"2026-09-12T22:00:00-07:00","timezone":"America/Los_Angeles","status":"CANCELED","description":"`+privateDescription+`","location":"private unreviewed location","links":["private unreviewed link"]}}}}`,
+			), nil
+		}},
+	})
+
+	const want = `{"ok":true,"data":{"eventId":"event-example","title":"Example event","start":"2026-09-12T19:00:00-07:00","end":"2026-09-12T22:00:00-07:00","timezone":"America/Los_Angeles","state":"cancelled","userRole":null,"myRsvp":null,"description":null,"location":null,"address":null,"visibility":null,"guestLimit":null,"poster":null,"links":null},"meta":{"command":"events.get","cliVersion":"1.0.0","productContractRevision":"2026-08-12.1","remoteContractRevision":"2026-08-12.1","warnings":[]}}` + "\n"
+	if result.ExitCode != 0 || result.Stdout != want || result.Stderr != "" {
+		t.Fatalf("result = %#v, want reviewed nullable event detail", result)
+	}
+	if len(terminal.prompts) != 0 {
+		t.Fatalf("protected command prompted: %#v", terminal.prompts)
+	}
+	for _, privateValue := range []string{
+		privateRemoteID,
+		privateDescription,
+		"private unreviewed location",
+		"private unreviewed link",
+		"private-access-token",
+	} {
+		if strings.Contains(result.Stdout+result.Stderr, privateValue) {
+			t.Fatalf("output exposed unavailable or private value %q", privateValue)
+		}
+	}
+}
+
+func TestExecuteEventsGetMapsOnlyReviewedFailuresAndObjectVariants(t *testing.T) {
+	cases := []struct {
+		name        string
+		status      int
+		body        string
+		remoteErr   error
+		exitCode    int
+		failureType string
+		code        string
+	}{
+		{
+			name:        "reviewed not found",
+			status:      http.StatusNotFound,
+			body:        `{"error":{"message":"private missing event detail","status":"NOT_FOUND"}}`,
+			exitCode:    5,
+			failureType: "resource.not_found",
+			code:        "EVENT_NOT_FOUND",
+		},
+		{
+			name:        "unobserved forbidden",
+			status:      http.StatusForbidden,
+			body:        `{"error":{"message":"private forbidden detail","status":"PERMISSION_DENIED"}}`,
+			exitCode:    9,
+			failureType: "contract.protocol_changed",
+			code:        "EVENT_PROTOCOL_CHANGED",
+		},
+		{
+			name:        "null event",
+			status:      http.StatusOK,
+			body:        `{"result":{"data":{"event":null}}}`,
+			exitCode:    9,
+			failureType: "contract.protocol_changed",
+			code:        "EVENT_PROTOCOL_CHANGED",
+		},
+		{
+			name:        "scalar event",
+			status:      http.StatusOK,
+			body:        `{"result":{"data":{"event":"private scalar"}}}`,
+			exitCode:    9,
+			failureType: "contract.protocol_changed",
+			code:        "EVENT_PROTOCOL_CHANGED",
+		},
+		{
+			name:        "array event",
+			status:      http.StatusOK,
+			body:        `{"result":{"data":{"event":[]}}}`,
+			exitCode:    9,
+			failureType: "contract.protocol_changed",
+			code:        "EVENT_PROTOCOL_CHANGED",
+		},
+		{
+			name:        "unmapped draft",
+			status:      http.StatusOK,
+			body:        `{"result":{"data":{"event":{"status":"UNSAVED","title":"private draft"}}}}`,
+			exitCode:    9,
+			failureType: "contract.protocol_changed",
+			code:        "EVENT_PROTOCOL_CHANGED",
+		},
+		{
+			name:        "transport unavailable",
+			remoteErr:   errors.New("private transport failure"),
+			exitCode:    8,
+			failureType: "remote.unavailable",
+			code:        "EVENT_UNAVAILABLE",
+		},
+	}
+	for _, testCase := range cases {
+		t.Run(testCase.name, func(t *testing.T) {
+			result := app.Execute(context.Background(), app.Request{
+				Argv: []string{"events", "get", "event-example"},
+			}, app.Dependencies{
+				Files: fakeFilesystem{
+					readFile: func(string) ([]byte, error) {
+						return []byte(
+							`{"accessToken":"private-access-token","expiresAt":"2026-08-12T02:00:00Z"}`,
+						), nil
+					},
+				},
+				CredentialsPath: "/config/partiful/credentials.json",
+				Now: func() time.Time {
+					return time.Date(2026, time.August, 12, 0, 0, 0, 0, time.UTC)
+				},
+				AuthRandom: strings.NewReader("0123456789abcdef"),
+				HTTP: scriptedHTTP{do: func(request *http.Request) (*http.Response, error) {
+					if strings.Contains(request.URL.Path, "firestore") ||
+						strings.Contains(request.URL.Path, "getCurrentGuest") ||
+						strings.Contains(request.URL.Path, "firestoreGetGuest") {
+						t.Fatalf("called forbidden S3 operation %s", request.URL)
+					}
+					if testCase.remoteErr != nil {
+						return nil, testCase.remoteErr
+					}
+					return jsonResponse(testCase.status, testCase.body), nil
+				}},
+			})
+
+			if result.ExitCode != testCase.exitCode ||
+				!strings.Contains(result.Stdout, `"type":"`+testCase.failureType+`"`) ||
+				!strings.Contains(result.Stdout, `"code":"`+testCase.code+`"`) {
+				t.Fatalf("result = %#v, want %s/%s", result, testCase.failureType, testCase.code)
+			}
+			for _, privateValue := range []string{
+				"private missing event detail",
+				"private forbidden detail",
+				"private scalar",
+				"private draft",
+				"private transport failure",
+			} {
+				if strings.Contains(result.Stdout+result.Stderr, privateValue) {
+					t.Fatalf("failure exposed private value %q", privateValue)
+				}
+			}
+		})
+	}
+}
+
+func TestExecuteSchemaProjectsCompleteEventReadDefinitions(t *testing.T) {
+	type schemaEnvelope struct {
+		Data struct {
+			Command     string `json:"command"`
+			Positionals []struct {
+				Name     string `json:"name"`
+				Required bool   `json:"required"`
+			} `json:"positionals"`
+			Flags []struct {
+				Name     string `json:"name"`
+				Required bool   `json:"required"`
+			} `json:"flags"`
+			InputSchema struct {
+				Required   []string `json:"required"`
+				Properties map[string]struct {
+					Enum      []string `json:"enum"`
+					MinLength *int     `json:"minLength"`
+				} `json:"properties"`
+			} `json:"inputSchema"`
+			SuccessSchema struct {
+				Required   []string `json:"required"`
+				Properties map[string]struct {
+					Type  any `json:"type"`
+					Items struct {
+						Required []string `json:"required"`
+					} `json:"items"`
+				} `json:"properties"`
+			} `json:"successSchema"`
+			FailureTypes []string `json:"failureTypes"`
+			Safety       struct {
+				Kind                 string `json:"kind"`
+				PlanRequired         bool   `json:"planRequired"`
+				ConfirmationRequired bool   `json:"confirmationRequired"`
+			} `json:"safety"`
+		} `json:"data"`
+	}
+
+	listResult := app.Execute(context.Background(), app.Request{
+		Argv: []string{"schema", "events.list"},
+	}, app.Dependencies{})
+	var list schemaEnvelope
+	if json.Unmarshal([]byte(listResult.Stdout), &list) != nil || listResult.ExitCode != 0 {
+		t.Fatalf("list schema result = %#v", listResult)
+	}
+	if list.Data.Command != "events.list" ||
+		!reflect.DeepEqual(list.Data.InputSchema.Required, []string{"when"}) ||
+		!reflect.DeepEqual(
+			list.Data.InputSchema.Properties["when"].Enum,
+			[]string{"upcoming", "past"},
+		) {
+		t.Fatalf("list input schema = %#v, want required closed when", list.Data)
+	}
+	var listFlags []string
+	for _, flag := range list.Data.Flags {
+		listFlags = append(listFlags, fmt.Sprintf("%s:%t", flag.Name, flag.Required))
+	}
+	if !reflect.DeepEqual(listFlags, []string{
+		"--when:true",
+		"--limit:false",
+		"--cursor:false",
+		"--all:false",
+		"--max-items:false",
+	}) {
+		t.Fatalf("list flags = %v, want event collection flags", listFlags)
+	}
+	wantSummaryFields := []string{
+		"eventId", "title", "start", "end", "timezone", "state", "userRole", "myRsvp",
+	}
+	if got := list.Data.SuccessSchema.Properties["items"].Items.Required; !reflect.DeepEqual(got, wantSummaryFields) {
+		t.Fatalf("summary fields = %v, want %v", got, wantSummaryFields)
+	}
+
+	getResult := app.Execute(context.Background(), app.Request{
+		Argv: []string{"schema", "events.get"},
+	}, app.Dependencies{})
+	var get schemaEnvelope
+	if json.Unmarshal([]byte(getResult.Stdout), &get) != nil || getResult.ExitCode != 0 {
+		t.Fatalf("get schema result = %#v", getResult)
+	}
+	if get.Data.Command != "events.get" ||
+		len(get.Data.Positionals) != 1 ||
+		get.Data.Positionals[0].Name != "event-id" ||
+		!get.Data.Positionals[0].Required ||
+		len(get.Data.Flags) != 0 ||
+		!reflect.DeepEqual(get.Data.InputSchema.Required, []string{"eventId"}) ||
+		get.Data.InputSchema.Properties["eventId"].MinLength == nil ||
+		*get.Data.InputSchema.Properties["eventId"].MinLength != 1 {
+		t.Fatalf("get input schema = %#v, want required event ID", get.Data)
+	}
+	wantEventFields := []string{
+		"eventId",
+		"title",
+		"start",
+		"end",
+		"timezone",
+		"state",
+		"userRole",
+		"myRsvp",
+		"description",
+		"location",
+		"address",
+		"visibility",
+		"guestLimit",
+		"poster",
+		"links",
+	}
+	if !reflect.DeepEqual(get.Data.SuccessSchema.Required, wantEventFields) ||
+		get.Data.SuccessSchema.Properties["userRole"].Type != "null" ||
+		get.Data.SuccessSchema.Properties["myRsvp"].Type != "null" ||
+		get.Data.SuccessSchema.Properties["links"].Type != "null" {
+		t.Fatalf("event success schema = %#v, want nullable S3 event", get.Data.SuccessSchema)
+	}
+	for _, definition := range []schemaEnvelope{list, get} {
+		if definition.Data.Safety.Kind != "read-only" ||
+			definition.Data.Safety.PlanRequired ||
+			definition.Data.Safety.ConfirmationRequired {
+			t.Fatalf("safety = %#v, want read-only event command", definition.Data.Safety)
+		}
+		wantFailures := []string{
+			"usage.invalid",
+			"input.invalid",
+			"auth.required",
+			"auth.expired",
+		}
+		if !reflect.DeepEqual(
+			definition.Data.FailureTypes[:len(wantFailures)],
+			wantFailures,
+		) {
+			t.Fatalf("failure types = %v, want auth contract prefix", definition.Data.FailureTypes)
+		}
+	}
+}
+
+func stringPointer(value string) *string {
+	return &value
 }
 
 type staticCursorKeyProvider struct{}
@@ -80,7 +1051,7 @@ func TestExecutePostersListReturnsFirstLocalPage(t *testing.T) {
 		}},
 	}))
 
-	const want = `{"ok":true,"data":{"items":[{"posterId":"first","name":"First","url":"https://example.invalid/first.png","contentType":"image/png","width":1200,"height":630,"tags":["party"],"categories":["fun"]},{"posterId":"duplicate","name":"Duplicate","url":"https://example.invalid/duplicate.gif","contentType":"image/gif","width":null,"height":null,"tags":["dance"],"categories":[]},{"posterId":"duplicate","name":"Duplicate Again","url":"https://example.invalid/duplicate-2.gif","contentType":"image/gif","width":640,"height":480,"tags":[],"categories":["night"]}]},"meta":{"command":"posters.list","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.5","warnings":[],"page":{"limit":25,"nextCursor":null,"hasMore":false}}}` + "\n"
+	const want = `{"ok":true,"data":{"items":[{"posterId":"first","name":"First","url":"https://example.invalid/first.png","contentType":"image/png","width":1200,"height":630,"tags":["party"],"categories":["fun"]},{"posterId":"duplicate","name":"Duplicate","url":"https://example.invalid/duplicate.gif","contentType":"image/gif","width":null,"height":null,"tags":["dance"],"categories":[]},{"posterId":"duplicate","name":"Duplicate Again","url":"https://example.invalid/duplicate-2.gif","contentType":"image/gif","width":640,"height":480,"tags":[],"categories":["night"]}]},"meta":{"command":"posters.list","cliVersion":"1.0.0","productContractRevision":"2026-08-12.1","remoteContractRevision":"2026-08-12.1","warnings":[],"page":{"limit":25,"nextCursor":null,"hasMore":false}}}` + "\n"
 	if result.ExitCode != 0 {
 		t.Fatalf("exit code = %d, want 0", result.ExitCode)
 	}
@@ -486,7 +1457,7 @@ func TestExecutePostersListRejectsCursorWhenPayloadChanges(t *testing.T) {
 		Stdin: strings.NewReader(""),
 	}, dependencies)
 
-	const want = `{"ok":false,"error":{"type":"state.conflict","code":"CURSOR_SNAPSHOT_CHANGED","message":"The poster catalog changed after this cursor was issued.","retryable":false,"details":{}},"meta":{"command":"posters.list","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.5"}}` + "\n"
+	const want = `{"ok":false,"error":{"type":"state.conflict","code":"CURSOR_SNAPSHOT_CHANGED","message":"The poster catalog changed after this cursor was issued.","retryable":false,"details":{}},"meta":{"command":"posters.list","cliVersion":"1.0.0","productContractRevision":"2026-08-12.1","remoteContractRevision":"2026-08-12.1"}}` + "\n"
 	if result.ExitCode != 6 {
 		t.Fatalf("exit code = %d, want 6", result.ExitCode)
 	}
@@ -631,7 +1602,7 @@ func TestExecutePostersListRejectsUnexpectedSuccessContentType(t *testing.T) {
 		}},
 	})
 
-	const wantStdout = `{"ok":false,"error":{"type":"contract.protocol_changed","code":"POSTER_CATALOG_PROTOCOL_CHANGED","message":"The poster catalog no longer matches the reviewed remote contract.","retryable":false,"details":{}},"meta":{"command":"posters.list","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.5"}}` + "\n"
+	const wantStdout = `{"ok":false,"error":{"type":"contract.protocol_changed","code":"POSTER_CATALOG_PROTOCOL_CHANGED","message":"The poster catalog no longer matches the reviewed remote contract.","retryable":false,"details":{}},"meta":{"command":"posters.list","cliVersion":"1.0.0","productContractRevision":"2026-08-12.1","remoteContractRevision":"2026-08-12.1"}}` + "\n"
 	const wantStderr = "partiful: poster catalog protocol changed\n"
 	if result.ExitCode != 9 {
 		t.Fatalf("exit code = %d, want 9", result.ExitCode)
@@ -657,7 +1628,7 @@ func TestExecutePostersListRejectsMalformedCursorBeforeRemoteFailure(t *testing.
 		}},
 	}))
 
-	const want = `{"ok":false,"error":{"type":"input.invalid","code":"CURSOR_INVALID","message":"The cursor is malformed.","retryable":false,"details":{}},"meta":{"command":"posters.list","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.5"}}` + "\n"
+	const want = `{"ok":false,"error":{"type":"input.invalid","code":"CURSOR_INVALID","message":"The cursor is malformed.","retryable":false,"details":{}},"meta":{"command":"posters.list","cliVersion":"1.0.0","productContractRevision":"2026-08-12.1","remoteContractRevision":"2026-08-12.1"}}` + "\n"
 	if result.ExitCode != 2 {
 		t.Fatalf("exit code = %d, want 2", result.ExitCode)
 	}
@@ -712,7 +1683,7 @@ func TestExecutePostersSearchRejectsCursorWithDifferentNormalizedFilter(t *testi
 		Stdin: strings.NewReader(""),
 	}, dependencies)
 
-	const want = `{"ok":false,"error":{"type":"input.invalid","code":"CURSOR_FILTER_MISMATCH","message":"The cursor does not match this command and filters.","retryable":false,"details":{}},"meta":{"command":"posters.search","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.5"}}` + "\n"
+	const want = `{"ok":false,"error":{"type":"input.invalid","code":"CURSOR_FILTER_MISMATCH","message":"The cursor does not match this command and filters.","retryable":false,"details":{}},"meta":{"command":"posters.search","cliVersion":"1.0.0","productContractRevision":"2026-08-12.1","remoteContractRevision":"2026-08-12.1"}}` + "\n"
 	if result.ExitCode != 2 {
 		t.Fatalf("exit code = %d, want 2", result.ExitCode)
 	}
@@ -735,7 +1706,7 @@ func TestExecutePostersListMapsNetworkFailureToRemoteUnavailable(t *testing.T) {
 		}},
 	})
 
-	const wantStdout = `{"ok":false,"error":{"type":"remote.unavailable","code":"POSTER_CATALOG_UNAVAILABLE","message":"The poster catalog is unavailable.","retryable":true,"details":{}},"meta":{"command":"posters.list","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.5"}}` + "\n"
+	const wantStdout = `{"ok":false,"error":{"type":"remote.unavailable","code":"POSTER_CATALOG_UNAVAILABLE","message":"The poster catalog is unavailable.","retryable":true,"details":{}},"meta":{"command":"posters.list","cliVersion":"1.0.0","productContractRevision":"2026-08-12.1","remoteContractRevision":"2026-08-12.1"}}` + "\n"
 	const wantStderr = "partiful: poster catalog unavailable\n"
 	if result.ExitCode != 8 {
 		t.Fatalf("exit code = %d, want 8", result.ExitCode)
@@ -765,7 +1736,7 @@ func TestExecutePostersListFailsClosedOnReceivedNon200(t *testing.T) {
 		}},
 	})
 
-	const wantStdout = `{"ok":false,"error":{"type":"contract.protocol_changed","code":"POSTER_CATALOG_PROTOCOL_CHANGED","message":"The poster catalog no longer matches the reviewed remote contract.","retryable":false,"details":{}},"meta":{"command":"posters.list","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.5"}}` + "\n"
+	const wantStdout = `{"ok":false,"error":{"type":"contract.protocol_changed","code":"POSTER_CATALOG_PROTOCOL_CHANGED","message":"The poster catalog no longer matches the reviewed remote contract.","retryable":false,"details":{}},"meta":{"command":"posters.list","cliVersion":"1.0.0","productContractRevision":"2026-08-12.1","remoteContractRevision":"2026-08-12.1"}}` + "\n"
 	const wantStderr = "partiful: poster catalog protocol changed\n"
 	if result.ExitCode != 9 {
 		t.Fatalf("exit code = %d, want 9", result.ExitCode)
@@ -843,7 +1814,7 @@ func TestExecutePostersListFailsClosedOnMalformed200Body(t *testing.T) {
 		}},
 	})
 
-	const wantStdout = `{"ok":false,"error":{"type":"contract.protocol_changed","code":"POSTER_CATALOG_PROTOCOL_CHANGED","message":"The poster catalog no longer matches the reviewed remote contract.","retryable":false,"details":{}},"meta":{"command":"posters.list","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.5"}}` + "\n"
+	const wantStdout = `{"ok":false,"error":{"type":"contract.protocol_changed","code":"POSTER_CATALOG_PROTOCOL_CHANGED","message":"The poster catalog no longer matches the reviewed remote contract.","retryable":false,"details":{}},"meta":{"command":"posters.list","cliVersion":"1.0.0","productContractRevision":"2026-08-12.1","remoteContractRevision":"2026-08-12.1"}}` + "\n"
 	if result.ExitCode != 9 {
 		t.Fatalf("exit code = %d, want 9", result.ExitCode)
 	}
@@ -908,7 +1879,7 @@ func TestExecutePostersListRequiresMaxItemsWithAll(t *testing.T) {
 		Stdin: strings.NewReader(""),
 	}, app.Dependencies{})
 
-	const want = `{"ok":false,"error":{"type":"input.invalid","code":"MAX_ITEMS_REQUIRED","message":"--all requires --max-items.","retryable":false,"details":{}},"meta":{"command":"posters.list","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.5"}}` + "\n"
+	const want = `{"ok":false,"error":{"type":"input.invalid","code":"MAX_ITEMS_REQUIRED","message":"--all requires --max-items.","retryable":false,"details":{}},"meta":{"command":"posters.list","cliVersion":"1.0.0","productContractRevision":"2026-08-12.1","remoteContractRevision":"2026-08-12.1"}}` + "\n"
 	if result.ExitCode != 2 {
 		t.Fatalf("exit code = %d, want 2", result.ExitCode)
 	}
@@ -930,7 +1901,7 @@ func TestExecutePostersListRejectsLimitWithAll(t *testing.T) {
 		Stdin: strings.NewReader(""),
 	}, app.Dependencies{})
 
-	const want = `{"ok":false,"error":{"type":"input.invalid","code":"LIMIT_WITH_ALL","message":"--limit cannot be combined with --all.","retryable":false,"details":{}},"meta":{"command":"posters.list","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.5"}}` + "\n"
+	const want = `{"ok":false,"error":{"type":"input.invalid","code":"LIMIT_WITH_ALL","message":"--limit cannot be combined with --all.","retryable":false,"details":{}},"meta":{"command":"posters.list","cliVersion":"1.0.0","productContractRevision":"2026-08-12.1","remoteContractRevision":"2026-08-12.1"}}` + "\n"
 	if result.ExitCode != 2 {
 		t.Fatalf("exit code = %d, want 2", result.ExitCode)
 	}
@@ -948,7 +1919,7 @@ func TestExecutePostersListRejectsLimitAboveMaximum(t *testing.T) {
 		Stdin: strings.NewReader(""),
 	}, app.Dependencies{})
 
-	const want = `{"ok":false,"error":{"type":"input.invalid","code":"LIMIT_INVALID","message":"Limit must be an integer from 1 to 100.","retryable":false,"details":{}},"meta":{"command":"posters.list","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.5"}}` + "\n"
+	const want = `{"ok":false,"error":{"type":"input.invalid","code":"LIMIT_INVALID","message":"Limit must be an integer from 1 to 100.","retryable":false,"details":{}},"meta":{"command":"posters.list","cliVersion":"1.0.0","productContractRevision":"2026-08-12.1","remoteContractRevision":"2026-08-12.1"}}` + "\n"
 	if result.ExitCode != 2 {
 		t.Fatalf("exit code = %d, want 2", result.ExitCode)
 	}
@@ -963,7 +1934,7 @@ func TestExecutePostersListRejectsEmptyCursor(t *testing.T) {
 		Stdin: strings.NewReader(""),
 	}, app.Dependencies{})
 
-	const want = `{"ok":false,"error":{"type":"input.invalid","code":"CURSOR_INVALID","message":"The cursor is malformed.","retryable":false,"details":{}},"meta":{"command":"posters.list","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.5"}}` + "\n"
+	const want = `{"ok":false,"error":{"type":"input.invalid","code":"CURSOR_INVALID","message":"The cursor is malformed.","retryable":false,"details":{}},"meta":{"command":"posters.list","cliVersion":"1.0.0","productContractRevision":"2026-08-12.1","remoteContractRevision":"2026-08-12.1"}}` + "\n"
 	if result.ExitCode != 2 {
 		t.Fatalf("exit code = %d, want 2", result.ExitCode)
 	}
@@ -981,7 +1952,7 @@ func TestExecutePostersSearchRequiresNonEmptyQuery(t *testing.T) {
 		Stdin: strings.NewReader(""),
 	}, app.Dependencies{})
 
-	const want = `{"ok":false,"error":{"type":"input.invalid","code":"QUERY_REQUIRED","message":"Search query must not be empty.","retryable":false,"details":{}},"meta":{"command":"posters.search","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.5"}}` + "\n"
+	const want = `{"ok":false,"error":{"type":"input.invalid","code":"QUERY_REQUIRED","message":"Search query must not be empty.","retryable":false,"details":{}},"meta":{"command":"posters.search","cliVersion":"1.0.0","productContractRevision":"2026-08-12.1","remoteContractRevision":"2026-08-12.1"}}` + "\n"
 	if result.ExitCode != 2 {
 		t.Fatalf("exit code = %d, want 2", result.ExitCode)
 	}
@@ -996,7 +1967,7 @@ func TestExecuteVersion(t *testing.T) {
 		Stdin: strings.NewReader(""),
 	}, app.Dependencies{})
 
-	const want = `{"ok":true,"data":{"version":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.5"},"meta":{"command":"version","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.5","warnings":[]}}` + "\n"
+	const want = `{"ok":true,"data":{"version":"1.0.0","productContractRevision":"2026-08-12.1","remoteContractRevision":"2026-08-12.1"},"meta":{"command":"version","cliVersion":"1.0.0","productContractRevision":"2026-08-12.1","remoteContractRevision":"2026-08-12.1","warnings":[]}}` + "\n"
 	if result.ExitCode != 0 {
 		t.Fatalf("exit code = %d, want 0", result.ExitCode)
 	}
@@ -1008,13 +1979,13 @@ func TestExecuteVersion(t *testing.T) {
 	}
 }
 
-func TestExecuteRejectsUnknownCommand(t *testing.T) {
+func TestExecuteEventsListRequiresWhen(t *testing.T) {
 	result := app.Execute(context.Background(), app.Request{
 		Argv:  []string{"events", "list"},
 		Stdin: strings.NewReader(""),
 	}, app.Dependencies{})
 
-	const want = `{"ok":false,"error":{"type":"usage.invalid","code":"COMMAND_NOT_FOUND","message":"Unknown command.","retryable":false,"details":{}},"meta":{"command":"unknown","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.5"}}` + "\n"
+	const want = `{"ok":false,"error":{"type":"input.invalid","code":"WHEN_INVALID","message":"--when must be upcoming or past.","retryable":false,"details":{}},"meta":{"command":"events.list","cliVersion":"1.0.0","productContractRevision":"2026-08-12.1","remoteContractRevision":"2026-08-12.1"}}` + "\n"
 	if result.ExitCode != 2 {
 		t.Fatalf("exit code = %d, want 2", result.ExitCode)
 	}
@@ -1036,14 +2007,14 @@ func TestExecutePrettyPrintsOneCompleteEnvelope(t *testing.T) {
   "ok": true,
   "data": {
     "version": "1.0.0",
-    "productContractRevision": "2026-08-10.1",
-    "remoteContractRevision": "2026-08-11.5"
+    "productContractRevision": "2026-08-12.1",
+    "remoteContractRevision": "2026-08-12.1"
   },
   "meta": {
     "command": "version",
     "cliVersion": "1.0.0",
-    "productContractRevision": "2026-08-10.1",
-    "remoteContractRevision": "2026-08-11.5",
+    "productContractRevision": "2026-08-12.1",
+    "remoteContractRevision": "2026-08-12.1",
     "warnings": []
   }
 }
@@ -1065,7 +2036,7 @@ func TestExecuteAcceptsNonInteractiveGlobalFlag(t *testing.T) {
 		Stdin: strings.NewReader(""),
 	}, app.Dependencies{})
 
-	const want = `{"ok":true,"data":{"version":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.5"},"meta":{"command":"version","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.5","warnings":[]}}` + "\n"
+	const want = `{"ok":true,"data":{"version":"1.0.0","productContractRevision":"2026-08-12.1","remoteContractRevision":"2026-08-12.1"},"meta":{"command":"version","cliVersion":"1.0.0","productContractRevision":"2026-08-12.1","remoteContractRevision":"2026-08-12.1","warnings":[]}}` + "\n"
 	if result.ExitCode != 0 {
 		t.Fatalf("exit code = %d, want 0", result.ExitCode)
 	}
@@ -1097,8 +2068,8 @@ func TestExecuteRejectsRepeatedScalarFlag(t *testing.T) {
   "meta": {
     "command": "version",
     "cliVersion": "1.0.0",
-    "productContractRevision": "2026-08-10.1",
-    "remoteContractRevision": "2026-08-11.5"
+    "productContractRevision": "2026-08-12.1",
+    "remoteContractRevision": "2026-08-12.1"
   }
 }
 `
@@ -1119,7 +2090,7 @@ func TestExecuteSchemaListsOnlyCompletedCatalog(t *testing.T) {
 		Stdin: strings.NewReader(""),
 	}, app.Dependencies{})
 
-	const want = `{"ok":true,"data":{"commands":["auth.login","auth.logout","auth.status","contacts.list","doctor","posters.list","posters.search","schema","version"]},"meta":{"command":"schema","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.5","warnings":[]}}` + "\n"
+	const want = `{"ok":true,"data":{"commands":["auth.login","auth.logout","auth.status","contacts.list","doctor","events.get","events.list","posters.list","posters.search","schema","version"]},"meta":{"command":"schema","cliVersion":"1.0.0","productContractRevision":"2026-08-12.1","remoteContractRevision":"2026-08-12.1","warnings":[]}}` + "\n"
 	if result.ExitCode != 0 {
 		t.Fatalf("exit code = %d, want 0", result.ExitCode)
 	}
@@ -1137,7 +2108,7 @@ func TestExecuteSchemaProjectsExecutableDefinition(t *testing.T) {
 		Stdin: strings.NewReader(""),
 	}, app.Dependencies{})
 
-	const want = `{"ok":true,"data":{"command":"auth.status","positionals":[],"flags":[],"inputSchema":{"type":"object","additionalProperties":false},"successSchema":{"type":"object","additionalProperties":false,"required":["authenticated","tokenState","expiresAt"],"properties":{"authenticated":{"type":"boolean"},"expiresAt":{"type":["string","null"],"format":"date-time"},"tokenState":{"type":"string","enum":["healthy","expiring","expired","missing"]}}},"failureTypes":["usage.invalid","input.invalid","auth.expired","remote.unavailable","contract.protocol_changed","internal.failure"],"safety":{"kind":"local-mutation","planRequired":false,"confirmationRequired":false}},"meta":{"command":"schema","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.5","warnings":[]}}` + "\n"
+	const want = `{"ok":true,"data":{"command":"auth.status","positionals":[],"flags":[],"inputSchema":{"type":"object","additionalProperties":false},"successSchema":{"type":"object","additionalProperties":false,"required":["authenticated","tokenState","expiresAt"],"properties":{"authenticated":{"type":"boolean"},"expiresAt":{"type":["string","null"],"format":"date-time"},"tokenState":{"type":"string","enum":["healthy","expiring","expired","missing"]}}},"failureTypes":["usage.invalid","input.invalid","auth.expired","remote.unavailable","contract.protocol_changed","internal.failure"],"safety":{"kind":"local-mutation","planRequired":false,"confirmationRequired":false}},"meta":{"command":"schema","cliVersion":"1.0.0","productContractRevision":"2026-08-12.1","remoteContractRevision":"2026-08-12.1","warnings":[]}}` + "\n"
 	if result.ExitCode != 0 {
 		t.Fatalf("exit code = %d, want 0", result.ExitCode)
 	}
@@ -1195,7 +2166,7 @@ func TestExecuteRejectsUnknownSchemaPathWithoutEchoingInput(t *testing.T) {
 		Stdin: strings.NewReader(""),
 	}, app.Dependencies{})
 
-	const want = `{"ok":false,"error":{"type":"usage.invalid","code":"COMMAND_SCHEMA_NOT_FOUND","message":"No completed command has that schema path.","retryable":false,"details":{}},"meta":{"command":"schema","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.5"}}` + "\n"
+	const want = `{"ok":false,"error":{"type":"usage.invalid","code":"COMMAND_SCHEMA_NOT_FOUND","message":"No completed command has that schema path.","retryable":false,"details":{}},"meta":{"command":"schema","cliVersion":"1.0.0","productContractRevision":"2026-08-12.1","remoteContractRevision":"2026-08-12.1"}}` + "\n"
 	if result.ExitCode != 2 {
 		t.Fatalf("exit code = %d, want 2", result.ExitCode)
 	}
@@ -1226,7 +2197,7 @@ func TestExecuteAuthStatusWhenCredentialsAreMissing(t *testing.T) {
 		},
 	})
 
-	const want = `{"ok":true,"data":{"authenticated":false,"tokenState":"missing","expiresAt":null},"meta":{"command":"auth.status","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.5","warnings":[]}}` + "\n"
+	const want = `{"ok":true,"data":{"authenticated":false,"tokenState":"missing","expiresAt":null},"meta":{"command":"auth.status","cliVersion":"1.0.0","productContractRevision":"2026-08-12.1","remoteContractRevision":"2026-08-12.1","warnings":[]}}` + "\n"
 	if result.ExitCode != 0 {
 		t.Fatalf("exit code = %d, want 0", result.ExitCode)
 	}
@@ -1244,7 +2215,7 @@ func TestExecuteAuthLoginRequiresPrivateTerminal(t *testing.T) {
 		Stdin: strings.NewReader("private-stdin-value"),
 	}, app.Dependencies{})
 
-	const wantStdout = `{"ok":false,"error":{"type":"auth.human_required","code":"PRIVATE_TERMINAL_REQUIRED","message":"Authentication login requires a private terminal.","retryable":false,"details":{}},"meta":{"command":"auth.login","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.5"}}` + "\n"
+	const wantStdout = `{"ok":false,"error":{"type":"auth.human_required","code":"PRIVATE_TERMINAL_REQUIRED","message":"Authentication login requires a private terminal.","retryable":false,"details":{}},"meta":{"command":"auth.login","cliVersion":"1.0.0","productContractRevision":"2026-08-12.1","remoteContractRevision":"2026-08-12.1"}}` + "\n"
 	const wantStderr = "partiful: private terminal required\n"
 	if result.ExitCode != 3 {
 		t.Fatalf("exit code = %d, want 3", result.ExitCode)
@@ -1303,7 +2274,7 @@ func TestExecuteAuthLoginRejectsEmptyPrivateInputBeforeHTTP(t *testing.T) {
 		}},
 	})
 
-	const wantStdout = `{"ok":false,"error":{"type":"input.invalid","code":"AUTH_INPUT_INVALID","message":"Authentication input is invalid.","retryable":false,"details":{}},"meta":{"command":"auth.login","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.5"}}` + "\n"
+	const wantStdout = `{"ok":false,"error":{"type":"input.invalid","code":"AUTH_INPUT_INVALID","message":"Authentication input is invalid.","retryable":false,"details":{}},"meta":{"command":"auth.login","cliVersion":"1.0.0","productContractRevision":"2026-08-12.1","remoteContractRevision":"2026-08-12.1"}}` + "\n"
 	if result.ExitCode != 2 || result.Stdout != wantStdout {
 		t.Fatalf("result = %#v, want invalid private input failure", result)
 	}
@@ -1445,7 +2416,7 @@ func TestExecuteAuthLoginPersistsReviewedSessionWithoutRevealingPrivateValues(t 
 		}},
 	})
 
-	const want = `{"ok":true,"data":{"authenticated":true,"tokenState":"healthy","expiresAt":"2026-08-11T01:10:00Z"},"meta":{"command":"auth.login","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.5","warnings":[]}}` + "\n"
+	const want = `{"ok":true,"data":{"authenticated":true,"tokenState":"healthy","expiresAt":"2026-08-11T01:10:00Z"},"meta":{"command":"auth.login","cliVersion":"1.0.0","productContractRevision":"2026-08-12.1","remoteContractRevision":"2026-08-12.1","warnings":[]}}` + "\n"
 	if result.ExitCode != 0 || result.Stdout != want || result.Stderr != "" {
 		t.Fatalf("result = %#v, want redacted login success", result)
 	}
@@ -1518,7 +2489,7 @@ func TestExecuteAuthLoginMapsReviewedWrongCodeWithoutEchoingIt(t *testing.T) {
 		}},
 	})
 
-	const wantStdout = `{"ok":false,"error":{"type":"input.invalid","code":"AUTH_CODE_REJECTED","message":"The verification code was rejected.","retryable":false,"details":{}},"meta":{"command":"auth.login","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.5"}}` + "\n"
+	const wantStdout = `{"ok":false,"error":{"type":"input.invalid","code":"AUTH_CODE_REJECTED","message":"The verification code was rejected.","retryable":false,"details":{}},"meta":{"command":"auth.login","cliVersion":"1.0.0","productContractRevision":"2026-08-12.1","remoteContractRevision":"2026-08-12.1"}}` + "\n"
 	const wantStderr = "partiful: authentication code rejected\n"
 	if result.ExitCode != 2 || result.Stdout != wantStdout || result.Stderr != wantStderr {
 		t.Fatalf("result = %#v, want reviewed wrong-code failure", result)
@@ -1659,7 +2630,7 @@ func TestExecuteAuthLoginMapsRejectedCustomTokenToExpired(t *testing.T) {
 		}},
 	})
 
-	const wantStdout = `{"ok":false,"error":{"type":"auth.expired","code":"INVALID_CUSTOM_TOKEN","message":"Authentication expired during login. Start login again.","retryable":false,"details":{}},"meta":{"command":"auth.login","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.5"}}` + "\n"
+	const wantStdout = `{"ok":false,"error":{"type":"auth.expired","code":"INVALID_CUSTOM_TOKEN","message":"Authentication expired during login. Start login again.","retryable":false,"details":{}},"meta":{"command":"auth.login","cliVersion":"1.0.0","productContractRevision":"2026-08-12.1","remoteContractRevision":"2026-08-12.1"}}` + "\n"
 	const wantStderr = "partiful: authentication expired\n"
 	if result.ExitCode != 3 || result.Stdout != wantStdout || result.Stderr != wantStderr {
 		t.Fatalf("result = %#v, want reviewed custom-token failure", result)
@@ -1846,7 +2817,7 @@ func TestExecuteAuthLoginFailsClosedOnMalformedReviewedSuccess(t *testing.T) {
 		}},
 	})
 
-	const wantStdout = `{"ok":false,"error":{"type":"contract.protocol_changed","code":"AUTH_PROTOCOL_CHANGED","message":"Authentication no longer matches the reviewed remote contract.","retryable":false,"details":{}},"meta":{"command":"auth.login","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.5"}}` + "\n"
+	const wantStdout = `{"ok":false,"error":{"type":"contract.protocol_changed","code":"AUTH_PROTOCOL_CHANGED","message":"Authentication no longer matches the reviewed remote contract.","retryable":false,"details":{}},"meta":{"command":"auth.login","cliVersion":"1.0.0","productContractRevision":"2026-08-12.1","remoteContractRevision":"2026-08-12.1"}}` + "\n"
 	const wantStderr = "partiful: authentication protocol changed\n"
 	if result.ExitCode != 9 || result.Stdout != wantStdout || result.Stderr != wantStderr {
 		t.Fatalf("result = %#v, want protocol drift failure", result)
@@ -1943,7 +2914,7 @@ func TestExecuteAuthLoginMapsNoResponseWithoutLeakingTransportError(t *testing.T
 		}},
 	})
 
-	const wantStdout = `{"ok":false,"error":{"type":"remote.unavailable","code":"AUTH_SERVICE_UNAVAILABLE","message":"The authentication service is unavailable.","retryable":true,"details":{}},"meta":{"command":"auth.login","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.5"}}` + "\n"
+	const wantStdout = `{"ok":false,"error":{"type":"remote.unavailable","code":"AUTH_SERVICE_UNAVAILABLE","message":"The authentication service is unavailable.","retryable":true,"details":{}},"meta":{"command":"auth.login","cliVersion":"1.0.0","productContractRevision":"2026-08-12.1","remoteContractRevision":"2026-08-12.1"}}` + "\n"
 	const wantStderr = "partiful: authentication service unavailable\n"
 	if result.ExitCode != 8 || result.Stdout != wantStdout || result.Stderr != wantStderr {
 		t.Fatalf("result = %#v, want auth unavailable failure", result)
@@ -1997,7 +2968,7 @@ func TestExecuteAuthLoginAtomicPersistenceFailurePreservesExistingCredentials(t 
 		Argv: []string{"auth", "login"},
 	}, dependencies)
 
-	const wantStdout = `{"ok":false,"error":{"type":"internal.failure","code":"CREDENTIAL_STORE_UNAVAILABLE","message":"Local credential storage is unavailable.","retryable":false,"details":{}},"meta":{"command":"auth.login","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.5"}}` + "\n"
+	const wantStdout = `{"ok":false,"error":{"type":"internal.failure","code":"CREDENTIAL_STORE_UNAVAILABLE","message":"Local credential storage is unavailable.","retryable":false,"details":{}},"meta":{"command":"auth.login","cliVersion":"1.0.0","productContractRevision":"2026-08-12.1","remoteContractRevision":"2026-08-12.1"}}` + "\n"
 	if result.ExitCode != 10 || result.Stdout != wantStdout {
 		t.Fatalf("result = %#v, want atomic persistence failure", result)
 	}
@@ -2109,7 +3080,7 @@ func TestExecuteContactsListTraversesReviewedPagesAndReturnsOnlyPublicFields(t *
 		}},
 	})
 
-	const want = `{"ok":true,"data":{"items":[{"displayName":"Alice Example","sharedEventCount":2}]},"meta":{"command":"contacts.list","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.5","warnings":[],"page":{"limit":25,"nextCursor":null,"hasMore":false}}}` + "\n"
+	const want = `{"ok":true,"data":{"items":[{"displayName":"Alice Example","sharedEventCount":2}]},"meta":{"command":"contacts.list","cliVersion":"1.0.0","productContractRevision":"2026-08-12.1","remoteContractRevision":"2026-08-12.1","warnings":[],"page":{"limit":25,"nextCursor":null,"hasMore":false}}}` + "\n"
 	if result.ExitCode != 0 || result.Stdout != want || result.Stderr != "" {
 		t.Fatalf("result = %#v, want reviewed public contact collection", result)
 	}
@@ -2164,7 +3135,7 @@ func TestExecuteContactsListFiltersLocallyAfterFirstIdentityOccurrenceWins(t *te
 		}},
 	})
 
-	const want = `{"ok":true,"data":{"items":[{"displayName":"Alice First","sharedEventCount":1},{"displayName":"Second ALICE","sharedEventCount":3}]},"meta":{"command":"contacts.list","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.5","warnings":[],"page":{"limit":25,"nextCursor":null,"hasMore":false}}}` + "\n"
+	const want = `{"ok":true,"data":{"items":[{"displayName":"Alice First","sharedEventCount":1},{"displayName":"Second ALICE","sharedEventCount":3}]},"meta":{"command":"contacts.list","cliVersion":"1.0.0","productContractRevision":"2026-08-12.1","remoteContractRevision":"2026-08-12.1","warnings":[],"page":{"limit":25,"nextCursor":null,"hasMore":false}}}` + "\n"
 	if result.ExitCode != 0 || result.Stdout != want || result.Stderr != "" {
 		t.Fatalf("result = %#v, want locally filtered first-occurrence contacts", result)
 	}
@@ -2474,7 +3445,7 @@ func TestExecuteContactsListAcceptsOpenReviewedResponseFields(t *testing.T) {
 		}},
 	})
 
-	const want = `{"ok":true,"data":{"items":[{"displayName":"Open Contact","sharedEventCount":4}]},"meta":{"command":"contacts.list","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.5","warnings":[],"page":{"limit":25,"nextCursor":null,"hasMore":false}}}` + "\n"
+	const want = `{"ok":true,"data":{"items":[{"displayName":"Open Contact","sharedEventCount":4}]},"meta":{"command":"contacts.list","cliVersion":"1.0.0","productContractRevision":"2026-08-12.1","remoteContractRevision":"2026-08-12.1","warnings":[],"page":{"limit":25,"nextCursor":null,"hasMore":false}}}` + "\n"
 	if result.ExitCode != 0 || result.Stdout != want || result.Stderr != "" {
 		t.Fatalf("result = %#v, want reviewed open response traversal", result)
 	}
@@ -2587,7 +3558,7 @@ func TestExecuteContactsListAcceptsUnknownUnauthenticatedErrorFields(t *testing.
 		}},
 	})
 
-	const wantStdout = `{"ok":false,"error":{"type":"auth.expired","code":"REMOTE_SESSION_UNAUTHENTICATED","message":"Stored authentication is no longer accepted. Log in again.","retryable":false,"details":{}},"meta":{"command":"contacts.list","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.5"}}` + "\n"
+	const wantStdout = `{"ok":false,"error":{"type":"auth.expired","code":"REMOTE_SESSION_UNAUTHENTICATED","message":"Stored authentication is no longer accepted. Log in again.","retryable":false,"details":{}},"meta":{"command":"contacts.list","cliVersion":"1.0.0","productContractRevision":"2026-08-12.1","remoteContractRevision":"2026-08-12.1"}}` + "\n"
 	if result.ExitCode != 3 || result.Stdout != wantStdout {
 		t.Fatalf("result = %#v, want reviewed unauthenticated mapping", result)
 	}
@@ -2620,7 +3591,7 @@ func TestExecuteContactsListMapsReviewedUnauthenticatedResponseToExpired(t *test
 		}},
 	})
 
-	const wantStdout = `{"ok":false,"error":{"type":"auth.expired","code":"REMOTE_SESSION_UNAUTHENTICATED","message":"Stored authentication is no longer accepted. Log in again.","retryable":false,"details":{}},"meta":{"command":"contacts.list","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.5"}}` + "\n"
+	const wantStdout = `{"ok":false,"error":{"type":"auth.expired","code":"REMOTE_SESSION_UNAUTHENTICATED","message":"Stored authentication is no longer accepted. Log in again.","retryable":false,"details":{}},"meta":{"command":"contacts.list","cliVersion":"1.0.0","productContractRevision":"2026-08-12.1","remoteContractRevision":"2026-08-12.1"}}` + "\n"
 	if result.ExitCode != 3 || result.Stdout != wantStdout {
 		t.Fatalf("result = %#v, want reviewed unauthenticated mapping", result)
 	}
@@ -2756,7 +3727,7 @@ func TestExecuteContactsListRejectsCursorWhenContactCatalogChanges(t *testing.T)
 		Stdin: strings.NewReader(""),
 	}, dependencies)
 
-	const want = `{"ok":false,"error":{"type":"state.conflict","code":"CURSOR_SNAPSHOT_CHANGED","message":"The contact catalog changed after this cursor was issued.","retryable":false,"details":{}},"meta":{"command":"contacts.list","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.5"}}` + "\n"
+	const want = `{"ok":false,"error":{"type":"state.conflict","code":"CURSOR_SNAPSHOT_CHANGED","message":"The contact catalog changed after this cursor was issued.","retryable":false,"details":{}},"meta":{"command":"contacts.list","cliVersion":"1.0.0","productContractRevision":"2026-08-12.1","remoteContractRevision":"2026-08-12.1"}}` + "\n"
 	if result.ExitCode != 6 || result.Stdout != want || result.Stderr != "" {
 		t.Fatalf("result = %#v, want contact snapshot conflict", result)
 	}
@@ -2902,7 +3873,7 @@ func TestExecuteContactsListMapsRejectedRefreshWithoutAttemptingRead(t *testing.
 		}},
 	})
 
-	const wantStdout = `{"ok":false,"error":{"type":"auth.expired","code":"INVALID_REFRESH_TOKEN","message":"Stored authentication has expired. Log in again.","retryable":false,"details":{}},"meta":{"command":"contacts.list","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.5"}}` + "\n"
+	const wantStdout = `{"ok":false,"error":{"type":"auth.expired","code":"INVALID_REFRESH_TOKEN","message":"Stored authentication has expired. Log in again.","retryable":false,"details":{}},"meta":{"command":"contacts.list","cliVersion":"1.0.0","productContractRevision":"2026-08-12.1","remoteContractRevision":"2026-08-12.1"}}` + "\n"
 	if result.ExitCode != 3 || result.Stdout != wantStdout {
 		t.Fatalf("result = %#v, want rejected refresh failure", result)
 	}
@@ -2963,7 +3934,7 @@ func TestExecuteContactsListReportsUnavailableConfigurationBeforeProtectedRead(t
 		}},
 	})
 
-	const wantStdout = `{"ok":false,"error":{"type":"internal.failure","code":"CONFIG_DIRECTORY_UNAVAILABLE","message":"Local configuration directory is unavailable.","retryable":false,"details":{}},"meta":{"command":"contacts.list","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.5"}}` + "\n"
+	const wantStdout = `{"ok":false,"error":{"type":"internal.failure","code":"CONFIG_DIRECTORY_UNAVAILABLE","message":"Local configuration directory is unavailable.","retryable":false,"details":{}},"meta":{"command":"contacts.list","cliVersion":"1.0.0","productContractRevision":"2026-08-12.1","remoteContractRevision":"2026-08-12.1"}}` + "\n"
 	if result.ExitCode != 10 || result.Stdout != wantStdout {
 		t.Fatalf("result = %#v, want unavailable configuration failure", result)
 	}
@@ -2992,7 +3963,7 @@ func TestExecuteContactsListRequiresAuthenticationWithoutRemoteCall(t *testing.T
 		}},
 	})
 
-	const wantStdout = `{"ok":false,"error":{"type":"auth.required","code":"AUTHENTICATION_REQUIRED","message":"Authentication is required. Log in and try again.","retryable":false,"details":{}},"meta":{"command":"contacts.list","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.5"}}` + "\n"
+	const wantStdout = `{"ok":false,"error":{"type":"auth.required","code":"AUTHENTICATION_REQUIRED","message":"Authentication is required. Log in and try again.","retryable":false,"details":{}},"meta":{"command":"contacts.list","cliVersion":"1.0.0","productContractRevision":"2026-08-12.1","remoteContractRevision":"2026-08-12.1"}}` + "\n"
 	if result.ExitCode != 3 || result.Stdout != wantStdout {
 		t.Fatalf("result = %#v, want authentication requirement", result)
 	}
@@ -3143,7 +4114,7 @@ func TestExecuteAuthStatusRedactsHealthyCredentials(t *testing.T) {
 		},
 	})
 
-	const want = `{"ok":true,"data":{"authenticated":true,"tokenState":"healthy","expiresAt":"2026-08-11T02:00:00Z"},"meta":{"command":"auth.status","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.5","warnings":[]}}` + "\n"
+	const want = `{"ok":true,"data":{"authenticated":true,"tokenState":"healthy","expiresAt":"2026-08-11T02:00:00Z"},"meta":{"command":"auth.status","cliVersion":"1.0.0","productContractRevision":"2026-08-12.1","remoteContractRevision":"2026-08-12.1","warnings":[]}}` + "\n"
 	if result.ExitCode != 0 {
 		t.Fatalf("exit code = %d, want 0", result.ExitCode)
 	}
@@ -3177,7 +4148,7 @@ func TestExecuteAuthStatusReportsExpiringToken(t *testing.T) {
 		},
 	})
 
-	const want = `{"ok":true,"data":{"authenticated":true,"tokenState":"expiring","expiresAt":"2026-08-11T00:04:00Z"},"meta":{"command":"auth.status","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.5","warnings":[]}}` + "\n"
+	const want = `{"ok":true,"data":{"authenticated":true,"tokenState":"expiring","expiresAt":"2026-08-11T00:04:00Z"},"meta":{"command":"auth.status","cliVersion":"1.0.0","productContractRevision":"2026-08-12.1","remoteContractRevision":"2026-08-12.1","warnings":[]}}` + "\n"
 	if result.ExitCode != 0 {
 		t.Fatalf("exit code = %d, want 0", result.ExitCode)
 	}
@@ -3252,7 +4223,7 @@ func TestExecuteAuthStatusDeterministicallyRefreshesExpiringSession(t *testing.T
 	first := app.Execute(context.Background(), app.Request{
 		Argv: []string{"auth", "status"},
 	}, dependencies)
-	const want = `{"ok":true,"data":{"authenticated":true,"tokenState":"healthy","expiresAt":"2026-08-11T01:10:00Z"},"meta":{"command":"auth.status","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.5","warnings":[]}}` + "\n"
+	const want = `{"ok":true,"data":{"authenticated":true,"tokenState":"healthy","expiresAt":"2026-08-11T01:10:00Z"},"meta":{"command":"auth.status","cliVersion":"1.0.0","productContractRevision":"2026-08-12.1","remoteContractRevision":"2026-08-12.1","warnings":[]}}` + "\n"
 	if first.ExitCode != 0 || first.Stdout != want || first.Stderr != "" {
 		t.Fatalf("first status = %#v, want refreshed healthy session", first)
 	}
@@ -3426,7 +4397,7 @@ func TestExecuteAuthStatusMapsReviewedInvalidRefreshTokenToExpired(t *testing.T)
 		}},
 	})
 
-	const wantStdout = `{"ok":false,"error":{"type":"auth.expired","code":"INVALID_REFRESH_TOKEN","message":"Stored authentication has expired. Log in again.","retryable":false,"details":{}},"meta":{"command":"auth.status","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.5"}}` + "\n"
+	const wantStdout = `{"ok":false,"error":{"type":"auth.expired","code":"INVALID_REFRESH_TOKEN","message":"Stored authentication has expired. Log in again.","retryable":false,"details":{}},"meta":{"command":"auth.status","cliVersion":"1.0.0","productContractRevision":"2026-08-12.1","remoteContractRevision":"2026-08-12.1"}}` + "\n"
 	const wantStderr = "partiful: authentication expired\n"
 	if result.ExitCode != 3 || result.Stdout != wantStdout || result.Stderr != wantStderr {
 		t.Fatalf("result = %#v, want reviewed invalid-refresh failure", result)
@@ -3545,7 +4516,7 @@ func TestExecuteAuthStatusReportsExpiredToken(t *testing.T) {
 		},
 	})
 
-	const want = `{"ok":true,"data":{"authenticated":false,"tokenState":"expired","expiresAt":"2026-08-10T23:59:00Z"},"meta":{"command":"auth.status","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.5","warnings":[]}}` + "\n"
+	const want = `{"ok":true,"data":{"authenticated":false,"tokenState":"expired","expiresAt":"2026-08-10T23:59:00Z"},"meta":{"command":"auth.status","cliVersion":"1.0.0","productContractRevision":"2026-08-12.1","remoteContractRevision":"2026-08-12.1","warnings":[]}}` + "\n"
 	if result.ExitCode != 0 {
 		t.Fatalf("exit code = %d, want 0", result.ExitCode)
 	}
@@ -3574,7 +4545,7 @@ func TestExecuteAuthStatusFailureDoesNotRevealCredentialContents(t *testing.T) {
 		},
 	})
 
-	const wantStdout = `{"ok":false,"error":{"type":"internal.failure","code":"CREDENTIALS_INVALID","message":"Local credentials are invalid.","retryable":false,"details":{}},"meta":{"command":"auth.status","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.5"}}` + "\n"
+	const wantStdout = `{"ok":false,"error":{"type":"internal.failure","code":"CREDENTIALS_INVALID","message":"Local credentials are invalid.","retryable":false,"details":{}},"meta":{"command":"auth.status","cliVersion":"1.0.0","productContractRevision":"2026-08-12.1","remoteContractRevision":"2026-08-12.1"}}` + "\n"
 	const wantStderr = "partiful: local operation failed\n"
 	if result.ExitCode != 10 {
 		t.Fatalf("exit code = %d, want 10", result.ExitCode)
@@ -3610,7 +4581,7 @@ func TestExecuteAuthLogoutAtomicallyRemovesCredentials(t *testing.T) {
 		Stdin: strings.NewReader(""),
 	}, dependencies)
 
-	const want = `{"ok":true,"data":{"authenticated":false,"tokenState":"missing","expiresAt":null},"meta":{"command":"auth.logout","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.5","warnings":[]}}` + "\n"
+	const want = `{"ok":true,"data":{"authenticated":false,"tokenState":"missing","expiresAt":null},"meta":{"command":"auth.logout","cliVersion":"1.0.0","productContractRevision":"2026-08-12.1","remoteContractRevision":"2026-08-12.1","warnings":[]}}` + "\n"
 	if result.ExitCode != 0 {
 		t.Fatalf("exit code = %d, want 0", result.ExitCode)
 	}
@@ -3689,7 +4660,7 @@ func TestExecuteAuthLogoutFailureLeavesCredentialsAvailableAndRedactsError(t *te
 		Stdin: strings.NewReader(""),
 	}, dependencies)
 
-	const wantStdout = `{"ok":false,"error":{"type":"internal.failure","code":"CREDENTIAL_STORE_UNAVAILABLE","message":"Local credential storage is unavailable.","retryable":false,"details":{}},"meta":{"command":"auth.logout","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.5"}}` + "\n"
+	const wantStdout = `{"ok":false,"error":{"type":"internal.failure","code":"CREDENTIAL_STORE_UNAVAILABLE","message":"Local credential storage is unavailable.","retryable":false,"details":{}},"meta":{"command":"auth.logout","cliVersion":"1.0.0","productContractRevision":"2026-08-12.1","remoteContractRevision":"2026-08-12.1"}}` + "\n"
 	if result.ExitCode != 10 {
 		t.Fatalf("exit code = %d, want 10", result.ExitCode)
 	}
@@ -3726,7 +4697,7 @@ func TestExecuteDoctorReportsHealthyCredentialsWithoutPrivateData(t *testing.T) 
 		},
 	})
 
-	const want = `{"ok":true,"data":{"healthy":true,"checks":[{"name":"credentials","status":"pass","message":"Authentication credentials are available.","remediation":null}]},"meta":{"command":"doctor","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.5","warnings":[]}}` + "\n"
+	const want = `{"ok":true,"data":{"healthy":true,"checks":[{"name":"credentials","status":"pass","message":"Authentication credentials are available.","remediation":null}]},"meta":{"command":"doctor","cliVersion":"1.0.0","productContractRevision":"2026-08-12.1","remoteContractRevision":"2026-08-12.1","warnings":[]}}` + "\n"
 	if result.ExitCode != 0 {
 		t.Fatalf("exit code = %d, want 0", result.ExitCode)
 	}
@@ -3759,7 +4730,7 @@ func TestExecuteDoctorReportsMissingCredentialsAsARedactedCheck(t *testing.T) {
 		},
 	})
 
-	const want = `{"ok":true,"data":{"healthy":false,"checks":[{"name":"credentials","status":"fail","message":"Authentication credentials are missing.","remediation":"Establish authentication before using commands that require it."}]},"meta":{"command":"doctor","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.5","warnings":[]}}` + "\n"
+	const want = `{"ok":true,"data":{"healthy":false,"checks":[{"name":"credentials","status":"fail","message":"Authentication credentials are missing.","remediation":"Establish authentication before using commands that require it."}]},"meta":{"command":"doctor","cliVersion":"1.0.0","productContractRevision":"2026-08-12.1","remoteContractRevision":"2026-08-12.1","warnings":[]}}` + "\n"
 	if result.ExitCode != 0 {
 		t.Fatalf("exit code = %d, want 0", result.ExitCode)
 	}
@@ -3788,7 +4759,7 @@ func TestExecuteDoctorWarnsWhenCredentialsExpireSoon(t *testing.T) {
 		},
 	})
 
-	const want = `{"ok":true,"data":{"healthy":true,"checks":[{"name":"credentials","status":"warn","message":"Authentication credentials expire soon.","remediation":"Refresh authentication before the credentials expire."}]},"meta":{"command":"doctor","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.5","warnings":[]}}` + "\n"
+	const want = `{"ok":true,"data":{"healthy":true,"checks":[{"name":"credentials","status":"warn","message":"Authentication credentials expire soon.","remediation":"Refresh authentication before the credentials expire."}]},"meta":{"command":"doctor","cliVersion":"1.0.0","productContractRevision":"2026-08-12.1","remoteContractRevision":"2026-08-12.1","warnings":[]}}` + "\n"
 	if result.ExitCode != 0 {
 		t.Fatalf("exit code = %d, want 0", result.ExitCode)
 	}
@@ -3817,7 +4788,7 @@ func TestExecuteDoctorFailsExpiredCredentialsCheck(t *testing.T) {
 		},
 	})
 
-	const want = `{"ok":true,"data":{"healthy":false,"checks":[{"name":"credentials","status":"fail","message":"Authentication credentials have expired.","remediation":"Re-establish authentication."}]},"meta":{"command":"doctor","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.5","warnings":[]}}` + "\n"
+	const want = `{"ok":true,"data":{"healthy":false,"checks":[{"name":"credentials","status":"fail","message":"Authentication credentials have expired.","remediation":"Re-establish authentication."}]},"meta":{"command":"doctor","cliVersion":"1.0.0","productContractRevision":"2026-08-12.1","remoteContractRevision":"2026-08-12.1","warnings":[]}}` + "\n"
 	if result.ExitCode != 0 {
 		t.Fatalf("exit code = %d, want 0", result.ExitCode)
 	}
@@ -3846,7 +4817,7 @@ func TestExecuteDoctorRedactsInvalidCredentialFile(t *testing.T) {
 		},
 	})
 
-	const want = `{"ok":true,"data":{"healthy":false,"checks":[{"name":"credentials","status":"fail","message":"Authentication credentials are invalid.","remediation":"Remove the invalid credentials and re-establish authentication."}]},"meta":{"command":"doctor","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.5","warnings":[]}}` + "\n"
+	const want = `{"ok":true,"data":{"healthy":false,"checks":[{"name":"credentials","status":"fail","message":"Authentication credentials are invalid.","remediation":"Remove the invalid credentials and re-establish authentication."}]},"meta":{"command":"doctor","cliVersion":"1.0.0","productContractRevision":"2026-08-12.1","remoteContractRevision":"2026-08-12.1","warnings":[]}}` + "\n"
 	if result.ExitCode != 0 {
 		t.Fatalf("exit code = %d, want 0", result.ExitCode)
 	}
@@ -3878,7 +4849,7 @@ func TestExecuteDoctorRedactsCredentialStorageFailure(t *testing.T) {
 		},
 	})
 
-	const want = `{"ok":true,"data":{"healthy":false,"checks":[{"name":"credentials","status":"fail","message":"Credential storage is unavailable.","remediation":"Check local credential file permissions."}]},"meta":{"command":"doctor","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.5","warnings":[]}}` + "\n"
+	const want = `{"ok":true,"data":{"healthy":false,"checks":[{"name":"credentials","status":"fail","message":"Credential storage is unavailable.","remediation":"Check local credential file permissions."}]},"meta":{"command":"doctor","cliVersion":"1.0.0","productContractRevision":"2026-08-12.1","remoteContractRevision":"2026-08-12.1","warnings":[]}}` + "\n"
 	if result.ExitCode != 0 {
 		t.Fatalf("exit code = %d, want 0", result.ExitCode)
 	}
@@ -3986,7 +4957,7 @@ func TestExecuteUsesDefinitionForFlagFailureCommandMetadata(t *testing.T) {
 		Stdin: strings.NewReader(""),
 	}, app.Dependencies{})
 
-	const want = `{"ok":false,"error":{"type":"input.invalid","code":"FLAG_REPEATED","message":"A scalar flag cannot be repeated.","retryable":false,"details":{"flag":"--non-interactive"}},"meta":{"command":"auth.status","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.5"}}` + "\n"
+	const want = `{"ok":false,"error":{"type":"input.invalid","code":"FLAG_REPEATED","message":"A scalar flag cannot be repeated.","retryable":false,"details":{"flag":"--non-interactive"}},"meta":{"command":"auth.status","cliVersion":"1.0.0","productContractRevision":"2026-08-12.1","remoteContractRevision":"2026-08-12.1"}}` + "\n"
 	if result.ExitCode != 2 {
 		t.Fatalf("exit code = %d, want 2", result.ExitCode)
 	}
@@ -4030,7 +5001,7 @@ func TestExecuteUsesKnownCommandMetadataForInvalidArity(t *testing.T) {
 		Stdin: strings.NewReader(""),
 	}, app.Dependencies{})
 
-	const want = `{"ok":false,"error":{"type":"usage.invalid","code":"COMMAND_NOT_FOUND","message":"Unknown command.","retryable":false,"details":{}},"meta":{"command":"schema","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.5"}}` + "\n"
+	const want = `{"ok":false,"error":{"type":"usage.invalid","code":"COMMAND_NOT_FOUND","message":"Unknown command.","retryable":false,"details":{}},"meta":{"command":"schema","cliVersion":"1.0.0","productContractRevision":"2026-08-12.1","remoteContractRevision":"2026-08-12.1"}}` + "\n"
 	if result.ExitCode != 2 {
 		t.Fatalf("exit code = %d, want 2", result.ExitCode)
 	}
@@ -4055,7 +5026,7 @@ func TestExecuteAuthStatusReportsConfigurationDirectoryFailure(t *testing.T) {
 		},
 	})
 
-	const wantStdout = `{"ok":false,"error":{"type":"internal.failure","code":"CONFIG_DIRECTORY_UNAVAILABLE","message":"Local configuration directory is unavailable.","retryable":false,"details":{}},"meta":{"command":"auth.status","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.5"}}` + "\n"
+	const wantStdout = `{"ok":false,"error":{"type":"internal.failure","code":"CONFIG_DIRECTORY_UNAVAILABLE","message":"Local configuration directory is unavailable.","retryable":false,"details":{}},"meta":{"command":"auth.status","cliVersion":"1.0.0","productContractRevision":"2026-08-12.1","remoteContractRevision":"2026-08-12.1"}}` + "\n"
 	if result.ExitCode != 10 {
 		t.Fatalf("exit code = %d, want 10", result.ExitCode)
 	}
@@ -4080,7 +5051,7 @@ func TestExecuteDoctorDiagnosesConfigurationDirectoryFailure(t *testing.T) {
 		},
 	})
 
-	const want = `{"ok":true,"data":{"healthy":false,"checks":[{"name":"credentials","status":"fail","message":"Configuration directory is unavailable.","remediation":"Set a usable user configuration directory."}]},"meta":{"command":"doctor","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.5","warnings":[]}}` + "\n"
+	const want = `{"ok":true,"data":{"healthy":false,"checks":[{"name":"credentials","status":"fail","message":"Configuration directory is unavailable.","remediation":"Set a usable user configuration directory."}]},"meta":{"command":"doctor","cliVersion":"1.0.0","productContractRevision":"2026-08-12.1","remoteContractRevision":"2026-08-12.1","warnings":[]}}` + "\n"
 	if result.ExitCode != 0 {
 		t.Fatalf("exit code = %d, want 0", result.ExitCode)
 	}
