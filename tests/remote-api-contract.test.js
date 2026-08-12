@@ -241,7 +241,7 @@ describe('remote API contract', () => {
     expect(spec.openapi).toBe('3.1.0');
     expect(evidence.contractRevision).toBe('2026-08-11.5');
     expect(spec.info.version).toBe(evidence.contractRevision);
-    expect(evidence.status).toBe('proposed');
+    expect(evidence.status).toBe('owner-reviewed');
     const ids = operations().map(({ operation }) => operation.operationId);
     expect(ids).toHaveLength(27);
     expect(new Set(ids).size).toBe(ids.length);
@@ -1133,7 +1133,7 @@ describe('remote API contract', () => {
     expect(evidence.readObservation.artifactPath).toBe(readEvidencePath);
   });
 
-  it('keeps the proposed revision status aligned in human contract surfaces', () => {
+  it('keeps the approved remote revision separate from the shipped revision', () => {
     const productContract = fs.readFileSync(
       'docs/CLI-PRODUCT-CONTRACT.md',
       'utf8',
@@ -1157,7 +1157,7 @@ describe('remote API contract', () => {
     expect(documentedRevision).toBe(shippedRevision);
     expect(new Set(envelopeRevisions)).toEqual(new Set([shippedRevision]));
     expect(spec.info.version).toBe('2026-08-11.5');
-    expect(evidence.status).toBe('proposed');
+    expect(evidence.status).toBe('owner-reviewed');
     expect(spec.info.version).not.toBe(shippedRevision);
     expect(productContract)
       .not.toContain('currently leaves every operation response status and body unknown');

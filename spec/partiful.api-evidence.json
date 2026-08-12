@@ -394,7 +394,7 @@
     "Firestore event GET returned PERMISSION_DENIED for selected readable and synthetic IDs with one credential; success, not-found, attendee-denial, and other credential behavior remain unknown.",
     "Contact invalid-cursor behavior, cursor lifetime and reuse, ordering key, snapshot behavior, useAuthUser, rate limiting, unsupported statuses, future catalog completeness, server duplicate behavior, and duplicates outside two traversals remain unknown."
   ],
-  "status": "proposed",
+  "status": "owner-reviewed",
   "claims": {
     "#/servers/0/url": {
       "classification": "typescript-derived-inference",
