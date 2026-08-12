@@ -529,7 +529,10 @@ func TestExecuteSchemaProjectsPosterSearchDefinition(t *testing.T) {
 			SuccessSchema struct {
 				Properties map[string]struct {
 					Items struct {
-						Required []string `json:"required"`
+						Required   []string `json:"required"`
+						Properties map[string]struct {
+							Minimum *int `json:"minimum"`
+						} `json:"properties"`
 					} `json:"items"`
 				} `json:"properties"`
 			} `json:"successSchema"`
@@ -2665,7 +2668,10 @@ func TestExecuteSchemaProjectsCompleteContactsListDefinition(t *testing.T) {
 			SuccessSchema struct {
 				Properties map[string]struct {
 					Items struct {
-						Required []string `json:"required"`
+						Required   []string `json:"required"`
+						Properties map[string]struct {
+							Minimum *int `json:"minimum"`
+						} `json:"properties"`
 					} `json:"items"`
 				} `json:"properties"`
 			} `json:"successSchema"`
@@ -2710,6 +2716,10 @@ func TestExecuteSchemaProjectsCompleteContactsListDefinition(t *testing.T) {
 	wantFields := []string{"displayName", "sharedEventCount"}
 	if got := envelope.Data.SuccessSchema.Properties["items"].Items.Required; !reflect.DeepEqual(got, wantFields) {
 		t.Fatalf("contact fields = %v, want only %v", got, wantFields)
+	}
+	sharedEventCount := envelope.Data.SuccessSchema.Properties["items"].Items.Properties["sharedEventCount"]
+	if sharedEventCount.Minimum == nil || *sharedEventCount.Minimum != 0 {
+		t.Fatalf("sharedEventCount schema = %#v, want nonnegative integer", sharedEventCount)
 	}
 	wantFailures := []string{
 		"usage.invalid",

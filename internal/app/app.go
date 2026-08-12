@@ -442,11 +442,12 @@ func posterCollectionSuccessSchema() jsonSchema {
 }
 
 func contactCollectionSuccessSchema() jsonSchema {
+	zero := 0
 	contact := objectSchema(
 		[]string{"displayName", "sharedEventCount"},
 		map[string]jsonSchema{
 			"displayName":      {Type: "string"},
-			"sharedEventCount": {Type: "integer"},
+			"sharedEventCount": {Type: "integer", Minimum: &zero},
 		},
 	)
 	items := jsonSchema{Type: "array", Items: &contact}
