@@ -6,9 +6,9 @@
 
 **Remote API contract revision:** `2026-08-12.3`
 
-**Owner-reviewed baseline:** product and remote `2026-08-12.2`
+**Owner-reviewed baseline:** product and remote `2026-08-12.3`
 
-**Currently shipped Go revisions:** product and remote `2026-08-12.1`
+**Currently shipped Go revisions:** product and remote `2026-08-12.3`
 
 This document defines the public behavior of the greenfield Go `partiful` CLI.
 It is the authority for commands, inputs, JSON outputs, failures, and mutation
@@ -855,7 +855,7 @@ persisted RSVP state, delivery, notification, or another business side
 effect.
 
 This `2026-08-12.3` contract is owner-reviewed under the issue #114
-delegation. Shipped Go revisions remain unchanged until implementation.
+delegation and is shipped by the Go implementation.
 
 ### Contacts
 

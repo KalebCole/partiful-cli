@@ -33,6 +33,55 @@ type Event struct {
 	OwnerIDsPresent bool
 	GuestPresent    bool
 	GuestStatus     *string
+	Safeguards      EventSafeguards
+}
+
+type FieldState string
+
+const (
+	FieldAbsent FieldState = "absent"
+	FieldNull   FieldState = "null"
+	FieldValue  FieldState = "value"
+)
+
+type BooleanField struct {
+	State FieldState `json:"state"`
+	Value bool       `json:"value,omitempty"`
+}
+
+type IntegerField struct {
+	State FieldState `json:"state"`
+	Value int        `json:"value,omitempty"`
+}
+
+type StringField struct {
+	State FieldState `json:"state"`
+	Value string     `json:"value,omitempty"`
+}
+
+type PresenceField struct {
+	State FieldState `json:"state"`
+}
+
+type ArrayField struct {
+	State  FieldState `json:"state"`
+	Length int        `json:"length,omitempty"`
+}
+
+type EventSafeguards struct {
+	RSVPsEnabled          BooleanField  `json:"rsvpsEnabled"`
+	AtCapacity            BooleanField  `json:"atCapacity"`
+	PlusOneNamesRequired  BooleanField  `json:"plusOneNamesRequired"`
+	GuestAction           StringField   `json:"guestAction"`
+	Ticketing             PresenceField `json:"ticketing"`
+	Password              PresenceField `json:"password"`
+	PasswordProtected     PresenceField `json:"passwordProtected"`
+	QuestionnaireEnabled  BooleanField  `json:"questionnaireEnabled"`
+	QuestionnaireVersions ArrayField    `json:"questionnaireVersions"`
+	MaxCountPerGuest      IntegerField  `json:"maxCountPerGuest"`
+	MaxCapacity           IntegerField  `json:"maxCapacity"`
+	RemainingCapacity     IntegerField  `json:"remainingCapacity"`
+	EnableWaitlist        BooleanField  `json:"enableWaitlist"`
 }
 
 type EventCatalog struct {
@@ -371,13 +420,223 @@ func decodeEventInfo(raw json.RawMessage) (Event, error) {
 	if err := validateEventObjectOrNull(object, "displaySettings", false); err != nil {
 		return Event{}, err
 	}
+	safeguards, err := decodeEventSafeguards(object)
+	if err != nil {
+		return Event{}, err
+	}
 	return Event{
-		Title:    title,
-		Start:    start,
-		End:      end,
-		Timezone: timezone,
-		Status:   status,
+		Title:      title,
+		Start:      start,
+		End:        end,
+		Timezone:   timezone,
+		Status:     status,
+		Safeguards: safeguards,
 	}, nil
+}
+
+func decodeEventSafeguards(
+	object map[string]json.RawMessage,
+) (EventSafeguards, error) {
+	rsvpsEnabled, err := eventBooleanField(object, "rsvpsEnabled", false)
+	if err != nil {
+		return EventSafeguards{}, err
+	}
+	atCapacity, err := eventBooleanField(object, "atCapacity", false)
+	if err != nil {
+		return EventSafeguards{}, err
+	}
+	plusOneNamesRequired, err := eventBooleanField(
+		object,
+		"plusOneNamesRequired",
+		false,
+	)
+	if err != nil {
+		return EventSafeguards{}, err
+	}
+	guestAction, err := eventStringSafeguard(object, "guestAction")
+	if err != nil ||
+		guestAction.State == FieldValue &&
+			guestAction.Value != "APPLY" &&
+			guestAction.Value != "RSVP" {
+		return EventSafeguards{}, errors.New("guest action is invalid")
+	}
+	ticketing, err := eventObjectPresence(object, "ticketing")
+	if err != nil {
+		return EventSafeguards{}, err
+	}
+	questionnaireEnabled, err := eventBooleanField(
+		object,
+		"questionnaireEnabled",
+		false,
+	)
+	if err != nil {
+		return EventSafeguards{}, err
+	}
+	questionnaireVersions, err := eventArrayField(object, "questionnaireVersions")
+	if err != nil {
+		return EventSafeguards{}, err
+	}
+	maxCountPerGuest, err := eventIntegerField(
+		object,
+		"maxCountPerGuest",
+		false,
+	)
+	if err != nil {
+		return EventSafeguards{}, err
+	}
+	maxCapacity, err := eventIntegerField(object, "maxCapacity", true)
+	if err != nil {
+		return EventSafeguards{}, err
+	}
+	remainingCapacity, err := eventIntegerField(
+		object,
+		"remainingCapacity",
+		false,
+	)
+	if err != nil {
+		return EventSafeguards{}, err
+	}
+	enableWaitlist, err := eventBooleanField(object, "enableWaitlist", true)
+	if err != nil {
+		return EventSafeguards{}, err
+	}
+	password := eventUntypedPresence(object, "password")
+	passwordProtected := eventUntypedPresence(object, "passwordProtected")
+	return EventSafeguards{
+		RSVPsEnabled:          rsvpsEnabled,
+		AtCapacity:            atCapacity,
+		PlusOneNamesRequired:  plusOneNamesRequired,
+		GuestAction:           guestAction,
+		Ticketing:             ticketing,
+		Password:              password,
+		PasswordProtected:     passwordProtected,
+		QuestionnaireEnabled:  questionnaireEnabled,
+		QuestionnaireVersions: questionnaireVersions,
+		MaxCountPerGuest:      maxCountPerGuest,
+		MaxCapacity:           maxCapacity,
+		RemainingCapacity:     remainingCapacity,
+		EnableWaitlist:        enableWaitlist,
+	}, nil
+}
+
+func eventBooleanField(
+	object map[string]json.RawMessage,
+	name string,
+	nullAllowed bool,
+) (BooleanField, error) {
+	raw, ok := object[name]
+	if !ok {
+		return BooleanField{State: FieldAbsent}, nil
+	}
+	if bytes.Equal(bytes.TrimSpace(raw), []byte("null")) {
+		if nullAllowed {
+			return BooleanField{State: FieldNull}, nil
+		}
+		return BooleanField{}, errors.New("boolean is null")
+	}
+	var value bool
+	if json.Unmarshal(raw, &value) != nil {
+		return BooleanField{}, errors.New("boolean is invalid")
+	}
+	return BooleanField{State: FieldValue, Value: value}, nil
+}
+
+func eventStringSafeguard(
+	object map[string]json.RawMessage,
+	name string,
+) (StringField, error) {
+	value, present, err := eventStringField(object, name, false)
+	if err != nil {
+		return StringField{}, err
+	}
+	if !present {
+		return StringField{State: FieldAbsent}, nil
+	}
+	return StringField{State: FieldValue, Value: *value}, nil
+}
+
+func eventObjectPresence(
+	object map[string]json.RawMessage,
+	name string,
+) (PresenceField, error) {
+	raw, ok := object[name]
+	if !ok {
+		return PresenceField{State: FieldAbsent}, nil
+	}
+	if bytes.Equal(bytes.TrimSpace(raw), []byte("null")) {
+		return PresenceField{State: FieldNull}, nil
+	}
+	if _, err := decodeEventObject(raw); err != nil {
+		return PresenceField{}, err
+	}
+	return PresenceField{State: FieldValue}, nil
+}
+
+func eventUntypedPresence(
+	object map[string]json.RawMessage,
+	name string,
+) PresenceField {
+	raw, ok := object[name]
+	if !ok {
+		return PresenceField{State: FieldAbsent}
+	}
+	if bytes.Equal(bytes.TrimSpace(raw), []byte("null")) {
+		return PresenceField{State: FieldNull}
+	}
+	return PresenceField{State: FieldValue}
+}
+
+func eventArrayField(
+	object map[string]json.RawMessage,
+	name string,
+) (ArrayField, error) {
+	raw, ok := object[name]
+	if !ok {
+		return ArrayField{State: FieldAbsent}, nil
+	}
+	if bytes.Equal(bytes.TrimSpace(raw), []byte("null")) {
+		return ArrayField{State: FieldNull}, nil
+	}
+	if !isEventJSONKind(raw, '[') {
+		return ArrayField{}, errors.New("array is invalid")
+	}
+	var values []json.RawMessage
+	if json.Unmarshal(raw, &values) != nil || values == nil {
+		return ArrayField{}, errors.New("array is invalid")
+	}
+	return ArrayField{State: FieldValue, Length: len(values)}, nil
+}
+
+func eventIntegerField(
+	object map[string]json.RawMessage,
+	name string,
+	nullAllowed bool,
+) (IntegerField, error) {
+	raw, ok := object[name]
+	if !ok {
+		return IntegerField{State: FieldAbsent}, nil
+	}
+	if bytes.Equal(bytes.TrimSpace(raw), []byte("null")) {
+		if nullAllowed {
+			return IntegerField{State: FieldNull}, nil
+		}
+		return IntegerField{}, errors.New("integer is null")
+	}
+	decoder := json.NewDecoder(bytes.NewReader(raw))
+	decoder.UseNumber()
+	var value any
+	if decoder.Decode(&value) != nil {
+		return IntegerField{}, errors.New("integer is invalid")
+	}
+	number, ok := value.(json.Number)
+	if !ok {
+		return IntegerField{}, errors.New("integer is invalid")
+	}
+	parsed, err := number.Int64()
+	if err != nil || int64(int(parsed)) != parsed {
+		return IntegerField{}, errors.New("integer is invalid")
+	}
+	return IntegerField{State: FieldValue, Value: int(parsed)}, nil
 }
 
 func validEventNotFound(body []byte) bool {

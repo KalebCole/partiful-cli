@@ -2,6 +2,7 @@ package auth
 
 import (
 	"context"
+	"crypto/sha256"
 	"encoding/base64"
 	"encoding/json"
 	"errors"
@@ -44,8 +45,9 @@ type State struct {
 }
 
 type Session struct {
-	AccessToken string
-	UserID      string
+	AccessToken        string
+	UserID             string
+	AccountFingerprint string
 }
 
 type credentialRecord struct {
@@ -193,14 +195,15 @@ func AcquireSession(
 			return
 		}
 		state := stateFromCredentials(credentials, now())
-		userID := credentials.UserID
+		userID := tokenUserID(credentials.AccessToken)
 		if userID == "" {
-			userID = tokenUserID(credentials.AccessToken)
+			userID = credentials.UserID
 		}
 		if state.TokenState == "healthy" {
 			session = Session{
-				AccessToken: credentials.AccessToken,
-				UserID:      userID,
+				AccessToken:        credentials.AccessToken,
+				UserID:             userID,
+				AccountFingerprint: accountFingerprint(userID),
 			}
 			return
 		}
@@ -210,8 +213,9 @@ func AcquireSession(
 				return
 			}
 			session = Session{
-				AccessToken: credentials.AccessToken,
-				UserID:      userID,
+				AccessToken:        credentials.AccessToken,
+				UserID:             userID,
+				AccountFingerprint: accountFingerprint(userID),
 			}
 			return
 		}
@@ -235,8 +239,9 @@ func AcquireSession(
 			return
 		}
 		session = Session{
-			AccessToken: credentials.AccessToken,
-			UserID:      credentials.UserID,
+			AccessToken:        credentials.AccessToken,
+			UserID:             credentials.UserID,
+			AccountFingerprint: accountFingerprint(credentials.UserID),
 		}
 	}); err != nil {
 		return Session{}, ErrUnavailable
@@ -371,6 +376,14 @@ func tokenUserID(token string) string {
 		return ""
 	}
 	return claims.Subject
+}
+
+func accountFingerprint(userID string) string {
+	if userID == "" {
+		return ""
+	}
+	digest := sha256.Sum256([]byte("partiful-account-v1\x00" + userID))
+	return base64.RawURLEncoding.EncodeToString(digest[:])
 }
 
 func missingState() State {
