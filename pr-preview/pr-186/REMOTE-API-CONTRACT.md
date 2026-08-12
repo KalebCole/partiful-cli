@@ -1,7 +1,7 @@
 # Remote API contract
 
-`spec/partiful.openapi.json` is proposed revision `2026-08-12.3` of the remote
-transport snapshot, pending delegated review. Its owner-reviewed baseline is
+`spec/partiful.openapi.json` is owner-reviewed revision `2026-08-12.3` of the
+remote transport snapshot. Its owner-reviewed baseline is
 `2026-08-12.2`, which is based on owner-reviewed revision `2026-08-12.1`. It
 describes only network operations and wire shapes. It does not prescribe
 commands, output, credentials, mutation safeguards, or implementation
