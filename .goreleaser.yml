@@ -1,0 +1,44 @@
+version: 2
+
+project_name: partiful
+
+builds:
+  - id: partiful
+    main: ./cmd/partiful
+    binary: partiful
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - darwin
+      - linux
+      - windows
+    goarch:
+      - amd64
+      - arm64
+    ldflags:
+      - -s -w
+      - -X github.com/KalebCole/partiful-cli/internal/app.Version={{ .Version }}
+
+archives:
+  - id: native
+    builds:
+      - partiful
+    format: tar.gz
+    format_overrides:
+      - goos: windows
+        format: zip
+    name_template: >-
+      {{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ if eq .Arch "amd64" }}amd64{{ else if eq .Arch "arm64" }}arm64{{ else }}{{ .Arch }}{{ end }}
+    wrap_in_directory: true
+    files:
+      - LICENSE
+      - README.md
+
+checksum:
+  name_template: partiful_{{ .Version }}_checksums.txt
+
+snapshot:
+  version_template: '{{ if .Env.SNAPSHOT_VERSION }}{{ .Env.SNAPSHOT_VERSION }}{{ else }}{{ .Version }}-snapshot{{ end }}'
+
+changelog:
+  disable: true

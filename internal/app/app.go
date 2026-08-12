@@ -12,12 +12,6 @@ import (
 	"github.com/KalebCole/partiful-cli/internal/remote"
 )
 
-const (
-	Version                 = "1.0.0"
-	ProductContractRevision = "2026-08-12.7"
-	RemoteContractRevision  = "2026-08-12.7"
-)
-
 type Request struct {
 	Argv  []string
 	Stdin io.Reader

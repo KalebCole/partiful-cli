@@ -1,0 +1,73 @@
+name: Verify Native Release
+
+on:
+  pull_request:
+    paths:
+      - .github/workflows/native-release-verify.yml
+      - .goreleaser.yml
+      - README.md
+      - AGENTS.md
+      - docs/**
+      - cmd/**
+      - internal/**
+      - scripts/**
+      - go.mod
+      - go.sum
+  push:
+    branches:
+      - main
+    paths:
+      - .github/workflows/native-release-verify.yml
+      - .goreleaser.yml
+      - README.md
+      - AGENTS.md
+      - docs/**
+      - cmd/**
+      - internal/**
+      - scripts/**
+      - go.mod
+      - go.sum
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          fetch-depth: 0
+
+      - name: Set up Go
+        uses: actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00 # v6
+        with:
+          go-version-file: go.mod
+
+      - name: Verify module
+        run: go mod verify
+
+      - name: Test with race detector
+        run: go test -race ./...
+
+      - name: Vet packages
+        run: go vet ./...
+
+      - name: Build packages
+        run: go build ./...
+
+      - name: Smoke source binary
+        run: |
+          expected_version="$(sed -n 's/^[[:space:]]*Version[[:space:]]*=[[:space:]]*"\([^"]*\)".*/\1/p' internal/app/buildinfo.go)"
+          go build -o .build/partiful ./cmd/partiful
+          ./scripts/smoke-native-cli.sh ./.build/partiful "${expected_version}"
+
+      - name: Install GoReleaser
+        run: go install github.com/goreleaser/goreleaser/v2@v2.2.0
+
+      - name: Verify snapshot archives
+        run: |
+          export PATH="$(go env GOPATH)/bin:${PATH}"
+          ./scripts/verify-native-release.sh
