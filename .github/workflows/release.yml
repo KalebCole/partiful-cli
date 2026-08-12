@@ -1,41 +1,16 @@
-name: Verify Native Release
+name: Release Native Archives
 
 on:
-  pull_request:
-    paths:
-      - .github/workflows/native-release-verify.yml
-      - .github/workflows/release.yml
-      - .goreleaser.yml
-      - README.md
-      - AGENTS.md
-      - docs/**
-      - cmd/**
-      - internal/**
-      - scripts/**
-      - go.mod
-      - go.sum
   push:
-    branches:
-      - main
-    paths:
-      - .github/workflows/native-release-verify.yml
-      - .github/workflows/release.yml
-      - .goreleaser.yml
-      - README.md
-      - AGENTS.md
-      - docs/**
-      - cmd/**
-      - internal/**
-      - scripts/**
-      - go.mod
-      - go.sum
+    tags:
+      - v*
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
-  verify:
+  release:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -69,7 +44,9 @@ jobs:
       - name: Install GoReleaser
         run: GOTOOLCHAIN=go1.22.12 go install github.com/goreleaser/goreleaser/v2@v2.2.0
 
-      - name: Verify snapshot archives
+      - name: Publish release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           export PATH="$(go env GOPATH)/bin:${PATH}"
-          ./scripts/verify-native-release.sh
+          goreleaser release --clean

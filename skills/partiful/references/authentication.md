@@ -1,21 +1,18 @@
 # Authentication
 
 ```bash
-partiful auth login +120****1234
-partiful auth login +120****1234 --code 123456
-partiful auth login +120****1234 --no-auto
+partiful auth login
 partiful auth status
+partiful auth logout
 partiful doctor
 ```
 
-Login sends an SMS verification code. The CLI may retrieve it automatically on supported platforms; otherwise it prompts. Prefer E.164 phone numbers.
+`auth login` is the local sign-in entry point. `doctor` is the safe local
+smoke check for authentication state.
 
-Credentials resolve in this order:
+Use `partiful doctor` before mutations. It reports whether credentials are
+present, expiring, expired, invalid, or unavailable without making a live
+Partiful change.
 
-1. `PARTIFUL_TOKEN`
-2. Credential file selected by `PARTIFUL_CREDENTIALS_FILE`
-3. `~/.config/partiful/auth.json`
-
-A `userId: null` diagnostic does not necessarily block operations because Firebase token authentication remains valid. A later refresh can backfill the user ID.
-
-Never log, display, or persist tokens outside the CLI credential store. Do not include phone numbers or Partiful user IDs in user-facing summaries.
+Never log, display, or persist tokens outside the CLI credential store. Do not
+include phone numbers or Partiful user IDs in user-facing summaries.

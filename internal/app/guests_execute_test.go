@@ -173,7 +173,7 @@ func TestExecuteGuestsListReturnsPermissionDeniedForAttendee(t *testing.T) {
 		}},
 	})
 
-	const want = `{"ok":false,"error":{"type":"permission.denied","code":"HOST_PERMISSION_REQUIRED","message":"This command requires host access to the event.","retryable":false,"details":{"requiredRole":"host"}},"meta":{"command":"guests.list","cliVersion":"1.0.0","productContractRevision":"2026-08-12.7","remoteContractRevision":"2026-08-12.7"}}` + "\n"
+	const want = `{"ok":false,"error":{"type":"permission.denied","code":"HOST_PERMISSION_REQUIRED","message":"This command requires host access to the event.","retryable":false,"details":{"requiredRole":"host"}},"meta":{"command":"guests.list","cliVersion":"3.0.0","productContractRevision":"2026-08-12.7","remoteContractRevision":"2026-08-12.7"}}` + "\n"
 	if result.ExitCode != 4 || result.Stdout != want || result.Stderr != "partiful: host access required\n" {
 		t.Fatalf("result = %#v, want host permission denial", result)
 	}
@@ -225,7 +225,7 @@ func TestExecuteGuestsListReturnsEmptyCollectionForHost(t *testing.T) {
 		}},
 	})
 
-	const want = `{"ok":true,"data":{"items":[]},"meta":{"command":"guests.list","cliVersion":"1.0.0","productContractRevision":"2026-08-12.7","remoteContractRevision":"2026-08-12.7","warnings":[],"page":{"limit":25,"nextCursor":null,"hasMore":false}}}` + "\n"
+	const want = `{"ok":true,"data":{"items":[]},"meta":{"command":"guests.list","cliVersion":"3.0.0","productContractRevision":"2026-08-12.7","remoteContractRevision":"2026-08-12.7","warnings":[],"page":{"limit":25,"nextCursor":null,"hasMore":false}}}` + "\n"
 	if result.ExitCode != 0 || result.Stdout != want || result.Stderr != "" {
 		t.Fatalf("result = %#v, want empty host guest list", result)
 	}
@@ -276,7 +276,7 @@ func TestExecuteGuestsInviteBindsResolvedContactAndAppliesWithoutReResolvingName
 	applied := app.Execute(context.Background(), app.Request{
 		Argv: append(append([]string{}, argv...), "--apply", "--confirm", token),
 	}, dependencies)
-	const want = `{"ok":true,"data":{"eventId":"event-example","submitted":true},"meta":{"command":"guests.invite","cliVersion":"1.0.0","productContractRevision":"2026-08-12.7","remoteContractRevision":"2026-08-12.7","warnings":[]}}` + "\n"
+	const want = `{"ok":true,"data":{"eventId":"event-example","submitted":true},"meta":{"command":"guests.invite","cliVersion":"3.0.0","productContractRevision":"2026-08-12.7","remoteContractRevision":"2026-08-12.7","warnings":[]}}` + "\n"
 	if applied.ExitCode != 0 || applied.Stdout != want || applied.Stderr != "" {
 		t.Fatalf("applied = %#v, want submitted-only guest invite result", applied)
 	}

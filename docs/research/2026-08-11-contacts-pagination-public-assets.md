@@ -115,15 +115,15 @@ Source:
 
 ## Repository mismatch
 
-The current TypeScript CLI sends empty `params`, reads one `result.data`, filters
-names locally, and truncates locally. It neither sends `paging` nor follows
-`nextCursor`.
+The historical TypeScript CLI at `9e6ed15` sends empty `params`, reads one
+`result.data`, filters names locally, and truncates locally. It neither sends
+`paging` nor follows `nextCursor`.
 
 Sources:
-`src/commands/contacts.ts:19-44`;
-`src/lib/cohosts.ts:75-98`;
-`src/lib/api/endpoints.ts:158-174`;
-`src/lib/api/endpoints.ts:391-399`.
+`9e6ed15:src/commands/contacts.ts:19-44`;
+`9e6ed15:src/lib/cohosts.ts:75-98`;
+`9e6ed15:src/lib/api/endpoints.ts:158-174`;
+`9e6ed15:src/lib/api/endpoints.ts:391-399`.
 
 The previous owner-reviewed remote contract, revision `2026-08-11.4`, permits
 only empty request `params` and keeps response/status behavior unknown.
