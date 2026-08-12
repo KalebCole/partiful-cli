@@ -65,6 +65,7 @@ func (client Client) GetContacts(
 		cursor   *string
 		contacts []Contact
 	)
+	seenCursors := make(map[string]struct{})
 	for {
 		page, err := client.getContactsPage(ctx, accessToken, amplitudeDeviceID, cursor)
 		if err != nil {
@@ -93,6 +94,10 @@ func (client Client) GetContacts(
 		if len(page.Result.Data) == 0 {
 			return ContactCatalog{}, fmt.Errorf("%w: empty data page", ErrProtocolChanged)
 		}
+		if _, repeated := seenCursors[*page.Result.Paging.NextCursor]; repeated {
+			return ContactCatalog{}, fmt.Errorf("%w: repeated contacts cursor", ErrProtocolChanged)
+		}
+		seenCursors[*page.Result.Paging.NextCursor] = struct{}{}
 		cursor = page.Result.Paging.NextCursor
 	}
 }

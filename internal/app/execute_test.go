@@ -2271,6 +2271,52 @@ type contactOutput struct {
 	SharedEventCount int    `json:"sharedEventCount"`
 }
 
+func TestExecuteContactsListFailsClosedOnRepeatedRemoteCursor(t *testing.T) {
+	const (
+		credentials = `{"accessToken":"private-access-token","expiresAt":"2026-08-11T02:00:00Z"}`
+		privateLoop = "private-repeated-cursor"
+	)
+	call := 0
+	result := app.Execute(context.Background(), app.Request{
+		Argv:  []string{"contacts", "list"},
+		Stdin: strings.NewReader(""),
+	}, app.Dependencies{
+		Files: fakeFilesystem{
+			readFile: func(string) ([]byte, error) {
+				return []byte(credentials), nil
+			},
+		},
+		CredentialsPath: "/config/partiful/credentials.json",
+		Now: func() time.Time {
+			return time.Date(2026, time.August, 11, 0, 0, 0, 0, time.UTC)
+		},
+		AuthRandom: strings.NewReader("0123456789abcdef"),
+		HTTP: scriptedHTTP{do: func(*http.Request) (*http.Response, error) {
+			call++
+			if call > 2 {
+				return nil, errors.New("traversal continued after repeated cursor")
+			}
+			return jsonResponse(
+				http.StatusOK,
+				`{"result":{"data":[{"id":"private-id","name":"Private Name","sharedEventCount":1}],"paging":{"nextCursor":"`+privateLoop+`"}}}`,
+			), nil
+		}},
+	})
+
+	if result.ExitCode != 9 ||
+		!strings.Contains(result.Stdout, `"type":"contract.protocol_changed"`) ||
+		!strings.Contains(result.Stdout, `"code":"CONTACTS_PROTOCOL_CHANGED"`) {
+		t.Fatalf("result = %#v, want repeated cursor protocol failure", result)
+	}
+	if call != 2 {
+		t.Fatalf("request count = %d, want stop on repeated cursor", call)
+	}
+	if strings.Contains(result.Stdout+result.Stderr, privateLoop) ||
+		strings.Contains(result.Stdout+result.Stderr, "private-id") {
+		t.Fatal("repeated cursor failure exposed private transport data")
+	}
+}
+
 func TestExecuteAuthStatusRedactsHealthyCredentials(t *testing.T) {
 	const credentials = `{"accessToken":"secret-token-value","refreshToken":"secret-refresh-value","userId":"private-user-value","expiresAt":"2026-08-11T02:00:00Z"}`
 	result := app.Execute(context.Background(), app.Request{
