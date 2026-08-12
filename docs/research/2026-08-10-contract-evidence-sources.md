@@ -160,3 +160,33 @@ guest-status enum. It contains no account-scoped response values or private
 identifiers. Public assets establish current client field and enum behavior;
 they do not establish server statuses, field presence, remote pagination,
 ordering, limits, or inaccessible-event behavior.
+
+## Official Firebase callable protocol
+
+The official
+[Firebase callable protocol](https://firebase.google.com/docs/functions/callable-reference)
+specifies the generic wire format for `https.onCall`: a JSON request with one
+top-level `data` member, HTTP `200` for a successful callable trigger, and a
+JSON response containing `result`. It also states that an `error` member means
+failure. This source supports only generic callable status and envelope facts.
+It does not establish endpoint-specific Partiful business success.
+
+## Current public RSVP mapping assets
+
+The unauthenticated first-party asset research in
+`docs/research/2026-08-12-rsvp-mapping-public-assets.md`, under “Scope and
+provenance,” records the current `/e/[event]` build, exact asset URLs and
+module IDs, and privacy-safe integrity metadata.
+
+Its “addGuest request” section supports the narrow `GOING` and `DECLINED`
+request projections, named plus-one shape, questionnaire response, omitted
+null message, timezone, and stripped private contact fields. Its “addGuest
+completion” section records that the client requires decoded `data` to be an
+object but does not require a business field.
+
+Its “markEventInterest request and completion” section supports boolean
+interest and removal requests, optional `source` with direct-page omission,
+and the exact `success`/`interested` completion check. Its
+“getCurrentGuest” section supports the event-ID request and documents why
+callable null and alternate responses remain unknown. No live mutation or
+account-scoped read was used.

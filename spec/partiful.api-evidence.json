@@ -1,9 +1,10 @@
 {
-  "contractRevision": "2026-08-12.1",
+  "contractRevision": "2026-08-12.2",
   "contractPath": "spec/partiful.openapi.json",
   "allowedClassifications": [
     "dated-live-observation",
     "current-first-party-public-asset-research",
+    "official-protocol-specification",
     "reviewed-first-party-repository-research",
     "typescript-derived-inference",
     "explicit-unknown"
@@ -38,7 +39,16 @@
     "publicEventStatus20260812": "docs/research/2026-08-12-event-read-mapping-public-assets.md#event-status",
     "publicEventOwnership20260812": "docs/research/2026-08-12-event-read-mapping-public-assets.md#owner-membership-and-hosting",
     "publicGuestStatus20260812": "docs/research/2026-08-12-event-read-mapping-public-assets.md#guest-statuses",
-    "publicEventPagination20260812": "docs/research/2026-08-12-event-read-mapping-public-assets.md#pagination-boundary"
+    "publicEventPagination20260812": "docs/research/2026-08-12-event-read-mapping-public-assets.md#pagination-boundary",
+    "firebaseCallableProtocol": "docs/research/2026-08-10-contract-evidence-sources.md#official-firebase-callable-protocol",
+    "publicRsvpMapping20260812": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#scope-and-provenance",
+    "publicGetCurrentGuestRequest20260812": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#getcurrentguest",
+    "publicAddGuestRequest20260812": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#addguest-request",
+    "publicAddGuestCompletion20260812": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#addguest-completion",
+    "publicInterestRequest20260812": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#markeventinterest-request-and-completion",
+    "publicInterestCompletion20260812": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#markeventinterest-request-and-completion",
+    "publicRsvpGuestStatus20260812": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#guest-status-and-product-intent",
+    "publicRsvpBlockers20260812": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#apply-preconditions-and-irreducible-blockers"
   },
   "operations": {
     "createEvent": {
@@ -94,12 +104,12 @@
       "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#event-list-observations"
     },
     "addGuest": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1addGuest/post"
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#scope-and-provenance"
     },
     "markEventInterest": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1markEventInterest/post"
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#scope-and-provenance"
     },
     "getCurrentGuest": {
       "classification": "dated-live-observation",
@@ -256,24 +266,24 @@
       "statusCitation": "docs/research/2026-08-11-event-contacts-read-observation.md#event-list-observations"
     },
     "addGuest": {
-      "request": "typescript-derived-inference",
-      "requestCitation": "spec/research/historical-27-operation-draft.json#/paths/~1addGuest/post",
-      "response": "explicit-unknown",
-      "responseCitation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision",
-      "status": "explicit-unknown",
-      "statusCitation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision"
+      "request": "current-first-party-public-asset-research",
+      "requestCitation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#addguest-request",
+      "response": "current-first-party-public-asset-research",
+      "responseCitation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#addguest-completion",
+      "status": "official-protocol-specification",
+      "statusCitation": "docs/research/2026-08-10-contract-evidence-sources.md#official-firebase-callable-protocol"
     },
     "markEventInterest": {
-      "request": "typescript-derived-inference",
-      "requestCitation": "spec/research/historical-27-operation-draft.json#/paths/~1markEventInterest/post",
-      "response": "explicit-unknown",
-      "responseCitation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision",
-      "status": "explicit-unknown",
-      "statusCitation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision"
+      "request": "current-first-party-public-asset-research",
+      "requestCitation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#markeventinterest-request-and-completion",
+      "response": "current-first-party-public-asset-research",
+      "responseCitation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#markeventinterest-request-and-completion",
+      "status": "official-protocol-specification",
+      "statusCitation": "docs/research/2026-08-10-contract-evidence-sources.md#official-firebase-callable-protocol"
     },
     "getCurrentGuest": {
-      "request": "typescript-derived-inference",
-      "requestCitation": "spec/research/historical-27-operation-draft.json#/paths/~1getCurrentGuest/post",
+      "request": "current-first-party-public-asset-research",
+      "requestCitation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#getcurrentguest",
       "response": "dated-live-observation",
       "responseCitation": "docs/research/2026-08-11-event-contacts-read-observation.md#guest-and-firestore-observations",
       "status": "dated-live-observation",
@@ -385,7 +395,7 @@
     }
   ],
   "unresolvedUncertainty": [
-    "Callable-specific parameter sets and result payloads outside createTextBlast and documented auth calls.",
+    "Callable-specific parameter sets and result payloads outside createTextBlast, addGuest, markEventInterest, and documented auth calls.",
     "Complete Firestore typed-value grammar, authorization rules, pagination limits, and update-mask semantics.",
     "Upload accepted media types, size limits, response variants, and whether uploadType values remain stable.",
     "Poster catalog membership and order can change; exhaustiveness beyond the complete observed endpoint representation is unknown.",
@@ -398,9 +408,10 @@
     "Only one selected EventInfo object was observed; operation-wide field presence, nullability, and alternate variants remain unknown. Related event-list representations support only the optional endDate string/null and image object/null unions.",
     "Only one CurrentGuest object was observed; operation-wide field presence, nullability, alternate variants, plus-one shape, unsupported statuses, and failure bodies remain unknown.",
     "Firestore event GET returned PERMISSION_DENIED for selected readable and synthetic IDs with one credential; success, not-found, attendee-denial, and other credential behavior remain unknown.",
-    "Contact invalid-cursor behavior, cursor lifetime and reuse, ordering key, snapshot behavior, useAuthUser, rate limiting, unsupported statuses, future catalog completeness, server duplicate behavior, and duplicates outside two traversals remain unknown."
+    "Contact invalid-cursor behavior, cursor lifetime and reuse, ordering key, snapshot behavior, useAuthUser, rate limiting, unsupported statuses, future catalog completeness, server duplicate behavior, and duplicates outside two traversals remain unknown.",
+    "getCurrentGuest null and alternate responses, no-guest addGuest name and create behavior, selected-event RSVP preconditions, mutation failures, and post-write RSVP business state remain unknown."
   ],
-  "status": "owner-reviewed",
+  "status": "proposed-pending-delegated-review",
   "claims": {
     "#/servers/0/url": {
       "classification": "typescript-derived-inference",
@@ -2127,116 +2138,112 @@
       "citation": "spec/research/historical-27-operation-draft.json#/paths/~1getMyPastEventsForHomePage/post/security/0/firebaseBearer"
     },
     "#/paths/~1addGuest/post/operationId": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1addGuest/post/operationId"
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#addguest-request"
     },
     "#/paths/~1addGuest/post/requestBody/required": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1addGuest/post/requestBody/required"
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#addguest-request"
     },
     "#/paths/~1addGuest/post/requestBody/content/application~1json": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1addGuest/post/requestBody/content/application~1json"
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#addguest-request"
     },
     "#/paths/~1addGuest/post/requestBody/content/application~1json/schema/type": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1addGuest/post/requestBody/content/application~1json/schema/type"
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#addguest-request"
     },
     "#/paths/~1addGuest/post/requestBody/content/application~1json/schema/required/0": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1addGuest/post/requestBody/content/application~1json/schema/required/0"
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#addguest-request"
     },
     "#/paths/~1addGuest/post/requestBody/content/application~1json/schema/properties/data": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1addGuest/post/requestBody/content/application~1json/schema/properties/data"
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#addguest-request"
     },
     "#/paths/~1addGuest/post/requestBody/content/application~1json/schema/properties/data/type": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1addGuest/post/requestBody/content/application~1json/schema/properties/data/type"
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#addguest-request"
     },
     "#/paths/~1addGuest/post/requestBody/content/application~1json/schema/properties/data/required/0": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1addGuest/post/requestBody/content/application~1json/schema/properties/data/required/0"
-    },
-    "#/paths/~1addGuest/post/requestBody/content/application~1json/schema/properties/data/required/1": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1addGuest/post/requestBody/content/application~1json/schema/properties/data/required/1"
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#addguest-request"
     },
     "#/paths/~1addGuest/post/requestBody/content/application~1json/schema/properties/data/properties/params": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1addGuest/post/requestBody/content/application~1json/schema/properties/data/properties/params"
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#addguest-request"
     },
     "#/paths/~1addGuest/post/requestBody/content/application~1json/schema/properties/data/properties/params/type": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1addGuest/post/requestBody/content/application~1json/schema/properties/data/properties/params/type"
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#addguest-request"
     },
     "#/paths/~1addGuest/post/requestBody/content/application~1json/schema/properties/data/properties/params/properties/eventId": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1addGuest/post/requestBody/content/application~1json/schema/properties/data/properties/params/properties/eventId"
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#addguest-request"
     },
     "#/paths/~1addGuest/post/requestBody/content/application~1json/schema/properties/data/properties/params/properties/eventId/type": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1addGuest/post/requestBody/content/application~1json/schema/properties/data/properties/params/properties/eventId/type"
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#addguest-request"
     },
     "#/paths/~1addGuest/post/requestBody/content/application~1json/schema/properties/data/properties/params/properties/rsvp": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1addGuest/post/requestBody/content/application~1json/schema/properties/data/properties/params/properties/rsvp"
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#addguest-request"
     },
     "#/paths/~1addGuest/post/requestBody/content/application~1json/schema/properties/data/properties/params/properties/rsvp/$ref": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1addGuest/post/requestBody/content/application~1json/schema/properties/data/properties/params/properties/rsvp/$ref"
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#addguest-request"
     },
     "#/paths/~1addGuest/post/requestBody/content/application~1json/schema/properties/data/properties/params/additionalProperties": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1addGuest/post/requestBody/content/application~1json/schema/properties/data/properties/params/additionalProperties"
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#addguest-request"
     },
     "#/paths/~1addGuest/post/requestBody/content/application~1json/schema/properties/data/properties/params/required/0": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1addGuest/post/requestBody/content/application~1json/schema/properties/data/properties/params/required/0"
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#addguest-request"
     },
     "#/paths/~1addGuest/post/requestBody/content/application~1json/schema/properties/data/properties/params/required/1": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1addGuest/post/requestBody/content/application~1json/schema/properties/data/properties/params/required/1"
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#addguest-request"
     },
     "#/paths/~1addGuest/post/requestBody/content/application~1json/schema/properties/data/properties/amplitudeDeviceId": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1addGuest/post/requestBody/content/application~1json/schema/properties/data/properties/amplitudeDeviceId"
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#addguest-request"
     },
     "#/paths/~1addGuest/post/requestBody/content/application~1json/schema/properties/data/properties/amplitudeDeviceId/type": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1addGuest/post/requestBody/content/application~1json/schema/properties/data/properties/amplitudeDeviceId/type"
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#addguest-request"
     },
     "#/paths/~1addGuest/post/requestBody/content/application~1json/schema/properties/data/properties/amplitudeSessionId": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1addGuest/post/requestBody/content/application~1json/schema/properties/data/properties/amplitudeSessionId"
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#addguest-request"
     },
     "#/paths/~1addGuest/post/requestBody/content/application~1json/schema/properties/data/properties/amplitudeSessionId/type": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1addGuest/post/requestBody/content/application~1json/schema/properties/data/properties/amplitudeSessionId/type"
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#addguest-request"
     },
     "#/paths/~1addGuest/post/requestBody/content/application~1json/schema/properties/data/properties/amplitudeSessionId/format": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1addGuest/post/requestBody/content/application~1json/schema/properties/data/properties/amplitudeSessionId/format"
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#addguest-request"
     },
     "#/paths/~1addGuest/post/requestBody/content/application~1json/schema/properties/data/properties/userId": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1addGuest/post/requestBody/content/application~1json/schema/properties/data/properties/userId"
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#addguest-request"
     },
     "#/paths/~1addGuest/post/requestBody/content/application~1json/schema/properties/data/properties/userId/type/0": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1addGuest/post/requestBody/content/application~1json/schema/properties/data/properties/userId/type/0"
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#addguest-request"
     },
     "#/paths/~1addGuest/post/requestBody/content/application~1json/schema/properties/data/properties/userId/type/1": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1addGuest/post/requestBody/content/application~1json/schema/properties/data/properties/userId/type/1"
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#addguest-request"
     },
     "#/paths/~1addGuest/post/requestBody/content/application~1json/schema/properties/data/additionalProperties": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1addGuest/post/requestBody/content/application~1json/schema/properties/data/additionalProperties"
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#addguest-request"
     },
     "#/paths/~1addGuest/post/requestBody/content/application~1json/schema/additionalProperties": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1addGuest/post/requestBody/content/application~1json/schema/additionalProperties"
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#addguest-request"
     },
     "#/paths/~1addGuest/post/responses/default": {
       "classification": "explicit-unknown",
@@ -2247,128 +2254,120 @@
       "citation": "spec/research/historical-27-operation-draft.json#/paths/~1addGuest/post/security/0/firebaseBearer"
     },
     "#/paths/~1markEventInterest/post/operationId": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1markEventInterest/post/operationId"
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#markeventinterest-request-and-completion"
     },
     "#/paths/~1markEventInterest/post/requestBody/required": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1markEventInterest/post/requestBody/required"
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#markeventinterest-request-and-completion"
     },
     "#/paths/~1markEventInterest/post/requestBody/content/application~1json": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1markEventInterest/post/requestBody/content/application~1json"
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#markeventinterest-request-and-completion"
     },
     "#/paths/~1markEventInterest/post/requestBody/content/application~1json/schema/type": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1markEventInterest/post/requestBody/content/application~1json/schema/type"
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#markeventinterest-request-and-completion"
     },
     "#/paths/~1markEventInterest/post/requestBody/content/application~1json/schema/required/0": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1markEventInterest/post/requestBody/content/application~1json/schema/required/0"
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#markeventinterest-request-and-completion"
     },
     "#/paths/~1markEventInterest/post/requestBody/content/application~1json/schema/properties/data": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1markEventInterest/post/requestBody/content/application~1json/schema/properties/data"
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#markeventinterest-request-and-completion"
     },
     "#/paths/~1markEventInterest/post/requestBody/content/application~1json/schema/properties/data/type": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1markEventInterest/post/requestBody/content/application~1json/schema/properties/data/type"
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#markeventinterest-request-and-completion"
     },
     "#/paths/~1markEventInterest/post/requestBody/content/application~1json/schema/properties/data/required/0": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1markEventInterest/post/requestBody/content/application~1json/schema/properties/data/required/0"
-    },
-    "#/paths/~1markEventInterest/post/requestBody/content/application~1json/schema/properties/data/required/1": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1markEventInterest/post/requestBody/content/application~1json/schema/properties/data/required/1"
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#markeventinterest-request-and-completion"
     },
     "#/paths/~1markEventInterest/post/requestBody/content/application~1json/schema/properties/data/properties/params": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1markEventInterest/post/requestBody/content/application~1json/schema/properties/data/properties/params"
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#markeventinterest-request-and-completion"
     },
     "#/paths/~1markEventInterest/post/requestBody/content/application~1json/schema/properties/data/properties/params/type": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1markEventInterest/post/requestBody/content/application~1json/schema/properties/data/properties/params/type"
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#markeventinterest-request-and-completion"
     },
     "#/paths/~1markEventInterest/post/requestBody/content/application~1json/schema/properties/data/properties/params/properties/eventId": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1markEventInterest/post/requestBody/content/application~1json/schema/properties/data/properties/params/properties/eventId"
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#markeventinterest-request-and-completion"
     },
     "#/paths/~1markEventInterest/post/requestBody/content/application~1json/schema/properties/data/properties/params/properties/eventId/type": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1markEventInterest/post/requestBody/content/application~1json/schema/properties/data/properties/params/properties/eventId/type"
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#markeventinterest-request-and-completion"
     },
     "#/paths/~1markEventInterest/post/requestBody/content/application~1json/schema/properties/data/properties/params/properties/interested": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1markEventInterest/post/requestBody/content/application~1json/schema/properties/data/properties/params/properties/interested"
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#markeventinterest-request-and-completion"
     },
     "#/paths/~1markEventInterest/post/requestBody/content/application~1json/schema/properties/data/properties/params/properties/interested/type": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1markEventInterest/post/requestBody/content/application~1json/schema/properties/data/properties/params/properties/interested/type"
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#markeventinterest-request-and-completion"
     },
     "#/paths/~1markEventInterest/post/requestBody/content/application~1json/schema/properties/data/properties/params/properties/source": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1markEventInterest/post/requestBody/content/application~1json/schema/properties/data/properties/params/properties/source"
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#markeventinterest-request-and-completion"
     },
     "#/paths/~1markEventInterest/post/requestBody/content/application~1json/schema/properties/data/properties/params/properties/source/type": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1markEventInterest/post/requestBody/content/application~1json/schema/properties/data/properties/params/properties/source/type"
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#markeventinterest-request-and-completion"
     },
     "#/paths/~1markEventInterest/post/requestBody/content/application~1json/schema/properties/data/properties/params/additionalProperties": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1markEventInterest/post/requestBody/content/application~1json/schema/properties/data/properties/params/additionalProperties"
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#markeventinterest-request-and-completion"
     },
     "#/paths/~1markEventInterest/post/requestBody/content/application~1json/schema/properties/data/properties/params/required/0": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1markEventInterest/post/requestBody/content/application~1json/schema/properties/data/properties/params/required/0"
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#markeventinterest-request-and-completion"
     },
     "#/paths/~1markEventInterest/post/requestBody/content/application~1json/schema/properties/data/properties/params/required/1": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1markEventInterest/post/requestBody/content/application~1json/schema/properties/data/properties/params/required/1"
-    },
-    "#/paths/~1markEventInterest/post/requestBody/content/application~1json/schema/properties/data/properties/params/required/2": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1markEventInterest/post/requestBody/content/application~1json/schema/properties/data/properties/params/required/2"
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#markeventinterest-request-and-completion"
     },
     "#/paths/~1markEventInterest/post/requestBody/content/application~1json/schema/properties/data/properties/amplitudeDeviceId": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1markEventInterest/post/requestBody/content/application~1json/schema/properties/data/properties/amplitudeDeviceId"
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#markeventinterest-request-and-completion"
     },
     "#/paths/~1markEventInterest/post/requestBody/content/application~1json/schema/properties/data/properties/amplitudeDeviceId/type": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1markEventInterest/post/requestBody/content/application~1json/schema/properties/data/properties/amplitudeDeviceId/type"
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#markeventinterest-request-and-completion"
     },
     "#/paths/~1markEventInterest/post/requestBody/content/application~1json/schema/properties/data/properties/amplitudeSessionId": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1markEventInterest/post/requestBody/content/application~1json/schema/properties/data/properties/amplitudeSessionId"
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#markeventinterest-request-and-completion"
     },
     "#/paths/~1markEventInterest/post/requestBody/content/application~1json/schema/properties/data/properties/amplitudeSessionId/type": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1markEventInterest/post/requestBody/content/application~1json/schema/properties/data/properties/amplitudeSessionId/type"
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#markeventinterest-request-and-completion"
     },
     "#/paths/~1markEventInterest/post/requestBody/content/application~1json/schema/properties/data/properties/amplitudeSessionId/format": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1markEventInterest/post/requestBody/content/application~1json/schema/properties/data/properties/amplitudeSessionId/format"
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#markeventinterest-request-and-completion"
     },
     "#/paths/~1markEventInterest/post/requestBody/content/application~1json/schema/properties/data/properties/userId": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1markEventInterest/post/requestBody/content/application~1json/schema/properties/data/properties/userId"
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#markeventinterest-request-and-completion"
     },
     "#/paths/~1markEventInterest/post/requestBody/content/application~1json/schema/properties/data/properties/userId/type/0": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1markEventInterest/post/requestBody/content/application~1json/schema/properties/data/properties/userId/type/0"
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#markeventinterest-request-and-completion"
     },
     "#/paths/~1markEventInterest/post/requestBody/content/application~1json/schema/properties/data/properties/userId/type/1": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1markEventInterest/post/requestBody/content/application~1json/schema/properties/data/properties/userId/type/1"
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#markeventinterest-request-and-completion"
     },
     "#/paths/~1markEventInterest/post/requestBody/content/application~1json/schema/properties/data/additionalProperties": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1markEventInterest/post/requestBody/content/application~1json/schema/properties/data/additionalProperties"
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#markeventinterest-request-and-completion"
     },
     "#/paths/~1markEventInterest/post/requestBody/content/application~1json/schema/additionalProperties": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1markEventInterest/post/requestBody/content/application~1json/schema/additionalProperties"
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#markeventinterest-request-and-completion"
     },
     "#/paths/~1markEventInterest/post/responses/default": {
       "classification": "explicit-unknown",
@@ -2383,100 +2382,96 @@
       "citation": "spec/research/historical-27-operation-draft.json#/paths/~1getCurrentGuest/post/operationId"
     },
     "#/paths/~1getCurrentGuest/post/requestBody/required": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1getCurrentGuest/post/requestBody/required"
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#getcurrentguest"
     },
     "#/paths/~1getCurrentGuest/post/requestBody/content/application~1json": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1getCurrentGuest/post/requestBody/content/application~1json"
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#getcurrentguest"
     },
     "#/paths/~1getCurrentGuest/post/requestBody/content/application~1json/schema/type": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1getCurrentGuest/post/requestBody/content/application~1json/schema/type"
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#getcurrentguest"
     },
     "#/paths/~1getCurrentGuest/post/requestBody/content/application~1json/schema/required/0": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1getCurrentGuest/post/requestBody/content/application~1json/schema/required/0"
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#getcurrentguest"
     },
     "#/paths/~1getCurrentGuest/post/requestBody/content/application~1json/schema/properties/data": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1getCurrentGuest/post/requestBody/content/application~1json/schema/properties/data"
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#getcurrentguest"
     },
     "#/paths/~1getCurrentGuest/post/requestBody/content/application~1json/schema/properties/data/type": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1getCurrentGuest/post/requestBody/content/application~1json/schema/properties/data/type"
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#getcurrentguest"
     },
     "#/paths/~1getCurrentGuest/post/requestBody/content/application~1json/schema/properties/data/required/0": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1getCurrentGuest/post/requestBody/content/application~1json/schema/properties/data/required/0"
-    },
-    "#/paths/~1getCurrentGuest/post/requestBody/content/application~1json/schema/properties/data/required/1": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1getCurrentGuest/post/requestBody/content/application~1json/schema/properties/data/required/1"
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#getcurrentguest"
     },
     "#/paths/~1getCurrentGuest/post/requestBody/content/application~1json/schema/properties/data/properties/params": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1getCurrentGuest/post/requestBody/content/application~1json/schema/properties/data/properties/params"
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#getcurrentguest"
     },
     "#/paths/~1getCurrentGuest/post/requestBody/content/application~1json/schema/properties/data/properties/params/type": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1getCurrentGuest/post/requestBody/content/application~1json/schema/properties/data/properties/params/type"
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#getcurrentguest"
     },
     "#/paths/~1getCurrentGuest/post/requestBody/content/application~1json/schema/properties/data/properties/params/properties/eventId": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1getCurrentGuest/post/requestBody/content/application~1json/schema/properties/data/properties/params/properties/eventId"
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#getcurrentguest"
     },
     "#/paths/~1getCurrentGuest/post/requestBody/content/application~1json/schema/properties/data/properties/params/properties/eventId/type": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1getCurrentGuest/post/requestBody/content/application~1json/schema/properties/data/properties/params/properties/eventId/type"
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#getcurrentguest"
     },
     "#/paths/~1getCurrentGuest/post/requestBody/content/application~1json/schema/properties/data/properties/params/additionalProperties": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1getCurrentGuest/post/requestBody/content/application~1json/schema/properties/data/properties/params/additionalProperties"
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#getcurrentguest"
     },
     "#/paths/~1getCurrentGuest/post/requestBody/content/application~1json/schema/properties/data/properties/params/required/0": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1getCurrentGuest/post/requestBody/content/application~1json/schema/properties/data/properties/params/required/0"
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#getcurrentguest"
     },
     "#/paths/~1getCurrentGuest/post/requestBody/content/application~1json/schema/properties/data/properties/amplitudeDeviceId": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1getCurrentGuest/post/requestBody/content/application~1json/schema/properties/data/properties/amplitudeDeviceId"
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#getcurrentguest"
     },
     "#/paths/~1getCurrentGuest/post/requestBody/content/application~1json/schema/properties/data/properties/amplitudeDeviceId/type": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1getCurrentGuest/post/requestBody/content/application~1json/schema/properties/data/properties/amplitudeDeviceId/type"
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#getcurrentguest"
     },
     "#/paths/~1getCurrentGuest/post/requestBody/content/application~1json/schema/properties/data/properties/amplitudeSessionId": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1getCurrentGuest/post/requestBody/content/application~1json/schema/properties/data/properties/amplitudeSessionId"
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#getcurrentguest"
     },
     "#/paths/~1getCurrentGuest/post/requestBody/content/application~1json/schema/properties/data/properties/amplitudeSessionId/type": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1getCurrentGuest/post/requestBody/content/application~1json/schema/properties/data/properties/amplitudeSessionId/type"
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#getcurrentguest"
     },
     "#/paths/~1getCurrentGuest/post/requestBody/content/application~1json/schema/properties/data/properties/amplitudeSessionId/format": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1getCurrentGuest/post/requestBody/content/application~1json/schema/properties/data/properties/amplitudeSessionId/format"
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#getcurrentguest"
     },
     "#/paths/~1getCurrentGuest/post/requestBody/content/application~1json/schema/properties/data/properties/userId": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1getCurrentGuest/post/requestBody/content/application~1json/schema/properties/data/properties/userId"
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#getcurrentguest"
     },
     "#/paths/~1getCurrentGuest/post/requestBody/content/application~1json/schema/properties/data/properties/userId/type/0": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1getCurrentGuest/post/requestBody/content/application~1json/schema/properties/data/properties/userId/type/0"
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#getcurrentguest"
     },
     "#/paths/~1getCurrentGuest/post/requestBody/content/application~1json/schema/properties/data/properties/userId/type/1": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1getCurrentGuest/post/requestBody/content/application~1json/schema/properties/data/properties/userId/type/1"
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#getcurrentguest"
     },
     "#/paths/~1getCurrentGuest/post/requestBody/content/application~1json/schema/properties/data/additionalProperties": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1getCurrentGuest/post/requestBody/content/application~1json/schema/properties/data/additionalProperties"
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#getcurrentguest"
     },
     "#/paths/~1getCurrentGuest/post/requestBody/content/application~1json/schema/additionalProperties": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1getCurrentGuest/post/requestBody/content/application~1json/schema/additionalProperties"
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#getcurrentguest"
     },
     "#/paths/~1getCurrentGuest/post/responses/200": {
       "classification": "dated-live-observation",
@@ -3611,160 +3606,92 @@
       "citation": "spec/research/historical-27-operation-draft.json#/components/schemas/EventDraft/additionalProperties"
     },
     "#/components/schemas/RsvpDraft/type": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/components/schemas/RsvpDraft/type"
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#addguest-request"
     },
     "#/components/schemas/RsvpDraft/required/0": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/components/schemas/RsvpDraft/required/0"
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#addguest-request"
     },
     "#/components/schemas/RsvpDraft/required/1": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/components/schemas/RsvpDraft/required/1"
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#addguest-request"
     },
     "#/components/schemas/RsvpDraft/required/2": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/components/schemas/RsvpDraft/required/2"
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#addguest-request"
     },
     "#/components/schemas/RsvpDraft/required/3": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/components/schemas/RsvpDraft/required/3"
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#addguest-request"
     },
     "#/components/schemas/RsvpDraft/required/4": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/components/schemas/RsvpDraft/required/4"
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#addguest-request"
     },
     "#/components/schemas/RsvpDraft/properties/name": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/components/schemas/RsvpDraft/properties/name"
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#addguest-request"
     },
     "#/components/schemas/RsvpDraft/properties/name/type": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/components/schemas/RsvpDraft/properties/name/type"
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#addguest-request"
     },
     "#/components/schemas/RsvpDraft/properties/count": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/components/schemas/RsvpDraft/properties/count"
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#addguest-request"
     },
     "#/components/schemas/RsvpDraft/properties/count/type": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/components/schemas/RsvpDraft/properties/count/type"
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#addguest-request"
     },
     "#/components/schemas/RsvpDraft/properties/plusOnes": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/components/schemas/RsvpDraft/properties/plusOnes"
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#addguest-request"
     },
     "#/components/schemas/RsvpDraft/properties/plusOnes/type": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/components/schemas/RsvpDraft/properties/plusOnes/type"
-    },
-    "#/components/schemas/RsvpDraft/properties/plusOnes/items/type": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/components/schemas/RsvpDraft/properties/plusOnes/items/type"
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#addguest-request"
     },
     "#/components/schemas/RsvpDraft/properties/message": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/components/schemas/RsvpDraft/properties/message"
-    },
-    "#/components/schemas/RsvpDraft/properties/message/type/0": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/components/schemas/RsvpDraft/properties/message/type/0"
-    },
-    "#/components/schemas/RsvpDraft/properties/message/type/1": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/components/schemas/RsvpDraft/properties/message/type/1"
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#addguest-request"
     },
     "#/components/schemas/RsvpDraft/properties/emailInvitationId": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/components/schemas/RsvpDraft/properties/emailInvitationId"
-    },
-    "#/components/schemas/RsvpDraft/properties/emailInvitationId/type/0": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/components/schemas/RsvpDraft/properties/emailInvitationId/type/0"
-    },
-    "#/components/schemas/RsvpDraft/properties/emailInvitationId/type/1": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/components/schemas/RsvpDraft/properties/emailInvitationId/type/1"
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#addguest-request"
     },
     "#/components/schemas/RsvpDraft/properties/status": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/components/schemas/RsvpDraft/properties/status"
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#addguest-request"
     },
     "#/components/schemas/RsvpDraft/properties/status/type": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/components/schemas/RsvpDraft/properties/status/type"
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#addguest-request"
     },
     "#/components/schemas/RsvpDraft/properties/guestId": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/components/schemas/RsvpDraft/properties/guestId"
-    },
-    "#/components/schemas/RsvpDraft/properties/guestId/type/0": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/components/schemas/RsvpDraft/properties/guestId/type/0"
-    },
-    "#/components/schemas/RsvpDraft/properties/guestId/type/1": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/components/schemas/RsvpDraft/properties/guestId/type/1"
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#addguest-request"
     },
     "#/components/schemas/RsvpDraft/properties/timezone": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/components/schemas/RsvpDraft/properties/timezone"
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#addguest-request"
     },
     "#/components/schemas/RsvpDraft/properties/timezone/type": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/components/schemas/RsvpDraft/properties/timezone/type"
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#addguest-request"
     },
     "#/components/schemas/RsvpDraft/properties/password": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/components/schemas/RsvpDraft/properties/password"
-    },
-    "#/components/schemas/RsvpDraft/properties/password/type/0": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/components/schemas/RsvpDraft/properties/password/type/0"
-    },
-    "#/components/schemas/RsvpDraft/properties/password/type/1": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/components/schemas/RsvpDraft/properties/password/type/1"
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#addguest-request"
     },
     "#/components/schemas/RsvpDraft/properties/questionnaireResponse": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/components/schemas/RsvpDraft/properties/questionnaireResponse"
-    },
-    "#/components/schemas/RsvpDraft/properties/questionnaireResponse/type": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/components/schemas/RsvpDraft/properties/questionnaireResponse/type"
-    },
-    "#/components/schemas/RsvpDraft/properties/questionnaireResponse/properties/questionnaireVersion": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/components/schemas/RsvpDraft/properties/questionnaireResponse/properties/questionnaireVersion"
-    },
-    "#/components/schemas/RsvpDraft/properties/questionnaireResponse/properties/questionnaireVersion/type": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/components/schemas/RsvpDraft/properties/questionnaireResponse/properties/questionnaireVersion/type"
-    },
-    "#/components/schemas/RsvpDraft/properties/questionnaireResponse/properties/answers": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/components/schemas/RsvpDraft/properties/questionnaireResponse/properties/answers"
-    },
-    "#/components/schemas/RsvpDraft/properties/questionnaireResponse/properties/answers/type": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/components/schemas/RsvpDraft/properties/questionnaireResponse/properties/answers/type"
-    },
-    "#/components/schemas/RsvpDraft/properties/questionnaireResponse/properties/answers/additionalProperties/type": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/components/schemas/RsvpDraft/properties/questionnaireResponse/properties/answers/additionalProperties/type"
-    },
-    "#/components/schemas/RsvpDraft/properties/questionnaireResponse/required/0": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/components/schemas/RsvpDraft/properties/questionnaireResponse/required/0"
-    },
-    "#/components/schemas/RsvpDraft/properties/questionnaireResponse/required/1": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/components/schemas/RsvpDraft/properties/questionnaireResponse/required/1"
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#addguest-request"
     },
     "#/components/schemas/RsvpDraft/additionalProperties": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/components/schemas/RsvpDraft/additionalProperties"
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#addguest-request"
     },
     "#/components/schemas/CallableResponse/type": {
       "classification": "typescript-derived-inference",
@@ -5063,12 +4990,8 @@
       "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#guest-and-firestore-observations"
     },
     "#/components/schemas/CurrentGuest/properties/status": {
-      "classification": "dated-live-observation",
-      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#guest-and-firestore-observations"
-    },
-    "#/components/schemas/CurrentGuest/properties/status/type": {
-      "classification": "dated-live-observation",
-      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#guest-and-firestore-observations"
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#guest-status-and-product-intent"
     },
     "#/components/schemas/CurrentGuest/properties/userId": {
       "classification": "dated-live-observation",
@@ -5417,6 +5340,270 @@
     "#/components/schemas/CallableUnauthenticatedError/properties/error/properties/status/const": {
       "classification": "dated-live-observation",
       "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#contact-observations"
+    },
+    "#/paths/~1addGuest/post/responses/200": {
+      "classification": "official-protocol-specification",
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#official-firebase-callable-protocol"
+    },
+    "#/paths/~1addGuest/post/responses/200/content/application~1json": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#addguest-completion"
+    },
+    "#/paths/~1addGuest/post/responses/200/content/application~1json/schema/$ref": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#addguest-completion"
+    },
+    "#/paths/~1markEventInterest/post/responses/200": {
+      "classification": "official-protocol-specification",
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#official-firebase-callable-protocol"
+    },
+    "#/paths/~1markEventInterest/post/responses/200/content/application~1json": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#markeventinterest-request-and-completion"
+    },
+    "#/paths/~1markEventInterest/post/responses/200/content/application~1json/schema/$ref": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#markeventinterest-request-and-completion"
+    },
+    "#/components/schemas/RsvpDraft/required/5": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#addguest-request"
+    },
+    "#/components/schemas/RsvpDraft/properties/name/minLength": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#addguest-request"
+    },
+    "#/components/schemas/RsvpDraft/properties/name/maxLength": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#addguest-request"
+    },
+    "#/components/schemas/RsvpDraft/properties/count/minimum": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#addguest-request"
+    },
+    "#/components/schemas/RsvpDraft/properties/plusOnes/items/$ref": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#addguest-request"
+    },
+    "#/components/schemas/RsvpDraft/properties/message/type": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#addguest-request"
+    },
+    "#/components/schemas/RsvpDraft/properties/message/maxLength": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#addguest-request"
+    },
+    "#/components/schemas/RsvpDraft/properties/emailInvitationId/type": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#addguest-request"
+    },
+    "#/components/schemas/RsvpDraft/properties/status/enum/0": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#addguest-request"
+    },
+    "#/components/schemas/RsvpDraft/properties/status/enum/1": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#addguest-request"
+    },
+    "#/components/schemas/RsvpDraft/properties/guestId/type": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#addguest-request"
+    },
+    "#/components/schemas/RsvpDraft/properties/password/type": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#addguest-request"
+    },
+    "#/components/schemas/RsvpDraft/properties/questionnaireResponse/$ref": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#addguest-request"
+    },
+    "#/components/schemas/RsvpDraft/properties/shouldFollowOrgs": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#addguest-request"
+    },
+    "#/components/schemas/RsvpDraft/properties/shouldFollowOrgs/type": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#addguest-request"
+    },
+    "#/components/schemas/RsvpDraft/properties/shouldFollowOrgs/const": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#addguest-request"
+    },
+    "#/components/schemas/RsvpNamedPlusOne/type": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#addguest-request"
+    },
+    "#/components/schemas/RsvpNamedPlusOne/required/0": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#addguest-request"
+    },
+    "#/components/schemas/RsvpNamedPlusOne/properties/name": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#addguest-request"
+    },
+    "#/components/schemas/RsvpNamedPlusOne/properties/name/type": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#addguest-request"
+    },
+    "#/components/schemas/RsvpNamedPlusOne/properties/name/minLength": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#addguest-request"
+    },
+    "#/components/schemas/RsvpNamedPlusOne/additionalProperties": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#addguest-request"
+    },
+    "#/components/schemas/RsvpQuestionnaireResponse/type": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#addguest-request"
+    },
+    "#/components/schemas/RsvpQuestionnaireResponse/properties/questionnaireVersion": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#addguest-request"
+    },
+    "#/components/schemas/RsvpQuestionnaireResponse/properties/questionnaireVersion/type": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#addguest-request"
+    },
+    "#/components/schemas/RsvpQuestionnaireResponse/properties/questionnaireVersion/minimum": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#addguest-request"
+    },
+    "#/components/schemas/RsvpQuestionnaireResponse/properties/answers": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#addguest-request"
+    },
+    "#/components/schemas/RsvpQuestionnaireResponse/properties/answers/type": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#addguest-request"
+    },
+    "#/components/schemas/RsvpQuestionnaireResponse/properties/answers/additionalProperties/type": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#addguest-request"
+    },
+    "#/components/schemas/RsvpQuestionnaireResponse/required/0": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#addguest-request"
+    },
+    "#/components/schemas/RsvpQuestionnaireResponse/required/1": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#addguest-request"
+    },
+    "#/components/schemas/RsvpQuestionnaireResponse/additionalProperties": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#addguest-request"
+    },
+    "#/components/schemas/AddGuestCompletionResponse/type": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#addguest-completion"
+    },
+    "#/components/schemas/AddGuestCompletionResponse/required/0": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#addguest-completion"
+    },
+    "#/components/schemas/AddGuestCompletionResponse/properties/result": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#addguest-completion"
+    },
+    "#/components/schemas/AddGuestCompletionResponse/properties/result/type": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#addguest-completion"
+    },
+    "#/components/schemas/AddGuestCompletionResponse/properties/result/required/0": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#addguest-completion"
+    },
+    "#/components/schemas/AddGuestCompletionResponse/properties/result/properties/data": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#addguest-completion"
+    },
+    "#/components/schemas/AddGuestCompletionResponse/properties/result/properties/data/type": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#addguest-completion"
+    },
+    "#/components/schemas/AddGuestCompletionResponse/properties/result/properties/data/additionalProperties": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#addguest-completion"
+    },
+    "#/components/schemas/AddGuestCompletionResponse/properties/result/additionalProperties": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#addguest-completion"
+    },
+    "#/components/schemas/AddGuestCompletionResponse/additionalProperties": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#addguest-completion"
+    },
+    "#/components/schemas/MarkEventInterestCompletionResponse/type": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#markeventinterest-request-and-completion"
+    },
+    "#/components/schemas/MarkEventInterestCompletionResponse/required/0": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#markeventinterest-request-and-completion"
+    },
+    "#/components/schemas/MarkEventInterestCompletionResponse/properties/result": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#markeventinterest-request-and-completion"
+    },
+    "#/components/schemas/MarkEventInterestCompletionResponse/properties/result/type": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#markeventinterest-request-and-completion"
+    },
+    "#/components/schemas/MarkEventInterestCompletionResponse/properties/result/required/0": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#markeventinterest-request-and-completion"
+    },
+    "#/components/schemas/MarkEventInterestCompletionResponse/properties/result/properties/data": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#markeventinterest-request-and-completion"
+    },
+    "#/components/schemas/MarkEventInterestCompletionResponse/properties/result/properties/data/type": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#markeventinterest-request-and-completion"
+    },
+    "#/components/schemas/MarkEventInterestCompletionResponse/properties/result/properties/data/required/0": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#markeventinterest-request-and-completion"
+    },
+    "#/components/schemas/MarkEventInterestCompletionResponse/properties/result/properties/data/required/1": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#markeventinterest-request-and-completion"
+    },
+    "#/components/schemas/MarkEventInterestCompletionResponse/properties/result/properties/data/properties/success": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#markeventinterest-request-and-completion"
+    },
+    "#/components/schemas/MarkEventInterestCompletionResponse/properties/result/properties/data/properties/success/type": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#markeventinterest-request-and-completion"
+    },
+    "#/components/schemas/MarkEventInterestCompletionResponse/properties/result/properties/data/properties/success/const": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#markeventinterest-request-and-completion"
+    },
+    "#/components/schemas/MarkEventInterestCompletionResponse/properties/result/properties/data/properties/interested": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#markeventinterest-request-and-completion"
+    },
+    "#/components/schemas/MarkEventInterestCompletionResponse/properties/result/properties/data/properties/interested/type": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#markeventinterest-request-and-completion"
+    },
+    "#/components/schemas/MarkEventInterestCompletionResponse/properties/result/properties/data/additionalProperties": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#markeventinterest-request-and-completion"
+    },
+    "#/components/schemas/MarkEventInterestCompletionResponse/properties/result/additionalProperties": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#markeventinterest-request-and-completion"
+    },
+    "#/components/schemas/MarkEventInterestCompletionResponse/additionalProperties": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#markeventinterest-request-and-completion"
+    },
+    "#/components/schemas/CurrentGuest/properties/status/$ref": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#guest-status-and-product-intent"
     }
   },
   "posterCatalogObservation": {
@@ -5730,5 +5917,50 @@
       "listFailures": "explicit-unknown",
       "currentGuestFailures": "explicit-unknown"
     }
+  },
+  "publicRsvpAssetResearch": {
+    "classification": "current-first-party-public-asset-research",
+    "sourceCitation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#scope-and-provenance",
+    "observedAt": "2026-08-12T03:20:54Z",
+    "buildId": "z1npyrEHkwRMn_JlKXQXR",
+    "deployment": "dpl_4w28tFBmSUwoToDpQB8CU8gt16sL",
+    "modules": {
+      "callableTransport": 95722,
+      "guestStatus": 54257,
+      "plusOneShapes": 7073,
+      "interestEndpoint": 64951,
+      "interestCompletion": 34679,
+      "rsvpSanitizer": 64949,
+      "rsvpFlow": 82565,
+      "eventPageProvider": 52105,
+      "currentGuestEndpoint": 77504
+    },
+    "mappings": {
+      "going": "GOING",
+      "notGoing": "DECLINED",
+      "interested": {
+        "interested": true,
+        "source": "omitted-on-direct-event-page"
+      },
+      "removeInterest": {
+        "interested": false,
+        "source": "omitted-on-direct-event-page"
+      }
+    },
+    "addGuestCompletion": {
+      "statusSource": "official-firebase-callable-protocol",
+      "requiredResultDataType": "object",
+      "requiredBusinessFields": []
+    },
+    "markEventInterestCompletion": {
+      "statusSource": "official-firebase-callable-protocol",
+      "requiredFields": {
+        "success": true,
+        "interested": "equals-submitted-boolean"
+      }
+    },
+    "successSemantics": "submitted-request-only",
+    "currentGuestNullability": "explicit-unknown",
+    "errorsAndOtherStatuses": "explicit-unknown"
   }
 }

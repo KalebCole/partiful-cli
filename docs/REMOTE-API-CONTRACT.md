@@ -1,10 +1,11 @@
 # Remote API contract
 
-`spec/partiful.openapi.json` is owner-reviewed revision `2026-08-12.1` of the
-remote transport snapshot. It is based on owner-reviewed revision
-`2026-08-11.5`. It describes only network operations and wire shapes. It does
-not prescribe commands, output, credentials, mutation safeguards, or
-implementation architecture.
+`spec/partiful.openapi.json` is proposed revision `2026-08-12.2` of the remote
+transport snapshot, pending delegated review. Its owner-reviewed baseline is
+`2026-08-12.1`, which is based on owner-reviewed revision `2026-08-11.5`. It
+describes only network operations and wire shapes. It does not prescribe
+commands, output, credentials, mutation safeguards, or implementation
+architecture.
 
 ## Authority and change process
 
@@ -97,6 +98,51 @@ reviewed `200` and `404 NOT_FOUND`; an unobserved `403` remains protocol drift.
 `firestoreGetEvent` remains unusable as an S3 success or permission path
 because its selected and synthetic requests both returned
 `403 PERMISSION_DENIED`.
+
+## RSVP mapping proposal
+
+Revision `2026-08-12.2` adds unauthenticated first-party public-asset research
+from
+`docs/research/2026-08-12-rsvp-mapping-public-assets.md`. Build
+`z1npyrEHkwRMn_JlKXQXR` establishes the current client request and completion
+behavior without making a live mutation.
+
+The proposal corrects only these request facts:
+
+- `getCurrentGuest` sends `params.eventId`;
+- `addGuest` maps product going and not-going to `GOING` and `DECLINED`,
+  uses `count`, named plus-one objects, optional trimmed message, IANA
+  timezone, optional current guest ID, optional questionnaire response, and
+  `shouldFollowOrgs: false`;
+- the direct-event product mapping omits phone number, contact channel,
+  captcha, image, invitation ID, discovery source, and password; and
+- `markEventInterest` sends `eventId` and boolean `interested`. Its `source`
+  is optional and is omitted when a direct event URL has no string source.
+
+The current client requires decoded `addGuest.data` to be an object but
+requires no property for completion. For `markEventInterest`, it keeps the
+optimistic value only when `data.success` is true and `data.interested` equals
+the submitted boolean.
+
+The official
+[Firebase callable protocol](https://firebase.google.com/docs/functions/callable-reference)
+supports HTTP `200` and a `result` envelope for successful callable
+completion. It is the source only for that generic wire behavior. The nested
+Partiful `data` objects are current-client requirements, not live endpoint
+observations. A recognized completion does not claim stored business state,
+delivery, or another side effect. Every unobserved error and status remains
+the schema-free `default` response and is protocol drift.
+
+`CurrentGuest.status` now references the existing 16-value `GuestStatus`
+vocabulary. No current-guest property becomes required. The single live
+object and matching Firestore document remain the only response observation;
+callable null, alternate, and failure variants remain unknown.
+
+The proposal does not make RSVP releasable. Safe create-versus-update
+selection still lacks a reviewed null-current-guest response, and the
+selected-event precondition read does not guarantee all facts used by the
+current client. Those blockers are recorded in the research note and product
+contract.
 
 ## Historical provenance
 

@@ -10,6 +10,8 @@ const readEvidencePath = 'spec/research/read-evidence-redacted-20260811.json';
 const readEvidence = JSON.parse(fs.readFileSync(readEvidencePath, 'utf8'));
 const eventAssetResearchPath =
   'docs/research/2026-08-12-event-read-mapping-public-assets.md';
+const rsvpAssetResearchPath =
+  'docs/research/2026-08-12-rsvp-mapping-public-assets.md';
 const productContractPath = 'docs/CLI-PRODUCT-CONTRACT.md';
 const sourceCache = new Map([
   [historicalDraftPath, historicalDraft],
@@ -242,12 +244,15 @@ function citationResolves(citation) {
 describe('remote API contract', () => {
   it('is a consistently versioned OpenAPI 3.1 document with unique operation IDs', () => {
     expect(spec.openapi).toBe('3.1.0');
-    expect(evidence.contractRevision).toBe('2026-08-12.1');
+    expect(evidence.contractRevision).toBe('2026-08-12.2');
     expect(spec.info.version).toBe(evidence.contractRevision);
-    expect(evidence.status).toBe('owner-reviewed');
+    expect(evidence.status).toBe('proposed-pending-delegated-review');
     expect(evidence.sources.publicEventMapping20260812)
       .toBe(`${eventAssetResearchPath}#scope-and-provenance`);
     expect(citationResolves(evidence.sources.publicEventMapping20260812)).toBe(true);
+    expect(evidence.sources.publicRsvpMapping20260812)
+      .toBe(`${rsvpAssetResearchPath}#scope-and-provenance`);
+    expect(citationResolves(evidence.sources.publicRsvpMapping20260812)).toBe(true);
     const appSource = fs.readFileSync('internal/app/app.go', 'utf8');
     expect(appSource).toContain('ProductContractRevision = "2026-08-12.1"');
     expect(appSource).toContain('RemoteContractRevision  = "2026-08-12.1"');
@@ -269,7 +274,7 @@ describe('remote API contract', () => {
       expect(allowed.has(claim.response)).toBe(true);
       expect(citationResolves(claim.requestCitation), operation.operationId).toBe(true);
       expect(citationResolves(claim.responseCitation), operation.operationId).toBe(true);
-      const observedStatusOps = new Set([
+      const liveStatusOps = new Set([
         'getPosterCatalog',
         'sendAuthCodeTrusted',
         'getLoginToken',
@@ -284,11 +289,13 @@ describe('remote API contract', () => {
         'firestoreGetGuest',
         'getContacts',
       ]);
-      expect(claim.status).toBe(
-        observedStatusOps.has(operation.operationId)
-          ? 'dated-live-observation'
-          : 'explicit-unknown',
-      );
+      const protocolStatusOps = new Set(['addGuest', 'markEventInterest']);
+      const expectedStatus = liveStatusOps.has(operation.operationId)
+        ? 'dated-live-observation'
+        : protocolStatusOps.has(operation.operationId)
+          ? 'official-protocol-specification'
+          : 'explicit-unknown';
+      expect(claim.status).toBe(expectedStatus);
       expect(citationResolves(claim.statusCitation), operation.operationId).toBe(true);
     }
     const pointers = new Set([
@@ -296,7 +303,7 @@ describe('remote API contract', () => {
       ...materialClaimPointers(spec.paths, '#/paths', 'paths'),
       ...materialClaimPointers(spec.components, '#/components', 'components'),
     ]);
-    expect(pointers).toHaveLength(1254);
+    expect(pointers).toHaveLength(1298);
     for (const pointer of pointers) {
       const claim = evidence.claims[pointer];
       expect(claim, pointer).toBeDefined();
@@ -330,8 +337,8 @@ describe('remote API contract', () => {
     });
   });
 
-  it('reports twelve observed 200 statuses and eleven typed 200 bodies', () => {
-    const withObserved200 = operations()
+  it('separates twelve observed and two protocol-specified 200 responses', () => {
+    const with200 = operations()
       .filter(({ operation }) => operation.responses['200'])
       .map(({ operation }) => operation.operationId)
       .sort();
@@ -339,9 +346,9 @@ describe('remote API contract', () => {
       .filter(({ operation }) => operation.responses['200']?.content)
       .map(({ operation }) => operation.operationId)
       .sort();
-    expect(withObserved200).toHaveLength(12);
-    expect(withTyped200Body).toHaveLength(11);
-    expect(withObserved200.filter((id) => !withTyped200Body.includes(id)))
+    expect(with200).toHaveLength(14);
+    expect(withTyped200Body).toHaveLength(13);
+    expect(with200.filter((id) => !withTyped200Body.includes(id)))
       .toEqual(['sendAuthCodeTrusted']);
 
     const ledger = fs.readFileSync(
@@ -354,12 +361,15 @@ describe('remote API contract', () => {
     expect(ledger).toMatch(
       /Eleven of those\s+operations have a typed `200` response body\./,
     );
-    expect(ledger.match(/The 1254 material claims/g)).toHaveLength(2);
     expect(ledger).toContain(
-      '**Owner-reviewed contract revision:** `2026-08-12.1`',
+      'Two additional callable operations have protocol-specified HTTP `200` completion responses.',
+    );
+    expect(ledger.match(/The 1298 material claims/g)).toHaveLength(2);
+    expect(ledger).toContain(
+      '**Proposed contract revision:** `2026-08-12.2`',
     );
     expect(ledger).toContain(
-      '**Status:** Owner-reviewed under the issue #114 delegation',
+      '**Status:** Proposed, pending delegated review',
     );
     expect(ledger).toContain('Current first-party public-asset research');
   });
@@ -398,6 +408,8 @@ describe('remote API contract', () => {
       'firestoreGetEvent',
       'firestoreGetGuest',
       'getContacts',
+      'addGuest',
+      'markEventInterest',
     ]);
     const observedErrorOps = {
       getLoginToken: ['200', '403', 'default'],
@@ -411,12 +423,15 @@ describe('remote API contract', () => {
       firestoreGetEvent: ['403', 'default'],
       firestoreGetGuest: ['200', 'default'],
       getContacts: ['200', '401', 'default'],
+      addGuest: ['200', 'default'],
+      markEventInterest: ['200', 'default'],
     };
     for (const { operation } of operations()) {
       if (observedStatusOps.has(operation.operationId)) {
         const expectedKeys = observedErrorOps[operation.operationId] ?? ['200', 'default'];
         expect(Object.keys(operation.responses).sort()).toEqual(expectedKeys.sort());
-        expect(evidence.operationClaims[operation.operationId].status).toBe('dated-live-observation');
+        expect(evidence.operationClaims[operation.operationId].status)
+          .not.toBe('explicit-unknown');
       } else {
         expect(Object.keys(operation.responses)).toEqual(['default']);
         expect(evidence.operationClaims[operation.operationId].status).toBe('explicit-unknown');
@@ -452,6 +467,8 @@ describe('remote API contract', () => {
       'firestoreGetEvent',
       'firestoreGetGuest',
       'getContacts',
+      'addGuest',
+      'markEventInterest',
     ]);
     const observedResponseSources = new Map([
       ['getPosterCatalog', evidence.sources.posterCatalogObservation],
@@ -467,6 +484,8 @@ describe('remote API contract', () => {
       ['firestoreGetEvent', evidence.sources.readGuestFirestore20260811],
       ['firestoreGetGuest', evidence.sources.readGuestFirestore20260811],
       ['getContacts', evidence.sources.readContacts20260811],
+      ['addGuest', evidence.sources.publicAddGuestCompletion20260812],
+      ['markEventInterest', evidence.sources.publicInterestCompletion20260812],
     ]);
     for (const { path, method, operation } of operations()) {
       const base = `#/paths/${escapePointerSegment(path)}/${method}/responses/default`;
@@ -474,7 +493,11 @@ describe('remote API contract', () => {
       expect(operation.responses.default).not.toHaveProperty('content');
       const operationClaim = evidence.operationClaims[operation.operationId];
       if (observedResponseOps.has(operation.operationId)) {
-        expect(operationClaim.response).toBe('dated-live-observation');
+        const expectedClassification = ['addGuest', 'markEventInterest']
+          .includes(operation.operationId)
+          ? 'current-first-party-public-asset-research'
+          : 'dated-live-observation';
+        expect(operationClaim.response).toBe(expectedClassification);
         expect(citationResolves(operationClaim.responseCitation), `${operation.operationId} responseCitation`).toBe(true);
         expect(operationClaim.responseCitation)
           .toBe(observedResponseSources.get(operation.operationId));
@@ -571,6 +594,7 @@ describe('remote API contract', () => {
     };
     for (const [heading, classification] of [
       ['Dated-live operations', 'dated-live-observation'],
+      ['Current public-asset operations', 'current-first-party-public-asset-research'],
       ['TypeScript-derived operations', 'typescript-derived-inference'],
     ]) {
       const machineOperations = Object.entries(evidence.operations)
@@ -893,12 +917,112 @@ describe('remote API contract', () => {
     });
   });
 
+  it('formalizes the narrow RSVP requests and callable completion contract', () => {
+    const addGuest = spec.paths['/addGuest'].post;
+    const interest = spec.paths['/markEventInterest'].post;
+    const currentGuest = spec.paths['/getCurrentGuest'].post;
+    const addParams = addGuest.requestBody.content['application/json'].schema
+      .properties.data.properties.params;
+    const interestParams = interest.requestBody.content['application/json'].schema
+      .properties.data.properties.params;
+    const rsvp = spec.components.schemas.RsvpDraft;
+
+    expect(addParams.required).toEqual(['eventId', 'rsvp']);
+    for (const operation of [addGuest, interest, currentGuest]) {
+      expect(operation.requestBody.content['application/json'].schema
+        .properties.data.required).toEqual(['params']);
+    }
+    expect(rsvp.required).toEqual([
+      'name',
+      'count',
+      'plusOnes',
+      'status',
+      'timezone',
+      'shouldFollowOrgs',
+    ]);
+    expect(rsvp.properties).toMatchObject({
+      name: { type: 'string', minLength: 1, maxLength: 50 },
+      count: { type: 'integer', minimum: 1 },
+      plusOnes: {
+        type: 'array',
+        items: { $ref: '#/components/schemas/RsvpNamedPlusOne' },
+      },
+      message: { type: 'string', maxLength: 400 },
+      status: { type: 'string', enum: ['GOING', 'DECLINED'] },
+      timezone: { type: 'string' },
+      shouldFollowOrgs: { type: 'boolean', const: false },
+      questionnaireResponse: {
+        $ref: '#/components/schemas/RsvpQuestionnaireResponse',
+      },
+    });
+    expect(rsvp.properties).not.toHaveProperty('phoneNumber');
+    expect(rsvp.properties).not.toHaveProperty('channelPreference');
+    expect(rsvp.properties).not.toHaveProperty('captchaToken');
+    expect(rsvp.properties).not.toHaveProperty('_discoverSource');
+
+    expect(interestParams.required).toEqual(['eventId', 'interested']);
+    expect(interestParams.properties).toEqual({
+      eventId: { type: 'string' },
+      interested: { type: 'boolean' },
+      source: { type: 'string' },
+    });
+
+    expect(currentGuest.requestBody.content['application/json'].schema
+      .properties.data.properties.params).toMatchObject({
+      required: ['eventId'],
+      additionalProperties: false,
+    });
+    expect(spec.components.schemas.CurrentGuest.properties.status)
+      .toEqual({ $ref: '#/components/schemas/GuestStatus' });
+    expect(evidence.readObservation.getCurrentGuest).toMatchObject({
+      currentGuestNullability: 'explicit-unknown',
+      otherVariants: 'explicit-unknown',
+    });
+
+    expect(addGuest.responses['200'].content['application/json'].schema)
+      .toEqual({ $ref: '#/components/schemas/AddGuestCompletionResponse' });
+    expect(interest.responses['200'].content['application/json'].schema)
+      .toEqual({ $ref: '#/components/schemas/MarkEventInterestCompletionResponse' });
+    const interestData = spec.components.schemas.MarkEventInterestCompletionResponse
+      .properties.result.properties.data;
+    expect(interestData.required).toEqual(['success', 'interested']);
+    expect(interestData.properties).toEqual({
+      success: { type: 'boolean', const: true },
+      interested: { type: 'boolean' },
+    });
+
+    expect(evidence.publicRsvpAssetResearch).toMatchObject({
+      sourceCitation: evidence.sources.publicRsvpMapping20260812,
+      observedAt: '2026-08-12T03:20:54Z',
+      buildId: 'z1npyrEHkwRMn_JlKXQXR',
+      modules: {
+        callableTransport: 95722,
+        guestStatus: 54257,
+        plusOneShapes: 7073,
+        interestEndpoint: 64951,
+        interestCompletion: 34679,
+        rsvpSanitizer: 64949,
+        rsvpFlow: 82565,
+        eventPageProvider: 52105,
+        currentGuestEndpoint: 77504,
+      },
+      mappings: {
+        going: 'GOING',
+        notGoing: 'DECLINED',
+        interested: { interested: true, source: 'omitted-on-direct-event-page' },
+        removeInterest: { interested: false, source: 'omitted-on-direct-event-page' },
+      },
+      successSemantics: 'submitted-request-only',
+    });
+  });
+
   it('defines conservative nullable event reads and bounded local snapshots', () => {
     const product = fs.readFileSync(productContractPath, 'utf8');
     for (const expected of [
-      '**Status:** Approved product contract',
-      '**Product contract revision:** `2026-08-12.1`',
-      '**Remote API contract revision:** `2026-08-12.1`',
+      '**Status:** Proposed, pending delegated review',
+      '**Product contract revision:** `2026-08-12.2`',
+      '**Remote API contract revision:** `2026-08-12.2`',
+      '**Currently shipped Go revisions:** product and remote `2026-08-12.1`',
       '`PUBLISHED` → `active`',
       '`CANCELED` → `cancelled`',
       '`UNSAVED` exists in the current first-party client vocabulary',
@@ -920,6 +1044,15 @@ describe('remote API contract', () => {
       'A refresh rejected by the reviewed remote mapping also returns `auth.expired`',
       'requires `result.data.event` to be an object',
       'null, scalar, or array event value returns',
+      '`going` → `addGuest.rsvp.status = "GOING"`',
+      '`not-going` → `addGuest.rsvp.status = "DECLINED"`',
+      '`interested` → `markEventInterest.interested = true`',
+      '`source` is omitted for a direct event-page-equivalent request',
+      'does not prove that the remote RSVP state changed',
+      'does not automatically retry either mutation',
+      'private stable account fingerprint',
+      'five minutes',
+      'single-use',
     ]) {
       expect(product, expected).toContain(expected);
     }
@@ -1028,7 +1161,7 @@ describe('remote API contract', () => {
         count: {},
         name: { type: 'string' },
         plusOnes: {},
-        status: { type: 'string' },
+        status: { $ref: '#/components/schemas/GuestStatus' },
         userId: {},
       },
     });
@@ -1328,7 +1461,7 @@ describe('remote API contract', () => {
     expect(evidence.readObservation.artifactPath).toBe(readEvidencePath);
   });
 
-  it('ships the owner-reviewed event contract revisions', () => {
+  it('keeps shipped Go revisions on the reviewed baseline while RSVP is proposed', () => {
     const productContract = fs.readFileSync(
       'docs/CLI-PRODUCT-CONTRACT.md',
       'utf8',
@@ -1352,12 +1485,12 @@ describe('remote API contract', () => {
     )].map((match) => match[1]);
 
     expect(shippedRevision).toBe('2026-08-12.1');
-    expect(documentedRevision).toBe('2026-08-12.1');
-    expect(documentedProductRevision).toBe('2026-08-12.1');
+    expect(documentedRevision).toBe('2026-08-12.2');
+    expect(documentedProductRevision).toBe('2026-08-12.2');
     expect(new Set(envelopeRevisions)).toEqual(new Set([documentedRevision]));
     expect(spec.info.version).toBe(documentedRevision);
-    expect(evidence.status).toBe('owner-reviewed');
-    expect(spec.info.version).toBe(shippedRevision);
+    expect(evidence.status).toBe('proposed-pending-delegated-review');
+    expect(spec.info.version).not.toBe(shippedRevision);
     expect(appSource).toContain('ProductContractRevision = "2026-08-12.1"');
     expect(productContract)
       .not.toContain('currently leaves every operation response status and body unknown');

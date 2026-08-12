@@ -2,8 +2,8 @@
   "openapi": "3.1.0",
   "info": {
     "title": "Partiful remote API contract",
-    "version": "2026-08-12.1",
-    "description": "Owner-reviewed, versioned remote-only transport snapshot. Evidence classifications and uncertainty are recorded in spec/partiful.api-evidence.json."
+    "version": "2026-08-12.2",
+    "description": "Proposed remote-only transport snapshot, pending delegated review. Evidence classifications and uncertainty are recorded in spec/partiful.api-evidence.json."
   },
   "servers": [
     {
@@ -1060,8 +1060,7 @@
                   "data": {
                     "type": "object",
                     "required": [
-                      "params",
-                      "amplitudeDeviceId"
+                      "params"
                     ],
                     "properties": {
                       "params": {
@@ -1103,8 +1102,18 @@
           }
         },
         "responses": {
+          "200": {
+            "description": "Firebase callable completion accepted by the current first-party client; it does not prove stored business state.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AddGuestCompletionResponse"
+                }
+              }
+            }
+          },
           "default": {
-            "description": "Response status and body are unknown."
+            "description": "Unobserved response status or body."
           }
         },
         "security": [
@@ -1130,8 +1139,7 @@
                   "data": {
                     "type": "object",
                     "required": [
-                      "params",
-                      "amplitudeDeviceId"
+                      "params"
                     ],
                     "properties": {
                       "params": {
@@ -1150,8 +1158,7 @@
                         "additionalProperties": false,
                         "required": [
                           "eventId",
-                          "interested",
-                          "source"
+                          "interested"
                         ]
                       },
                       "amplitudeDeviceId": {
@@ -1177,8 +1184,18 @@
           }
         },
         "responses": {
+          "200": {
+            "description": "Firebase callable completion accepted by the current first-party client when interested equals the submitted value; it does not independently prove stored business state.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MarkEventInterestCompletionResponse"
+                }
+              }
+            }
+          },
           "default": {
-            "description": "Response status and body are unknown."
+            "description": "Unobserved response status or body."
           }
         },
         "security": [
@@ -1204,8 +1221,7 @@
                   "data": {
                     "type": "object",
                     "required": [
-                      "params",
-                      "amplitudeDeviceId"
+                      "params"
                     ],
                     "properties": {
                       "params": {
@@ -2009,71 +2025,147 @@
           "count",
           "plusOnes",
           "status",
-          "timezone"
+          "timezone",
+          "shouldFollowOrgs"
         ],
         "properties": {
           "name": {
-            "type": "string"
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 50
           },
           "count": {
-            "type": "integer"
+            "type": "integer",
+            "minimum": 1
           },
           "plusOnes": {
             "type": "array",
             "items": {
-              "type": "string"
+              "$ref": "#/components/schemas/RsvpNamedPlusOne"
             }
           },
           "message": {
-            "type": [
-              "string",
-              "null"
-            ]
+            "type": "string",
+            "maxLength": 400
           },
           "emailInvitationId": {
-            "type": [
-              "string",
-              "null"
-            ]
-          },
-          "status": {
             "type": "string"
           },
-          "guestId": {
-            "type": [
-              "string",
-              "null"
+          "status": {
+            "type": "string",
+            "enum": [
+              "GOING",
+              "DECLINED"
             ]
+          },
+          "guestId": {
+            "type": "string"
           },
           "timezone": {
             "type": "string"
           },
           "password": {
-            "type": [
-              "string",
-              "null"
-            ]
+            "type": "string"
           },
           "questionnaireResponse": {
-            "type": "object",
-            "properties": {
-              "questionnaireVersion": {
-                "type": "integer"
-              },
-              "answers": {
-                "type": "object",
-                "additionalProperties": {
-                  "type": "string"
-                }
-              }
-            },
-            "required": [
-              "questionnaireVersion",
-              "answers"
-            ]
+            "$ref": "#/components/schemas/RsvpQuestionnaireResponse"
+          },
+          "shouldFollowOrgs": {
+            "type": "boolean",
+            "const": false
           }
         },
         "additionalProperties": false
+      },
+      "RsvpNamedPlusOne": {
+        "type": "object",
+        "required": [
+          "name"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "additionalProperties": false
+      },
+      "RsvpQuestionnaireResponse": {
+        "type": "object",
+        "properties": {
+          "questionnaireVersion": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "answers": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "questionnaireVersion",
+          "answers"
+        ],
+        "additionalProperties": false
+      },
+      "AddGuestCompletionResponse": {
+        "type": "object",
+        "required": [
+          "result"
+        ],
+        "properties": {
+          "result": {
+            "type": "object",
+            "required": [
+              "data"
+            ],
+            "properties": {
+              "data": {
+                "type": "object",
+                "additionalProperties": true
+              }
+            },
+            "additionalProperties": true
+          }
+        },
+        "additionalProperties": true
+      },
+      "MarkEventInterestCompletionResponse": {
+        "type": "object",
+        "required": [
+          "result"
+        ],
+        "properties": {
+          "result": {
+            "type": "object",
+            "required": [
+              "data"
+            ],
+            "properties": {
+              "data": {
+                "type": "object",
+                "required": [
+                  "success",
+                  "interested"
+                ],
+                "properties": {
+                  "success": {
+                    "type": "boolean",
+                    "const": true
+                  },
+                  "interested": {
+                    "type": "boolean"
+                  }
+                },
+                "additionalProperties": true
+              }
+            },
+            "additionalProperties": true
+          }
+        },
+        "additionalProperties": true
       },
       "CallableResponse": {
         "type": "object",
@@ -2693,7 +2785,7 @@
           },
           "plusOnes": {},
           "status": {
-            "type": "string"
+            "$ref": "#/components/schemas/GuestStatus"
           },
           "userId": {}
         }
