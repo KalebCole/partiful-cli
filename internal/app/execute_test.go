@@ -1116,7 +1116,7 @@ func TestExecuteSchemaListsOnlyCompletedCatalog(t *testing.T) {
 		Stdin: strings.NewReader(""),
 	}, app.Dependencies{})
 
-	const want = `{"ok":true,"data":{"commands":["auth.login","auth.logout","auth.status","doctor","posters.list","posters.search","schema","version"]},"meta":{"command":"schema","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.4","warnings":[]}}` + "\n"
+	const want = `{"ok":true,"data":{"commands":["auth.login","auth.logout","auth.status","contacts.list","doctor","posters.list","posters.search","schema","version"]},"meta":{"command":"schema","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.4","warnings":[]}}` + "\n"
 	if result.ExitCode != 0 {
 		t.Fatalf("exit code = %d, want 0", result.ExitCode)
 	}
@@ -2049,6 +2049,80 @@ func (filesystem fakeFilesystem) WithLock(path string, operation func()) error {
 	}
 	operation()
 	return nil
+}
+
+func TestExecuteContactsListTraversesReviewedPagesAndReturnsOnlyPublicFields(t *testing.T) {
+	const (
+		credentials   = `{"accessToken":"private-access-token","refreshToken":"private-refresh-token","expiresAt":"2026-08-11T02:00:00Z"}`
+		privateID     = "private-contact-identity"
+		privateCursor = "private-remote-cursor"
+	)
+	requestCount := 0
+	result := app.Execute(context.Background(), app.Request{
+		Argv:  []string{"contacts", "list"},
+		Stdin: strings.NewReader(""),
+	}, app.Dependencies{
+		Files: fakeFilesystem{
+			readFile: func(string) ([]byte, error) {
+				return []byte(credentials), nil
+			},
+		},
+		CredentialsPath: "/config/partiful/credentials.json",
+		Now: func() time.Time {
+			return time.Date(2026, time.August, 11, 0, 0, 0, 0, time.UTC)
+		},
+		AuthRandom: strings.NewReader("0123456789abcdef"),
+		HTTP: scriptedHTTP{do: func(request *http.Request) (*http.Response, error) {
+			requestCount++
+			if request.Method != http.MethodPost ||
+				request.URL.String() != "https://api.partiful.com/getContacts" {
+				t.Fatalf("request = %s %s, want reviewed getContacts call", request.Method, request.URL)
+			}
+			if got := request.Header.Get("Authorization"); got != "Bearer private-access-token" {
+				t.Fatalf("authorization = %q, want bearer credential", got)
+			}
+			body, err := io.ReadAll(request.Body)
+			if err != nil {
+				t.Fatalf("read request body: %v", err)
+			}
+			if requestCount == 1 {
+				const want = `{"data":{"params":{},"amplitudeDeviceId":"MDEyMzQ1Njc4OWFiY2RlZg","paging":{"maxResults":1000,"cursor":null}}}`
+				if string(body) != want {
+					t.Fatalf("first request body = %s, want %s", body, want)
+				}
+				return jsonResponse(
+					http.StatusOK,
+					`{"result":{"data":[{"id":"`+privateID+`","name":"Alice Example","sharedEventCount":2}],"paging":{"nextCursor":"`+privateCursor+`"}}}`,
+				), nil
+			}
+			const want = `{"data":{"params":{},"amplitudeDeviceId":"MDEyMzQ1Njc4OWFiY2RlZg","paging":{"maxResults":1000,"cursor":"private-remote-cursor"}}}`
+			if string(body) != want {
+				t.Fatalf("terminal request body = %s, want %s", body, want)
+			}
+			return jsonResponse(
+				http.StatusOK,
+				`{"result":{"data":[],"paging":{}}}`,
+			), nil
+		}},
+	})
+
+	const want = `{"ok":true,"data":{"items":[{"displayName":"Alice Example","sharedEventCount":2}]},"meta":{"command":"contacts.list","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.4","warnings":[],"page":{"limit":25,"nextCursor":null,"hasMore":false}}}` + "\n"
+	if result.ExitCode != 0 || result.Stdout != want || result.Stderr != "" {
+		t.Fatalf("result = %#v, want reviewed public contact collection", result)
+	}
+	if requestCount != 2 {
+		t.Fatalf("request count = %d, want data page and terminal sentinel", requestCount)
+	}
+	for _, privateValue := range []string{
+		privateID,
+		privateCursor,
+		"private-access-token",
+		"private-refresh-token",
+	} {
+		if strings.Contains(result.Stdout+result.Stderr, privateValue) {
+			t.Fatalf("result exposed private value %q", privateValue)
+		}
+	}
 }
 
 func TestExecuteAuthStatusRedactsHealthyCredentials(t *testing.T) {

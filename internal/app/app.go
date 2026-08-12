@@ -52,6 +52,7 @@ const (
 	doctorCommand
 	postersListCommand
 	postersSearchCommand
+	contactsListCommand
 )
 
 type commandDefinition struct {
@@ -194,6 +195,23 @@ var commandCatalog = []commandDefinition{
 		failureTypes: []string{
 			"input.invalid",
 			"state.conflict",
+			"remote.unavailable",
+			"contract.protocol_changed",
+			"internal.failure",
+		},
+		safety: readOnlySafety(),
+	},
+	{
+		path:          "contacts.list",
+		invocation:    []string{"contacts", "list"},
+		kind:          contactsListCommand,
+		positionals:   []positionalDefinition{},
+		flags:         collectionFlagDefinitions(),
+		inputSchema:   collectionInputSchema(false),
+		successSchema: contactCollectionSuccessSchema(),
+		failureTypes: []string{
+			"auth.required",
+			"auth.expired",
 			"remote.unavailable",
 			"contract.protocol_changed",
 			"internal.failure",
@@ -411,6 +429,18 @@ func posterCollectionSuccessSchema() jsonSchema {
 	return objectSchema([]string{"items"}, map[string]jsonSchema{"items": items})
 }
 
+func contactCollectionSuccessSchema() jsonSchema {
+	contact := objectSchema(
+		[]string{"displayName", "sharedEventCount"},
+		map[string]jsonSchema{
+			"displayName":      {Type: "string"},
+			"sharedEventCount": {Type: "integer"},
+		},
+	)
+	items := jsonSchema{Type: "array", Items: &contact}
+	return objectSchema([]string{"items"}, map[string]jsonSchema{"items": items})
+}
+
 func readOnlySafety() safetyDefinition {
 	return safetyDefinition{
 		Kind:                 "read-only",
@@ -453,6 +483,15 @@ type poster struct {
 	Height      *int     `json:"height"`
 	Tags        []string `json:"tags"`
 	Categories  []string `json:"categories"`
+}
+
+type contactData struct {
+	Items []contact `json:"items"`
+}
+
+type contact struct {
+	DisplayName      string `json:"displayName"`
+	SharedEventCount int    `json:"sharedEventCount"`
 }
 
 type versionData struct {
@@ -783,6 +822,71 @@ func Execute(ctx context.Context, request Request, dependencies Dependencies) Re
 					NextCursor: cursor,
 					HasMore:    hasMore,
 				}, pretty)
+			case contactsListCommand:
+				options, inputError := parseCollectionOptions(definition, argv)
+				if inputError != nil {
+					return failure(definition.path, 2, *inputError, pretty)
+				}
+				clock := time.Now
+				if dependencies.Now != nil {
+					clock = dependencies.Now
+				}
+				session, err := auth.AcquireSession(
+					ctx,
+					dependencies.Files,
+					dependencies.CredentialsPath,
+					clock,
+					remote.AuthClient{HTTP: dependencies.HTTP},
+				)
+				if err != nil {
+					if errors.Is(err, auth.ErrRequired) {
+						return authenticationRequiredFailure(definition.path, pretty)
+					}
+					if errors.Is(err, auth.ErrExpired) ||
+						errors.Is(err, auth.ErrRemoteTokenExpired) {
+						return authenticationExpiredFailure(
+							definition.path,
+							"SESSION_EXPIRED",
+							"Stored authentication has expired. Log in again.",
+							pretty,
+						)
+					}
+					if errors.Is(err, auth.ErrRemoteProtocolChanged) {
+						return authenticationProtocolChangedFailure(definition.path, pretty)
+					}
+					if errors.Is(err, auth.ErrRemoteUnavailable) {
+						return authenticationUnavailableFailure(definition.path, pretty)
+					}
+					return internalFailure(definition.path, pretty)
+				}
+				deviceID, err := randomDeviceID(dependencies.AuthRandom)
+				if err != nil {
+					return internalFailure(definition.path, pretty)
+				}
+				catalog, err := (remote.Client{HTTP: dependencies.HTTP}).GetContacts(
+					ctx,
+					session.AccessToken,
+					deviceID,
+				)
+				if err != nil {
+					if errors.Is(err, remote.ErrUnavailable) {
+						return contactsUnavailableFailure(definition.path, pretty)
+					}
+					return contactsProtocolChangedFailure(definition.path, pretty)
+				}
+				end := min(options.limit, len(catalog.Contacts))
+				items := make([]contact, 0, end)
+				for _, remoteContact := range catalog.Contacts[:end] {
+					items = append(items, contact{
+						DisplayName:      remoteContact.Name,
+						SharedEventCount: remoteContact.SharedEventCount,
+					})
+				}
+				return collectionSuccess(definition.path, contactData{Items: items}, pageMeta{
+					Limit:      options.limit,
+					NextCursor: nil,
+					HasMore:    false,
+				}, pretty)
 			}
 		}
 	}
@@ -810,7 +914,9 @@ func (definition commandDefinition) matches(argv []string) bool {
 	if definition.kind == schemaCommand && len(argv) == 2 {
 		return argv[0] == "schema"
 	}
-	if (definition.kind == postersListCommand || definition.kind == postersSearchCommand) &&
+	if (definition.kind == postersListCommand ||
+		definition.kind == postersSearchCommand ||
+		definition.kind == contactsListCommand) &&
 		len(argv) >= len(definition.invocation) {
 		return slices.Equal(argv[:len(definition.invocation)], definition.invocation)
 	}
@@ -1024,6 +1130,18 @@ func authenticationExpiredFailure(command, code, message string, pretty bool) Re
 	return result
 }
 
+func authenticationRequiredFailure(command string, pretty bool) Result {
+	result := failure(command, 3, errorBody{
+		Type:      "auth.required",
+		Code:      "AUTHENTICATION_REQUIRED",
+		Message:   "Authentication is required. Log in and try again.",
+		Retryable: false,
+		Details:   map[string]any{},
+	}, pretty)
+	result.Stderr = "partiful: authentication required\n"
+	return result
+}
+
 func authenticationProtocolChangedFailure(command string, pretty bool) Result {
 	result := failure(command, 9, errorBody{
 		Type:      "contract.protocol_changed",
@@ -1069,6 +1187,30 @@ func protocolChangedFailure(command string, pretty bool) Result {
 		Details:   map[string]any{},
 	}, pretty)
 	result.Stderr = "partiful: poster catalog protocol changed\n"
+	return result
+}
+
+func contactsUnavailableFailure(command string, pretty bool) Result {
+	result := failure(command, 8, errorBody{
+		Type:      "remote.unavailable",
+		Code:      "CONTACTS_UNAVAILABLE",
+		Message:   "Contacts are unavailable.",
+		Retryable: true,
+		Details:   map[string]any{},
+	}, pretty)
+	result.Stderr = "partiful: contacts unavailable\n"
+	return result
+}
+
+func contactsProtocolChangedFailure(command string, pretty bool) Result {
+	result := failure(command, 9, errorBody{
+		Type:      "contract.protocol_changed",
+		Code:      "CONTACTS_PROTOCOL_CHANGED",
+		Message:   "Contacts no longer match the reviewed remote contract.",
+		Retryable: false,
+		Details:   map[string]any{},
+	}, pretty)
+	result.Stderr = "partiful: contacts protocol changed\n"
 	return result
 }
 
