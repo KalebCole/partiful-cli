@@ -4,7 +4,6 @@ on:
   pull_request:
     paths:
       - .github/workflows/native-release-verify.yml
-      - .github/workflows/release.yml
       - .goreleaser.yml
       - README.md
       - AGENTS.md
@@ -19,7 +18,6 @@ on:
       - main
     paths:
       - .github/workflows/native-release-verify.yml
-      - .github/workflows/release.yml
       - .goreleaser.yml
       - README.md
       - AGENTS.md

@@ -94,20 +94,49 @@ for archive in "${expected_archives[@]}"; do
   done
 done
 
-(
-  cd "${dist_dir}"
-  sha256sum -c "$(basename "${checksum_file}")"
-)
+python3 - "${dist_dir}" "${checksum_file}" <<'PY'
+import hashlib
+import sys
+from pathlib import Path
 
-host_os="$(uname -s | tr '[:upper:]' '[:lower:]')"
+dist_dir = Path(sys.argv[1])
+checksum_file = Path(sys.argv[2])
+for line in checksum_file.read_text().splitlines():
+    if not line.strip():
+        continue
+    expected, name = line.split(None, 1)
+    archive = dist_dir / name.strip().lstrip("*")
+    actual = hashlib.sha256(archive.read_bytes()).hexdigest()
+    if actual != expected:
+        raise SystemExit(f"checksum mismatch: {archive.name}")
+    print(f"{archive.name}: OK")
+PY
+
+case "$(uname -s)" in
+  Darwin) host_os="darwin" ;;
+  Linux) host_os="linux" ;;
+  MINGW*|MSYS*|CYGWIN*) host_os="windows" ;;
+  *) host_os="" ;;
+esac
 case "$(uname -m)" in
   x86_64) host_arch="amd64" ;;
   aarch64|arm64) host_arch="arm64" ;;
   *) host_arch="" ;;
 esac
-host_archive="${dist_dir}/partiful_${snapshot_version}_${host_os}_${host_arch}.tar.gz"
-if [[ -n "${host_arch}" && -f "${host_archive}" ]]; then
-  tar -xzf "${host_archive}" -C "${verify_root}"
-  extracted_binary="${verify_root}/partiful_${snapshot_version}_${host_os}_${host_arch}/partiful"
+if [[ "${host_os}" == "windows" ]]; then
+  host_extension="zip"
+  host_binary="partiful.exe"
+else
+  host_extension="tar.gz"
+  host_binary="partiful"
+fi
+host_archive="${dist_dir}/partiful_${snapshot_version}_${host_os}_${host_arch}.${host_extension}"
+if [[ -n "${host_os}" && -n "${host_arch}" && -f "${host_archive}" ]]; then
+  if [[ "${host_extension}" == "zip" ]]; then
+    unzip -q "${host_archive}" -d "${verify_root}"
+  else
+    tar -xzf "${host_archive}" -C "${verify_root}"
+  fi
+  extracted_binary="${verify_root}/partiful_${snapshot_version}_${host_os}_${host_arch}/${host_binary}"
   "${repo_root}/scripts/smoke-native-cli.sh" "${extracted_binary}" "${snapshot_version}"
 fi
