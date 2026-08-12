@@ -89,11 +89,13 @@ completion, and one official Firestore PATCH plus one Firestore list completion 
 bodies. The schema-free send-code `200` and OpenAPI `default` responses do not
 claim a body.
 
-The 1788 material claims are audited by
-`tests/remote-api-contract.test.js`. Each ledger citation resolves either to a
-JSON Pointer in the committed non-authoritative historical artifact or to a
-heading in the committed stable source index. This keeps the audit independent
-of unreachable historical Git objects in shallow CI checkouts.
+The 1788 material claims remain recorded in the machine-readable evidence
+ledger. Released command definitions and contract revisions are audited by the
+Go tests in `internal/app/catalog_contract_test.go` and
+`internal/app/contract_revision_sync_test.go`. Each ledger citation resolves
+either to a JSON Pointer in the committed non-authoritative historical artifact
+or to a heading in the committed stable source index. This keeps the audit
+independent of unreachable historical Git objects in shallow CI checkouts.
 
 ## Poster catalog evidence
 
@@ -410,7 +412,7 @@ by the Go implementation's Firebase requests:
 Origin is unmodelled and remains unknown because the reviewed evidence
 establishes no Origin request fact.
 
-The 1788 material claims are audited by `tests/remote-api-contract.test.js`.
+Released command definitions and contract revisions are audited by `internal/app/catalog_contract_test.go` and `internal/app/contract_revision_sync_test.go`. The 1788 material claims remain recorded in the evidence ledger.
 
 ## Text-blast public-asset and protocol evidence
 

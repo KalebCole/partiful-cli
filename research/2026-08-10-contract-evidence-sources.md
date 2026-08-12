@@ -8,9 +8,11 @@ does not import product metadata from these sources.
 
 `spec/research/historical-27-operation-draft.json` is an exact, clearly
 non-authoritative copy of `17e9800753ada577408074bbbcadbae8cc8eacf0`'s
-27-operation draft. JSON-pointer citations into that local artifact are
-validated by the contract test. Its extensions and product policy are research
-only and are not part of `spec/partiful.openapi.json`.
+27-operation draft. JSON-pointer citations into that local artifact remain
+recorded in the machine-readable evidence ledger. Released command definitions
+and contract revisions are validated by the Go contract tests under
+`internal/app/`. Its extensions and product policy are research only and are
+not part of `spec/partiful.openapi.json`.
 
 ## Unknown status decision
 

@@ -82,7 +82,7 @@ Every successful command returns:
   "data": {},
   "meta": {
     "command": "events.get",
-    "cliVersion": "1.0.0",
+    "cliVersion": "3.0.0",
     "productContractRevision": "2026-08-12.7",
     "remoteContractRevision": "2026-08-12.7",
     "warnings": []
@@ -106,7 +106,7 @@ Every failed command returns:
   },
   "meta": {
     "command": "guests.list",
-    "cliVersion": "1.0.0",
+    "cliVersion": "3.0.0",
     "productContractRevision": "2026-08-12.7",
     "remoteContractRevision": "2026-08-12.7"
   }
@@ -154,7 +154,7 @@ Collection commands return:
   },
   "meta": {
     "command": "events.list",
-    "cliVersion": "1.0.0",
+    "cliVersion": "3.0.0",
     "productContractRevision": "2026-08-12.7",
     "remoteContractRevision": "2026-08-12.7",
     "warnings": [],
@@ -227,7 +227,7 @@ remote mutation:
   },
   "meta": {
     "command": "events.update",
-    "cliVersion": "1.0.0",
+    "cliVersion": "3.0.0",
     "productContractRevision": "2026-08-12.7",
     "remoteContractRevision": "2026-08-12.7",
     "warnings": []
