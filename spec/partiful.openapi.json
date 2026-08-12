@@ -2,7 +2,7 @@
   "openapi": "3.1.0",
   "info": {
     "title": "Partiful remote API contract",
-    "version": "2026-08-12.6",
+    "version": "2026-08-12.7",
     "description": "Owner-reviewed remote-only transport snapshot. Evidence classifications and uncertainty are recorded in spec/partiful.api-evidence.json."
   },
   "servers": [
@@ -579,6 +579,16 @@
           }
         },
         "responses": {
+          "200": {
+            "description": "Generic callable protocol completion. The current client awaits the helper promise but inspects no endpoint business field or recipient report; delivery remains unreported.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CallableCompletionResponse"
+                }
+              }
+            }
+          },
           "default": {
             "description": "Response status and body are unknown."
           }
@@ -1718,6 +1728,16 @@
           }
         ],
         "responses": {
+          "200": {
+            "description": "Official Firestore list-documents protocol completion for the selected collection path.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FirestoreListResponse"
+                }
+              }
+            }
+          },
           "default": {
             "description": "Response status and body are unknown."
           }

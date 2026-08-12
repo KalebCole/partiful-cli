@@ -2,13 +2,13 @@
 
 **Status:** Approved product contract
 
-**Product contract revision:** `2026-08-12.6`
+**Product contract revision:** `2026-08-12.7`
 
-**Remote API contract revision:** `2026-08-12.6`
+**Remote API contract revision:** `2026-08-12.7`
 
-**Owner-reviewed baseline:** product and remote `2026-08-12.3`
+**Owner-reviewed baseline:** product and remote `2026-08-12.6`
 
-**Currently shipped Go revisions:** product and remote `2026-08-12.6`
+**Currently shipped Go revisions:** product and remote `2026-08-12.7`
 
 This document defines the public behavior of the greenfield Go `partiful` CLI.
 It is the authority for commands, inputs, JSON outputs, failures, and mutation
@@ -83,8 +83,10 @@ Every successful command returns:
   "meta": {
     "command": "events.get",
     "cliVersion": "1.0.0",
-    "productContractRevision": "2026-08-12.6",
-    "remoteContractRevision": "2026-08-12.6",
+    "productContractRevision": "2026-08-12.7",
+    "remoteContractRevision": "2026-08-12.7",
+    "productContractRevision": "2026-08-12.7",
+    "remoteContractRevision": "2026-08-12.7",
     "warnings": []
   }
 }
@@ -107,8 +109,10 @@ Every failed command returns:
   "meta": {
     "command": "guests.list",
     "cliVersion": "1.0.0",
-    "productContractRevision": "2026-08-12.6",
-    "remoteContractRevision": "2026-08-12.6"
+    "productContractRevision": "2026-08-12.7",
+    "remoteContractRevision": "2026-08-12.7"
+    "productContractRevision": "2026-08-12.7",
+    "remoteContractRevision": "2026-08-12.7"
   }
 }
 ```
@@ -155,8 +159,10 @@ Collection commands return:
   "meta": {
     "command": "events.list",
     "cliVersion": "1.0.0",
-    "productContractRevision": "2026-08-12.6",
-    "remoteContractRevision": "2026-08-12.6",
+    "productContractRevision": "2026-08-12.7",
+    "remoteContractRevision": "2026-08-12.7",
+    "productContractRevision": "2026-08-12.7",
+    "remoteContractRevision": "2026-08-12.7",
     "warnings": [],
     "page": {
       "limit": 25,
@@ -228,8 +234,10 @@ remote mutation:
   "meta": {
     "command": "events.update",
     "cliVersion": "1.0.0",
-    "productContractRevision": "2026-08-12.6",
-    "remoteContractRevision": "2026-08-12.6",
+    "productContractRevision": "2026-08-12.7",
+    "remoteContractRevision": "2026-08-12.7",
+    "productContractRevision": "2026-08-12.7",
+    "remoteContractRevision": "2026-08-12.7",
     "warnings": []
   }
 }
@@ -988,7 +996,8 @@ reviewed callable and client completion condition. It does not prove
 persisted RSVP state, delivery, notification, or another business side
 effect.
 
-This `2026-08-12.6` contract is the approved event-write product contract and
+This `2026-08-12.7` contract is the approved event-write product contract and
+This `2026-08-12.7` contract is the approved event-write product contract and
 the current shipped Go contract revision.
 
 ### Contacts
@@ -1125,7 +1134,53 @@ This host-only consequential action accepts:
 
 The message is not accepted as a command-line value because shell history is
 not a private input channel. `--message-file -` reads plain UTF-8 text from
-stdin. Images are not supported in v1.
+stdin. The public plan and the persisted mutation record never contain the
+message text. They contain only a private digest and length. The text never
+appears in stdout, stderr, diagnostics, the confirmation token, or persisted
+metadata available to another local user. Images are not supported in v1.
+
+Planning reads `getEventInfo` once, the reviewed Firestore guest collection
+once, and the reviewed Firestore host-message collection once. `ownerIds` must
+contain the current private account ID. The event must not be older than
+`endDate + 67 days`, or `startDate + 6 hours + 67 days` when `endDate` is
+absent. The current text-blast count must be at most `10`, and the derived
+recipient set must be non-empty.
+
+`all-guests` is not a sentinel or an expanded identity list. The reviewed
+request sends the exact current group array in `message.to`, in this order:
+
+1. `invited` when the invited count is positive and not excluded;
+2. `checkedIn` when at least one guest has non-null `checkIn`; and
+3. the current reviewed status set for the event mode.
+
+The status set is:
+
+- `APPROVED`, `PENDING_APPROVAL`, `WAITLISTED_FOR_APPROVAL`, `WITHDRAWN`, and
+  `REJECTED` when `guestAction` is `APPLY`;
+- `RESPONDED_TO_FIND_A_TIME` for an active find-a-time event; or
+- `GOING`, `MAYBE`, `DECLINED`, and conditional `WAITLIST` for an ordinary
+  RSVP event.
+
+The current first-party client excludes the `invited` group from its
+all-guests selection when more than `100` invited guests are present. Its one
+private owner-ID exception is not promoted here. The CLI therefore fails
+closed or conservatively excludes `invited` when it cannot verify an
+exemption.
+
+The public consequential plan states the exact event ID, audience,
+`showOnEventPage`, exact derived `message.to`, and only the message digest and
+length. Its private record binds the stable account fingerprint, the same
+normalized private-input summary, the exact reviewed request summary, and the
+current event, guest, and blast-count preconditions. Apply repeats the same
+message input with:
+
+```text
+--apply --confirm <token>
+```
+
+`--apply` without `--confirm` returns `safety.confirmation_required`. Apply
+reacquires the account, re-reads the same facts once, consumes the token
+immediately before one dispatch attempt, and never retries automatically.
 
 Applied success returns:
 
