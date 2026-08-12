@@ -2964,6 +2964,45 @@ func TestExecuteContactsListFailsClosedOnUnsupportedStatus(t *testing.T) {
 	}
 }
 
+func TestExecuteContactsListFailsClosedOnUnexpectedTerminalData(t *testing.T) {
+	const (
+		privateID   = "private-terminal-identity"
+		privateName = "Private Terminal Name"
+	)
+	result := app.Execute(context.Background(), app.Request{
+		Argv:  []string{"contacts", "list"},
+		Stdin: strings.NewReader(""),
+	}, app.Dependencies{
+		Files: fakeFilesystem{
+			readFile: func(string) ([]byte, error) {
+				return []byte(
+					`{"accessToken":"private-access-token","expiresAt":"2026-08-11T02:00:00Z"}`,
+				), nil
+			},
+		},
+		CredentialsPath: "/config/partiful/credentials.json",
+		Now: func() time.Time {
+			return time.Date(2026, time.August, 11, 0, 0, 0, 0, time.UTC)
+		},
+		AuthRandom: strings.NewReader("0123456789abcdef"),
+		HTTP: scriptedHTTP{do: func(*http.Request) (*http.Response, error) {
+			return jsonResponse(
+				http.StatusOK,
+				`{"result":{"data":[{"id":"`+privateID+`","name":"`+privateName+`","sharedEventCount":1}],"paging":{}}}`,
+			), nil
+		}},
+	})
+
+	if result.ExitCode != 9 ||
+		!strings.Contains(result.Stdout, `"type":"contract.protocol_changed"`) {
+		t.Fatalf("result = %#v, want unexpected terminal data failure", result)
+	}
+	if strings.Contains(result.Stdout+result.Stderr, privateID) ||
+		strings.Contains(result.Stdout+result.Stderr, privateName) {
+		t.Fatal("terminal data failure exposed private contact content")
+	}
+}
+
 func TestExecuteAuthStatusRedactsHealthyCredentials(t *testing.T) {
 	const credentials = `{"accessToken":"secret-token-value","refreshToken":"secret-refresh-value","userId":"private-user-value","expiresAt":"2026-08-11T02:00:00Z"}`
 	result := app.Execute(context.Background(), app.Request{
