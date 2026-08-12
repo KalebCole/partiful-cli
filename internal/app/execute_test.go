@@ -2317,6 +2317,52 @@ func TestExecuteContactsListFailsClosedOnRepeatedRemoteCursor(t *testing.T) {
 	}
 }
 
+func TestExecuteContactsListFailsClosedBeyondReviewedTraversalBound(t *testing.T) {
+	const credentials = `{"accessToken":"private-access-token","expiresAt":"2026-08-11T02:00:00Z"}`
+	call := 0
+	result := app.Execute(context.Background(), app.Request{
+		Argv:  []string{"contacts", "list", "--all", "--max-items", "1000"},
+		Stdin: strings.NewReader(""),
+	}, app.Dependencies{
+		Files: fakeFilesystem{
+			readFile: func(string) ([]byte, error) {
+				return []byte(credentials), nil
+			},
+		},
+		CredentialsPath: "/config/partiful/credentials.json",
+		Now: func() time.Time {
+			return time.Date(2026, time.August, 11, 0, 0, 0, 0, time.UTC)
+		},
+		AuthRandom: strings.NewReader("0123456789abcdef"),
+		HTTP: scriptedHTTP{do: func(*http.Request) (*http.Response, error) {
+			call++
+			if call > 4 {
+				return nil, errors.New("traversal exceeded finite request bound")
+			}
+			return jsonResponse(
+				http.StatusOK,
+				fmt.Sprintf(
+					`{"result":{"data":[{"id":"private-%d","name":"Private","sharedEventCount":0}],"paging":{"nextCursor":"cursor-%d"}}}`,
+					call,
+					call,
+				),
+			), nil
+		}},
+	})
+
+	if result.ExitCode != 9 ||
+		!strings.Contains(result.Stdout, `"type":"contract.protocol_changed"`) {
+		t.Fatalf("result = %#v, want finite traversal failure", result)
+	}
+	if call != 4 {
+		t.Fatalf("request count = %d, want stop at first page beyond reviewed bound", call)
+	}
+	if strings.Contains(result.Stdout+result.Stderr, "private-") ||
+		strings.Contains(result.Stdout+result.Stderr, "cursor-") {
+		t.Fatal("traversal bound failure exposed private transport data")
+	}
+}
+
 func TestExecuteAuthStatusRedactsHealthyCredentials(t *testing.T) {
 	const credentials = `{"accessToken":"secret-token-value","refreshToken":"secret-refresh-value","userId":"private-user-value","expiresAt":"2026-08-11T02:00:00Z"}`
 	result := app.Execute(context.Background(), app.Request{

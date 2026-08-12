@@ -12,9 +12,14 @@ import (
 	"unicode/utf8"
 )
 
+// The reviewed traversal has three data pages of at most the requested 1,000
+// items, followed by one empty terminal page. Do not traverse beyond that
+// finite execution boundary until a larger bound is reviewed.
 const (
-	contactPageSize         = 1000
-	maximumContactPageBytes = 4 << 20
+	contactPageSize           = 1000
+	maximumContactDataPages   = 3
+	maximumContactCatalogSize = contactPageSize * maximumContactDataPages
+	maximumContactPageBytes   = 4 << 20
 )
 
 type Contact struct {
@@ -62,24 +67,15 @@ func (client Client) GetContacts(
 	amplitudeDeviceID string,
 ) (ContactCatalog, error) {
 	var (
-		cursor   *string
-		contacts []Contact
+		cursor        *string
+		contacts      []Contact
+		dataPageCount int
 	)
 	seenCursors := make(map[string]struct{})
 	for {
 		page, err := client.getContactsPage(ctx, accessToken, amplitudeDeviceID, cursor)
 		if err != nil {
 			return ContactCatalog{}, err
-		}
-		for _, item := range page.Result.Data {
-			if item.SharedEventCount < 0 {
-				return ContactCatalog{}, fmt.Errorf("%w: contact", ErrProtocolChanged)
-			}
-			contacts = append(contacts, Contact{
-				ID:               item.ID,
-				Name:             item.Name,
-				SharedEventCount: item.SharedEventCount,
-			})
 		}
 		if page.Result.Paging.NextCursor == nil {
 			if len(page.Result.Data) != 0 {
@@ -93,6 +89,21 @@ func (client Client) GetContacts(
 		}
 		if len(page.Result.Data) == 0 {
 			return ContactCatalog{}, fmt.Errorf("%w: empty data page", ErrProtocolChanged)
+		}
+		dataPageCount++
+		if dataPageCount > maximumContactDataPages ||
+			len(page.Result.Data) > maximumContactCatalogSize-len(contacts) {
+			return ContactCatalog{}, fmt.Errorf("%w: contacts traversal bound", ErrProtocolChanged)
+		}
+		for _, item := range page.Result.Data {
+			if item.SharedEventCount < 0 {
+				return ContactCatalog{}, fmt.Errorf("%w: contact", ErrProtocolChanged)
+			}
+			contacts = append(contacts, Contact{
+				ID:               item.ID,
+				Name:             item.Name,
+				SharedEventCount: item.SharedEventCount,
+			})
 		}
 		if _, repeated := seenCursors[*page.Result.Paging.NextCursor]; repeated {
 			return ContactCatalog{}, fmt.Errorf("%w: repeated contacts cursor", ErrProtocolChanged)
