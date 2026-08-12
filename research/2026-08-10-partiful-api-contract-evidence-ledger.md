@@ -1,7 +1,7 @@
 # Partiful remote API contract evidence ledger
 
-**Owner-reviewed contract revision:** `2026-08-12.1`
-**Owner-reviewed baseline:** `2026-08-11.5`
+**Owner-reviewed contract revision:** `2026-08-12.2`
+**Owner-reviewed baseline:** `2026-08-12.1`
 **Status:** Owner-reviewed under the issue #114 delegation
 **Contract:** `spec/partiful.openapi.json`
 **Machine-readable ledger:** `spec/partiful.api-evidence.json`
@@ -14,6 +14,8 @@
   owner-attended authentication and read-only event/contact observations.
 - **Current first-party public-asset research:** immutable assets from the
   current Partiful deployment, without authentication or account-scoped data.
+- **Official protocol specification:** generic Firebase callable status and
+  envelope behavior; never endpoint-specific Partiful business success.
 - **Reviewed first-party repository research:** reviewed repository source,
   without claiming it proves current server behavior.
 - **TypeScript-derived inference:** historical draft or TypeScript transport
@@ -39,14 +41,24 @@ observed `200` status, but its body remains unclaimed. The text-blast operation
 retains an unknown response. The Firestore event read has an observed typed
 `403` response, not an observed success.
 
+### Current public-asset operations
+
+`addGuest` and `markEventInterest` now have current first-party public-asset
+request and completion mappings. Their errors and all non-`200` statuses
+remain unknown.
+
+Two additional callable operations have protocol-specified HTTP `200` completion responses.
+`addGuest` and `markEventInterest` use the official Firebase callable
+status/result envelope plus current first-party client completion behavior.
+Neither is a live business-success observation.
+
 ### TypeScript-derived operations
 
-The other 13 operations remain TypeScript-derived inferences:
+The other 11 operations remain TypeScript-derived inferences:
 
 - callable: `createEvent`, `cancelEvent`, `addInvitedGuestsAsHost`,
   `createCohostRequest`, `deleteCohostRequest`, `removeCohost`,
-  `generateEventCohostLink`, `revokeEventCohostLink`, `addGuest`, and
-  `markEventInterest`;
+  `generateEventCohostLink`, and `revokeEventCohostLink`;
 - Firestore: `firestorePatchEvent` and `firestoreListDocuments`;
 - Firebase auxiliary: `uploadEventPhoto`.
 
@@ -55,10 +67,11 @@ the JSON ledger, including operation, parameter, content-type, security,
 schema, constraint, and response claims. Unless a claim is specifically
 observed, callable result payloads, status codes, error bodies, permission
 rules, and limits are **explicit unknown**. Eleven operations with an observed
-HTTP `200` status have typed response bodies. The schema-free
-send-code `200` and OpenAPI `default` responses do not claim a body.
+HTTP `200` status and two operations with protocol-specified callable
+completion have typed response bodies. The schema-free send-code `200` and
+OpenAPI `default` responses do not claim a body.
 
-The 1254 material claims are audited by
+The 1285 material claims are audited by
 `tests/remote-api-contract.test.js`. Each ledger citation resolves either to a
 JSON Pointer in the committed non-authoritative historical artifact or to a
 heading in the committed stable source index. This keeps the audit independent
@@ -184,6 +197,42 @@ missing ID with the observed authenticated request context. This does not
 establish attendee denial, resource existence, or Firestore not-found
 behavior.
 
+## RSVP public-asset evidence
+
+Current build `z1npyrEHkwRMn_JlKXQXR` corrects the RSVP request projections.
+`getCurrentGuest` accepts only `params.eventId`. Its one live HTTP `200`
+object remains the response authority; the public client does not demonstrate
+a null callable result.
+
+The current client maps product going and not-going to `GOING` and
+`DECLINED`. The broader remote RSVP status control also demonstrates `MAYBE`.
+`addGuest` receives `eventId` and an RSVP object with required name, count,
+plus-one array, status, timezone, and `shouldFollowOrgs: false`. The product
+projection supplies only named plus ones, while the remote client recognizes
+additional private linked/contact variants. Message, existing guest ID, and
+questionnaire response are optional. A null product message maps to omission.
+The client strips phone number, contact channel, captcha token, and an
+embedded linked-plus-one user before the call. The narrow product mapping does
+not send image, invitation ID, discovery source, or password.
+
+The direct event page sends boolean `interested` to `markEventInterest` and
+omits `source` when the URL has no string source. The same path sends
+`interested: false` for removal.
+
+The official Firebase callable protocol supports HTTP `200` with a `result`
+envelope for successful callable completion. The current `addGuest` client
+does not establish a type or required business property for `result.data`.
+For `markEventInterest`, it accepts the optimistic result only when
+`result.data.success` is truthy and `result.data.interested` equals the
+submitted boolean. These are protocol and client-completion predicates, not
+remote response type claims or live observations of stored Partiful state.
+Every unobserved error and status remains explicit unknown.
+
+`CurrentGuest.status` references the existing closed `GuestStatus` vocabulary,
+but remains optional. Current-guest nullability, no-guest create behavior,
+required profile name, selected-event mutation preconditions, endpoint
+failure mappings, and post-write business state remain unknown.
+
 ## Contact read evidence
 
 Current first-party public assets establish the exact relevant request:
@@ -244,7 +293,7 @@ by the Go implementation's Firebase requests:
 Origin is unmodelled and remains unknown because the reviewed evidence
 establishes no Origin request fact.
 
-The 1254 material claims are audited by `tests/remote-api-contract.test.js`.
+The 1285 material claims are audited by `tests/remote-api-contract.test.js`.
 
 ## Resolved conflict
 
@@ -258,6 +307,6 @@ nested `message` object with `text`, `to`, `showOnEventPage`, and optional
 
 Future safe observations must update both ledgers, preserve privacy-safe
 evidence, and receive owner review before changing the revision. The remaining
-13 TypeScript-derived operations have no observed response status or shape.
+11 TypeScript-derived operations have no observed response status or shape.
 The read-specific unknowns above remain explicit and must not become inferred
 implementation behavior.
