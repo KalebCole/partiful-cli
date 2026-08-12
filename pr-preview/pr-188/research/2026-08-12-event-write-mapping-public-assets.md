@@ -22,6 +22,7 @@ Relevant deployment assets were:
 | <https://partiful.com/_next/static/chunks/1585-2532983fb5eac8e0.js?dpl=dpl_D9bWXWUaTVfWyHiJz1RT7qdjuzUC> | `48f1fc96f0aa318eea09d99a89e0f51e1eaf3863bee7e4c43ea045641aa3ac63` | `52630`, location editor |
 | <https://partiful.com/_next/static/chunks/6652-bc845eb80e835b16.js?dpl=dpl_D9bWXWUaTVfWyHiJz1RT7qdjuzUC> | `d6b57ad394646129f4702bb7d74aea214d7c43750c3a9898367fb9d4541a71b4` | `30067` |
 | <https://partiful.com/_next/static/chunks/2248-0ec69126f468d508.js?dpl=dpl_D9bWXWUaTVfWyHiJz1RT7qdjuzUC> | `c70b07cd5d86f1d6ce8f0e1e02d12fd4a3dbcf6d52a7e023ed01c3dd1f96cde7` | `22248` |
+| <https://partiful.com/_next/static/chunks/9580-feaa5337a786edee.js?dpl=dpl_D9bWXWUaTVfWyHiJz1RT7qdjuzUC> | `34f838947de6118a45e388074ee083a2a9a9451f9115d8a08f0ce734c6d19eb7` | `24441` |
 | <https://partiful.com/_next/static/chunks/8317-f3e4abcc21cc60c3.js?dpl=dpl_D9bWXWUaTVfWyHiJz1RT7qdjuzUC> | `b0d9c7bd12cdbe021df80f2c990319af85638e2d6499580aeca79f5fcdbbc5e4` | current event editor |
 | <https://partiful.com/_next/static/chunks/8290-fee201d02665178a.js?dpl=dpl_D9bWXWUaTVfWyHiJz1RT7qdjuzUC> | `a16edfddf6c6bf48d7e758f578e5fde09733a5c51dfbb4ce8a06d7aa0686d17d` | `95074` |
 
@@ -129,6 +130,12 @@ resolve an exact built-in poster ID to exactly one catalog entry and bind that
 entry's digest into its plan. A missing or duplicate match fails closed.
 Uploaded images are not registered by this revision.
 
+The registered catalog permits an omitted `blurHash` and null dimensions.
+The callable encoder turns the constructed outer `blurHash: undefined` into
+JSON null. Outer `blurHash`, `height`, and `width` are therefore nullable in
+the write request; the complete selected catalog record remains bound
+unchanged in `poster`.
+
 On 2026-08-12, privacy-safe public GETs to
 <https://assets.partiful.com/posters.json> and the already registered
 <https://assets.getpartiful.com/posters.json> each returned 1,125,932 bytes
@@ -233,12 +240,25 @@ decoded callable value but does not inspect a business field and performs no
 post-write read. Generic callable completion can therefore support only a
 submitted-only product result.
 
-The observed UI cancel choice is for an owned `PUBLISHED` event with a
-positive guest count and a future start. UI exposure also has an unrelated
-employee-tag branch; it is not promoted to endpoint authorization. The
-product re-reads `getEventInfo` and binds ownership, status, start, guest-count
-facts, exact message, and notification choice. It must not dispatch without
-the exact consequential confirmation value.
+Module `24441` exports this cancel/delete predicate:
+
+```js
+function canCancel(event) {
+  return event.status === EventStatus.LIVE &&
+    event.guestCount != null &&
+    event.guestCount > 0 &&
+    !isPast(event.startDate);
+}
+```
+
+The `/events` page separately computes ownership with
+`event.ownerIds.some(id => id === currentUserId)` before it adds host-only menu
+actions. Thus the observed UI cancel choice requires owner membership, wire
+status `PUBLISHED`, a positive guest count, and a future start. UI exposure
+also has an unrelated employee-tag branch; it is not promoted to endpoint
+authorization. The product re-reads `getEventInfo` and binds ownership,
+status, start, guest-count facts, exact message, and notification choice. It
+must not dispatch without the exact consequential confirmation value.
 
 ## Mutation boundary and remaining unknowns
 
