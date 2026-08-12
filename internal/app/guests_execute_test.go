@@ -140,6 +140,11 @@ func TestExecuteGuestsListPaginatesHostGuestsAndKeepsOutputPrivacySafe(t *testin
 	if call != 6 {
 		t.Fatalf("request count = %d, want two complete guest traversals", call)
 	}
+	for _, privateValue := range []string{cohostUserID, guestCursor, "private-guest-2"} {
+		if strings.Contains(second.Stdout+second.Stderr, privateValue) {
+			t.Fatalf("second page exposed private value %q", privateValue)
+		}
+	}
 }
 
 func TestExecuteGuestsListReturnsPermissionDeniedForAttendee(t *testing.T) {

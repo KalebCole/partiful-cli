@@ -8,8 +8,9 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"mime"
+	"math"
 	"net/http"
+	"strconv"
 	"strings"
 	"unicode/utf8"
 )
@@ -186,8 +187,7 @@ func (client Client) getGuestsPage(
 	if response.StatusCode != http.StatusOK {
 		return getGuestsResponse{}, fmt.Errorf("%w: guests status", ErrProtocolChanged)
 	}
-	mediaType, _, err := mime.ParseMediaType(response.Header.Get("Content-Type"))
-	if err != nil || mediaType != "application/json" {
+	if !eventJSONContentType(response.Header.Get("Content-Type")) {
 		return getGuestsResponse{}, fmt.Errorf("%w: guests content type", ErrProtocolChanged)
 	}
 	body, err := io.ReadAll(io.LimitReader(response.Body, maximumGuestPageBytes+1))
@@ -271,12 +271,16 @@ func requiredGuestCount(
 	}
 	var value float64
 	if json.Unmarshal(raw, &value) != nil ||
-		value < 1 ||
-		value > float64(int(^uint(0)>>1)) ||
-		float64(int(value)) != value {
+		value < 0 ||
+		value > 1<<53-1 ||
+		math.Trunc(value) != value {
 		return 0, errors.New("guest count is invalid")
 	}
-	return int(value), nil
+	integer := int64(value)
+	if strconv.IntSize == 32 && integer > math.MaxInt32 {
+		return 0, errors.New("guest count is invalid")
+	}
+	return int(integer), nil
 }
 
 func optionalGuestString(

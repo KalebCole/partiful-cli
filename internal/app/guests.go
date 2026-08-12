@@ -554,7 +554,6 @@ func resolveInviteContact(
 			Message:   "More than one contact matches --contact.",
 			Retryable: false,
 			Details: map[string]any{
-				"query":      query,
 				"candidates": publicCandidates,
 			},
 		}
@@ -597,13 +596,14 @@ func guestInvitePublicRequest(
 }
 
 func guestsCollectionSuccessSchema() jsonSchema {
+	zero := 0
 	one := 1
 	item := objectSchema(
 		[]string{"displayName", "rsvpStatus", "partySize", "cohost"},
 		map[string]jsonSchema{
 			"displayName": {Type: "string", MinLength: &one},
 			"rsvpStatus":  {Type: "string", Enum: eventReadRsvpValues()},
-			"partySize":   {Type: "integer", Minimum: &one},
+			"partySize":   {Type: "integer", Minimum: &zero},
 			"cohost":      {Type: "boolean"},
 		},
 	)

@@ -561,7 +561,7 @@ describe('remote API contract', () => {
       ...materialClaimPointers(spec.paths, '#/paths', 'paths'),
       ...materialClaimPointers(spec.components, '#/components', 'components'),
     ]);
-    expect(pointers).toHaveLength(1739);
+    expect(pointers).toHaveLength(1740);
     for (const pointer of pointers) {
       const claim = evidence.claims[pointer];
       expect(claim, pointer).toBeDefined();
@@ -625,7 +625,7 @@ describe('remote API contract', () => {
     expect(ledger).toContain(
       '`firestorePatchEvent` uses the official Firestore PATCH path',
     );
-    expect(ledger.match(/The 1739 material claims/g)).toHaveLength(2);
+    expect(ledger.match(/The 1740 material claims/g)).toHaveLength(2);
     expect(ledger).toContain(
       '**Proposed contract revision:** `2026-08-12.5`',
     );

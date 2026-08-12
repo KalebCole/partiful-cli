@@ -298,7 +298,7 @@ remain unknown and fail closed.
 
 ## Historical provenance
 
-The 28-operation historical draft lineage in commit
+The 27-operation historical draft lineage in commit
 `17e9800753ada577408074bbbcadbae8cc8eacf0` is preserved at
 `spec/research/historical-27-operation-draft.json` as a non-authoritative,
 stable research artifact. It was not copied as an approved contract and its
