@@ -129,7 +129,7 @@ func decodeContactNextCursor(value json.RawMessage) (*string, error) {
 		return nil, nil
 	}
 	var cursor *string
-	if err := decodeStrictContactJSON(value, &cursor); err != nil || cursor == nil {
+	if err := decodeSingleContactJSON(value, &cursor); err != nil || cursor == nil {
 		return nil, fmt.Errorf("%w: contacts cursor", ErrProtocolChanged)
 	}
 	return cursor, nil
@@ -191,7 +191,7 @@ func (client Client) getContactsPage(
 		return contactsResponse{}, fmt.Errorf("%w: contacts response body", ErrProtocolChanged)
 	}
 	var page contactsResponse
-	if err := decodeStrictContactJSON(body, &page); err != nil ||
+	if err := decodeSingleContactJSON(body, &page); err != nil ||
 		page.Result.Data == nil ||
 		page.Result.Paging == nil {
 		return contactsResponse{}, fmt.Errorf("%w: contacts response body", ErrProtocolChanged)
@@ -217,7 +217,7 @@ func validateContactsUnauthenticated(response *http.Response) error {
 			Status  *string `json:"status"`
 		} `json:"error"`
 	}
-	if decodeStrictContactJSON(body, &failure) != nil ||
+	if decodeSingleContactJSON(body, &failure) != nil ||
 		failure.Error == nil ||
 		failure.Error.Message == nil ||
 		failure.Error.Status == nil ||
@@ -227,9 +227,8 @@ func validateContactsUnauthenticated(response *http.Response) error {
 	return nil
 }
 
-func decodeStrictContactJSON(body []byte, destination any) error {
+func decodeSingleContactJSON(body []byte, destination any) error {
 	decoder := json.NewDecoder(bytes.NewReader(body))
-	decoder.DisallowUnknownFields()
 	if err := decoder.Decode(destination); err != nil {
 		return err
 	}

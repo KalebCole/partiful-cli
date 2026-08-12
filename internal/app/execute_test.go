@@ -2437,10 +2437,12 @@ func TestExecuteContactsListFailsClosedWhenTerminalPagingIsMissing(t *testing.T)
 	}
 }
 
-func TestExecuteContactsListRejectsUnknownSuccessEnvelopeFields(t *testing.T) {
+func TestExecuteContactsListAcceptsOpenReviewedResponseFields(t *testing.T) {
 	const (
-		credentials  = `{"accessToken":"private-access-token","expiresAt":"2026-08-11T02:00:00Z"}`
-		privateValue = "private-unknown-envelope-value"
+		credentials          = `{"accessToken":"private-access-token","expiresAt":"2026-08-11T02:00:00Z"}`
+		privateContactValue  = "private-unknown-contact-value"
+		privateNestedValue   = "private-unknown-nested-value"
+		privateEnvelopeValue = "private-unknown-envelope-value"
 	)
 	call := 0
 	result := app.Execute(context.Background(), app.Request{
@@ -2459,25 +2461,36 @@ func TestExecuteContactsListRejectsUnknownSuccessEnvelopeFields(t *testing.T) {
 		AuthRandom: strings.NewReader("0123456789abcdef"),
 		HTTP: scriptedHTTP{do: func(*http.Request) (*http.Response, error) {
 			call++
-			if call > 1 {
-				return nil, errors.New("unknown success field was accepted")
+			if call == 1 {
+				return jsonResponse(
+					http.StatusOK,
+					`{"result":{"data":[{"id":"private-contact-id","name":"Open Contact","sharedEventCount":4,"unknownContact":"`+privateContactValue+`","unknownObject":{"nested":"`+privateNestedValue+`"}}],"paging":{"nextCursor":"private-remote-cursor","unknownPageInteger":11},"unknownResult":true},"unknownEnvelope":"`+privateEnvelopeValue+`"}`,
+				), nil
 			}
 			return jsonResponse(
 				http.StatusOK,
-				`{"result":{"data":[],"paging":{}},"unknown":"`+privateValue+`"}`,
+				`{"result":{"data":[],"paging":{"unknownTerminalInteger":7}},"unknownEnvelopeInteger":9}`,
 			), nil
 		}},
 	})
 
-	if result.ExitCode != 9 ||
-		!strings.Contains(result.Stdout, `"type":"contract.protocol_changed"`) {
-		t.Fatalf("result = %#v, want unknown success field protocol failure", result)
+	const want = `{"ok":true,"data":{"items":[{"displayName":"Open Contact","sharedEventCount":4}]},"meta":{"command":"contacts.list","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.5","warnings":[],"page":{"limit":25,"nextCursor":null,"hasMore":false}}}` + "\n"
+	if result.ExitCode != 0 || result.Stdout != want || result.Stderr != "" {
+		t.Fatalf("result = %#v, want reviewed open response traversal", result)
 	}
-	if call != 1 {
-		t.Fatalf("request count = %d, want immediate envelope failure", call)
+	if call != 2 {
+		t.Fatalf("request count = %d, want data and terminal pages", call)
 	}
-	if strings.Contains(result.Stdout+result.Stderr, privateValue) {
-		t.Fatal("unknown success field exposed private transport content")
+	for _, privateValue := range []string{
+		"private-contact-id",
+		"private-remote-cursor",
+		privateContactValue,
+		privateNestedValue,
+		privateEnvelopeValue,
+	} {
+		if strings.Contains(result.Stdout+result.Stderr, privateValue) {
+			t.Fatalf("open response exposed private transport value %q", privateValue)
+		}
 	}
 }
 
@@ -2547,7 +2560,7 @@ func TestExecuteContactsListFailsClosedOnNullRemoteCursor(t *testing.T) {
 	}
 }
 
-func TestExecuteContactsListRejectsUnknownUnauthenticatedErrorFields(t *testing.T) {
+func TestExecuteContactsListAcceptsUnknownUnauthenticatedErrorFields(t *testing.T) {
 	const (
 		credentials  = `{"accessToken":"private-access-token","expiresAt":"2026-08-11T02:00:00Z"}`
 		privateValue = "private-remote-detail"
@@ -2574,9 +2587,9 @@ func TestExecuteContactsListRejectsUnknownUnauthenticatedErrorFields(t *testing.
 		}},
 	})
 
-	const wantStdout = `{"ok":false,"error":{"type":"contract.protocol_changed","code":"CONTACTS_PROTOCOL_CHANGED","message":"Contacts no longer match the reviewed remote contract.","retryable":false,"details":{}},"meta":{"command":"contacts.list","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.5"}}` + "\n"
-	if result.ExitCode != 9 || result.Stdout != wantStdout {
-		t.Fatalf("result = %#v, want unknown error field protocol failure", result)
+	const wantStdout = `{"ok":false,"error":{"type":"auth.expired","code":"REMOTE_SESSION_UNAUTHENTICATED","message":"Stored authentication is no longer accepted. Log in again.","retryable":false,"details":{}},"meta":{"command":"contacts.list","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.5"}}` + "\n"
+	if result.ExitCode != 3 || result.Stdout != wantStdout {
+		t.Fatalf("result = %#v, want reviewed unauthenticated mapping", result)
 	}
 	if strings.Contains(result.Stdout+result.Stderr, privateValue) {
 		t.Fatal("unauthenticated failure exposed remote response content")
