@@ -1,10 +1,9 @@
 # Remote API contract
 
-`spec/partiful.openapi.json` is proposed revision `2026-08-11.5` of the remote
-transport snapshot. Independent review is required before it can become
-owner-reviewed. It describes only network operations and wire shapes. It does
-not prescribe commands, output, credentials, mutation safeguards, or
-implementation architecture.
+`spec/partiful.openapi.json` is owner-reviewed revision `2026-08-11.5` of the
+remote transport snapshot. It describes only network operations and wire
+shapes. It does not prescribe commands, output, credentials, mutation
+safeguards, or implementation architecture.
 
 ## Authority and change process
 
@@ -24,9 +23,9 @@ with guessed fields, captured credentials, real identifiers, or personal data.
 `docs/research/2026-08-10-partiful-api-contract-evidence-ledger.md` is the
 human-readable companion to the machine-readable ledger.
 
-## Proposed read evidence revision
+## Read evidence revision
 
-Revision `2026-08-11.5` proposes dated response and status evidence for
+Revision `2026-08-11.5` records dated response and status evidence for
 `getMyUpcomingEventsForHomePage`, `getMyPastEventsForHomePage`,
 `getEventInfo`, `getCurrentGuest`, `firestoreGetEvent`,
 `firestoreGetGuest`, and `getContacts`. The sanitized source is

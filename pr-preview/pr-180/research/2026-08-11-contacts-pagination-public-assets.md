@@ -127,7 +127,7 @@ Sources:
 
 The previous owner-reviewed remote contract, revision `2026-08-11.4`, permits
 only empty request `params` and keeps response/status behavior unknown.
-Proposed revision `2026-08-11.5` incorporates this paging request research and
+Owner-reviewed revision `2026-08-11.5` incorporates this paging request research and
 the separate authenticated response observation. It remains proposed.
 
 Sources:
