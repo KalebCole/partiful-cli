@@ -1,7 +1,7 @@
 # Partiful remote API contract evidence ledger
 
-**Proposed contract revision:** `2026-08-12.6`
-**Owner-reviewed baseline:** `2026-08-12.3`
+**Proposed contract revision:** `2026-08-12.7`
+**Owner-reviewed baseline:** `2026-08-12.6`
 **Status:** Owner-reviewed
 **Contract:** `spec/partiful.openapi.json`
 **Machine-readable ledger:** `spec/partiful.api-evidence.json`
@@ -37,41 +37,46 @@ Fourteen operations have at least one operation-level dated live observation:
 
 Twelve operations have an observed HTTP `200` status. Eleven of those
 operations have a typed `200` response body. `sendAuthCodeTrusted` has an
-observed `200` status, but its body remains unclaimed. The text-blast operation
-retains an unknown response. The Firestore event read has an observed typed
-`403` response, not an observed success.
+observed `200` status, but its body remains unclaimed. `createTextBlast` keeps
+its dated request observation, but its completion now follows current
+public-asset callable behavior rather than a live business-success observation.
+The Firestore event read has an observed typed `403` response, not an observed
+success.
 
 ### Current public-asset operations
 
 `addGuest`, `markEventInterest`, `createEvent`, `cancelEvent`, `getGuests`,
 `addInvitedGuestsAsHost`, `createCohostRequest`, `deleteCohostRequest`,
 `removeCohost`, `generateEventCohostLink`, and `revokeEventCohostLink` have
-current first-party public-asset request and/or completion mappings. Their
-endpoint business meanings, errors, and all non-`200` statuses remain unknown
-unless separately observed.
+current first-party public-asset request and/or completion mappings.
+The text-blast operation keeps its dated request classification but now also has a
+current first-party completion mapping. Their endpoint business meanings,
+errors, and all non-`200` statuses remain unknown unless separately observed.
 
-Ten callable operations have protocol-specified HTTP `200` completion
+Eleven callable operations have protocol-specified HTTP `200` completion
 responses. `addGuest`, `markEventInterest`, `createEvent`, `cancelEvent`, and
 `addInvitedGuestsAsHost` use the official Firebase callable
 status/result envelope plus current first-party client completion behavior.
-`createCohostRequest`, `deleteCohostRequest`, `removeCohost`,
-`generateEventCohostLink`, and `revokeEventCohostLink` now do the same. None
-is a live business-success observation.
+The text-blast operation plus `createCohostRequest`, `deleteCohostRequest`,
+`removeCohost`, `generateEventCohostLink`, and `revokeEventCohostLink` now
+do the same. None is a live business-success observation.
 
 ### Official-protocol operations
 
 `firestorePatchEvent` uses the official Firestore PATCH path, bearer
 authorization, update mask, current-document preconditions, typed Value
-grammar, and HTTP `200` Document completion. Current first-party assets supply
-the event-field mapping, but the remote operation remains broad. The closed
-field projection is product policy. No Partiful authorization or business
-success is inferred.
+grammar, and HTTP `200` Document completion. `firestoreListDocuments` uses the
+official Firestore list-documents path, bearer authorization, typed Document
+grammar, and HTTP `200` list completion. Current first-party assets supply the
+event-field mapping and the collection-path usage for the blast slice, but both
+remote operations remain broad. The closed field projection and collection
+meaning are product policy. No Partiful authorization or business success is
+inferred.
 
 ### TypeScript-derived operations
 
-The other 2 operations remain TypeScript-derived inferences:
+The other 1 operation remains TypeScript-derived inference:
 
-- Firestore: `firestoreListDocuments`;
 - Firebase auxiliary: `uploadEventPhoto`.
 
 Every operation's request and response claim is enumerated by JSON Pointer in
@@ -79,12 +84,12 @@ the JSON ledger, including operation, parameter, content-type, security,
 schema, constraint, and response claims. Unless a claim is specifically
 observed, callable result payloads, status codes, error bodies, permission
 rules, and limits are **explicit unknown**. Eleven operations with an observed
-HTTP `200` status, ten operations with protocol-specified callable
-completion, and one official Firestore PATCH completion have typed response
+HTTP `200` status, eleven operations with protocol-specified callable
+completion, and one official Firestore PATCH plus one Firestore list completion have typed response
 bodies. The schema-free send-code `200` and OpenAPI `default` responses do not
 claim a body.
 
-The 1782 material claims are audited by
+The 1788 material claims are audited by
 `tests/remote-api-contract.test.js`. Each ledger citation resolves either to a
 JSON Pointer in the committed non-authoritative historical artifact or to a
 heading in the committed stable source index. This keeps the audit independent
@@ -405,7 +410,29 @@ by the Go implementation's Firebase requests:
 Origin is unmodelled and remains unknown because the reviewed evidence
 establishes no Origin request fact.
 
-The 1782 material claims are audited by `tests/remote-api-contract.test.js`.
+The 1788 material claims are audited by `tests/remote-api-contract.test.js`.
+
+## Text-blast public-asset and protocol evidence
+
+The August 12 text-blast note records public build `Sf-HOOx63XpPtr5pPkTvg`,
+deployment `dpl_D7TPPj16g1fU46JSHSyrsRURxrK9`, exact asset URLs, module IDs, and
+hashes. The research used no credential and made no text blast. It establishes
+current client completion behavior, exact all-guests group construction, and
+reviewed host-only precondition reads for the blast slice.
+
+The dated March 24 request note remains the authority for the nested
+`createTextBlast.message` object. The August 12 note adds only current
+completion and precondition facts. The current helper awaits
+`createTextBlast(...).data`, the caller ignores the returned value, and there is
+no post-send read. The remote contract therefore recognizes only generic
+callable HTTP `200` completion plus a non-nullish decoded completion value.
+
+The same public assets show that all-guests sends the exact ordered group array
+in `message.to`. It is not a sentinel, not an empty array, and not an expanded
+identity list. Host tooling also reads the Firestore guest and host-message
+collections before enabling send. This is the reviewed provenance for the exact
+all-guests representation, the invited-count exclusion, the checked-in group,
+and the blast-count preconditions used by the Go product.
 
 ## Resolved conflict
 
