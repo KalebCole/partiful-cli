@@ -196,6 +196,50 @@ func TestExecuteBlastSendSupportsStdinAndRejectsArgvMessage(t *testing.T) {
 	}
 }
 
+func TestExecuteBlastSendRejectsTheEleventhBlast(t *testing.T) {
+	files := &memoryFilesystem{files: map[string][]byte{
+		eventWriteCredentialsPath: []byte(eventWriteCredentials),
+		"message.txt":             []byte("Private body"),
+	}}
+	dependencies := eventWriteDependencies(files)
+	hostMessages := make([]map[string]any, 0, 10)
+	for index := range 10 {
+		hostMessages = append(hostMessages, firestoreDocument(
+			fmt.Sprintf("projects/getpartiful/databases/(default)/documents/events/event-example/hostMessages/m%d", index),
+			map[string]any{},
+		))
+	}
+	call := 0
+	dependencies.HTTP = scriptedHTTP{do: func(request *http.Request) (*http.Response, error) {
+		call++
+		switch call {
+		case 1:
+			return jsonResponse(http.StatusOK, eventResponse(t, compatibleBlastEvent())), nil
+		case 2:
+			return jsonResponse(http.StatusOK, firestoreListResponse(t,
+				firestoreDocument(
+					"projects/getpartiful/databases/(default)/documents/events/event-example/guests/g1",
+					map[string]any{"status": firestoreString("GOING")},
+				),
+			)), nil
+		case 3:
+			return jsonResponse(http.StatusOK, firestoreListResponse(t, hostMessages...)), nil
+		default:
+			return nil, errors.New("must not submit an eleventh blast")
+		}
+	}}
+
+	result := app.Execute(context.Background(), app.Request{
+		Argv: []string{"blasts", "send", "event-example", "--audience", "all-guests", "--message-file", "message.txt"},
+	}, dependencies)
+	if result.ExitCode != 6 || !strings.Contains(result.Stdout, `"code":"EVENT_PRECONDITION_FAILED"`) {
+		t.Fatalf("result = %#v, want blast limit precondition failure", result)
+	}
+	if call != 3 {
+		t.Fatalf("request count = %d, want read-only precondition checks", call)
+	}
+}
+
 func TestExecuteBlastSendFailsClosedOnProtocolAndSubmissionUncertainty(t *testing.T) {
 	files := &memoryFilesystem{files: map[string][]byte{
 		eventWriteCredentialsPath: []byte(eventWriteCredentials),

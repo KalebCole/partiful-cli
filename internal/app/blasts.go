@@ -390,7 +390,7 @@ func buildBlastPreconditions(
 		result := blastProtocolChangedFailure(command, "TEXT_BLAST_PROTOCOL_CHANGED", "The text blast flow no longer matches the reviewed remote contract.", "partiful: text blast protocol changed\n", pretty)
 		return nil, blastPrivatePreconditions{}, &result
 	}
-	if len(toGroups) == 0 || snapshot.Total == 0 || textBlastCount > 10 {
+	if len(toGroups) == 0 || snapshot.Total == 0 || textBlastCount >= 10 {
 		result := eventPreconditionFailure(command, pretty)
 		return nil, blastPrivatePreconditions{}, &result
 	}
