@@ -3,6 +3,7 @@ package remote
 import (
 	"bytes"
 	"context"
+	"crypto/sha256"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -23,7 +24,8 @@ type Contact struct {
 }
 
 type ContactCatalog struct {
-	Contacts []Contact
+	Contacts      []Contact
+	PayloadSHA256 [sha256.Size]byte
 }
 
 type contactsRequest struct {
@@ -82,7 +84,11 @@ func (client Client) GetContacts(
 			if len(page.Result.Data) != 0 {
 				return ContactCatalog{}, fmt.Errorf("%w: terminal page", ErrProtocolChanged)
 			}
-			return ContactCatalog{Contacts: contacts}, nil
+			document, _ := json.Marshal(contacts)
+			return ContactCatalog{
+				Contacts:      contacts,
+				PayloadSHA256: sha256.Sum256(document),
+			}, nil
 		}
 		if len(page.Result.Data) == 0 {
 			return ContactCatalog{}, fmt.Errorf("%w: empty data page", ErrProtocolChanged)

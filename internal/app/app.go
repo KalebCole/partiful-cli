@@ -838,6 +838,21 @@ func Execute(ctx context.Context, request Request, dependencies Dependencies) Re
 				if inputError != nil {
 					return failure(definition.path, 2, *inputError, pretty)
 				}
+				filterHash := normalizedFilterHash(definition.path, options.query)
+				var decodedCursor cursorPayload
+				var cursorKey []byte
+				var err error
+				if options.cursorProvided {
+					cursorKey, err = loadCursorKey(dependencies)
+					if err != nil {
+						return internalFailure(definition.path, pretty)
+					}
+					var cursorFailure *cursorValidationFailure
+					decodedCursor, cursorFailure = decodeCursor(options.cursor, filterHash, cursorKey)
+					if cursorFailure != nil {
+						return failure(definition.path, cursorFailure.exitCode, cursorFailure.body, pretty)
+					}
+				}
 				clock := time.Now
 				if dependencies.Now != nil {
 					clock = dependencies.Now
@@ -886,18 +901,51 @@ func Execute(ctx context.Context, request Request, dependencies Dependencies) Re
 					return contactsProtocolChangedFailure(definition.path, pretty)
 				}
 				filteredContacts := filterContacts(catalog.Contacts, options.query)
-				end := min(options.limit, len(filteredContacts))
-				items := make([]contact, 0, end)
-				for _, remoteContact := range filteredContacts[:end] {
+				offset := 0
+				if options.cursorProvided {
+					var cursorFailure *cursorValidationFailure
+					offset, cursorFailure = cursorSnapshotOffset(
+						decodedCursor,
+						catalog.PayloadSHA256,
+						len(filteredContacts),
+					)
+					if cursorFailure != nil {
+						return failure(definition.path, cursorFailure.exitCode, cursorFailure.body, pretty)
+					}
+				}
+				end := min(offset+options.limit, len(filteredContacts))
+				items := make([]contact, 0, end-offset)
+				for _, remoteContact := range filteredContacts[offset:end] {
 					items = append(items, contact{
 						DisplayName:      remoteContact.Name,
 						SharedEventCount: remoteContact.SharedEventCount,
 					})
 				}
+				var cursor *string
+				hasMore := end < len(filteredContacts)
+				if hasMore {
+					if cursorKey == nil {
+						cursorKey, err = loadCursorKey(dependencies)
+						if err != nil {
+							return internalFailure(definition.path, pretty)
+						}
+					}
+					value, err := nextCursor(
+						catalog.PayloadSHA256,
+						filterHash,
+						end,
+						cursorKey,
+						dependencies.CursorRandom,
+					)
+					if err != nil {
+						return internalFailure(definition.path, pretty)
+					}
+					cursor = &value
+				}
 				return collectionSuccess(definition.path, contactData{Items: items}, pageMeta{
 					Limit:      options.limit,
-					NextCursor: nil,
-					HasMore:    false,
+					NextCursor: cursor,
+					HasMore:    hasMore,
 				}, pretty)
 			}
 		}

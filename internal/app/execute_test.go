@@ -2180,6 +2180,97 @@ func TestExecuteContactsListFiltersLocallyAfterFirstIdentityOccurrenceWins(t *te
 	}
 }
 
+func TestExecuteContactsListReturnsOpaqueResumableLocalCursor(t *testing.T) {
+	const (
+		credentials = `{"accessToken":"private-access-token","expiresAt":"2026-08-11T02:00:00Z"}`
+		dataPage    = `{"result":{"data":[{"id":"private-one","name":"One","sharedEventCount":1},{"id":"private-two","name":"Two","sharedEventCount":2},{"id":"private-three","name":"Three","sharedEventCount":3}],"paging":{"nextCursor":"private-remote-cursor"}}}`
+		terminal    = `{"result":{"data":[],"paging":{}}}`
+	)
+	call := 0
+	dependencies := withTestCursorCrypto(app.Dependencies{
+		Files: fakeFilesystem{
+			readFile: func(string) ([]byte, error) {
+				return []byte(credentials), nil
+			},
+		},
+		CredentialsPath: "/config/partiful/credentials.json",
+		Now: func() time.Time {
+			return time.Date(2026, time.August, 11, 0, 0, 0, 0, time.UTC)
+		},
+		AuthRandom: strings.NewReader("0123456789abcdefFEDCBA9876543210"),
+		HTTP: scriptedHTTP{do: func(*http.Request) (*http.Response, error) {
+			call++
+			if call%2 == 1 {
+				return jsonResponse(http.StatusOK, dataPage), nil
+			}
+			return jsonResponse(http.StatusOK, terminal), nil
+		}},
+	})
+	first := app.Execute(context.Background(), app.Request{
+		Argv:  []string{"contacts", "list", "--limit", "2"},
+		Stdin: strings.NewReader(""),
+	}, dependencies)
+	var firstEnvelope struct {
+		Data struct {
+			Items []contactOutput `json:"items"`
+		} `json:"data"`
+		Meta struct {
+			Page struct {
+				NextCursor *string `json:"nextCursor"`
+				HasMore    bool    `json:"hasMore"`
+			} `json:"page"`
+		} `json:"meta"`
+	}
+	if err := json.Unmarshal([]byte(first.Stdout), &firstEnvelope); err != nil {
+		t.Fatalf("decode first result: %v", err)
+	}
+	if first.ExitCode != 0 ||
+		!reflect.DeepEqual(firstEnvelope.Data.Items, []contactOutput{{"One", 1}, {"Two", 2}}) ||
+		!firstEnvelope.Meta.Page.HasMore ||
+		firstEnvelope.Meta.Page.NextCursor == nil {
+		t.Fatalf("first result = %#v, envelope = %#v, want resumable first page", first, firstEnvelope)
+	}
+	cursor := *firstEnvelope.Meta.Page.NextCursor
+	for _, privateValue := range []string{"private-one", "private-two", "private-three"} {
+		if strings.Contains(cursor, privateValue) {
+			t.Fatalf("local cursor exposed private identity %q", privateValue)
+		}
+	}
+
+	second := app.Execute(context.Background(), app.Request{
+		Argv:  []string{"contacts", "list", "--limit", "2", "--cursor", cursor},
+		Stdin: strings.NewReader(""),
+	}, dependencies)
+	var secondEnvelope struct {
+		Data struct {
+			Items []contactOutput `json:"items"`
+		} `json:"data"`
+		Meta struct {
+			Page struct {
+				NextCursor *string `json:"nextCursor"`
+				HasMore    bool    `json:"hasMore"`
+			} `json:"page"`
+		} `json:"meta"`
+	}
+	if err := json.Unmarshal([]byte(second.Stdout), &secondEnvelope); err != nil {
+		t.Fatalf("decode second result: %v", err)
+	}
+	if second.ExitCode != 0 ||
+		!reflect.DeepEqual(secondEnvelope.Data.Items, []contactOutput{{"Three", 3}}) ||
+		secondEnvelope.Meta.Page.HasMore ||
+		secondEnvelope.Meta.Page.NextCursor != nil {
+		t.Fatalf("second result = %#v, envelope = %#v, want completed second page", second, secondEnvelope)
+	}
+	if call != 4 {
+		t.Fatalf("request count = %d, want two complete traversals", call)
+	}
+}
+
+type contactOutput struct {
+	DisplayName      string `json:"displayName"`
+	SharedEventCount int    `json:"sharedEventCount"`
+}
+
 func TestExecuteAuthStatusRedactsHealthyCredentials(t *testing.T) {
 	const credentials = `{"accessToken":"secret-token-value","refreshToken":"secret-refresh-value","userId":"private-user-value","expiresAt":"2026-08-11T02:00:00Z"}`
 	result := app.Execute(context.Background(), app.Request{
