@@ -36,6 +36,7 @@ type Poster struct {
 	ID          string
 	Name        string
 	URL         string
+	BlurHash    *string
 	ContentType string
 	Width       *int
 	Height      *int
@@ -125,11 +126,8 @@ func decodePoster(document map[string]json.RawMessage) (Poster, error) {
 	if err := decodeRequired(document, "contentType", &poster.ContentType); err != nil {
 		return Poster{}, err
 	}
-	if _, ok := document["blurHash"]; ok {
-		var blurHash string
-		if err := decodeRequired(document, "blurHash", &blurHash); err != nil {
-			return Poster{}, err
-		}
+	if err := decodeOptionalString(document, "blurHash", &poster.BlurHash); err != nil {
+		return Poster{}, err
 	}
 	if err := decodeNullableInteger(document, "width", &poster.Width); err != nil {
 		return Poster{}, err
@@ -171,5 +169,22 @@ func decodeNullableInteger(document map[string]json.RawMessage, field string, de
 		return ErrProtocolChanged
 	}
 	*destination = &integer
+	return nil
+}
+
+func decodeOptionalString(document map[string]json.RawMessage, field string, destination **string) error {
+	value, ok := document[field]
+	if !ok {
+		*destination = nil
+		return nil
+	}
+	if string(value) == "null" {
+		return ErrProtocolChanged
+	}
+	var decoded string
+	if err := json.Unmarshal(value, &decoded); err != nil {
+		return ErrProtocolChanged
+	}
+	*destination = &decoded
 	return nil
 }

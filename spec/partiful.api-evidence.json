@@ -425,7 +425,7 @@
     "RSVP mutation failures, server-side rejection mappings, ticketing, application, waitlist, protected-event submission, and post-write RSVP business state remain unknown.",
     "Event-write endpoint business success, persisted Event state, post-write reads, unobserved errors and statuses, inaccessible-event permissions, cancellation delivery, and automatic retry safety remain unknown."
   ],
-  "status": "pending-delegated-review",
+  "status": "owner-reviewed",
   "claims": {
     "#/servers/0/url": {
       "classification": "typescript-derived-inference",

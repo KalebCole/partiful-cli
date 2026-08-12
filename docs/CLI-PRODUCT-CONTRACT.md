@@ -1,6 +1,6 @@
 # CLI product contract
 
-**Status:** Proposed; pending delegated review
+**Status:** Approved product contract
 
 **Product contract revision:** `2026-08-12.4`
 
@@ -8,7 +8,7 @@
 
 **Owner-reviewed baseline:** product and remote `2026-08-12.3`
 
-**Currently shipped Go revisions:** product and remote `2026-08-12.3`
+**Currently shipped Go revisions:** product and remote `2026-08-12.4`
 
 This document defines the public behavior of the greenfield Go `partiful` CLI.
 It is the authority for commands, inputs, JSON outputs, failures, and mutation
@@ -987,9 +987,8 @@ reviewed callable and client completion condition. It does not prove
 persisted RSVP state, delivery, notification, or another business side
 effect.
 
-This `2026-08-12.4` contract is proposed under issue #167 and is pending one
-delegated review. The Go implementation continues to ship the owner-reviewed
-`2026-08-12.3` revisions until this proposal is reviewed and merged.
+This `2026-08-12.4` contract is the approved event-write product contract and
+the current shipped Go contract revision.
 
 ### Contacts
 

@@ -1,13 +1,12 @@
 # Remote API contract
 
-`spec/partiful.openapi.json` is proposed revision `2026-08-12.4` of the remote
-transport snapshot, pending one delegated review. Its owner-reviewed baseline
-is `2026-08-12.3`. It
-describes only network operations and wire shapes. It does not prescribe
-commands, output, credentials, mutation safeguards, or implementation
-architecture.
+`spec/partiful.openapi.json` is owner-reviewed revision `2026-08-12.4` of the
+remote transport snapshot. Its owner-reviewed baseline is `2026-08-12.3`,
+which is based on owner-reviewed revision `2026-08-12.2`. It describes only
+network operations and wire shapes. It does not prescribe commands, output,
+credentials, mutation safeguards, or implementation architecture.
 
-The Go CLI ships remote contract revision `2026-08-12.3`.
+The Go CLI ships remote contract revision `2026-08-12.4`.
 
 ## Authority and change process
 
