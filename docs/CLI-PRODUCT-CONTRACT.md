@@ -636,6 +636,11 @@ when ticketing is present, or when `hasGuests` is exactly true and the current
 event is past its end plus two hours (start plus eight hours when end is
 absent).
 
+Planning merges proposed `start` and `end` values with the bound current
+values. When both resulting values are present, `end` must be at or after
+`start`. An inverted merged range returns `input.invalid` before a plan is
+issued.
+
 Apply reacquires the account and calls `getEventInfo` once. Any bound change
 returns `safety.plan_stale`. It then consumes the standard plan immediately
 before exactly one `firestorePatchEvent` attempt. HTTP `200` with a Firestore
@@ -662,7 +667,9 @@ the future. Missing, null, or differently typed precondition facts return
 `contract.protocol_changed`; a known non-matching fact returns
 `state.conflict` / `EVENT_PRECONDITION_FAILED` except ownership, which returns
 `permission.denied`. Inaccessible-event permission behavior was not observed
-and is not inferred.
+and is not inferred. The positive-guest gate deliberately preserves the
+reviewed current-client exposure as a conservative product limitation; it is
+not a claim about endpoint authorization.
 
 The public consequential plan states the exact event ID, message,
 `notifyGuests`, and effects. Its private record binds the stable account
@@ -683,10 +690,9 @@ post-write read. Generic callable completion returns only:
 
 It does not claim cancellation, notification delivery, or persisted state.
 Any unrecognized status, endpoint error/body, missing generic completion
-envelope, or malformed Firestore Document is
-`contract.protocol_changed`. A no-response transport failure is
-`remote.unavailable`; because the consumed write may have reached the remote,
-a new plan is required.
+envelope, or malformed completion body is `contract.protocol_changed`. A
+no-response transport failure is `remote.unavailable`; because the consumed
+write may have reached the remote, a new plan is required.
 
 ### Guests
 

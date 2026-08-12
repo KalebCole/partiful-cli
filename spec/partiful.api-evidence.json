@@ -5699,6 +5699,54 @@
       "classification": "dated-live-observation",
       "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#event-detail-observations"
     },
+    "#/components/schemas/EventInfo/properties/ownerIds": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-event-write-mapping-public-assets.md#update-preconditions"
+    },
+    "#/components/schemas/EventInfo/properties/ownerIds/type": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-event-write-mapping-public-assets.md#update-preconditions"
+    },
+    "#/components/schemas/EventInfo/properties/ownerIds/items/type": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-event-write-mapping-public-assets.md#update-preconditions"
+    },
+    "#/components/schemas/EventInfo/properties/guestCount": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-event-write-mapping-public-assets.md#cancelevent-request-and-completion"
+    },
+    "#/components/schemas/EventInfo/properties/guestStatusCounts": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-event-write-mapping-public-assets.md#createevent-request"
+    },
+    "#/components/schemas/EventInfo/properties/guestStatusCounts/type": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-event-write-mapping-public-assets.md#createevent-request"
+    },
+    "#/components/schemas/EventInfo/properties/guestStatusCounts/additionalProperties/type": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-event-write-mapping-public-assets.md#createevent-request"
+    },
+    "#/components/schemas/EventInfo/properties/hasGuests": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-event-write-mapping-public-assets.md#update-preconditions"
+    },
+    "#/components/schemas/EventInfo/properties/hasGuests/type": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-event-write-mapping-public-assets.md#update-preconditions"
+    },
+    "#/components/schemas/EventInfo/properties/customFields": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-event-write-mapping-public-assets.md#firestore-event-update"
+    },
+    "#/components/schemas/EventInfo/properties/customFields/type": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-event-write-mapping-public-assets.md#firestore-event-update"
+    },
+    "#/components/schemas/EventInfo/properties/customFields/items/$ref": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-event-write-mapping-public-assets.md#firestore-event-update"
+    },
     "#/components/schemas/EventInfo/properties/rsvpsEnabled": {
       "classification": "dated-live-observation",
       "citation": "docs/research/2026-08-12-rsvp-read-observation.md#event-safeguard-observations"
@@ -6751,7 +6799,11 @@
       "classification": "current-first-party-public-asset-research",
       "citation": "docs/research/2026-08-12-event-write-mapping-public-assets.md#built-in-poster-representation"
     },
-    "#/components/schemas/PartifulPosterImage/properties/blurHash/type": {
+    "#/components/schemas/PartifulPosterImage/properties/blurHash/type/0": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-event-write-mapping-public-assets.md#built-in-poster-representation"
+    },
+    "#/components/schemas/PartifulPosterImage/properties/blurHash/type/1": {
       "classification": "current-first-party-public-asset-research",
       "citation": "docs/research/2026-08-12-event-write-mapping-public-assets.md#built-in-poster-representation"
     },
@@ -6775,7 +6827,11 @@
       "classification": "current-first-party-public-asset-research",
       "citation": "docs/research/2026-08-12-event-write-mapping-public-assets.md#built-in-poster-representation"
     },
-    "#/components/schemas/PartifulPosterImage/properties/height/type": {
+    "#/components/schemas/PartifulPosterImage/properties/height/type/0": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-event-write-mapping-public-assets.md#built-in-poster-representation"
+    },
+    "#/components/schemas/PartifulPosterImage/properties/height/type/1": {
       "classification": "current-first-party-public-asset-research",
       "citation": "docs/research/2026-08-12-event-write-mapping-public-assets.md#built-in-poster-representation"
     },
@@ -6783,7 +6839,11 @@
       "classification": "current-first-party-public-asset-research",
       "citation": "docs/research/2026-08-12-event-write-mapping-public-assets.md#built-in-poster-representation"
     },
-    "#/components/schemas/PartifulPosterImage/properties/width/type": {
+    "#/components/schemas/PartifulPosterImage/properties/width/type/0": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-event-write-mapping-public-assets.md#built-in-poster-representation"
+    },
+    "#/components/schemas/PartifulPosterImage/properties/width/type/1": {
       "classification": "current-first-party-public-asset-research",
       "citation": "docs/research/2026-08-12-event-write-mapping-public-assets.md#built-in-poster-representation"
     },
@@ -6791,67 +6851,67 @@
       "classification": "current-first-party-public-asset-research",
       "citation": "docs/research/2026-08-12-event-write-mapping-public-assets.md#built-in-poster-representation"
     },
-    "#/components/schemas/CreateEventCompletionResponse/type": {
+    "#/components/schemas/CreateEventCompletionResponse/anyOf/0/type": {
       "classification": "current-first-party-public-asset-research",
       "citation": "docs/research/2026-08-12-event-write-mapping-public-assets.md#createevent-completion"
     },
-    "#/components/schemas/CreateEventCompletionResponse/required/0": {
+    "#/components/schemas/CreateEventCompletionResponse/anyOf/0/required/0": {
       "classification": "current-first-party-public-asset-research",
       "citation": "docs/research/2026-08-12-event-write-mapping-public-assets.md#createevent-completion"
     },
-    "#/components/schemas/CreateEventCompletionResponse/properties/result": {
+    "#/components/schemas/CreateEventCompletionResponse/anyOf/0/properties/result": {
       "classification": "current-first-party-public-asset-research",
       "citation": "docs/research/2026-08-12-event-write-mapping-public-assets.md#createevent-completion"
     },
-    "#/components/schemas/CreateEventCompletionResponse/properties/result/type": {
+    "#/components/schemas/CreateEventCompletionResponse/anyOf/0/additionalProperties": {
       "classification": "current-first-party-public-asset-research",
       "citation": "docs/research/2026-08-12-event-write-mapping-public-assets.md#createevent-completion"
     },
-    "#/components/schemas/CreateEventCompletionResponse/properties/result/required/0": {
+    "#/components/schemas/CreateEventCompletionResponse/anyOf/1/type": {
       "classification": "current-first-party-public-asset-research",
       "citation": "docs/research/2026-08-12-event-write-mapping-public-assets.md#createevent-completion"
     },
-    "#/components/schemas/CreateEventCompletionResponse/properties/result/properties/data": {
+    "#/components/schemas/CreateEventCompletionResponse/anyOf/1/required/0": {
       "classification": "current-first-party-public-asset-research",
       "citation": "docs/research/2026-08-12-event-write-mapping-public-assets.md#createevent-completion"
     },
-    "#/components/schemas/CreateEventCompletionResponse/properties/result/additionalProperties": {
+    "#/components/schemas/CreateEventCompletionResponse/anyOf/1/properties/data": {
       "classification": "current-first-party-public-asset-research",
       "citation": "docs/research/2026-08-12-event-write-mapping-public-assets.md#createevent-completion"
     },
-    "#/components/schemas/CreateEventCompletionResponse/additionalProperties": {
+    "#/components/schemas/CreateEventCompletionResponse/anyOf/1/additionalProperties": {
       "classification": "current-first-party-public-asset-research",
       "citation": "docs/research/2026-08-12-event-write-mapping-public-assets.md#createevent-completion"
     },
-    "#/components/schemas/CancelEventCompletionResponse/type": {
+    "#/components/schemas/CancelEventCompletionResponse/anyOf/0/type": {
       "classification": "current-first-party-public-asset-research",
       "citation": "docs/research/2026-08-12-event-write-mapping-public-assets.md#cancelevent-request-and-completion"
     },
-    "#/components/schemas/CancelEventCompletionResponse/required/0": {
+    "#/components/schemas/CancelEventCompletionResponse/anyOf/0/required/0": {
       "classification": "current-first-party-public-asset-research",
       "citation": "docs/research/2026-08-12-event-write-mapping-public-assets.md#cancelevent-request-and-completion"
     },
-    "#/components/schemas/CancelEventCompletionResponse/properties/result": {
+    "#/components/schemas/CancelEventCompletionResponse/anyOf/0/properties/result": {
       "classification": "current-first-party-public-asset-research",
       "citation": "docs/research/2026-08-12-event-write-mapping-public-assets.md#cancelevent-request-and-completion"
     },
-    "#/components/schemas/CancelEventCompletionResponse/properties/result/type": {
+    "#/components/schemas/CancelEventCompletionResponse/anyOf/0/additionalProperties": {
       "classification": "current-first-party-public-asset-research",
       "citation": "docs/research/2026-08-12-event-write-mapping-public-assets.md#cancelevent-request-and-completion"
     },
-    "#/components/schemas/CancelEventCompletionResponse/properties/result/required/0": {
+    "#/components/schemas/CancelEventCompletionResponse/anyOf/1/type": {
       "classification": "current-first-party-public-asset-research",
       "citation": "docs/research/2026-08-12-event-write-mapping-public-assets.md#cancelevent-request-and-completion"
     },
-    "#/components/schemas/CancelEventCompletionResponse/properties/result/properties/data": {
+    "#/components/schemas/CancelEventCompletionResponse/anyOf/1/required/0": {
       "classification": "current-first-party-public-asset-research",
       "citation": "docs/research/2026-08-12-event-write-mapping-public-assets.md#cancelevent-request-and-completion"
     },
-    "#/components/schemas/CancelEventCompletionResponse/properties/result/additionalProperties": {
+    "#/components/schemas/CancelEventCompletionResponse/anyOf/1/properties/data": {
       "classification": "current-first-party-public-asset-research",
       "citation": "docs/research/2026-08-12-event-write-mapping-public-assets.md#cancelevent-request-and-completion"
     },
-    "#/components/schemas/CancelEventCompletionResponse/additionalProperties": {
+    "#/components/schemas/CancelEventCompletionResponse/anyOf/1/additionalProperties": {
       "classification": "current-first-party-public-asset-research",
       "citation": "docs/research/2026-08-12-event-write-mapping-public-assets.md#cancelevent-request-and-completion"
     },

@@ -215,11 +215,12 @@ records.
 The current callable wrapper requires `params`, but it adds analytics and
 device metadata only when available. Its final wrapper always contains
 `userId`, encoded as string or null. `amplitudeDeviceId` is therefore optional
-for `createEvent` and `cancelEvent`. The Firebase callable SDK requires
-generic success data, while the create caller uses that data as an event ID
-and the cancel caller inspects no business property. Neither flow reads a
-post-write Event. Their HTTP `200`/result schemas mean protocol completion
-only, not persisted Partiful state.
+for `createEvent` and `cancelEvent`. The Firebase callable SDK accepts generic
+completion under top-level `data` or legacy top-level `result`. The create
+caller uses the decoded value as an event ID without validating a nested
+business shape; the cancel caller inspects no business property. Neither flow
+reads a post-write Event. Their HTTP `200` completion alternatives mean
+protocol completion only, not persisted Partiful state.
 
 The current general event update uses the Firestore SDK, deletes top-level
 null or undefined values, adds an `updatedBy` reference, and removes derived
@@ -252,6 +253,11 @@ ticketing and old events with guests. The observed cancel choice uses an
 owned `PUBLISHED` event, a positive guest count, and a future start. These are
 current-client preconditions, not endpoint permission claims. No
 inaccessible-event response was observed.
+
+The supporting conditional EventInfo fields are `ownerIds`,
+`guestCount`, `guestStatusCounts`, `hasGuests`, and `customFields`. Their
+presence remains conditional; product planning rejects a missing or invalid
+field when the selected operation requires it.
 
 `cancelEvent` parameters are `eventId`, `cancellationMessage`, and
 `shouldSkipNotifyGuests`. The current defaults are an empty message and guest

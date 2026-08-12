@@ -554,7 +554,7 @@ describe('remote API contract', () => {
       ...materialClaimPointers(spec.paths, '#/paths', 'paths'),
       ...materialClaimPointers(spec.components, '#/components', 'components'),
     ]);
-    expect(pointers).toHaveLength(1625);
+    expect(pointers).toHaveLength(1640);
     for (const pointer of pointers) {
       const claim = evidence.claims[pointer];
       expect(claim, pointer).toBeDefined();
@@ -618,7 +618,7 @@ describe('remote API contract', () => {
     expect(ledger).toContain(
       '`firestorePatchEvent` uses the official Firestore PATCH path',
     );
-    expect(ledger.match(/The 1625 material claims/g)).toHaveLength(2);
+    expect(ledger.match(/The 1640 material claims/g)).toHaveLength(2);
     expect(ledger).toContain(
       '**Proposed contract revision:** `2026-08-12.4`',
     );
@@ -894,6 +894,22 @@ describe('remote API contract', () => {
         'height',
         'width',
       ]);
+    expect(spec.components.schemas.PartifulPosterImage.properties).toMatchObject({
+      blurHash: { type: ['string', 'null'] },
+      height: { type: ['number', 'null'] },
+      width: { type: ['number', 'null'] },
+    });
+    for (const completionName of [
+      'CreateEventCompletionResponse',
+      'CancelEventCompletionResponse',
+    ]) {
+      const completion = spec.components.schemas[completionName];
+      expect(completion.anyOf).toHaveLength(2);
+      expect(completion.anyOf.map(({ required }) => required)).toEqual([
+        ['result'],
+        ['data'],
+      ]);
+    }
 
     const cancel = spec.paths['/cancelEvent'].post;
     const cancelData = cancel.requestBody.content['application/json'].schema
@@ -950,12 +966,26 @@ describe('remote API contract', () => {
       response: 'official-protocol-specification',
       status: 'official-protocol-specification',
     });
+    expect(spec.components.schemas.EventInfo.properties).toMatchObject({
+      ownerIds: { type: 'array', items: { type: 'string' } },
+      guestCount: {},
+      guestStatusCounts: {
+        type: 'object',
+        additionalProperties: { type: 'number' },
+      },
+      hasGuests: { type: 'boolean' },
+      customFields: {
+        type: 'array',
+        items: { $ref: '#/components/schemas/EventCustomField' },
+      },
+    });
 
     const product = fs.readFileSync(productContractPath, 'utf8');
-    const eventWrites = product.slice(
-      product.indexOf('#### `partiful events create`'),
-      product.indexOf('### Guests'),
-    );
+    const eventWritesStart = product.indexOf('#### `partiful events create`');
+    const eventWritesEnd = product.indexOf('### Guests');
+    expect(eventWritesStart).toBeGreaterThanOrEqual(0);
+    expect(eventWritesEnd).toBeGreaterThan(eventWritesStart);
+    const eventWrites = product.slice(eventWritesStart, eventWritesEnd);
     for (const expected of [
       '`cohostIds: []`',
       "`Let's Party`",
@@ -968,6 +998,7 @@ describe('remote API contract', () => {
       'sorted, percent-encoded, repeated `updateMask.fieldPaths`',
       '`ownerIds` must be present',
       'update status guard was found',
+      'An inverted merged range returns `input.invalid`',
       '`setEventLocation`',
       '`updateDisplaySettings`',
       'no general callable `updateEvent` was found',
@@ -990,6 +1021,8 @@ describe('remote API contract', () => {
       'Module `25231`',
       'Module `52630`',
       'Module `22248`',
+      'Module `24441`',
+      '9580-feaa5337a786edee.js',
       'Module `95074`',
       'No account, credential, event ID, guest',
       'Document is protocol completion only',
@@ -1300,7 +1333,8 @@ describe('remote API contract', () => {
       .toEqual({ $ref: '#/components/schemas/GuestStatus' });
     expect(spec.components.schemas.EventInfo.properties.status)
       .toEqual({ $ref: '#/components/schemas/EventStatus' });
-    expect(spec.components.schemas.EventInfo.properties).not.toHaveProperty('ownerIds');
+    expect(spec.components.schemas.EventInfo.properties.ownerIds)
+      .toEqual({ type: 'array', items: { type: 'string' } });
     expect(spec.components.schemas.EventInfo.properties).not.toHaveProperty('guest');
 
     const publicAssetClass = 'current-first-party-public-asset-research';

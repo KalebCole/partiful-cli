@@ -2980,6 +2980,28 @@
             ]
           },
           "visibility": {},
+          "ownerIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "guestCount": {},
+          "guestStatusCounts": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "number"
+            }
+          },
+          "hasGuests": {
+            "type": "boolean"
+          },
+          "customFields": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/EventCustomField"
+            }
+          },
           "rsvpsEnabled": {
             "type": "boolean"
           },
@@ -3459,7 +3481,10 @@
             "format": "uri"
           },
           "blurHash": {
-            "type": "string"
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "contentType": {
             "type": "string"
@@ -3468,55 +3493,67 @@
             "type": "string"
           },
           "height": {
-            "type": "number"
+            "type": [
+              "number",
+              "null"
+            ]
           },
           "width": {
-            "type": "number"
+            "type": [
+              "number",
+              "null"
+            ]
           }
         },
         "additionalProperties": false
       },
       "CreateEventCompletionResponse": {
-        "type": "object",
-        "required": [
-          "result"
-        ],
-        "properties": {
-          "result": {
+        "anyOf": [
+          {
+            "type": "object",
+            "required": [
+              "result"
+            ],
+            "properties": {
+              "result": {}
+            },
+            "additionalProperties": true
+          },
+          {
             "type": "object",
             "required": [
               "data"
             ],
             "properties": {
-              "data": {
-                "description": "The current client uses this decoded value as an event ID but performs no runtime type check."
-              }
+              "data": {}
             },
             "additionalProperties": true
           }
-        },
-        "additionalProperties": true
+        ]
       },
       "CancelEventCompletionResponse": {
-        "type": "object",
-        "required": [
-          "result"
-        ],
-        "properties": {
-          "result": {
+        "anyOf": [
+          {
+            "type": "object",
+            "required": [
+              "result"
+            ],
+            "properties": {
+              "result": {}
+            },
+            "additionalProperties": true
+          },
+          {
             "type": "object",
             "required": [
               "data"
             ],
             "properties": {
-              "data": {
-                "description": "The current client requires generic callable completion but inspects no endpoint business field."
-              }
+              "data": {}
             },
             "additionalProperties": true
           }
-        },
-        "additionalProperties": true
+        ]
       },
       "FirestoreLatLng": {
         "type": "object",
