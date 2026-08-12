@@ -21,6 +21,8 @@ const rsvpReadObservationPath =
   'docs/research/2026-08-12-rsvp-read-observation.md';
 const eventWriteAssetResearchPath =
   'docs/research/2026-08-12-event-write-mapping-public-assets.md';
+const guestAssetResearchPath =
+  'docs/research/2026-08-12-guest-mapping-public-assets.md';
 const productContractPath = 'docs/CLI-PRODUCT-CONTRACT.md';
 const sourceCache = new Map([
   [historicalDraftPath, historicalDraft],
@@ -481,7 +483,7 @@ function citationResolves(citation) {
 describe('remote API contract', () => {
   it('is a consistently versioned OpenAPI 3.1 document with unique operation IDs', () => {
     expect(spec.openapi).toBe('3.1.0');
-    expect(evidence.contractRevision).toBe('2026-08-12.4');
+    expect(evidence.contractRevision).toBe('2026-08-12.5');
     expect(evidence.ownerReviewedBaseline).toBe('2026-08-12.3');
     expect(spec.info.version).toBe(evidence.contractRevision);
     expect(evidence.status).toBe('owner-reviewed');
@@ -498,11 +500,14 @@ describe('remote API contract', () => {
     expect(evidence.sources.rsvpReadObservation20260812)
       .toBe(`${rsvpReadObservationPath}#scope-and-provenance`);
     expect(citationResolves(evidence.sources.rsvpReadObservation20260812)).toBe(true);
+    expect(evidence.sources.publicGuestMapping20260812)
+      .toBe(`${guestAssetResearchPath}#scope-and-provenance`);
+    expect(citationResolves(evidence.sources.publicGuestMapping20260812)).toBe(true);
     const appSource = fs.readFileSync('internal/app/app.go', 'utf8');
-    expect(appSource).toContain('ProductContractRevision = "2026-08-12.4"');
-    expect(appSource).toContain('RemoteContractRevision  = "2026-08-12.4"');
+    expect(appSource).toContain('ProductContractRevision = "2026-08-12.5"');
+    expect(appSource).toContain('RemoteContractRevision  = "2026-08-12.5"');
     const ids = operations().map(({ operation }) => operation.operationId);
-    expect(ids).toHaveLength(27);
+    expect(ids).toHaveLength(28);
     expect(new Set(ids).size).toBe(ids.length);
   });
 
@@ -536,9 +541,11 @@ describe('remote API contract', () => {
       ]);
       const protocolStatusOps = new Set([
         'addGuest',
+        'addInvitedGuestsAsHost',
         'markEventInterest',
         'createEvent',
         'cancelEvent',
+        'getGuests',
         'firestorePatchEvent',
       ]);
       const expectedStatus = liveStatusOps.has(operation.operationId)
@@ -554,7 +561,7 @@ describe('remote API contract', () => {
       ...materialClaimPointers(spec.paths, '#/paths', 'paths'),
       ...materialClaimPointers(spec.components, '#/components', 'components'),
     ]);
-    expect(pointers).toHaveLength(1639);
+    expect(pointers).toHaveLength(1739);
     for (const pointer of pointers) {
       const claim = evidence.claims[pointer];
       expect(claim, pointer).toBeDefined();
@@ -597,8 +604,8 @@ describe('remote API contract', () => {
       .filter(({ operation }) => operation.responses['200']?.content)
       .map(({ operation }) => operation.operationId)
       .sort();
-    expect(with200).toHaveLength(17);
-    expect(withTyped200Body).toHaveLength(16);
+    expect(with200).toHaveLength(19);
+    expect(withTyped200Body).toHaveLength(18);
     expect(with200.filter((id) => !withTyped200Body.includes(id)))
       .toEqual(['sendAuthCodeTrusted']);
 
@@ -613,18 +620,16 @@ describe('remote API contract', () => {
       /Eleven of those\s+operations have a typed `200` response body\./,
     );
     expect(ledger).toContain(
-      'Four callable operations have protocol-specified HTTP `200` completion',
+      'Five callable operations have protocol-specified HTTP `200` completion',
     );
     expect(ledger).toContain(
       '`firestorePatchEvent` uses the official Firestore PATCH path',
     );
-    expect(ledger.match(/The 1639 material claims/g)).toHaveLength(2);
+    expect(ledger.match(/The 1739 material claims/g)).toHaveLength(2);
     expect(ledger).toContain(
-      '**Proposed contract revision:** `2026-08-12.4`',
+      '**Proposed contract revision:** `2026-08-12.5`',
     );
-    expect(ledger).toContain(
-      '**Status:** Pending one delegated review under issue #167',
-    );
+    expect(ledger).toContain('**Status:** Owner-reviewed');
     expect(ledger).toContain('Current first-party public-asset research');
   });
 
@@ -662,7 +667,9 @@ describe('remote API contract', () => {
       'firestoreGetEvent',
       'firestoreGetGuest',
       'getContacts',
+      'getGuests',
       'addGuest',
+      'addInvitedGuestsAsHost',
       'markEventInterest',
       'createEvent',
       'cancelEvent',
@@ -727,7 +734,9 @@ describe('remote API contract', () => {
       'firestoreGetEvent',
       'firestoreGetGuest',
       'getContacts',
+      'getGuests',
       'addGuest',
+      'addInvitedGuestsAsHost',
       'markEventInterest',
       'createEvent',
       'cancelEvent',
@@ -747,7 +756,9 @@ describe('remote API contract', () => {
       ['firestoreGetEvent', evidence.sources.readGuestFirestore20260811],
       ['firestoreGetGuest', evidence.sources.readGuestFirestore20260811],
       ['getContacts', evidence.sources.readContacts20260811],
+      ['getGuests', `${guestAssetResearchPath}#getguests-response-and-guest-fields`],
       ['addGuest', evidence.sources.publicAddGuestCompletion20260812],
+      ['addInvitedGuestsAsHost', evidence.sources.firebaseCallableProtocol],
       ['markEventInterest', evidence.sources.publicInterestCompletion20260812],
       ['createEvent', evidence.sources.publicCreateEventCompletion20260812],
       ['cancelEvent', evidence.sources.publicCancelEvent20260812],
@@ -759,9 +770,12 @@ describe('remote API contract', () => {
       expect(operation.responses.default).not.toHaveProperty('content');
       const operationClaim = evidence.operationClaims[operation.operationId];
       if (observedResponseOps.has(operation.operationId)) {
-        const expectedClassification = operation.operationId === 'firestorePatchEvent'
+        const expectedClassification = [
+          'firestorePatchEvent',
+          'addInvitedGuestsAsHost',
+        ].includes(operation.operationId)
           ? 'official-protocol-specification'
-          : ['addGuest', 'markEventInterest', 'createEvent', 'cancelEvent']
+          : ['addGuest', 'getGuests', 'markEventInterest', 'createEvent', 'cancelEvent']
               .includes(operation.operationId)
             ? 'current-first-party-public-asset-research'
             : 'dated-live-observation';
@@ -1569,9 +1583,9 @@ describe('remote API contract', () => {
     const product = fs.readFileSync(productContractPath, 'utf8');
     for (const expected of [
       '**Status:** Approved product contract',
-      '**Product contract revision:** `2026-08-12.4`',
-      '**Remote API contract revision:** `2026-08-12.4`',
-      '**Currently shipped Go revisions:** product and remote `2026-08-12.4`',
+      '**Product contract revision:** `2026-08-12.5`',
+      '**Remote API contract revision:** `2026-08-12.5`',
+      '**Currently shipped Go revisions:** product and remote `2026-08-12.5`',
       '`PUBLISHED` → `active`',
       '`CANCELED` → `cancelled`',
       '`UNSAVED` exists in the current first-party client vocabulary',
@@ -1616,8 +1630,8 @@ describe('remote API contract', () => {
     );
 
     const appSource = fs.readFileSync('internal/app/app.go', 'utf8');
-    expect(appSource).toContain('ProductContractRevision = "2026-08-12.4"');
-    expect(appSource).toContain('RemoteContractRevision  = "2026-08-12.4"');
+    expect(appSource).toContain('ProductContractRevision = "2026-08-12.5"');
+    expect(appSource).toContain('RemoteContractRevision  = "2026-08-12.5"');
   });
 
   it('defines evidence-backed RSVP planning and submitted-only completion', () => {
@@ -2148,14 +2162,14 @@ describe('remote API contract', () => {
       /"remoteContractRevision": "([^"]+)"/g,
     )].map((match) => match[1]);
 
-    expect(shippedRevision).toBe('2026-08-12.4');
-    expect(documentedRevision).toBe('2026-08-12.4');
-    expect(documentedProductRevision).toBe('2026-08-12.4');
+    expect(shippedRevision).toBe('2026-08-12.5');
+    expect(documentedRevision).toBe('2026-08-12.5');
+    expect(documentedProductRevision).toBe('2026-08-12.5');
     expect(new Set(envelopeRevisions)).toEqual(new Set([documentedRevision]));
     expect(spec.info.version).toBe(documentedRevision);
     expect(evidence.status).toBe('owner-reviewed');
     expect(spec.info.version).toBe(shippedRevision);
-    expect(appSource).toContain('ProductContractRevision = "2026-08-12.4"');
+    expect(appSource).toContain('ProductContractRevision = "2026-08-12.5"');
     expect(productContract)
       .not.toContain('currently leaves every operation response status and body unknown');
     expect(contactResearch)

@@ -2,7 +2,7 @@
   "openapi": "3.1.0",
   "info": {
     "title": "Partiful remote API contract",
-    "version": "2026-08-12.4",
+    "version": "2026-08-12.5",
     "description": "Proposed remote-only transport snapshot pending delegated review. Evidence classifications and uncertainty are recorded in spec/partiful.api-evidence.json."
   },
   "servers": [
@@ -390,6 +390,111 @@
         ]
       }
     },
+    "/getGuests": {
+      "post": {
+        "operationId": "getGuests",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "data"
+                ],
+                "properties": {
+                  "data": {
+                    "type": "object",
+                    "required": [
+                      "params",
+                      "amplitudeDeviceId",
+                      "paging"
+                    ],
+                    "properties": {
+                      "params": {
+                        "type": "object",
+                        "properties": {
+                          "eventId": {
+                            "type": "string"
+                          },
+                          "includeInvitedGuests": {
+                            "type": "boolean",
+                            "const": true
+                          },
+                          "password": {
+                            "type": "string"
+                          }
+                        },
+                        "additionalProperties": false,
+                        "required": [
+                          "eventId",
+                          "includeInvitedGuests"
+                        ]
+                      },
+                      "amplitudeDeviceId": {
+                        "type": "string"
+                      },
+                      "amplitudeSessionId": {
+                        "type": "integer",
+                        "format": "int64"
+                      },
+                      "userId": {
+                        "type": [
+                          "string",
+                          "null"
+                        ]
+                      },
+                      "paging": {
+                        "type": "object",
+                        "required": [
+                          "maxResults",
+                          "cursor"
+                        ],
+                        "properties": {
+                          "maxResults": {
+                            "type": "integer",
+                            "const": 500
+                          },
+                          "cursor": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          }
+                        },
+                        "additionalProperties": false
+                      }
+                    },
+                    "additionalProperties": false
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Current authenticated guest page response.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetGuestsResponse"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Unobserved response status or body."
+          }
+        },
+        "security": [
+          {
+            "firebaseBearer": []
+          }
+        ]
+      }
+    },
     "/createTextBlast": {
       "post": {
         "operationId": "createTextBlast",
@@ -511,7 +616,27 @@
                           "eventId": {
                             "type": "string"
                           },
-                          "guests": {
+                          "userIdsToInvite": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          },
+                          "invitationMessage": {
+                            "type": "string"
+                          },
+                          "otherMutualsCount": {
+                            "type": "integer",
+                            "minimum": 0
+                          },
+                          "phoneContactsToInvite": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "additionalProperties": true
+                            }
+                          },
+                          "emailsToInvite": {
                             "type": "array",
                             "items": {
                               "type": "object",
@@ -522,7 +647,11 @@
                         "additionalProperties": false,
                         "required": [
                           "eventId",
-                          "guests"
+                          "userIdsToInvite",
+                          "invitationMessage",
+                          "otherMutualsCount",
+                          "phoneContactsToInvite",
+                          "emailsToInvite"
                         ]
                       },
                       "amplitudeDeviceId": {
@@ -550,6 +679,16 @@
         "responses": {
           "default": {
             "description": "Response status and body are unknown."
+          },
+          "200": {
+            "description": "Current client awaits generic callable completion only.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CallableResponse"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -3593,6 +3732,71 @@
           }
         },
         "additionalProperties": false
+      },
+      "GuestListItem": {
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "status",
+          "count"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/GuestStatus"
+          },
+          "count": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "anchorGuestId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "userId": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": true
+      },
+      "GetGuestsResponse": {
+        "type": "object",
+        "required": [
+          "result"
+        ],
+        "properties": {
+          "result": {
+            "type": "object",
+            "required": [
+              "data",
+              "paging"
+            ],
+            "properties": {
+              "data": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/GuestListItem"
+                }
+              },
+              "paging": {
+                "type": "object",
+                "properties": {
+                  "nextCursor": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        }
       }
     }
   }

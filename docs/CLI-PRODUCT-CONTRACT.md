@@ -2,13 +2,13 @@
 
 **Status:** Approved product contract
 
-**Product contract revision:** `2026-08-12.4`
+**Product contract revision:** `2026-08-12.5`
 
-**Remote API contract revision:** `2026-08-12.4`
+**Remote API contract revision:** `2026-08-12.5`
 
 **Owner-reviewed baseline:** product and remote `2026-08-12.3`
 
-**Currently shipped Go revisions:** product and remote `2026-08-12.4`
+**Currently shipped Go revisions:** product and remote `2026-08-12.5`
 
 This document defines the public behavior of the greenfield Go `partiful` CLI.
 It is the authority for commands, inputs, JSON outputs, failures, and mutation
@@ -83,8 +83,8 @@ Every successful command returns:
   "meta": {
     "command": "events.get",
     "cliVersion": "1.0.0",
-    "productContractRevision": "2026-08-12.4",
-    "remoteContractRevision": "2026-08-12.4",
+    "productContractRevision": "2026-08-12.5",
+    "remoteContractRevision": "2026-08-12.5",
     "warnings": []
   }
 }
@@ -107,8 +107,8 @@ Every failed command returns:
   "meta": {
     "command": "guests.list",
     "cliVersion": "1.0.0",
-    "productContractRevision": "2026-08-12.4",
-    "remoteContractRevision": "2026-08-12.4"
+    "productContractRevision": "2026-08-12.5",
+    "remoteContractRevision": "2026-08-12.5"
   }
 }
 ```
@@ -155,8 +155,8 @@ Collection commands return:
   "meta": {
     "command": "events.list",
     "cliVersion": "1.0.0",
-    "productContractRevision": "2026-08-12.4",
-    "remoteContractRevision": "2026-08-12.4",
+    "productContractRevision": "2026-08-12.5",
+    "remoteContractRevision": "2026-08-12.5",
     "warnings": [],
     "page": {
       "limit": 25,
@@ -228,8 +228,8 @@ remote mutation:
   "meta": {
     "command": "events.update",
     "cliVersion": "1.0.0",
-    "productContractRevision": "2026-08-12.4",
-    "remoteContractRevision": "2026-08-12.4",
+    "productContractRevision": "2026-08-12.5",
+    "remoteContractRevision": "2026-08-12.5",
     "warnings": []
   }
 }
@@ -728,15 +728,16 @@ name supplied through `--contact`. Applying the plan cannot resolve the name
 again or select a different person. The bound identity does not appear in
 output.
 
-Applied success returns:
+The public plan can show the selected contact's display name and a redacted
+request preview. It never exposes a Partiful user ID, guest ID, phone number,
+email address, account fingerprint, or private contact identity.
+
+Applied success returns submitted-only state:
 
 ```json
 {
   "eventId": "evt_example",
-  "invited": {
-    "displayName": "Example Contact",
-    "status": "invited"
-  }
+  "submitted": true
 }
 ```
 
@@ -987,7 +988,7 @@ reviewed callable and client completion condition. It does not prove
 persisted RSVP state, delivery, notification, or another business side
 effect.
 
-This `2026-08-12.4` contract is the approved event-write product contract and
+This `2026-08-12.5` contract is the approved event-write product contract and
 the current shipped Go contract revision.
 
 ### Contacts
