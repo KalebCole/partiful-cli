@@ -237,6 +237,10 @@ const expectedRsvpSafeguards = {
     { value: false, count: 46 },
     { value: true, count: 47 },
   ],
+  questionnaireVersionTypes: [
+    { type: 'array', count: 89 },
+    { type: 'null', count: 241 },
+  ],
   questionnaireVersionLengths: [
     { length: 1, count: 44 },
     { length: 2, count: 39 },
@@ -1412,7 +1416,8 @@ describe('remote API contract', () => {
       '`atCapacity: true` is unsupported for `going`',
       'does not enter a waitlist',
       '`partySize <= maxCountPerGuest`',
-      '`additionalCount = max(0, partySize - currentGuest.count)`',
+      '`currentGuest.count` only when the current status is `GOING` or `APPROVED`',
+      '`additionalCount = max(0, partySize - currentCapacityCount)`',
       '`additionalCount <= remainingCapacity`',
       '`partySize = 1 + plusOnes.length`',
       '`questionnaireEnabled: true`',
@@ -1427,6 +1432,7 @@ describe('remote API contract', () => {
       '{"eventId":"evt_example","intent":"going","submitted":true}',
       '`result.data.success` is truthy',
       '`result.data.interested` strictly equals the submitted boolean',
+      'Input violations return `input.invalid`',
     ]) {
       expect(rsvpSection, expected).toContain(expected);
     }

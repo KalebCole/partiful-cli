@@ -461,6 +461,16 @@
           "count": 47
         }
       ],
+      "questionnaireVersionTypes": [
+        {
+          "type": "array",
+          "count": 89
+        },
+        {
+          "type": "null",
+          "count": 241
+        }
+      ],
       "questionnaireVersionLengths": [
         {
           "length": 1,

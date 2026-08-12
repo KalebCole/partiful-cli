@@ -260,6 +260,10 @@ questionnaire, ticketing, action, capacity, and waitlist fields preserve the
 observed unions. Raw presence counts remain separate from aggregate null
 buckets; absent properties are not rewritten into remote null claims.
 
+The current client counts only `GOING` and `APPROVED` guests as attended for
+capacity calculations. RSVP update planning subtracts an existing party count
+only for those two statuses.
+
 These read facts support a narrow product-compatible event class. They do not
 establish server rejection mappings or any mutation success. Ticketing,
 application, waitlist, password-protected submission, persisted RSVP state,
