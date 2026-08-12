@@ -3,7 +3,7 @@ name: Release Native Archives
 on:
   push:
     tags:
-      - v*
+      - v3.*
 
 permissions:
   contents: write
@@ -17,10 +17,24 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Verify approved release point
+        run: |
+          if [[ ! "${GITHUB_REF_NAME}" =~ ^v3\.[0-9]+\.[0-9]+$ ]]; then
+            echo "release tag must be a v3 semantic version" >&2
+            exit 1
+          fi
+          git fetch origin main
+          git merge-base --is-ancestor "${GITHUB_SHA}" origin/main
+          source_version="$(sed -n 's/^[[:space:]]*Version[[:space:]]*=[[:space:]]*"\([^"]*\)".*/\1/p' internal/app/buildinfo.go)"
+          if [[ "v${source_version}" != "${GITHUB_REF_NAME}" ]]; then
+            echo "tag ${GITHUB_REF_NAME} does not match source version ${source_version}" >&2
+            exit 1
+          fi
+
       - name: Set up Go
         uses: actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00 # v6
         with:
-          go-version-file: go.mod
+          go-version: 1.22.12
 
       - name: Verify module
         run: go mod verify

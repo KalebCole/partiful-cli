@@ -4,7 +4,8 @@
 
 JSON-first native Go CLI for reviewed Partiful event workflows.
 
-The first native-only release line starts at `v3.0.0`.
+The first native-only release line starts at `v3.0.0`. The install command
+below becomes available after the coordinated cutover release is published.
 
 ## Install
 
