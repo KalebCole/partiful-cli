@@ -217,12 +217,25 @@ func validateContactsUnauthenticated(response *http.Response) error {
 			Status  *string `json:"status"`
 		} `json:"error"`
 	}
-	if json.Unmarshal(body, &failure) != nil ||
+	if decodeStrictContactJSON(body, &failure) != nil ||
 		failure.Error == nil ||
 		failure.Error.Message == nil ||
 		failure.Error.Status == nil ||
 		*failure.Error.Status != "UNAUTHENTICATED" {
 		return fmt.Errorf("%w: contacts unauthenticated response body", ErrProtocolChanged)
+	}
+	return nil
+}
+
+func decodeStrictContactJSON(body []byte, destination any) error {
+	decoder := json.NewDecoder(bytes.NewReader(body))
+	decoder.DisallowUnknownFields()
+	if err := decoder.Decode(destination); err != nil {
+		return err
+	}
+	var trailing any
+	if err := decoder.Decode(&trailing); !errors.Is(err, io.EOF) {
+		return errors.New("contact response has trailing JSON")
 	}
 	return nil
 }

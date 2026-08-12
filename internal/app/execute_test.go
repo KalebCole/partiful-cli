@@ -2467,7 +2467,7 @@ func TestExecuteContactsListFailsClosedOnNullRemoteCursor(t *testing.T) {
 	}
 }
 
-func TestExecuteContactsListMapsReviewedUnauthenticatedResponseToExpired(t *testing.T) {
+func TestExecuteContactsListRejectsUnknownUnauthenticatedErrorFields(t *testing.T) {
 	const (
 		credentials  = `{"accessToken":"private-access-token","expiresAt":"2026-08-11T02:00:00Z"}`
 		privateValue = "private-remote-detail"
@@ -2494,9 +2494,9 @@ func TestExecuteContactsListMapsReviewedUnauthenticatedResponseToExpired(t *test
 		}},
 	})
 
-	const wantStdout = `{"ok":false,"error":{"type":"auth.expired","code":"REMOTE_SESSION_UNAUTHENTICATED","message":"Stored authentication is no longer accepted. Log in again.","retryable":false,"details":{}},"meta":{"command":"contacts.list","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.5"}}` + "\n"
-	if result.ExitCode != 3 || result.Stdout != wantStdout {
-		t.Fatalf("result = %#v, want reviewed unauthenticated mapping", result)
+	const wantStdout = `{"ok":false,"error":{"type":"contract.protocol_changed","code":"CONTACTS_PROTOCOL_CHANGED","message":"Contacts no longer match the reviewed remote contract.","retryable":false,"details":{}},"meta":{"command":"contacts.list","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.5"}}` + "\n"
+	if result.ExitCode != 9 || result.Stdout != wantStdout {
+		t.Fatalf("result = %#v, want unknown error field protocol failure", result)
 	}
 	if strings.Contains(result.Stdout+result.Stderr, privateValue) {
 		t.Fatal("unauthenticated failure exposed remote response content")
