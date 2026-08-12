@@ -1,6 +1,7 @@
 # Partiful remote API contract evidence ledger
 
-**Owner-reviewed contract revision:** `2026-08-11.5`
+**Owner-reviewed contract revision:** `2026-08-12.1`
+**Owner-reviewed baseline:** `2026-08-11.5`
 **Status:** Owner-reviewed under the issue #114 delegation
 **Contract:** `spec/partiful.openapi.json`
 **Machine-readable ledger:** `spec/partiful.api-evidence.json`
@@ -11,6 +12,8 @@
 - **Dated live observation:** the March 24 browser-interception research, the
   August 11 public poster-catalog observation, and the August 11
   owner-attended authentication and read-only event/contact observations.
+- **Current first-party public-asset research:** immutable assets from the
+  current Partiful deployment, without authentication or account-scoped data.
 - **Reviewed first-party repository research:** reviewed repository source,
   without claiming it proves current server behavior.
 - **TypeScript-derived inference:** historical draft or TypeScript transport
@@ -55,7 +58,7 @@ rules, and limits are **explicit unknown**. Eleven operations with an observed
 HTTP `200` status have typed response bodies. The schema-free
 send-code `200` and OpenAPI `default` responses do not claim a body.
 
-The 1230 material claims are audited by
+The 1254 material claims are audited by
 `tests/remote-api-contract.test.js`. Each ledger citation resolves either to a
 JSON Pointer in the committed non-authoritative historical artifact or to a
 heading in the committed stable source index. This keeps the audit independent
@@ -146,8 +149,13 @@ No remote paging field was observed for either list. Revision
 `2026-08-11.5` records the observed complete array representations but keeps
 remote pagination, limits, ordering, snapshot behavior, and list failures
 unknown. Event ID projection is supported. One selected guest status supports
-an RSVP projection for that item. Product state and full role mappings remain
-implementation gates.
+an RSVP projection for that item. Current public assets close the S3
+event-state, owner-membership, and guest-status vocabulary. The client
+event-status vocabulary is `UNSAVED`, `PUBLISHED`, and `CANCELED`; only the
+latter two have S3 product mappings. Owner membership uses
+`event.ownerIds.includes(userId)`. The events UI treats any owner membership
+as hosting and does not expose a primary-host/cohost distinction. The 16
+current guest statuses remain lossless in the read projection.
 
 `getEventInfo` returned `200` at `result.data.event` for one selected readable
 event and returned `404 NOT_FOUND` for a synthetic missing ID. The selected
@@ -236,7 +244,7 @@ by the Go implementation's Firebase requests:
 Origin is unmodelled and remains unknown because the reviewed evidence
 establishes no Origin request fact.
 
-The 1230 material claims are audited by `tests/remote-api-contract.test.js`.
+The 1254 material claims are audited by `tests/remote-api-contract.test.js`.
 
 ## Resolved conflict
 

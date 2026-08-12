@@ -10,8 +10,9 @@ live request was made.
 The sanitized source is
 `spec/research/read-evidence-redacted-20260811.json`. It contains only HTTP
 metadata, normalized paths and types, counts, equality facts, and allowlisted
-error codes. Revision `2026-08-11.5` is a proposal. This observation does not
-make it owner-reviewed.
+error codes. This evidence was proposed when captured and was subsequently
+owner-reviewed in revision `2026-08-11.5`; the observation alone did not confer
+that review.
 
 ## Event list observations
 
@@ -26,7 +27,7 @@ set for each operation. No duplicate identity occurred in either observed
 sequence. This is stability evidence for two observations only. It does not
 establish an ordering key or snapshot behavior.
 
-The observations establish the named item fields and types in the proposed
+The observations establish the named item fields and types in the reviewed
 schemas. Only `id` was present on every item by an explicit aggregate check.
 The selected upcoming item also had a guest object with a string status. This
 supports the event ID projection and one selected RSVP-status projection. It
@@ -62,7 +63,7 @@ path was `result.data.currentGuest`. It was an object with string `id`,
 `name`, `status`, and `userId`, integer `count`, and null `plusOnes`.
 This one object does not establish operation-wide field presence,
 nullability, or alternate variants, so `CurrentGuest` has no operation-wide
-top-level type and no required field list. The proposed schema leaves `count`,
+top-level type and no required field list. The schema leaves `count`,
 `plusOnes`, and `userId` unconstrained. In particular, the shape of an
 ordinary non-null plus-one value is unknown. No null `currentGuest` or other
 variant was observed.
