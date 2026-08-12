@@ -244,7 +244,7 @@ describe('remote API contract', () => {
     expect(spec.openapi).toBe('3.1.0');
     expect(evidence.contractRevision).toBe('2026-08-12.1');
     expect(spec.info.version).toBe(evidence.contractRevision);
-    expect(evidence.status).toBe('proposed-pending-delegated-review');
+    expect(evidence.status).toBe('owner-reviewed');
     expect(evidence.sources.publicEventMapping20260812)
       .toBe(`${eventAssetResearchPath}#scope-and-provenance`);
     expect(citationResolves(evidence.sources.publicEventMapping20260812)).toBe(true);
@@ -356,10 +356,10 @@ describe('remote API contract', () => {
     );
     expect(ledger.match(/The 1254 material claims/g)).toHaveLength(2);
     expect(ledger).toContain(
-      '**Proposed contract revision:** `2026-08-12.1`',
+      '**Owner-reviewed contract revision:** `2026-08-12.1`',
     );
     expect(ledger).toContain(
-      '**Status:** Proposed; pending delegated review',
+      '**Status:** Owner-reviewed under the issue #114 delegation',
     );
     expect(ledger).toContain('Current first-party public-asset research');
   });
@@ -896,9 +896,9 @@ describe('remote API contract', () => {
   it('defines conservative nullable event reads and bounded local snapshots', () => {
     const product = fs.readFileSync(productContractPath, 'utf8');
     for (const expected of [
-      '**Status:** Proposed product contract pending delegated review',
+      '**Status:** Approved product contract',
       '**Product contract revision:** `2026-08-12.1`',
-      '**Remote API contract revision:** `2026-08-12.1` (proposed)',
+      '**Remote API contract revision:** `2026-08-12.1`',
       '`PUBLISHED` → `active`',
       '`CANCELED` → `cancelled`',
       '`UNSAVED` exists in the current first-party client vocabulary',
@@ -1356,7 +1356,7 @@ describe('remote API contract', () => {
     expect(documentedProductRevision).toBe('2026-08-12.1');
     expect(new Set(envelopeRevisions)).toEqual(new Set([documentedRevision]));
     expect(spec.info.version).toBe(documentedRevision);
-    expect(evidence.status).toBe('proposed-pending-delegated-review');
+    expect(evidence.status).toBe('owner-reviewed');
     expect(spec.info.version).not.toBe(shippedRevision);
     expect(appSource).toContain('ProductContractRevision = "2026-08-10.1"');
     expect(productContract)

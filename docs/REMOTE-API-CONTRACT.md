@@ -1,9 +1,9 @@
 # Remote API contract
 
-`spec/partiful.openapi.json` is proposed revision `2026-08-12.1` of the remote
-transport snapshot, pending delegated review. It is based on owner-reviewed
-revision `2026-08-11.5`. It describes only network operations and wire shapes.
-It does not prescribe commands, output, credentials, mutation safeguards, or
+`spec/partiful.openapi.json` is owner-reviewed revision `2026-08-12.1` of the
+remote transport snapshot. It is based on owner-reviewed revision
+`2026-08-11.5`. It describes only network operations and wire shapes. It does
+not prescribe commands, output, credentials, mutation safeguards, or
 implementation architecture.
 
 ## Authority and change process
@@ -66,9 +66,9 @@ Unsupported statuses, ordering, snapshots, invalid cursors, cursor lifetime,
 `useAuthUser`, rate limiting, future catalog completeness, inaccessible-event
 permission behavior, and other unobserved variants remain explicit unknowns.
 
-## Proposed event mapping correction
+## Event mapping correction
 
-Proposed revision `2026-08-12.1` adds current first-party public-asset
+Revision `2026-08-12.1` adds current first-party public-asset
 research from
 `docs/research/2026-08-12-event-read-mapping-public-assets.md`. It promotes
 only facts used directly by the current `/events` build:
