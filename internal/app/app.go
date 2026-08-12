@@ -870,8 +870,15 @@ func Execute(ctx context.Context, request Request, dependencies Dependencies) Re
 					if errors.Is(err, auth.ErrRequired) {
 						return authenticationRequiredFailure(definition.path, pretty)
 					}
-					if errors.Is(err, auth.ErrExpired) ||
-						errors.Is(err, auth.ErrRemoteTokenExpired) {
+					if errors.Is(err, auth.ErrRemoteTokenExpired) {
+						return authenticationExpiredFailure(
+							definition.path,
+							"INVALID_REFRESH_TOKEN",
+							"Stored authentication has expired. Log in again.",
+							pretty,
+						)
+					}
+					if errors.Is(err, auth.ErrExpired) {
 						return authenticationExpiredFailure(
 							definition.path,
 							"SESSION_EXPIRED",

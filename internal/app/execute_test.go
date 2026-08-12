@@ -2736,6 +2736,87 @@ func TestExecuteSchemaProjectsCompleteContactsListDefinition(t *testing.T) {
 	}
 }
 
+func TestExecuteContactsListMapsRejectedRefreshWithoutAttemptingRead(t *testing.T) {
+	const privateRefresh = "private-rejected-refresh"
+	call := 0
+	result := app.Execute(context.Background(), app.Request{
+		Argv:  []string{"contacts", "list"},
+		Stdin: strings.NewReader(""),
+	}, app.Dependencies{
+		Files: fakeFilesystem{
+			readFile: func(string) ([]byte, error) {
+				return []byte(
+					`{"accessToken":"private-expired-access","refreshToken":"` +
+						privateRefresh +
+						`","expiresAt":"2026-08-10T23:59:00Z"}`,
+				), nil
+			},
+		},
+		CredentialsPath: "/config/partiful/credentials.json",
+		Now: func() time.Time {
+			return time.Date(2026, time.August, 11, 0, 0, 0, 0, time.UTC)
+		},
+		AuthRandom: strings.NewReader("must-not-be-read"),
+		HTTP: scriptedHTTP{do: func(request *http.Request) (*http.Response, error) {
+			call++
+			if request.URL.Host != "securetoken.googleapis.com" {
+				t.Fatalf("request host = %q, want only refresh attempt", request.URL.Host)
+			}
+			return jsonResponse(
+				http.StatusBadRequest,
+				`{"error":{"code":400,"message":"INVALID_REFRESH_TOKEN","status":"INVALID_ARGUMENT"}}`,
+			), nil
+		}},
+	})
+
+	const wantStdout = `{"ok":false,"error":{"type":"auth.expired","code":"INVALID_REFRESH_TOKEN","message":"Stored authentication has expired. Log in again.","retryable":false,"details":{}},"meta":{"command":"contacts.list","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.4"}}` + "\n"
+	if result.ExitCode != 3 || result.Stdout != wantStdout {
+		t.Fatalf("result = %#v, want rejected refresh failure", result)
+	}
+	if call != 1 {
+		t.Fatalf("request count = %d, want refresh only", call)
+	}
+	if strings.Contains(result.Stdout+result.Stderr, privateRefresh) {
+		t.Fatal("rejected refresh failure exposed private token")
+	}
+}
+
+func TestExecuteContactsListPreservesUnauthenticatedBodyReadFailureAsUnavailable(t *testing.T) {
+	const privateReadError = "private unauthenticated response read failure"
+	result := app.Execute(context.Background(), app.Request{
+		Argv:  []string{"contacts", "list"},
+		Stdin: strings.NewReader(""),
+	}, app.Dependencies{
+		Files: fakeFilesystem{
+			readFile: func(string) ([]byte, error) {
+				return []byte(
+					`{"accessToken":"private-access-token","expiresAt":"2026-08-11T02:00:00Z"}`,
+				), nil
+			},
+		},
+		CredentialsPath: "/config/partiful/credentials.json",
+		Now: func() time.Time {
+			return time.Date(2026, time.August, 11, 0, 0, 0, 0, time.UTC)
+		},
+		AuthRandom: strings.NewReader("0123456789abcdef"),
+		HTTP: scriptedHTTP{do: func(*http.Request) (*http.Response, error) {
+			return &http.Response{
+				StatusCode: http.StatusUnauthorized,
+				Header:     http.Header{"Content-Type": {"application/json"}},
+				Body:       failingReadCloser{err: errors.New(privateReadError)},
+			}, nil
+		}},
+	})
+
+	if result.ExitCode != 8 ||
+		!strings.Contains(result.Stdout, `"type":"remote.unavailable"`) {
+		t.Fatalf("result = %#v, want response read failure to remain unavailable", result)
+	}
+	if strings.Contains(result.Stdout+result.Stderr, privateReadError) {
+		t.Fatal("response read failure exposed private transport details")
+	}
+}
+
 func TestExecuteAuthStatusRedactsHealthyCredentials(t *testing.T) {
 	const credentials = `{"accessToken":"secret-token-value","refreshToken":"secret-refresh-value","userId":"private-user-value","expiresAt":"2026-08-11T02:00:00Z"}`
 	result := app.Execute(context.Background(), app.Request{

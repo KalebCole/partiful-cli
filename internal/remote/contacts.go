@@ -170,8 +170,8 @@ func (client Client) getContactsPage(
 	}
 	defer response.Body.Close()
 	if response.StatusCode == http.StatusUnauthorized {
-		if !validContactsUnauthenticated(response) {
-			return contactsResponse{}, fmt.Errorf("%w: contacts unauthenticated response", ErrProtocolChanged)
+		if err := validateContactsUnauthenticated(response); err != nil {
+			return contactsResponse{}, err
 		}
 		return contactsResponse{}, ErrUnauthenticated
 	}
@@ -198,16 +198,17 @@ func (client Client) getContactsPage(
 	return page, nil
 }
 
-func validContactsUnauthenticated(response *http.Response) bool {
+func validateContactsUnauthenticated(response *http.Response) error {
 	mediaType, _, err := mime.ParseMediaType(response.Header.Get("Content-Type"))
 	if err != nil || mediaType != "application/json" {
-		return false
+		return fmt.Errorf("%w: contacts unauthenticated content type", ErrProtocolChanged)
 	}
 	body, err := io.ReadAll(io.LimitReader(response.Body, maximumContactPageBytes+1))
-	if err != nil ||
-		len(body) > maximumContactPageBytes ||
-		!utf8.Valid(body) {
-		return false
+	if err != nil {
+		return fmt.Errorf("%w: contacts unauthenticated response read", ErrUnavailable)
+	}
+	if len(body) > maximumContactPageBytes || !utf8.Valid(body) {
+		return fmt.Errorf("%w: contacts unauthenticated response body", ErrProtocolChanged)
 	}
 	var failure struct {
 		Error *struct {
@@ -215,9 +216,12 @@ func validContactsUnauthenticated(response *http.Response) bool {
 			Status  *string `json:"status"`
 		} `json:"error"`
 	}
-	return json.Unmarshal(body, &failure) == nil &&
-		failure.Error != nil &&
-		failure.Error.Message != nil &&
-		failure.Error.Status != nil &&
-		*failure.Error.Status == "UNAUTHENTICATED"
+	if json.Unmarshal(body, &failure) != nil ||
+		failure.Error == nil ||
+		failure.Error.Message == nil ||
+		failure.Error.Status == nil ||
+		*failure.Error.Status != "UNAUTHENTICATED" {
+		return fmt.Errorf("%w: contacts unauthenticated response body", ErrProtocolChanged)
+	}
+	return nil
 }
