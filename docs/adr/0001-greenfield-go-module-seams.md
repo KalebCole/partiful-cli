@@ -21,3 +21,26 @@ plans, and external protocol validation need independent locality and
 substitution in tests. Missing response evidence prevents a command definition
 from entering a releasable catalog; it is never represented as a runtime
 fallback.
+
+The authentication seam supplies mutation authority with an opaque, private,
+stable account fingerprint. It is stable across token refresh for one account
+and changes when the authenticated account changes. Mutation authority never
+derives identity from command input, and the fingerprint never enters public
+output, diagnostics, or a remote request. The remote adapter receives the
+bearer session separately.
+
+Mutation authority owns persistent five-minute, single-use plan records. A
+record binds the account fingerprint, command, normalized input, exact remote
+request projection, and a digest of every pre-read fact. Apply reacquires the
+fingerprint and preconditions before consuming the record. It permits one
+remote mutation attempt and never retries automatically after an ambiguous
+completion.
+
+The remote seam distinguishes a callable protocol completion from verified
+business state. For RSVP mutations, it validates only the reviewed HTTP
+status, callable result envelope, and client-required completion fields. The
+application can return the normalized submitted request, but it cannot claim
+stored RSVP state, delivery, or another side effect without a separately
+reviewed post-write read. The RSVP command remains outside the releasable
+catalog while current-guest null behavior and required precondition reads are
+unknown.

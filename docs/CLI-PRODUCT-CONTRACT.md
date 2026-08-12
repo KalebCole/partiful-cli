@@ -2,9 +2,9 @@
 
 **Status:** Approved product contract
 
-**Product contract revision:** `2026-08-12.1`
+**Product contract revision:** `2026-08-12.2`
 
-**Remote API contract revision:** `2026-08-12.1`
+**Remote API contract revision:** `2026-08-12.2`
 
 **Currently shipped Go revisions:** product and remote `2026-08-12.1`
 
@@ -81,8 +81,8 @@ Every successful command returns:
   "meta": {
     "command": "events.get",
     "cliVersion": "1.0.0",
-    "productContractRevision": "2026-08-12.1",
-    "remoteContractRevision": "2026-08-12.1",
+    "productContractRevision": "2026-08-12.2",
+    "remoteContractRevision": "2026-08-12.2",
     "warnings": []
   }
 }
@@ -105,8 +105,8 @@ Every failed command returns:
   "meta": {
     "command": "guests.list",
     "cliVersion": "1.0.0",
-    "productContractRevision": "2026-08-12.1",
-    "remoteContractRevision": "2026-08-12.1"
+    "productContractRevision": "2026-08-12.2",
+    "remoteContractRevision": "2026-08-12.2"
   }
 }
 ```
@@ -153,8 +153,8 @@ Collection commands return:
   "meta": {
     "command": "events.list",
     "cliVersion": "1.0.0",
-    "productContractRevision": "2026-08-12.1",
-    "remoteContractRevision": "2026-08-12.1",
+    "productContractRevision": "2026-08-12.2",
+    "remoteContractRevision": "2026-08-12.2",
     "warnings": [],
     "page": {
       "limit": 25,
@@ -226,19 +226,25 @@ remote mutation:
   "meta": {
     "command": "events.update",
     "cliVersion": "1.0.0",
-    "productContractRevision": "2026-08-12.1",
-    "remoteContractRevision": "2026-08-12.1",
+    "productContractRevision": "2026-08-12.2",
+    "remoteContractRevision": "2026-08-12.2",
     "warnings": []
   }
 }
 ```
 
 The plan contains normalized inputs, current preconditions, an effect summary,
-and an opaque short-lived `planToken`. The token is internally bound to the
-signed-in account. The account identifier remains private and does not appear
-in the token, plan, or an error. Secrets and personal data are redacted. There
-is no separate `--dry-run` flag: omitting `--apply` is the only dry-run
-behavior.
+and an opaque short-lived `planToken`. The mutation authority binds it to an
+opaque, private stable account fingerprint supplied by the authentication
+seam. The fingerprint is stable across token refresh for one account and
+changes when the signed-in account changes. The raw account identifier and
+fingerprint do not appear in the token, plan, output, diagnostics, or an
+error.
+
+The plan token is also bound to the command, normalized input, exact remote
+request projection, and a digest of every pre-read fact used by the plan.
+Secrets and personal data are redacted. There is no separate `--dry-run`
+flag: omitting `--apply` is the only dry-run behavior.
 
 ### Standard mutation
 
@@ -250,6 +256,13 @@ caller first reviews the plan, then repeats the same command input with:
 ```
 
 The command cannot execute without a live token from the matching plan.
+Standard-mutation plan tokens are single-use and expire after five minutes.
+Apply reacquires the private account fingerprint and every bound remote
+precondition before it consumes the token. Changed input, account, or
+precondition, expiry, or reuse returns `safety.plan_stale` before a mutation
+request. A successful precondition check permits exactly one mutation
+request. The CLI does not automatically retry a mutation after a response,
+timeout, connection loss, or ambiguous completion.
 
 ### Consequential action
 
@@ -269,11 +282,11 @@ observed preconditions. Execution repeats the same input with:
 --apply --confirm <token>
 ```
 
-Tokens are single-use and expire after five minutes. A changed input, changed
-remote precondition, different signed-in account, expired token, or reused
+Consequential tokens have the same five-minute, single-use, account, input,
+request, and precondition binding. A changed binding, expired token, or reused
 token returns `safety.plan_stale`. `--apply` without `--confirm` on a
 consequential action returns `safety.confirmation_required`. There is no
-`--yes` bypass and no interactive mutation prompt.
+`--yes` bypass, automatic mutation retry, or interactive mutation prompt.
 
 ## Authentication
 
@@ -591,23 +604,33 @@ Applied success returns:
 
 #### `partiful rsvp get <event-id>`
 
-Returns the shared `Rsvp` shape:
+Returns an `RsvpRead`:
 
 ```json
 {
   "eventId": "evt_example",
-  "status": "going",
-  "partySize": 1,
-  "plusOnes": [],
-  "message": null,
-  "timezone": "America/Los_Angeles",
-  "questionnaireResponse": null
+  "status": "going"
 }
 ```
 
+`status` uses the full lossless `EventReadRsvp` enum documented for event
+reads. It is not restricted to writable intents. No public RSVP read returns
+the current guest's private ID or account ID.
+
+Revision `2026-08-12.2` deliberately removes the unsupported shared read/write
+shape. The existing observation proves one current-guest object and its
+status. It does not prove null behavior or operation-wide presence and types
+for party size, plus ones, message, timezone, or questionnaire response.
+`rsvp get` therefore remains implementation-gated until a reviewed
+no-current-guest result and every required variant are available. The CLI must
+not turn an unknown null or alternate response into a guessed RSVP.
+
 #### `partiful rsvp set <event-id>`
 
-Accepts structured input or equivalent flags:
+The writable `RsvpIntent` is separate from `RsvpRead`. It has three product
+values: `going`, `not-going`, and `interested`.
+
+`going` and `not-going` accept structured input or equivalent flags:
 
 ```json
 {
@@ -620,11 +643,92 @@ Accepts structured input or equivalent flags:
 }
 ```
 
-`status` is `going`, `not-going`, or `interested`. Exact transport mappings
-for these product values are an implementation gate. `timezone` is required
-and identifies the attendee's IANA timezone. `questionnaireResponse` is either
-`null` or `{"questionnaireVersion","answers"}`. Applied success returns the
-shared `Rsvp` shape.
+`partySize` is a positive integer. `plusOnes` contains display-name strings;
+it never contains a private user or guest ID. `partySize` must equal one plus
+the number of named plus ones. `timezone` is required and identifies the
+attendee's IANA timezone. `message` is a string of at most 400 characters or
+null. Null maps to omission from the remote request.
+
+For `going`, `questionnaireResponse` is null when the event has no
+questionnaire. Otherwise it is
+`{"questionnaireVersion","answers"}`, with a nonnegative version and string
+answers keyed by question ID. The plan requires the submitted version to
+equal the current event's latest questionnaire version. `not-going` requires
+`questionnaireResponse: null`, matching the first-party flow, which skips the
+questionnaire for `DECLINED`.
+
+`interested` accepts only:
+
+```json
+{
+  "status": "interested"
+}
+```
+
+Party, plus-one, message, timezone, and questionnaire fields are invalid with
+`interested`. Interest removal is an established remote boolean request but
+is not a fourth writable product intent in this revision.
+
+The exact product-to-remote mappings are:
+
+- `going` → `addGuest.rsvp.status = "GOING"`;
+- `not-going` → `addGuest.rsvp.status = "DECLINED"`; and
+- `interested` → `markEventInterest.interested = true`.
+
+`source` is omitted for a direct event-page-equivalent request. The CLI does
+not invent an analytics source. The `addGuest` mapping uses
+`count = partySize`, maps each plus-one string to `{"name": string}`, uses the
+input timezone, sends `shouldFollowOrgs: false`, and omits a null message. It
+omits phone number, channel preference, captcha token, image,
+`emailInvitationId`, `_discoverSource`, and password. It attaches the private
+existing `guestId` only when the reviewed current-guest pre-read returned one.
+The attendee name comes from that current guest. No output exposes either
+private value.
+
+The plan-only invocation performs these reads and no mutation:
+
+1. acquire an authenticated session and private stable account fingerprint;
+2. read the selected event facts needed for party-size, questionnaire,
+   password, ticketing, and RSVP-action preconditions; and
+3. call `getCurrentGuest` once and bind a canonical digest of the complete
+   reviewed representation, including current-guest existence, private guest
+   ID, name, status, count, plus ones, and questionnaire response when
+   available.
+
+The plan binds those facts, normalized product input, and the exact callable
+request projection. Apply reacquires the same account fingerprint, repeats
+the same reads once, compares every binding, and returns `safety.plan_stale`
+before the write if anything changed. It then consumes the five-minute,
+single-use token and sends at most one `addGuest` or `markEventInterest`
+request. It does not automatically retry either mutation.
+
+Applied callable completion returns the normalized submission:
+
+```json
+{
+  "eventId": "evt_example",
+  "intent": "going",
+  "submitted": true,
+  "partySize": 1,
+  "plusOnes": [],
+  "message": null,
+  "timezone": "America/Los_Angeles",
+  "questionnaireResponse": null
+}
+```
+
+For `interested`, the result contains only `eventId`, `intent`, and
+`submitted`. `submitted: true` means that the one callable request completed
+with the reviewed callable envelope and client completion fields. This
+completion does not prove that the remote RSVP state changed, that a message
+or notification was delivered, or that another business side effect occurred.
+
+The contract is proposed, not releasable. Current evidence does not establish
+`getCurrentGuest` null behavior, a required attendee name when no current
+guest exists, or all selected-event precondition fields. These are
+irreducible blockers for fresh RSVP creation and for a complete safe
+precondition read. No Go RSVP command or mutation can ship until delegated
+review accepts this revision and later evidence closes those blockers.
 
 ### Contacts
 
