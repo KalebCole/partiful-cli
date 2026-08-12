@@ -3,6 +3,7 @@ package app_test
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"net/http"
 	"strings"
 	"testing"
@@ -142,21 +143,21 @@ func TestExecuteCohostRevokeInviteAndRemoveApplyExactReviewedOperations(t *testi
 		mutationResult string
 	}{
 		{
-			name:          "revoke invite",
-			argv:          []string{"cohosts", "revoke-invite", "event-example", "--contact", "Example Contact"},
-			status:        "DECLINED",
-			operation:     "deleteCohostRequest",
-			successStatus: "revoked",
-			mutationBody:  `{"data":{"params":{"eventId":"event-example","targetUserId":"private-contact-id"},"amplitudeDeviceId":"MDEyMzQ1Njc4OWFiY2RlZg","userId":"private-account"}}`,
+			name:           "revoke invite",
+			argv:           []string{"cohosts", "revoke-invite", "event-example", "--contact", "Example Contact"},
+			status:         "DECLINED",
+			operation:      "deleteCohostRequest",
+			successStatus:  "revoked",
+			mutationBody:   `{"data":{"params":{"eventId":"event-example","targetUserId":"private-contact-id"},"amplitudeDeviceId":"MDEyMzQ1Njc4OWFiY2RlZg","userId":"private-account"}}`,
 			mutationResult: `{"result":null}`,
 		},
 		{
-			name:          "remove cohost",
-			argv:          []string{"cohosts", "remove", "event-example", "--contact", "Example Contact"},
-			status:        "ACCEPTED",
-			operation:     "removeCohost",
-			successStatus: "removed",
-			mutationBody:  `{"data":{"params":{"eventId":"event-example","targetUserId":"private-contact-id"},"amplitudeDeviceId":"MDEyMzQ1Njc4OWFiY2RlZg","userId":"private-account"}}`,
+			name:           "remove cohost",
+			argv:           []string{"cohosts", "remove", "event-example", "--contact", "Example Contact"},
+			status:         "ACCEPTED",
+			operation:      "removeCohost",
+			successStatus:  "removed",
+			mutationBody:   `{"data":{"params":{"eventId":"event-example","targetUserId":"private-contact-id"},"amplitudeDeviceId":"MDEyMzQ1Njc4OWFiY2RlZg","userId":"private-account"}}`,
 			mutationResult: `{"data":true}`,
 		},
 	}
@@ -333,6 +334,79 @@ func TestExecuteCohostLinkCreateFailsClosedWithoutLeakingExistingURL(t *testing.
 	}
 	if strings.Contains(result.Stdout+result.Stderr, "private-secret-token") {
 		t.Fatal("existing cohost link leaked in failure output")
+	}
+}
+
+func TestExecuteCohostInviteAcceptsNullCompletion(t *testing.T) {
+	files := &memoryFilesystem{files: map[string][]byte{
+		eventWriteCredentialsPath: []byte(eventWriteCredentials),
+	}}
+	dependencies := eventWriteDependencies(files)
+	dependencies.MutationRandom = strings.NewReader(strings.Repeat("i", 32))
+	cursor := "cursor-1"
+	call := 0
+	dependencies.HTTP = scriptedHTTP{do: func(request *http.Request) (*http.Response, error) {
+		call++
+		switch call {
+		case 1, 5:
+			event := compatibleUpdateEvent()
+			event["ownerIds"] = []string{"private-account"}
+			return jsonResponse(http.StatusOK, eventResponse(t, event)), nil
+		case 2, 6:
+			return jsonResponse(http.StatusOK, contactPageResponse([]map[string]any{{
+				"id": "private-contact-id", "name": "Alex Example", "sharedEventCount": 2,
+			}}, &cursor)), nil
+		case 3, 7:
+			return jsonResponse(http.StatusOK, contactPageResponse([]map[string]any{}, nil)), nil
+		case 4, 8:
+			return jsonResponse(http.StatusOK, `{}`), nil
+		case 9:
+			return jsonResponse(http.StatusOK, `{"result":null}`), nil
+		default:
+			return nil, errors.New("unexpected request")
+		}
+	}}
+	argv := []string{"cohosts", "invite", "event-example", "--contact", "Alex Example"}
+
+	plan := app.Execute(context.Background(), app.Request{Argv: argv}, dependencies)
+	if plan.ExitCode != 0 {
+		t.Fatalf("plan = %#v", plan)
+	}
+	token := rsvpPlanToken(t, plan)
+	applied := app.Execute(context.Background(), app.Request{
+		Argv: append(append([]string{}, argv...), "--apply", "--confirm", token),
+	}, dependencies)
+	if applied.ExitCode != 0 || !strings.Contains(applied.Stdout, `"status":"invited"`) {
+		t.Fatalf("applied = %#v, want submitted invite", applied)
+	}
+}
+
+func TestExecuteCohostActionsFailClosedWhenOwnerIDsAreMissing(t *testing.T) {
+	tests := []struct {
+		name string
+		argv []string
+	}{
+		{name: "contact action", argv: []string{"cohosts", "invite", "event-example", "--contact", "Alex Example"}},
+		{name: "link action", argv: []string{"cohosts", "link", "create", "event-example"}},
+	}
+	for _, testCase := range tests {
+		t.Run(testCase.name, func(t *testing.T) {
+			files := &memoryFilesystem{files: map[string][]byte{
+				eventWriteCredentialsPath: []byte(eventWriteCredentials),
+			}}
+			dependencies := eventWriteDependencies(files)
+			dependencies.HTTP = scriptedHTTP{do: func(*http.Request) (*http.Response, error) {
+				event := compatibleUpdateEvent()
+				delete(event, "ownerIds")
+				return jsonResponse(http.StatusOK, eventResponse(t, event)), nil
+			}}
+
+			result := app.Execute(context.Background(), app.Request{Argv: testCase.argv}, dependencies)
+			if result.ExitCode != 9 ||
+				!strings.Contains(result.Stdout, `"type":"contract.protocol_changed"`) {
+				t.Fatalf("result = %#v, want missing owner protocol failure", result)
+			}
+		})
 	}
 }
 

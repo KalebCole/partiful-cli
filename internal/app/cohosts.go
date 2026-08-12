@@ -222,7 +222,10 @@ func executeCohostContactAction(
 			return cohostProtocolChangedFailure(definition.path, operation, pretty)
 		}
 	}
-	if !event.OwnerIDsPresent || !containsString(event.OwnerIDs, session.UserID) {
+	if !event.OwnerIDsPresent {
+		return cohostProtocolChangedFailure(definition.path, operation, pretty)
+	}
+	if !containsString(event.OwnerIDs, session.UserID) {
 		if options.Apply {
 			return eventPlanStaleFailure(definition.path, pretty)
 		}
@@ -470,7 +473,10 @@ func executeCohostLinkAction(
 			return cohostProtocolChangedFailure(definition.path, operation, pretty)
 		}
 	}
-	if !event.OwnerIDsPresent || !containsString(event.OwnerIDs, session.UserID) {
+	if !event.OwnerIDsPresent {
+		return cohostProtocolChangedFailure(definition.path, operation, pretty)
+	}
+	if !containsString(event.OwnerIDs, session.UserID) {
 		if options.Apply {
 			return eventPlanStaleFailure(definition.path, pretty)
 		}

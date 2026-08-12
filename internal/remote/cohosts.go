@@ -41,9 +41,9 @@ type callableCohostRequest[T any] struct {
 }
 
 type callableCohostRequestData[T any] struct {
-	Params            T   `json:"params"`
+	Params            T      `json:"params"`
 	AmplitudeDeviceID string `json:"amplitudeDeviceId"`
-	UserID            any `json:"userId"`
+	UserID            any    `json:"userId"`
 }
 
 type firestoreDocument struct {
@@ -58,7 +58,7 @@ func (client Client) CreateCohostRequest(
 	userID string,
 	params CohostTargetParams,
 ) error {
-	completion, err := callCohostMutation(
+	_, err := callCohostMutation(
 		client,
 		ctx,
 		accessToken,
@@ -67,13 +67,7 @@ func (client Client) CreateCohostRequest(
 		"createCohostRequest",
 		params,
 	)
-	if err != nil {
-		return err
-	}
-	if bytes.Equal(bytes.TrimSpace(completion), []byte("null")) {
-		return fmt.Errorf("%w: cohost invite completion", ErrProtocolChanged)
-	}
-	return nil
+	return err
 }
 
 func (client Client) DeleteCohostRequest(
