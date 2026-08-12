@@ -14,8 +14,8 @@ import (
 
 const (
 	Version                 = "1.0.0"
-	ProductContractRevision = "2026-08-12.3"
-	RemoteContractRevision  = "2026-08-12.3"
+	ProductContractRevision = "2026-08-12.4"
+	RemoteContractRevision  = "2026-08-12.4"
 )
 
 type Request struct {
@@ -57,6 +57,9 @@ const (
 	contactsListCommand
 	eventsListCommand
 	eventsGetCommand
+	eventsCreateCommand
+	eventsUpdateCommand
+	eventsCancelCommand
 	rsvpGetCommand
 	rsvpSetCommand
 )
@@ -273,6 +276,108 @@ var commandCatalog = []commandDefinition{
 			"internal.failure",
 		},
 		safety: readOnlySafety(),
+	},
+	{
+		path:       "events.create",
+		invocation: []string{"events", "create"},
+		kind:       eventsCreateCommand,
+		positionals: []positionalDefinition{},
+		flags: []flagDefinition{
+			{Name: "--input", Description: "Read one structured JSON input object.", TakesValue: true},
+			{Name: "--title", Description: "Event title.", TakesValue: true},
+			{Name: "--start", Description: "RFC 3339 start time.", TakesValue: true},
+			{Name: "--end", Description: "RFC 3339 end time.", TakesValue: true},
+			{Name: "--timezone", Description: "IANA timezone.", TakesValue: true},
+			{Name: "--description", Description: "Optional description.", TakesValue: true},
+			{Name: "--location", Description: "Optional free-form location.", TakesValue: true},
+			{Name: "--visibility", Description: "private or public.", TakesValue: true},
+			{Name: "--guest-limit", Description: "Positive guest limit.", TakesValue: true},
+			{Name: "--link", Description: "Link in label=url form; this flag can repeat.", TakesValue: true},
+			{Name: "--poster-id", Description: "Exact built-in poster ID.", TakesValue: true},
+			{Name: "--apply", Description: "Apply a reviewed mutation plan."},
+			{Name: "--plan", Description: "Opaque mutation plan token.", TakesValue: true},
+		},
+		inputSchema:   eventCreateInputSchema(),
+		successSchema: eventCreateSuccessSchema(),
+		failureTypes: []string{
+			"auth.required",
+			"auth.expired",
+			"resource.not_found",
+			"safety.plan_stale",
+			"remote.unavailable",
+			"contract.protocol_changed",
+			"internal.failure",
+		},
+		safety: standardMutationSafety(),
+	},
+	{
+		path:       "events.update",
+		invocation: []string{"events", "update"},
+		kind:       eventsUpdateCommand,
+		positionals: []positionalDefinition{{
+			Name:        "event-id",
+			Required:    true,
+			Description: "Event identifier.",
+		}},
+		flags: []flagDefinition{
+			{Name: "--input", Description: "Read one structured JSON input object.", TakesValue: true},
+			{Name: "--title", Description: "Event title.", TakesValue: true},
+			{Name: "--description", Description: "Optional description.", TakesValue: true},
+			{Name: "--start", Description: "RFC 3339 start time.", TakesValue: true},
+			{Name: "--end", Description: "RFC 3339 end time or null in structured input.", TakesValue: true},
+			{Name: "--timezone", Description: "IANA timezone.", TakesValue: true},
+			{Name: "--guest-limit", Description: "Positive guest limit.", TakesValue: true},
+			{Name: "--link", Description: "Link in label=url form; this flag can repeat.", TakesValue: true},
+			{Name: "--poster-id", Description: "Exact built-in poster ID.", TakesValue: true},
+			{Name: "--apply", Description: "Apply a reviewed mutation plan."},
+			{Name: "--plan", Description: "Opaque mutation plan token.", TakesValue: true},
+		},
+		inputSchema:   eventUpdateInputSchema(),
+		successSchema: eventUpdateSuccessSchema(),
+		failureTypes: []string{
+			"auth.required",
+			"auth.expired",
+			"permission.denied",
+			"resource.not_found",
+			"state.conflict",
+			"safety.plan_stale",
+			"remote.unavailable",
+			"contract.protocol_changed",
+			"internal.failure",
+		},
+		safety: standardMutationSafety(),
+	},
+	{
+		path:       "events.cancel",
+		invocation: []string{"events", "cancel"},
+		kind:       eventsCancelCommand,
+		positionals: []positionalDefinition{{
+			Name:        "event-id",
+			Required:    true,
+			Description: "Event identifier.",
+		}},
+		flags: []flagDefinition{
+			{Name: "--input", Description: "Read one structured JSON input object.", TakesValue: true},
+			{Name: "--message", Description: "Optional cancellation message.", TakesValue: true},
+			{Name: "--notify-guests", Description: "true or false.", TakesValue: true},
+			{Name: "--apply", Description: "Apply a reviewed consequential plan."},
+			{Name: "--confirm", Description: "Exact consequential confirmation token.", TakesValue: true},
+		},
+		inputSchema:   eventCancelInputSchema(),
+		successSchema: eventCancelSuccessSchema(),
+		failureTypes: []string{
+			"auth.required",
+			"auth.expired",
+			"permission.denied",
+			"resource.not_found",
+			"state.conflict",
+			"safety.confirmation_required",
+			"safety.plan_stale",
+			"remote.unavailable",
+			"contract.protocol_changed",
+			"internal.failure",
+		},
+		safety: consequentialActionSafety(),
 	},
 	{
 		path:       "rsvp.get",
@@ -1166,6 +1271,12 @@ func Execute(ctx context.Context, request Request, dependencies Dependencies) Re
 				return executeEventsList(ctx, definition, argv, dependencies, pretty)
 			case eventsGetCommand:
 				return executeEventGet(ctx, definition, argv, dependencies, pretty)
+			case eventsCreateCommand:
+				return executeEventCreate(ctx, request, definition, argv, dependencies, pretty)
+			case eventsUpdateCommand:
+				return executeEventUpdate(ctx, request, definition, argv, dependencies, pretty)
+			case eventsCancelCommand:
+				return executeEventCancel(ctx, request, definition, argv, dependencies, pretty)
 			case rsvpGetCommand:
 				return executeRSVPGet(ctx, definition, argv, dependencies, pretty)
 			case rsvpSetCommand:
@@ -1202,6 +1313,9 @@ func (definition commandDefinition) matches(argv []string) bool {
 		definition.kind == contactsListCommand ||
 		definition.kind == eventsListCommand ||
 		definition.kind == eventsGetCommand ||
+		definition.kind == eventsCreateCommand ||
+		definition.kind == eventsUpdateCommand ||
+		definition.kind == eventsCancelCommand ||
 		definition.kind == rsvpGetCommand ||
 		definition.kind == rsvpSetCommand) &&
 		len(argv) >= len(definition.invocation) {

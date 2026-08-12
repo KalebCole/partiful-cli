@@ -33,6 +33,9 @@ type Event struct {
 	OwnerIDsPresent bool
 	GuestPresent    bool
 	GuestStatus     *string
+	GuestCount      IntegerField
+	HasGuests       BooleanField
+	RawFields       map[string]json.RawMessage
 	Safeguards      EventSafeguards
 }
 
@@ -424,13 +427,40 @@ func decodeEventInfo(raw json.RawMessage) (Event, error) {
 	if err != nil {
 		return Event{}, err
 	}
+	var ownerIDs []string
+	ownerIDsPresent := false
+	if rawOwners, ok := object["ownerIds"]; ok {
+		ownerIDsPresent = true
+		if !isEventJSONKind(rawOwners, '[') ||
+			json.Unmarshal(rawOwners, &ownerIDs) != nil ||
+			ownerIDs == nil {
+			return Event{}, errors.New("event owners are invalid")
+		}
+	}
+	guestCount, err := eventIntegerField(object, "guestCount", false)
+	if err != nil {
+		return Event{}, err
+	}
+	hasGuests, err := eventBooleanField(object, "hasGuests", false)
+	if err != nil {
+		return Event{}, err
+	}
+	rawFields := make(map[string]json.RawMessage, len(object))
+	for name, raw := range object {
+		rawFields[name] = bytes.Clone(raw)
+	}
 	return Event{
-		Title:      title,
-		Start:      start,
-		End:        end,
-		Timezone:   timezone,
-		Status:     status,
-		Safeguards: safeguards,
+		Title:           title,
+		Start:           start,
+		End:             end,
+		Timezone:        timezone,
+		Status:          status,
+		OwnerIDs:        ownerIDs,
+		OwnerIDsPresent: ownerIDsPresent,
+		GuestCount:      guestCount,
+		HasGuests:       hasGuests,
+		RawFields:       rawFields,
+		Safeguards:      safeguards,
 	}, nil
 }
 
