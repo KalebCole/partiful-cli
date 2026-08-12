@@ -15,6 +15,8 @@ var (
 	ErrNotConfigured         = errors.New("credential storage is not configured")
 	ErrUnavailable           = errors.New("credential storage is unavailable")
 	ErrInvalid               = errors.New("credential record is invalid")
+	ErrRequired              = errors.New("authentication is required")
+	ErrExpired               = errors.New("authentication has expired")
 	ErrHumanRequired         = errors.New("a private terminal is required")
 	ErrInputInvalid          = errors.New("authentication input is invalid")
 	ErrPersistence           = errors.New("credential persistence failed")
@@ -39,6 +41,10 @@ type State struct {
 	Authenticated bool       `json:"authenticated"`
 	TokenState    string     `json:"tokenState"`
 	ExpiresAt     *time.Time `json:"expiresAt"`
+}
+
+type Session struct {
+	AccessToken string
 }
 
 type credentialRecord struct {
@@ -157,6 +163,67 @@ func StatusWithRefresh(
 ) (State, error) {
 	state, err := refreshCredentials(ctx, files, path, now, client)
 	return state, err
+}
+
+func AcquireSession(
+	ctx context.Context,
+	files FileSystem,
+	path string,
+	now func() time.Time,
+	client RemoteAuth,
+) (Session, error) {
+	if files == nil || path == "" || now == nil {
+		return Session{}, ErrNotConfigured
+	}
+	var (
+		session      Session
+		operationErr error
+	)
+	if err := files.WithLock(path, func() {
+		credentials, err := loadCredentials(files, path)
+		if errors.Is(err, fs.ErrNotExist) {
+			operationErr = ErrRequired
+			return
+		}
+		if err != nil {
+			operationErr = err
+			return
+		}
+		state := stateFromCredentials(credentials, now())
+		if state.TokenState == "healthy" {
+			session = Session{AccessToken: credentials.AccessToken}
+			return
+		}
+		if credentials.RefreshToken == "" {
+			if state.TokenState == "expired" {
+				operationErr = ErrExpired
+				return
+			}
+			session = Session{AccessToken: credentials.AccessToken}
+			return
+		}
+		refreshed, err := client.RefreshToken(ctx, credentials.RefreshToken)
+		if err != nil {
+			operationErr = err
+			return
+		}
+		credentials = credentialRecord{
+			AccessToken:  refreshed.IDToken,
+			RefreshToken: refreshed.RefreshToken,
+			ExpiresAt:    now().Add(refreshed.ExpiresIn).UTC(),
+		}
+		if err := saveCredentialsUnlocked(files, path, credentials); err != nil {
+			operationErr = ErrPersistence
+			return
+		}
+		session = Session{AccessToken: credentials.AccessToken}
+	}); err != nil {
+		return Session{}, ErrUnavailable
+	}
+	if operationErr != nil {
+		return Session{}, operationErr
+	}
+	return session, nil
 }
 
 func Logout(files FileSystem, path string) (State, error) {

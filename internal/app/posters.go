@@ -68,13 +68,18 @@ func parseCollectionOptions(definition commandDefinition, argv []string) (collec
 		return collectionOptions{}, &failure.body
 	}
 	_, options.all = values["--all"]
-	if definition.kind == postersSearchCommand {
-		options.query = strings.ToLower(strings.TrimSpace(values["--query"]))
-		if options.query == "" {
+	if definition.kind == postersSearchCommand || definition.kind == contactsListCommand {
+		query, queryProvided := values["--query"]
+		options.query = strings.ToLower(strings.TrimSpace(query))
+		if (definition.kind == postersSearchCommand || queryProvided) && options.query == "" {
+			message := "Query must not be empty."
+			if definition.kind == postersSearchCommand {
+				message = "Search query must not be empty."
+			}
 			return collectionOptions{}, &errorBody{
 				Type:      "input.invalid",
 				Code:      "QUERY_REQUIRED",
-				Message:   "Search query must not be empty.",
+				Message:   message,
 				Retryable: false,
 				Details:   map[string]any{},
 			}
@@ -256,6 +261,7 @@ func cursorSnapshotOffset(
 	payload cursorPayload,
 	payloadDigest [sha256.Size]byte,
 	itemCount int,
+	changedMessage string,
 ) (int, *cursorValidationFailure) {
 	if payload.Digest != hex.EncodeToString(payloadDigest[:]) {
 		return 0, &cursorValidationFailure{
@@ -263,7 +269,7 @@ func cursorSnapshotOffset(
 			body: errorBody{
 				Type:      "state.conflict",
 				Code:      "CURSOR_SNAPSHOT_CHANGED",
-				Message:   "The poster catalog changed after this cursor was issued.",
+				Message:   changedMessage,
 				Retryable: false,
 				Details:   map[string]any{},
 			},
