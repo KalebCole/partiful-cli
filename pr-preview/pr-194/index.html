@@ -463,13 +463,13 @@
             </div>
             <div class="install-view" id="install-release" role="tabpanel" aria-labelledby="tab-release">
               <h3>Download a native archive</h3>
-              <p>Fetch the first native major release or a newer tag from GitHub Releases.</p>
+              <p>After the coordinated cutover release is published, fetch the first native major release or a newer tag from GitHub Releases.</p>
               <div class="command-row"><code>gh release download v3.0.0 --repo KalebCole/partiful-cli --pattern 'partiful_v3.0.0_*'</code><button class="copy-command" type="button" data-copy="gh release download v3.0.0 --repo KalebCole/partiful-cli --pattern 'partiful_v3.0.0_*'" aria-label="Copy GitHub Releases download command"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/></svg></button></div>
               <p class="install-note">Verify with <code>partiful --version</code>, <code>partiful schema</code>, and <code>partiful doctor</code>.</p>
             </div>
             <div class="install-view" id="install-go" role="tabpanel" aria-labelledby="tab-go" hidden>
               <h3>Install the tagged module</h3>
-              <p>Use the Go toolchain to install the native binary directly.</p>
+              <p>After the coordinated cutover release is published, use the Go toolchain to install the native binary directly.</p>
               <div class="command-row"><code>go install github.com/KalebCole/partiful-cli/cmd/partiful@v3.0.0</code><button class="copy-command" type="button" data-copy="go install github.com/KalebCole/partiful-cli/cmd/partiful@v3.0.0" aria-label="Copy go install command"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/></svg></button></div>
               <p class="install-note">The native release line starts at <code>v3.0.0</code>.</p>
             </div>
