@@ -53,3 +53,26 @@ submitted request projection: event ID, intent, and `submitted: true`. It
 performs no post-write read. RSVP enters the releasable catalog only with the
 approved dated object/null current-guest variants, event safeguard boundary,
 and matching product and remote revision constants.
+
+Event creation follows the same submitted-only boundary. Its standard plan
+has no existing-event precondition. It binds the exact callable request and
+the complete, digest-bound built-in poster record. The current create client
+uses callable completion data as an event ID but does not validate or re-read
+a complete Event, so the application returns only `submitted: true`.
+
+Event update keeps the broad official Firestore Document grammar private to
+the remote seam. The application owns a closed product-to-field projection
+and never accepts a raw field path, update mask, typed value, or document
+reference. Its standard plan binds current ownership, raw status, each target
+field's presence/null/value state, and date safeguards when relevant. Apply
+re-reads `getEventInfo` once before consuming the plan. A successful PATCH
+Document is protocol completion only; the result contains the event ID,
+sorted submitted product fields, and `submitted: true`.
+
+Event cancellation uses a consequential plan. Its public form states the
+exact event, message, guest-notification choice, and effects. Its private form
+also binds ownership, status, start, guest-count facts, the exact callable
+request, and the account fingerprint. Apply must re-read those facts and
+receive the exact confirmation token. Callable completion returns only the
+event ID, notification choice, and `submitted: true`; it does not claim
+cancellation or notification delivery.

@@ -1,10 +1,10 @@
 # CLI product contract
 
-**Status:** Approved product contract
+**Status:** Proposed; pending delegated review
 
-**Product contract revision:** `2026-08-12.3`
+**Product contract revision:** `2026-08-12.4`
 
-**Remote API contract revision:** `2026-08-12.3`
+**Remote API contract revision:** `2026-08-12.4`
 
 **Owner-reviewed baseline:** product and remote `2026-08-12.3`
 
@@ -83,8 +83,8 @@ Every successful command returns:
   "meta": {
     "command": "events.get",
     "cliVersion": "1.0.0",
-    "productContractRevision": "2026-08-12.3",
-    "remoteContractRevision": "2026-08-12.3",
+    "productContractRevision": "2026-08-12.4",
+    "remoteContractRevision": "2026-08-12.4",
     "warnings": []
   }
 }
@@ -107,8 +107,8 @@ Every failed command returns:
   "meta": {
     "command": "guests.list",
     "cliVersion": "1.0.0",
-    "productContractRevision": "2026-08-12.3",
-    "remoteContractRevision": "2026-08-12.3"
+    "productContractRevision": "2026-08-12.4",
+    "remoteContractRevision": "2026-08-12.4"
   }
 }
 ```
@@ -155,8 +155,8 @@ Collection commands return:
   "meta": {
     "command": "events.list",
     "cliVersion": "1.0.0",
-    "productContractRevision": "2026-08-12.3",
-    "remoteContractRevision": "2026-08-12.3",
+    "productContractRevision": "2026-08-12.4",
+    "remoteContractRevision": "2026-08-12.4",
     "warnings": [],
     "page": {
       "limit": 25,
@@ -228,8 +228,8 @@ remote mutation:
   "meta": {
     "command": "events.update",
     "cliVersion": "1.0.0",
-    "productContractRevision": "2026-08-12.3",
-    "remoteContractRevision": "2026-08-12.3",
+    "productContractRevision": "2026-08-12.4",
+    "remoteContractRevision": "2026-08-12.4",
     "warnings": []
   }
 }
@@ -525,41 +525,174 @@ remain unclaimed.
 
 #### `partiful events create`
 
-Accepts structured input or equivalent flags:
+Required input is non-empty `title`, RFC 3339 `start`, and an IANA
+`timezone`. Optional input is `end`, `description`, `location`, `visibility`,
+`guestLimit`, `links`, and `posterId`. `end` must not be before `start`.
+`visibility` is `private` by default or `public`. `guestLimit` is a positive
+integer. `links` is an array of
+`{"label":"Tickets","url":"https://example.test/"}` objects with an HTTP or
+HTTPS URL. `posterId` is only an exact built-in ID returned by `posters list`
+or `posters search`; a path, upload, or arbitrary URL is invalid. The
+equivalent flags are `--title`, `--start`, `--end`, `--timezone`,
+`--description`, `--location`, `--visibility`, `--guest-limit`, repeated
+`--link <label=url>`, and `--poster-id`.
+For create, null for any optional structured-input property has the same
+meaning as omission: no end, description, location, limit, or links; private
+visibility; and the built-in fallback poster. No optional product null is sent
+inside `event`.
 
-| Field | Required | Meaning |
-| --- | --- | --- |
-| `title` | Yes | Event title. |
-| `start` | Yes | RFC 3339 start time. |
-| `end` | No | RFC 3339 end time. |
-| `timezone` | Yes | IANA timezone. |
-| `description` | No | Event description. |
-| `location` | No | Human location label. |
-| `address` | No | Address text. |
-| `visibility` | No | `public` or `private`; default `private`. |
-| `guestLimit` | No | Positive integer. |
-| `posterId` | No | Poster selected from `posters`. |
-| `links` | No | Array of `{ "label", "url" }`. |
+The narrow current-client projection is exact:
 
-The plan identifies the new event. Applied success returns the complete
-`Event`.
+| Product input | `createEvent.params.event` |
+| --- | --- |
+| `title` | `title` |
+| `start`, `end` | `startDate`, optional `endDate`, normalized to UTC ISO strings |
+| `timezone` | `timezone` |
+| `description` | `description`; omission and null both omit it on create |
+| `location` | `locationInfo: {"type":"freeform","value":<location>}` |
+| `visibility` | `public` sends `isPublic: true`; `private` omits `isPublic`; separate first-party `visibility` is fixed to `"public"` |
+| `guestLimit` | `maxCapacity` and `enableWaitlist: false` |
+| `links` | `customFields` entries with `icon: "link"`, `value: <label>`, and `url` |
+| `posterId` | `image` built from the one exact catalog entry |
+
+An omitted `posterId` selects the exact current first-party fallback ID
+`Let's Party`. Planning resolves the ID against one bounded catalog
+representation. Zero matches return `resource.not_found`; more than one exact
+ID match returns `contract.protocol_changed`. The private plan binds the
+catalog digest and complete selected record. The image request is
+`{"source":"partiful_posters","poster":<record>,...}` with the record's
+`url`, `blurHash`, `contentType`, `name`, `height`, and `width` copied to the
+outer object. Upload remains unregistered.
+
+The caller cannot set `cohostIds`, `displaySettings`, status, guest counters,
+or display/RSVP policy. The request sets `cohostIds: []`,
+`status: "UNSAVED"`, all 16 current guest-status counts to zero,
+`displaySettings:
+{"theme":"cloudflow","effect":"fireflies","titleFont":"display"}`, and these
+booleans to `true`: `showHostList`, `showGuestCount`, `showGuestList`,
+`showActivityTimestamps`, `displayInviteButton`, `allowGuestPhotoUpload`,
+`enableGuestReminders`, `rsvpsEnabled`, and
+`allowGuestsToInviteMutuals`. It also sets
+`rsvpButtonGlyphType: "emojis"`. These are request defaults, not public input.
+Absent optional event properties stay absent; the product never constructs a
+nested `undefined` value that the callable encoder would turn into null.
+
+Create is a standard mutation. Its private five-minute, single-use plan binds
+the stable account fingerprint, normalized input, exact callable request, and
+poster representation. It has no existing-event read or precondition. Apply
+reacquires the same account and poster representation, consumes the plan
+immediately before one `createEvent` attempt, and never retries.
+
+The client requires only generic callable completion data and uses that data
+as an event ID. It does not validate or read a complete Event. The product
+therefore performs no post-write read and returns only:
+
+```json
+{"submitted":true}
+```
+
+It does not claim an event ID, persisted Event, or persisted state.
 
 #### `partiful events update <event-id>`
 
-Accepts one or more mutable `events create` fields through structured input or
-equivalent flags. It does not expose raw Firestore fields or update masks.
-Applied success returns the complete updated `Event`.
+Accepts one or more of `title`, `description`, `start`, `end`, `timezone`,
+`guestLimit`, `links`, and `posterId`, through structured input or the
+matching create flags. This is a closed allowlist. `location`, `visibility`,
+and display settings are rejected because the current client routes them
+through `setEventLocation`, `makeEventPublic` or `unpublishEvent`, and
+`updateDisplaySettings`; no general callable `updateEvent` was found.
+
+Omission means unchanged. Null is allowed only for `description`, `end`,
+`guestLimit`, `links`, and `posterId`, and means delete the mapped field.
+Non-null mapping is:
+
+| Product input | Firestore event field |
+| --- | --- |
+| `title` | `title.stringValue` |
+| `description` | `description.stringValue` |
+| `start` | `startDate.stringValue`, normalized to a UTC ISO string |
+| `end` | `endDate.stringValue`, normalized to a UTC ISO string |
+| `timezone` | `timezone.stringValue` |
+| `guestLimit` | `maxCapacity.integerValue` and `enableWaitlist.booleanValue: false` |
+| `links` | `customFields.arrayValue` of map values with `icon`, `value`, and `url` string values |
+| `posterId` | `image.mapValue` using the exact built-in poster representation |
+
+Every update also writes private `updatedBy.referenceValue` for the current
+account. It is never printed. The exact PATCH is bearer-authorized at
+`/v1/projects/getpartiful/databases/(default)/documents/events/{eventId}`.
+It sends sorted, percent-encoded, repeated `updateMask.fieldPaths`, includes
+every mapped path and `updatedBy`, and sends
+`currentDocument.exists=true`. A delete path remains in the update mask and
+is absent from `fields`.
+
+Planning calls `getEventInfo` once. `ownerIds` must be present and contain the
+private current account ID; otherwise the command returns
+`permission.denied` / `HOST_PERMISSION_REQUIRED`. No general first-party
+update status guard was found. The plan nevertheless binds raw status,
+owner-list presence and digest, and the absent/null/value state and value of
+every target field. For a date or timezone change it also binds current
+`startDate`, `endDate`, `hasGuests`, and `ticketing`. Date changes are rejected
+when ticketing is present, or when `hasGuests` is exactly true and the current
+event is past its end plus two hours (start plus eight hours when end is
+absent).
+
+Planning merges proposed `start` and `end` values with the bound current
+values. When both resulting values are present, `end` must be at or after
+`start`. An inverted merged range returns `input.invalid` before a plan is
+issued.
+
+Apply reacquires the account and calls `getEventInfo` once. Any bound change
+returns `safety.plan_stale`. It then consumes the standard plan immediately
+before exactly one `firestorePatchEvent` attempt. HTTP `200` with a Firestore
+Document is protocol completion, not a complete product Event or proven
+Partiful business state. There is no post-write read. Success is:
+
+```json
+{"eventId":"evt_example","fields":["start","title"],"submitted":true}
+```
+
+`fields` is the sorted product-field list, not raw Firestore field paths.
 
 #### `partiful events cancel <event-id>`
 
-This is a consequential action. Applied success returns:
+Accepts optional `message` and `notifyGuests`; the matching flags are
+`--message <text>` and `--notify-guests <boolean>`. Defaults are `message: ""`
+and `notifyGuests: true`. The exact callable parameters are `eventId`,
+`cancellationMessage`, and `shouldSkipNotifyGuests: !notifyGuests`.
+
+Planning calls `getEventInfo` once. `ownerIds` must be present and contain the
+current private account ID, `status` must be exactly `PUBLISHED`, the observed
+guest count must be a positive integer, and the current `startDate` must be in
+the future. Missing, null, or differently typed precondition facts return
+`contract.protocol_changed`; a known non-matching fact returns
+`state.conflict` / `EVENT_PRECONDITION_FAILED` except ownership, which returns
+`permission.denied`. Inaccessible-event permission behavior was not observed
+and is not inferred. The positive-guest gate deliberately preserves the
+reviewed current-client exposure as a conservative product limitation; it is
+not a claim about endpoint authorization.
+
+The public consequential plan states the exact event ID, message,
+`notifyGuests`, and effects. Its private record binds the stable account
+fingerprint, normalized input, exact `cancelEvent` request, raw status, start,
+guest-count facts, and owner-list presence and digest. Apply must repeat the
+same input and provide that exact plan's `--confirm <token>`; `--apply`
+without it returns `safety.confirmation_required`. Apply reacquires the
+account, calls `getEventInfo` once, and compares every bound fact. It consumes
+the plan immediately before one attempt and never retries. There is no
+`--yes` bypass.
+
+The current client inspects no endpoint business field and performs no
+post-write read. Generic callable completion returns only:
 
 ```json
-{
-  "eventId": "evt_example",
-  "state": "cancelled"
-}
+{"eventId":"evt_example","notifyGuests":true,"submitted":true}
 ```
+
+It does not claim cancellation, notification delivery, or persisted state.
+Any unrecognized status, endpoint error/body, missing generic completion
+envelope, or malformed completion body is `contract.protocol_changed`. A
+no-response transport failure is `remote.unavailable`; because the consumed
+write may have reached the remote, a new plan is required.
 
 ### Guests
 
@@ -854,8 +987,9 @@ reviewed callable and client completion condition. It does not prove
 persisted RSVP state, delivery, notification, or another business side
 effect.
 
-This `2026-08-12.3` contract is owner-reviewed under the issue #114
-delegation and is shipped by the Go implementation.
+This `2026-08-12.4` contract is proposed under issue #167 and is pending one
+delegated review. The Go implementation continues to ship the owner-reviewed
+`2026-08-12.3` revisions until this proposal is reviewed and merged.
 
 ### Contacts
 

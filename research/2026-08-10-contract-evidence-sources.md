@@ -14,9 +14,10 @@ only and are not part of `spec/partiful.openapi.json`.
 
 ## Unknown status decision
 
-No safe live observation in this reconstruction establishes an HTTP success
-status for every operation. The proposal therefore uses OpenAPI `default`
-responses and records each response-status claim as `explicit-unknown`.
+No safe live observation or applicable official protocol in this
+reconstruction establishes an HTTP success status for every operation. The
+proposal therefore keeps OpenAPI `default` responses and records each
+unsupported response-status claim as `explicit-unknown`.
 This decision supports both the response **status key** and the explicit
 unknown response/body classification. The proposal deliberately attaches no
 content schema to `default`; reusable response shapes remain unattached
@@ -24,11 +25,13 @@ research evidence until an applicable status/class is observed.
 
 ## Update-mask serialization
 
-The historical draft's `firestorePatchEvent` parameter is an array of strings,
-and `9e6ed15:src/lib/http.ts#L132-L134` repeats
-`updateMask.fieldPaths` once for every field. The proposal represents it as a
-form-style, exploded query array; this is a TypeScript-derived transport
-inference, not a live observation.
+The official Firestore
+[documents.patch](https://firebase.google.com/docs/firestore/reference/rest/v1/projects.databases.documents/patch)
+reference and
+[v1 discovery document](https://firestore.googleapis.com/$discovery/rest?version=v1)
+define repeated `updateMask.fieldPaths` values. The proposal represents them
+as a form-style, exploded query array. This is generic protocol behavior, not
+a Partiful business-success claim.
 
 ## Dated text-blast observation
 
@@ -170,6 +173,34 @@ top-level `data` member, HTTP `200` for a successful callable trigger, and a
 JSON response containing `result`. It also states that an `error` member means
 failure. This source supports only generic callable status and envelope facts.
 It does not establish endpoint-specific Partiful business success.
+
+## Official Firestore REST protocol
+
+The official
+[Firestore REST guide](https://firebase.google.com/docs/firestore/use-rest-api),
+[documents.patch reference](https://firebase.google.com/docs/firestore/reference/rest/v1/projects.databases.documents/patch),
+and
+[v1 discovery document](https://firestore.googleapis.com/$discovery/rest?version=v1)
+define Firebase ID-token bearer authorization, the PATCH path, repeated
+update-mask paths, current-document preconditions, the Firestore Document and
+Value grammar, and HTTP `200` Document completion. They do not establish
+Partiful authorization, field policy, endpoint errors, or persisted product
+business state.
+
+## Current public event-write mapping assets
+
+The unauthenticated first-party asset research in
+`docs/research/2026-08-12-event-write-mapping-public-assets.md`, under “Scope
+and provenance,” records build `2KXQa2wzQWzlyvnJPIrVj`, deployment
+`dpl_D9bWXWUaTVfWyHiJz1RT7qdjuzUC`, exact asset URLs, hashes, and module IDs.
+Its operation sections record `createEvent`, current Firestore event-update,
+`cancelEvent`, poster mapping, completion use, and observed client
+preconditions. The note contains no credentials, private identifiers, or
+live write data.
+
+The assets support current client request and completion behavior. They do
+not establish endpoint business success, inaccessible-event permission
+behavior, unobserved errors, or persisted post-write state.
 
 ## Current public RSVP mapping assets
 
