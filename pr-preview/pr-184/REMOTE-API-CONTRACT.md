@@ -119,10 +119,11 @@ The proposal corrects only these request facts:
 - `markEventInterest` sends `eventId` and boolean `interested`. Its `source`
   is optional and is omitted when a direct event URL has no string source.
 
-The current client requires decoded `addGuest.data` to be an object but
+The current client does not impose a type on decoded `addGuest.data` and
 requires no property for completion. For `markEventInterest`, it keeps the
-optimistic value only when `data.success` is true and `data.interested` equals
-the submitted boolean.
+optimistic value only when `data.success` is truthy and `data.interested`
+equals the submitted boolean. Those are client completion predicates, not
+operation-wide remote response type claims.
 
 The official
 [Firebase callable protocol](https://firebase.google.com/docs/functions/callable-reference)

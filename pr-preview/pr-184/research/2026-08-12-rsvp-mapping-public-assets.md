@@ -156,9 +156,12 @@ conditions.
 
 ## addGuest completion
 
-Module `52105` requires decoded `addGuest.data` to be a non-null object. It
-splits optional `previousStatus` and `linkedPlusOneFailures` from that object,
-then treats the remaining properties as the updated guest for local state.
+Module `52105` destructures decoded `addGuest.data`. This rejects only
+null/undefined at the client boundary; JavaScript permits object
+destructuring from other JSON value kinds. The client therefore does not
+establish an operation-wide `data` type. When data is an object, it splits
+optional `previousStatus` and `linkedPlusOneFailures`, then treats the
+remaining properties as the updated guest for local state.
 Module `82565` uses the optional previous status for analytics and optional
 linked-plus-one failures for a warning. It checks no endpoint success boolean.
 
@@ -194,9 +197,10 @@ removes it from `params`, and the JSON request contains only `eventId` and
 `source`; it does not invent a tracking value. The same toggle sends
 `interested: false` for removal.
 
-The client accepts completion only when decoded `data.success` is `true` and
+The client accepts completion only when decoded `data.success` is truthy and
 `data.interested` equals the requested boolean. Otherwise it rolls back its
-optimistic local value. The narrow accepted completion is:
+optimistic local value. This is a JavaScript client predicate, not a remote
+field-type claim. A representative accepted completion is:
 
 ```json
 {

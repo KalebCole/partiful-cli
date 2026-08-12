@@ -71,7 +71,7 @@ HTTP `200` status and two operations with protocol-specified callable
 completion have typed response bodies. The schema-free send-code `200` and
 OpenAPI `default` responses do not claim a body.
 
-The 1298 material claims are audited by
+The 1285 material claims are audited by
 `tests/remote-api-contract.test.js`. Each ledger citation resolves either to a
 JSON Pointer in the committed non-authoritative historical artifact or to a
 heading in the committed stable source index. This keeps the audit independent
@@ -204,26 +204,28 @@ Current build `z1npyrEHkwRMn_JlKXQXR` corrects the RSVP request projections.
 object remains the response authority; the public client does not demonstrate
 a null callable result.
 
-The current client maps going and not-going to `GOING` and `DECLINED`.
+The current client maps product going and not-going to `GOING` and
+`DECLINED`. The broader remote RSVP status control also demonstrates `MAYBE`.
 `addGuest` receives `eventId` and an RSVP object with required name, count,
-named plus-one array, status, timezone, and `shouldFollowOrgs: false`.
-Message, existing guest ID, and questionnaire response are optional. A null
-product message maps to omission. The client strips phone number, contact
-channel, captcha token, and an embedded linked-plus-one user before the call.
-The narrow product mapping does not send image, invitation ID, discovery
-source, or password.
+plus-one array, status, timezone, and `shouldFollowOrgs: false`. The product
+projection supplies only named plus ones, while the remote client recognizes
+additional private linked/contact variants. Message, existing guest ID, and
+questionnaire response are optional. A null product message maps to omission.
+The client strips phone number, contact channel, captcha token, and an
+embedded linked-plus-one user before the call. The narrow product mapping does
+not send image, invitation ID, discovery source, or password.
 
 The direct event page sends boolean `interested` to `markEventInterest` and
 omits `source` when the URL has no string source. The same path sends
 `interested: false` for removal.
 
 The official Firebase callable protocol supports HTTP `200` with a `result`
-envelope for successful callable completion. For `addGuest`, the current
-client additionally requires `result.data` to decode as an object but
-requires no property. For `markEventInterest`, it accepts the optimistic
-result only when `result.data.success` is true and
-`result.data.interested` equals the submitted boolean. These are protocol and
-client-completion claims, not live observations of stored Partiful state.
+envelope for successful callable completion. The current `addGuest` client
+does not establish a type or required business property for `result.data`.
+For `markEventInterest`, it accepts the optimistic result only when
+`result.data.success` is truthy and `result.data.interested` equals the
+submitted boolean. These are protocol and client-completion predicates, not
+remote response type claims or live observations of stored Partiful state.
 Every unobserved error and status remains explicit unknown.
 
 `CurrentGuest.status` references the existing closed `GuestStatus` vocabulary,
@@ -291,7 +293,7 @@ by the Go implementation's Firebase requests:
 Origin is unmodelled and remains unknown because the reviewed evidence
 establishes no Origin request fact.
 
-The 1298 material claims are audited by `tests/remote-api-contract.test.js`.
+The 1285 material claims are audited by `tests/remote-api-contract.test.js`.
 
 ## Resolved conflict
 
@@ -305,6 +307,6 @@ nested `message` object with `text`, `to`, `showOnEventPage`, and optional
 
 Future safe observations must update both ledgers, preserve privacy-safe
 evidence, and receive owner review before changing the revision. The remaining
-13 TypeScript-derived operations have no observed response status or shape.
+11 TypeScript-derived operations have no observed response status or shape.
 The read-specific unknowns above remain explicit and must not become inferred
 implementation behavior.
