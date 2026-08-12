@@ -43,6 +43,87 @@ const hosts = {
   upload: 'https://us-central1-getpartiful.cloudfunctions.net',
   posters: 'https://assets.getpartiful.com',
 };
+const expectedReadAggregates = {
+  eventLists: {
+    upcoming: {
+      observed: true,
+      firstCount: 35,
+      secondCount: 35,
+      identityFieldComplete: true,
+      sameIdentitySequence: true,
+      sameIdentitySet: true,
+      duplicateIdentityCount: 0,
+      rawPath: 'result.data.upcomingEvents',
+    },
+    past: {
+      observed: true,
+      firstCount: 294,
+      secondCount: 294,
+      identityFieldComplete: true,
+      sameIdentitySequence: true,
+      sameIdentitySet: true,
+      duplicateIdentityCount: 0,
+      rawPath: 'result.data.pastEvents',
+    },
+  },
+  contacts: {
+    observed: true,
+    firstCount: 2451,
+    secondCount: 2451,
+    identityFieldComplete: true,
+    sameIdentitySequence: true,
+    sameIdentitySet: true,
+    duplicateIdentityCount: 0,
+    sharedEventCountPresent: 2451,
+    sharedEventCountsAreNonNegativeIntegers: true,
+    namesAreStrings: true,
+    pagination: {
+      observed: true,
+      requestedMaxResults: 1000,
+      firstRunPageCount: 4,
+      secondRunPageCount: 4,
+      firstRunPageItemCounts: [1000, 1000, 451, 0],
+      secondRunPageItemCounts: [1000, 1000, 451, 0],
+      firstRunCursorTypes: ['string', 'string', 'string', 'undefined'],
+      secondRunCursorTypes: ['string', 'string', 'string', 'undefined'],
+      terminalPageObserved: true,
+      terminalPageItemCount: 0,
+      repeatedCursorObserved: false,
+      unpagedResponseObserved: false,
+    },
+    remoteFiltering: {
+      observed: false,
+      reason: 'Current first-party assets filter names locally after complete cursor traversal; no remote filtering parameter was sent.',
+    },
+  },
+  selectedEventProjection: {
+    source: 'authenticated-list',
+    ownerMatchObserved: false,
+    guestObjectPresent: true,
+    guestStatusType: 'string',
+    guestStatusPath: 'result.data.upcomingEvents.[].guest.status',
+  },
+  crossSourceProjection: {
+    eventIdMatchesCallable: true,
+    eventIdMatchesFirestoreName: null,
+    currentGuestObserved: true,
+    guestDocumentIdObserved: true,
+    guestIdMatchesFirestoreName: true,
+    guestStatusType: 'string',
+    guestStatusMatchesFirestore: true,
+    currentGuestPath: 'result.data.currentGuest',
+  },
+  failureDistinctions: {
+    permissionProbeObserved: false,
+    callablePermissionDiffersFromNotFound: null,
+    firestorePermissionDiffersFromNotFound: null,
+    signedOutEventObserved: true,
+    signedOutContactsObserved: true,
+    callableNotFoundObserved: true,
+    firestoreNotFoundObserved: false,
+    firestoreSyntheticIdProbeObserved: true,
+  },
+};
 
 function operations() {
   return Object.entries(spec.paths).flatMap(([path, item]) =>
@@ -72,7 +153,9 @@ function materialClaimPointers(value, pointer, parentKey = '') {
       materialClaimPointers(item, `${pointer}/${index}`, parentKey),
     );
   }
-  return Object.entries(value).flatMap(([key, child]) => {
+  const entries = Object.entries(value);
+  if (entries.length === 0 && parentKey === 'security') return [pointer];
+  return entries.flatMap(([key, child]) => {
     const childPointer = `${pointer}/${escapePointerSegment(key)}`;
     const namedClaim = materialMapKeys.has(parentKey) ? [childPointer] : [];
     return [
@@ -80,6 +163,27 @@ function materialClaimPointers(value, pointer, parentKey = '') {
       ...(ignoredKeys.has(key) ? [] : materialClaimPointers(child, childPointer, key)),
     ];
   });
+}
+
+function assertExactAllowlistedValue(actual, expected, pointer = 'aggregates') {
+  if (Array.isArray(expected)) {
+    expect(Array.isArray(actual), pointer).toBe(true);
+    expect(actual, pointer).toHaveLength(expected.length);
+    expected.forEach((item, index) =>
+      assertExactAllowlistedValue(actual[index], item, `${pointer}/${index}`));
+    return;
+  }
+  if (expected !== null && typeof expected === 'object') {
+    expect(actual !== null && typeof actual === 'object' && !Array.isArray(actual), pointer)
+      .toBe(true);
+    expect(Object.keys(actual).sort(), pointer)
+      .toEqual(Object.keys(expected).sort());
+    for (const [key, child] of Object.entries(expected)) {
+      assertExactAllowlistedValue(actual[key], child, `${pointer}/${key}`);
+    }
+    return;
+  }
+  expect(actual, pointer).toBe(expected);
 }
 
 function jsonPointerValue(value, pointer) {
@@ -200,6 +304,47 @@ describe('remote API contract', () => {
         expect(sourceValue, pointer).toEqual(canonicalValue);
       }
     }
+  });
+
+  it('keeps getEventInfo bearer-only and audits empty security alternatives', () => {
+    const security = spec.paths['/getEventInfo'].post.security;
+    expect(security).toEqual([{ firebaseBearer: [] }]);
+    const hypotheticalSecurity = [...security, {}];
+    expect(materialClaimPointers(
+      hypotheticalSecurity,
+      '#/paths/~1getEventInfo/post/security',
+      'security',
+    )).toContain('#/paths/~1getEventInfo/post/security/1');
+    expect(evidence.readObservation.getEventInfo).toMatchObject({
+      selectedSignedOutStatus: 200,
+      signedOutScope: 'selected-readable-event-only',
+    });
+  });
+
+  it('reports twelve observed 200 statuses and eleven typed 200 bodies', () => {
+    const withObserved200 = operations()
+      .filter(({ operation }) => operation.responses['200'])
+      .map(({ operation }) => operation.operationId)
+      .sort();
+    const withTyped200Body = operations()
+      .filter(({ operation }) => operation.responses['200']?.content)
+      .map(({ operation }) => operation.operationId)
+      .sort();
+    expect(withObserved200).toHaveLength(12);
+    expect(withTyped200Body).toHaveLength(11);
+    expect(withObserved200.filter((id) => !withTyped200Body.includes(id)))
+      .toEqual(['sendAuthCodeTrusted']);
+
+    const ledger = fs.readFileSync(
+      'docs/research/2026-08-10-partiful-api-contract-evidence-ledger.md',
+      'utf8',
+    );
+    expect(ledger).toContain(
+      'Twelve operations have an observed HTTP `200` status.',
+    );
+    expect(ledger).toMatch(
+      /Eleven of those\s+operations have a typed `200` response body\./,
+    );
   });
 
   it('contains remote transport facts rather than product or implementation policy', () => {
@@ -402,10 +547,10 @@ describe('remote API contract', () => {
       const start = ledger.indexOf(marker);
       expect(start, heading).toBeGreaterThanOrEqual(0);
       const section = ledger.slice(start + marker.length).split(/\n#{2,6} /)[0];
-      return [...section.matchAll(/`([^`]+)`/g)]
+      const operationIds = [...section.matchAll(/`([^`]+)`/g)]
         .map((match) => match[1])
-        .filter((operationId) => knownOperationIds.has(operationId))
-        .sort();
+        .filter((operationId) => knownOperationIds.has(operationId));
+      return [...new Set(operationIds)].sort();
     };
     for (const [heading, classification] of [
       ['Dated-live operations', 'dated-live-observation'],
@@ -608,7 +753,7 @@ describe('remote API contract', () => {
     expect(eventInfo.responses['404'].content['application/json'].schema)
       .toEqual({ $ref: '#/components/schemas/CallableNotFoundError' });
     expect(eventInfo.responses['200'].description).toContain('selected readable event');
-    expect(eventInfo.responses['200'].description).toContain('signed out');
+    expect(eventInfo.responses['200'].description).not.toContain('signed out');
     expect(spec.components.schemas.EventInfo.properties).toMatchObject({
       id: { type: 'string' },
       title: { type: 'string' },
@@ -738,6 +883,8 @@ describe('remote API contract', () => {
 
     expect(evidence.operationClaims.getContacts.request)
       .toBe('reviewed-first-party-repository-research');
+    expect(citationResolves(evidence.sources.publicContactDeduplication20260811))
+      .toBe(true);
     expect(evidence.readObservation.contacts).toMatchObject({
       catalogCount: 2451,
       runPageItemCounts: [[1000, 1000, 451, 0], [1000, 1000, 451, 0]],
@@ -753,15 +900,30 @@ describe('remote API contract', () => {
       signedOutCode: 'UNAUTHENTICATED',
       normalParams: {},
       useAuthUserBehavior: 'explicit-unknown',
+      clientDeduplication: {
+        classification: 'reviewed-first-party-repository-research',
+        citation: evidence.sources.publicContactDeduplication20260811,
+        identityField: 'id',
+        duplicateResolution: 'first-occurrence-wins',
+      },
+      rateLimiting: 'explicit-unknown',
+      futureCatalogCompleteness: 'explicit-unknown',
+      serverDuplicateBehavior: 'explicit-unknown',
+      serverOrderingBehavior: 'explicit-unknown',
     });
-    expect(evidence.readObservation.contacts.unknowns).toEqual(expect.arrayContaining([
+    expect(evidence.readObservation.contacts.unknowns).toEqual([
       'invalid-cursor behavior',
       'cursor lifetime and reuse',
       'backend ordering key',
       'snapshot behavior',
       'useAuthUser behavior',
       'duplicates outside the two observations',
-    ]));
+      'rate limiting',
+      'future catalog completeness',
+    ]);
+    expect(evidence.unresolvedUncertainty).toContain(
+      'Contact invalid-cursor behavior, cursor lifetime and reuse, ordering key, snapshot behavior, useAuthUser, rate limiting, unsupported statuses, future catalog completeness, server duplicate behavior, and duplicates outside two traversals remain unknown.',
+    );
     const artifactContacts = readEvidence.aggregates.contacts;
     expect(artifactContacts.firstCount).toBe(evidence.readObservation.contacts.catalogCount);
     expect(artifactContacts.secondCount).toBe(evidence.readObservation.contacts.catalogCount);
@@ -859,6 +1021,26 @@ describe('remote API contract', () => {
           expect(safePathSegments.has(segment), shape.path).toBe(true);
         }
       }
+    }
+    assertExactAllowlistedValue(readEvidence.aggregates, expectedReadAggregates);
+    for (const mutate of [
+      (aggregates) => {
+        aggregates.contacts.rawContactName = 'synthetic-private-name';
+      },
+      (aggregates) => {
+        aggregates.contacts.rawContactId = 'synthetic-private-id';
+      },
+      (aggregates) => {
+        aggregates.selectedEventProjection.source = 'synthetic-private-id';
+      },
+      (aggregates) => {
+        aggregates.contacts.remoteFiltering.reason = 'synthetic-private-name';
+      },
+    ]) {
+      const mutated = structuredClone(readEvidence.aggregates);
+      mutate(mutated);
+      expect(() => assertExactAllowlistedValue(mutated, expectedReadAggregates))
+        .toThrow();
     }
 
     expect(readEvidence.aggregates.failureDistinctions).toMatchObject({

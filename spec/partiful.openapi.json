@@ -207,7 +207,7 @@
         },
         "responses": {
           "200": {
-            "description": "Observed selected readable event response, both authenticated and signed out; other events are not claimed readable signed out.",
+            "description": "Observed selected readable event response.",
             "content": {
               "application/json": {
                 "schema": {
@@ -233,8 +233,7 @@
         "security": [
           {
             "firebaseBearer": []
-          },
-          {}
+          }
         ]
       }
     },

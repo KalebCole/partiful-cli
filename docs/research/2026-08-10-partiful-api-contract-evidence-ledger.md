@@ -30,10 +30,11 @@ Fourteen operations have at least one operation-level dated live observation:
 `getPosterCatalog`, `lookupFirebaseUser`, `refreshToken`,
 `sendAuthCodeTrusted`, and `signInWithCustomToken`.
 
-Twelve of these operations have an observed HTTP `200` success status and
-typed response schema. The text-blast operation retains an unknown response.
-The Firestore event read has an observed typed `403` response, not an observed
-success.
+Twelve operations have an observed HTTP `200` status. Eleven of those
+operations have a typed `200` response body. `sendAuthCodeTrusted` has an
+observed `200` status, but its body remains unclaimed. The text-blast operation
+retains an unknown response. The Firestore event read has an observed typed
+`403` response, not an observed success.
 
 ### TypeScript-derived operations
 
@@ -50,9 +51,9 @@ Every operation's request and response claim is enumerated by JSON Pointer in
 the JSON ledger, including operation, parameter, content-type, security,
 schema, constraint, and response claims. Unless a claim is specifically
 observed, callable result payloads, status codes, error bodies, permission
-rules, and limits are **explicit unknown**. Operations with an observed HTTP
-`200` success have typed response schemas; the schema-free OpenAPI `default`
-response is retained for unrecognized statuses.
+rules, and limits are **explicit unknown**. Eleven operations with an observed
+HTTP `200` status have typed response bodies. The schema-free
+send-code `200` and OpenAPI `default` responses do not claim a body.
 
 The 1250 material claims are audited by
 `tests/remote-api-contract.test.js`. Each ledger citation resolves either to a
@@ -184,20 +185,25 @@ Every observed item had string private identity and name fields and a
 nonnegative integer `sharedEventCount`. The private identity is an internal
 transport field only. Public product output remains `displayName` and
 `sharedEventCount`. First-party assets establish client-side name filtering
-after cursor traversal. Signed-out `getContacts` returned
-`401 UNAUTHENTICATED`.
+after cursor traversal. They also establish client-side deduplication by
+contact `id`, with the first occurrence winning. These are client behaviors;
+they do not establish server duplicate or ordering behavior. Signed-out
+`getContacts` returned `401 UNAUTHENTICATED`.
 
 Invalid cursors, cursor lifetime and reuse, backend ordering, snapshot
 behavior, `useAuthUser`, rate limiting, unsupported statuses, and duplicates
-outside these two observations remain unknown.
+outside these two observations remain unknown. Future catalog completeness is
+also unknown.
 
 ## Read evidence privacy
 
 `spec/research/read-evidence-redacted-20260811.json` contains only HTTP
 metadata, allowlisted paths and types, counts, equality facts, and stable error
 codes. It contains no raw response values, credentials, identities, names,
-event ID values, or contact details. Contract tests reject unsafe identity,
-credential, JWT-like, phone, and email value patterns.
+event ID values, or contact details. Contract tests strictly walk every
+aggregate key and string value against an exact allowlist and include
+unknown-key and arbitrary-value mutation checks. They also reject unsafe
+identity, credential, JWT-like, phone, and email value patterns.
 
 ## Firebase transport configuration
 
