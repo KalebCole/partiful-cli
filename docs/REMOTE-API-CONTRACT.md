@@ -1,12 +1,12 @@
 # Remote API contract
 
-`spec/partiful.openapi.json` is owner-reviewed revision `2026-08-12.5` of the
+`spec/partiful.openapi.json` is owner-reviewed revision `2026-08-12.6` of the
 remote transport snapshot. Its owner-reviewed baseline is `2026-08-12.3`,
 which is based on owner-reviewed revision `2026-08-12.2`. It describes only
 network operations and wire shapes. It does not prescribe commands, output,
 credentials, mutation safeguards, or implementation architecture.
 
-The Go CLI ships remote contract revision `2026-08-12.5`.
+The Go CLI ships remote contract revision `2026-08-12.6`.
 
 ## Authority and change process
 
@@ -295,6 +295,54 @@ completion, not persisted invite state or delivery. Non-empty
 `phoneContactsToInvite` and `emailsToInvite` member shapes, failure bodies,
 permission responses, attendee-denial behavior, and business-success state
 remain unknown and fail closed.
+
+## Cohost lifecycle proposal
+
+Revision `2026-08-12.6` adds unauthenticated current-client evidence from
+`docs/research/2026-08-12-cohost-lifecycle-public-assets.md`. The source is
+the current public login page, build manifest, shared `_app` chunk, shared
+cohost chunk, and shared event chunk. No credential and no live cohost or
+access-link mutation was used.
+
+The current client exposes host-only cohost controls. It routes the five
+reviewed lifecycle writes through:
+
+- `createCohostRequest` with `params.eventId` and `params.targetUserId`;
+- `deleteCohostRequest` with `params.eventId` and `params.targetUserId`;
+- `removeCohost` with `params.eventId` and `params.targetUserId`;
+- `generateEventCohostLink` with `params.eventId`; and
+- `revokeEventCohostLink` with `params.eventId`.
+
+These call sites use the same shared callable wrapper already reviewed for the
+current public client. The wrapper supplies `params` and can also add
+`deviceInfo`, `amplitudeDeviceId`, `amplitudeSessionId`,
+`adminAccessRequested`, and `userId` when available. The current cohost
+callers inspect only the returned business result, not those metadata fields.
+
+The current completion predicates are narrow:
+
+- `createCohostRequest` reads `response.data` and does not inspect the value
+  further;
+- `deleteCohostRequest`, `removeCohost`, and `revokeEventCohostLink` inspect
+  no business field; and
+- `generateEventCohostLink` reads `response.data.path`.
+
+Accordingly, the four non-link-returning operations use only generic callable
+HTTP `200` protocol completion. `generateEventCohostLink` additionally
+requires a decoded business-result object with nested `data.path` string. No
+operation here proves persisted cohost state, invitation delivery, access
+grant, revocation side effect, authorization failure, or any non-`200`
+status.
+
+The same public assets also establish the current cohost read paths used for
+safe planning:
+
+- Firestore collection `events/{eventId}/cohostRequests`;
+- Firestore document `events/{eventId}/private/cohostSecret`; and
+- closed cohost-request statuses `PENDING`, `ACCEPTED`, and `DECLINED`.
+
+The current client treats the secret document as optional and uses the
+server-returned link `path`; it does not synthesize an `accept-cohost` token.
 
 ## Historical provenance
 

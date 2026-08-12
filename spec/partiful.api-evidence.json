@@ -1,5 +1,5 @@
 {
-  "contractRevision": "2026-08-12.5",
+  "contractRevision": "2026-08-12.6",
   "ownerReviewedBaseline": "2026-08-12.3",
   "contractPath": "spec/partiful.openapi.json",
   "allowedClassifications": [
@@ -62,7 +62,12 @@
     "publicEventPosterMapping20260812": "docs/research/2026-08-12-event-write-mapping-public-assets.md#built-in-poster-representation",
     "publicEventWritePreconditions20260812": "docs/research/2026-08-12-event-write-mapping-public-assets.md#update-preconditions",
     "officialFirestoreProtocol": "docs/research/2026-08-10-contract-evidence-sources.md#official-firestore-rest-protocol",
-    "publicGuestMapping20260812": "docs/research/2026-08-12-guest-mapping-public-assets.md#scope-and-provenance"
+    "publicGuestMapping20260812": "docs/research/2026-08-12-guest-mapping-public-assets.md#scope-and-provenance",
+    "publicCohostLifecycle20260812": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#scope-and-provenance",
+    "publicCohostCallableTransport20260812": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#callable-transport",
+    "publicCohostRequestDocs20260812": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#cohost-request-document-shape",
+    "publicCohostLinkState20260812": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#link-document-shape-and-token-path",
+    "publicCohostOperations20260812": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
   },
   "operations": {
     "createEvent": {
@@ -90,24 +95,24 @@
       "citation": "docs/research/2026-08-12-guest-mapping-public-assets.md#scope-and-provenance"
     },
     "createCohostRequest": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1createCohostRequest/post"
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
     },
     "deleteCohostRequest": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1deleteCohostRequest/post"
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
     },
     "removeCohost": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1removeCohost/post"
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
     },
     "generateEventCohostLink": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1generateEventCohostLink/post"
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
     },
     "revokeEventCohostLink": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1revokeEventCohostLink/post"
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
     },
     "getMyUpcomingEventsForHomePage": {
       "classification": "dated-live-observation",
@@ -228,44 +233,44 @@
       "statusCitation": "docs/research/2026-08-10-contract-evidence-sources.md#official-firebase-callable-protocol"
     },
     "createCohostRequest": {
-      "request": "typescript-derived-inference",
-      "requestCitation": "spec/research/historical-27-operation-draft.json#/paths/~1createCohostRequest/post",
-      "response": "explicit-unknown",
-      "responseCitation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision",
-      "status": "explicit-unknown",
-      "statusCitation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision"
+      "request": "current-first-party-public-asset-research",
+      "requestCitation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions",
+      "response": "current-first-party-public-asset-research",
+      "responseCitation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions",
+      "status": "official-protocol-specification",
+      "statusCitation": "docs/research/2026-08-10-contract-evidence-sources.md#official-firebase-callable-protocol"
     },
     "deleteCohostRequest": {
-      "request": "typescript-derived-inference",
-      "requestCitation": "spec/research/historical-27-operation-draft.json#/paths/~1deleteCohostRequest/post",
-      "response": "explicit-unknown",
-      "responseCitation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision",
-      "status": "explicit-unknown",
-      "statusCitation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision"
+      "request": "current-first-party-public-asset-research",
+      "requestCitation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions",
+      "response": "current-first-party-public-asset-research",
+      "responseCitation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions",
+      "status": "official-protocol-specification",
+      "statusCitation": "docs/research/2026-08-10-contract-evidence-sources.md#official-firebase-callable-protocol"
     },
     "removeCohost": {
-      "request": "typescript-derived-inference",
-      "requestCitation": "spec/research/historical-27-operation-draft.json#/paths/~1removeCohost/post",
-      "response": "explicit-unknown",
-      "responseCitation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision",
-      "status": "explicit-unknown",
-      "statusCitation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision"
+      "request": "current-first-party-public-asset-research",
+      "requestCitation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions",
+      "response": "current-first-party-public-asset-research",
+      "responseCitation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions",
+      "status": "official-protocol-specification",
+      "statusCitation": "docs/research/2026-08-10-contract-evidence-sources.md#official-firebase-callable-protocol"
     },
     "generateEventCohostLink": {
-      "request": "typescript-derived-inference",
-      "requestCitation": "spec/research/historical-27-operation-draft.json#/paths/~1generateEventCohostLink/post",
-      "response": "explicit-unknown",
-      "responseCitation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision",
-      "status": "explicit-unknown",
-      "statusCitation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision"
+      "request": "current-first-party-public-asset-research",
+      "requestCitation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions",
+      "response": "current-first-party-public-asset-research",
+      "responseCitation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions",
+      "status": "official-protocol-specification",
+      "statusCitation": "docs/research/2026-08-10-contract-evidence-sources.md#official-firebase-callable-protocol"
     },
     "revokeEventCohostLink": {
-      "request": "typescript-derived-inference",
-      "requestCitation": "spec/research/historical-27-operation-draft.json#/paths/~1revokeEventCohostLink/post",
-      "response": "explicit-unknown",
-      "responseCitation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision",
-      "status": "explicit-unknown",
-      "statusCitation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision"
+      "request": "current-first-party-public-asset-research",
+      "requestCitation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions",
+      "response": "current-first-party-public-asset-research",
+      "responseCitation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions",
+      "status": "official-protocol-specification",
+      "statusCitation": "docs/research/2026-08-10-contract-evidence-sources.md#official-firebase-callable-protocol"
     },
     "getMyUpcomingEventsForHomePage": {
       "request": "typescript-derived-inference",
@@ -1388,582 +1393,6 @@
     "#/paths/~1addInvitedGuestsAsHost/post/security/0/firebaseBearer": {
       "classification": "typescript-derived-inference",
       "citation": "spec/research/historical-27-operation-draft.json#/paths/~1addInvitedGuestsAsHost/post/security/0/firebaseBearer"
-    },
-    "#/paths/~1createCohostRequest/post/operationId": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1createCohostRequest/post/operationId"
-    },
-    "#/paths/~1createCohostRequest/post/requestBody/required": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1createCohostRequest/post/requestBody/required"
-    },
-    "#/paths/~1createCohostRequest/post/requestBody/content/application~1json": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1createCohostRequest/post/requestBody/content/application~1json"
-    },
-    "#/paths/~1createCohostRequest/post/requestBody/content/application~1json/schema/type": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1createCohostRequest/post/requestBody/content/application~1json/schema/type"
-    },
-    "#/paths/~1createCohostRequest/post/requestBody/content/application~1json/schema/required/0": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1createCohostRequest/post/requestBody/content/application~1json/schema/required/0"
-    },
-    "#/paths/~1createCohostRequest/post/requestBody/content/application~1json/schema/properties/data": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1createCohostRequest/post/requestBody/content/application~1json/schema/properties/data"
-    },
-    "#/paths/~1createCohostRequest/post/requestBody/content/application~1json/schema/properties/data/type": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1createCohostRequest/post/requestBody/content/application~1json/schema/properties/data/type"
-    },
-    "#/paths/~1createCohostRequest/post/requestBody/content/application~1json/schema/properties/data/required/0": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1createCohostRequest/post/requestBody/content/application~1json/schema/properties/data/required/0"
-    },
-    "#/paths/~1createCohostRequest/post/requestBody/content/application~1json/schema/properties/data/required/1": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1createCohostRequest/post/requestBody/content/application~1json/schema/properties/data/required/1"
-    },
-    "#/paths/~1createCohostRequest/post/requestBody/content/application~1json/schema/properties/data/properties/params": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1createCohostRequest/post/requestBody/content/application~1json/schema/properties/data/properties/params"
-    },
-    "#/paths/~1createCohostRequest/post/requestBody/content/application~1json/schema/properties/data/properties/params/type": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1createCohostRequest/post/requestBody/content/application~1json/schema/properties/data/properties/params/type"
-    },
-    "#/paths/~1createCohostRequest/post/requestBody/content/application~1json/schema/properties/data/properties/params/properties/eventId": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1createCohostRequest/post/requestBody/content/application~1json/schema/properties/data/properties/params/properties/eventId"
-    },
-    "#/paths/~1createCohostRequest/post/requestBody/content/application~1json/schema/properties/data/properties/params/properties/eventId/type": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1createCohostRequest/post/requestBody/content/application~1json/schema/properties/data/properties/params/properties/eventId/type"
-    },
-    "#/paths/~1createCohostRequest/post/requestBody/content/application~1json/schema/properties/data/properties/params/properties/targetUserId": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1createCohostRequest/post/requestBody/content/application~1json/schema/properties/data/properties/params/properties/targetUserId"
-    },
-    "#/paths/~1createCohostRequest/post/requestBody/content/application~1json/schema/properties/data/properties/params/properties/targetUserId/type": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1createCohostRequest/post/requestBody/content/application~1json/schema/properties/data/properties/params/properties/targetUserId/type"
-    },
-    "#/paths/~1createCohostRequest/post/requestBody/content/application~1json/schema/properties/data/properties/params/additionalProperties": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1createCohostRequest/post/requestBody/content/application~1json/schema/properties/data/properties/params/additionalProperties"
-    },
-    "#/paths/~1createCohostRequest/post/requestBody/content/application~1json/schema/properties/data/properties/params/required/0": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1createCohostRequest/post/requestBody/content/application~1json/schema/properties/data/properties/params/required/0"
-    },
-    "#/paths/~1createCohostRequest/post/requestBody/content/application~1json/schema/properties/data/properties/params/required/1": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1createCohostRequest/post/requestBody/content/application~1json/schema/properties/data/properties/params/required/1"
-    },
-    "#/paths/~1createCohostRequest/post/requestBody/content/application~1json/schema/properties/data/properties/amplitudeDeviceId": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1createCohostRequest/post/requestBody/content/application~1json/schema/properties/data/properties/amplitudeDeviceId"
-    },
-    "#/paths/~1createCohostRequest/post/requestBody/content/application~1json/schema/properties/data/properties/amplitudeDeviceId/type": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1createCohostRequest/post/requestBody/content/application~1json/schema/properties/data/properties/amplitudeDeviceId/type"
-    },
-    "#/paths/~1createCohostRequest/post/requestBody/content/application~1json/schema/properties/data/properties/amplitudeSessionId": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1createCohostRequest/post/requestBody/content/application~1json/schema/properties/data/properties/amplitudeSessionId"
-    },
-    "#/paths/~1createCohostRequest/post/requestBody/content/application~1json/schema/properties/data/properties/amplitudeSessionId/type": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1createCohostRequest/post/requestBody/content/application~1json/schema/properties/data/properties/amplitudeSessionId/type"
-    },
-    "#/paths/~1createCohostRequest/post/requestBody/content/application~1json/schema/properties/data/properties/amplitudeSessionId/format": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1createCohostRequest/post/requestBody/content/application~1json/schema/properties/data/properties/amplitudeSessionId/format"
-    },
-    "#/paths/~1createCohostRequest/post/requestBody/content/application~1json/schema/properties/data/properties/userId": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1createCohostRequest/post/requestBody/content/application~1json/schema/properties/data/properties/userId"
-    },
-    "#/paths/~1createCohostRequest/post/requestBody/content/application~1json/schema/properties/data/properties/userId/type/0": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1createCohostRequest/post/requestBody/content/application~1json/schema/properties/data/properties/userId/type/0"
-    },
-    "#/paths/~1createCohostRequest/post/requestBody/content/application~1json/schema/properties/data/properties/userId/type/1": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1createCohostRequest/post/requestBody/content/application~1json/schema/properties/data/properties/userId/type/1"
-    },
-    "#/paths/~1createCohostRequest/post/requestBody/content/application~1json/schema/properties/data/additionalProperties": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1createCohostRequest/post/requestBody/content/application~1json/schema/properties/data/additionalProperties"
-    },
-    "#/paths/~1createCohostRequest/post/requestBody/content/application~1json/schema/additionalProperties": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1createCohostRequest/post/requestBody/content/application~1json/schema/additionalProperties"
-    },
-    "#/paths/~1createCohostRequest/post/responses/default": {
-      "classification": "explicit-unknown",
-      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision"
-    },
-    "#/paths/~1createCohostRequest/post/security/0/firebaseBearer": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1createCohostRequest/post/security/0/firebaseBearer"
-    },
-    "#/paths/~1deleteCohostRequest/post/operationId": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1deleteCohostRequest/post/operationId"
-    },
-    "#/paths/~1deleteCohostRequest/post/requestBody/required": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1deleteCohostRequest/post/requestBody/required"
-    },
-    "#/paths/~1deleteCohostRequest/post/requestBody/content/application~1json": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1deleteCohostRequest/post/requestBody/content/application~1json"
-    },
-    "#/paths/~1deleteCohostRequest/post/requestBody/content/application~1json/schema/type": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1deleteCohostRequest/post/requestBody/content/application~1json/schema/type"
-    },
-    "#/paths/~1deleteCohostRequest/post/requestBody/content/application~1json/schema/required/0": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1deleteCohostRequest/post/requestBody/content/application~1json/schema/required/0"
-    },
-    "#/paths/~1deleteCohostRequest/post/requestBody/content/application~1json/schema/properties/data": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1deleteCohostRequest/post/requestBody/content/application~1json/schema/properties/data"
-    },
-    "#/paths/~1deleteCohostRequest/post/requestBody/content/application~1json/schema/properties/data/type": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1deleteCohostRequest/post/requestBody/content/application~1json/schema/properties/data/type"
-    },
-    "#/paths/~1deleteCohostRequest/post/requestBody/content/application~1json/schema/properties/data/required/0": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1deleteCohostRequest/post/requestBody/content/application~1json/schema/properties/data/required/0"
-    },
-    "#/paths/~1deleteCohostRequest/post/requestBody/content/application~1json/schema/properties/data/required/1": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1deleteCohostRequest/post/requestBody/content/application~1json/schema/properties/data/required/1"
-    },
-    "#/paths/~1deleteCohostRequest/post/requestBody/content/application~1json/schema/properties/data/properties/params": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1deleteCohostRequest/post/requestBody/content/application~1json/schema/properties/data/properties/params"
-    },
-    "#/paths/~1deleteCohostRequest/post/requestBody/content/application~1json/schema/properties/data/properties/params/type": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1deleteCohostRequest/post/requestBody/content/application~1json/schema/properties/data/properties/params/type"
-    },
-    "#/paths/~1deleteCohostRequest/post/requestBody/content/application~1json/schema/properties/data/properties/params/properties/eventId": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1deleteCohostRequest/post/requestBody/content/application~1json/schema/properties/data/properties/params/properties/eventId"
-    },
-    "#/paths/~1deleteCohostRequest/post/requestBody/content/application~1json/schema/properties/data/properties/params/properties/eventId/type": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1deleteCohostRequest/post/requestBody/content/application~1json/schema/properties/data/properties/params/properties/eventId/type"
-    },
-    "#/paths/~1deleteCohostRequest/post/requestBody/content/application~1json/schema/properties/data/properties/params/properties/targetUserId": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1deleteCohostRequest/post/requestBody/content/application~1json/schema/properties/data/properties/params/properties/targetUserId"
-    },
-    "#/paths/~1deleteCohostRequest/post/requestBody/content/application~1json/schema/properties/data/properties/params/properties/targetUserId/type": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1deleteCohostRequest/post/requestBody/content/application~1json/schema/properties/data/properties/params/properties/targetUserId/type"
-    },
-    "#/paths/~1deleteCohostRequest/post/requestBody/content/application~1json/schema/properties/data/properties/params/additionalProperties": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1deleteCohostRequest/post/requestBody/content/application~1json/schema/properties/data/properties/params/additionalProperties"
-    },
-    "#/paths/~1deleteCohostRequest/post/requestBody/content/application~1json/schema/properties/data/properties/params/required/0": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1deleteCohostRequest/post/requestBody/content/application~1json/schema/properties/data/properties/params/required/0"
-    },
-    "#/paths/~1deleteCohostRequest/post/requestBody/content/application~1json/schema/properties/data/properties/params/required/1": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1deleteCohostRequest/post/requestBody/content/application~1json/schema/properties/data/properties/params/required/1"
-    },
-    "#/paths/~1deleteCohostRequest/post/requestBody/content/application~1json/schema/properties/data/properties/amplitudeDeviceId": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1deleteCohostRequest/post/requestBody/content/application~1json/schema/properties/data/properties/amplitudeDeviceId"
-    },
-    "#/paths/~1deleteCohostRequest/post/requestBody/content/application~1json/schema/properties/data/properties/amplitudeDeviceId/type": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1deleteCohostRequest/post/requestBody/content/application~1json/schema/properties/data/properties/amplitudeDeviceId/type"
-    },
-    "#/paths/~1deleteCohostRequest/post/requestBody/content/application~1json/schema/properties/data/properties/amplitudeSessionId": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1deleteCohostRequest/post/requestBody/content/application~1json/schema/properties/data/properties/amplitudeSessionId"
-    },
-    "#/paths/~1deleteCohostRequest/post/requestBody/content/application~1json/schema/properties/data/properties/amplitudeSessionId/type": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1deleteCohostRequest/post/requestBody/content/application~1json/schema/properties/data/properties/amplitudeSessionId/type"
-    },
-    "#/paths/~1deleteCohostRequest/post/requestBody/content/application~1json/schema/properties/data/properties/amplitudeSessionId/format": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1deleteCohostRequest/post/requestBody/content/application~1json/schema/properties/data/properties/amplitudeSessionId/format"
-    },
-    "#/paths/~1deleteCohostRequest/post/requestBody/content/application~1json/schema/properties/data/properties/userId": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1deleteCohostRequest/post/requestBody/content/application~1json/schema/properties/data/properties/userId"
-    },
-    "#/paths/~1deleteCohostRequest/post/requestBody/content/application~1json/schema/properties/data/properties/userId/type/0": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1deleteCohostRequest/post/requestBody/content/application~1json/schema/properties/data/properties/userId/type/0"
-    },
-    "#/paths/~1deleteCohostRequest/post/requestBody/content/application~1json/schema/properties/data/properties/userId/type/1": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1deleteCohostRequest/post/requestBody/content/application~1json/schema/properties/data/properties/userId/type/1"
-    },
-    "#/paths/~1deleteCohostRequest/post/requestBody/content/application~1json/schema/properties/data/additionalProperties": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1deleteCohostRequest/post/requestBody/content/application~1json/schema/properties/data/additionalProperties"
-    },
-    "#/paths/~1deleteCohostRequest/post/requestBody/content/application~1json/schema/additionalProperties": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1deleteCohostRequest/post/requestBody/content/application~1json/schema/additionalProperties"
-    },
-    "#/paths/~1deleteCohostRequest/post/responses/default": {
-      "classification": "explicit-unknown",
-      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision"
-    },
-    "#/paths/~1deleteCohostRequest/post/security/0/firebaseBearer": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1deleteCohostRequest/post/security/0/firebaseBearer"
-    },
-    "#/paths/~1removeCohost/post/operationId": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1removeCohost/post/operationId"
-    },
-    "#/paths/~1removeCohost/post/requestBody/required": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1removeCohost/post/requestBody/required"
-    },
-    "#/paths/~1removeCohost/post/requestBody/content/application~1json": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1removeCohost/post/requestBody/content/application~1json"
-    },
-    "#/paths/~1removeCohost/post/requestBody/content/application~1json/schema/type": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1removeCohost/post/requestBody/content/application~1json/schema/type"
-    },
-    "#/paths/~1removeCohost/post/requestBody/content/application~1json/schema/required/0": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1removeCohost/post/requestBody/content/application~1json/schema/required/0"
-    },
-    "#/paths/~1removeCohost/post/requestBody/content/application~1json/schema/properties/data": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1removeCohost/post/requestBody/content/application~1json/schema/properties/data"
-    },
-    "#/paths/~1removeCohost/post/requestBody/content/application~1json/schema/properties/data/type": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1removeCohost/post/requestBody/content/application~1json/schema/properties/data/type"
-    },
-    "#/paths/~1removeCohost/post/requestBody/content/application~1json/schema/properties/data/required/0": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1removeCohost/post/requestBody/content/application~1json/schema/properties/data/required/0"
-    },
-    "#/paths/~1removeCohost/post/requestBody/content/application~1json/schema/properties/data/required/1": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1removeCohost/post/requestBody/content/application~1json/schema/properties/data/required/1"
-    },
-    "#/paths/~1removeCohost/post/requestBody/content/application~1json/schema/properties/data/properties/params": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1removeCohost/post/requestBody/content/application~1json/schema/properties/data/properties/params"
-    },
-    "#/paths/~1removeCohost/post/requestBody/content/application~1json/schema/properties/data/properties/params/type": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1removeCohost/post/requestBody/content/application~1json/schema/properties/data/properties/params/type"
-    },
-    "#/paths/~1removeCohost/post/requestBody/content/application~1json/schema/properties/data/properties/params/properties/eventId": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1removeCohost/post/requestBody/content/application~1json/schema/properties/data/properties/params/properties/eventId"
-    },
-    "#/paths/~1removeCohost/post/requestBody/content/application~1json/schema/properties/data/properties/params/properties/eventId/type": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1removeCohost/post/requestBody/content/application~1json/schema/properties/data/properties/params/properties/eventId/type"
-    },
-    "#/paths/~1removeCohost/post/requestBody/content/application~1json/schema/properties/data/properties/params/properties/targetUserId": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1removeCohost/post/requestBody/content/application~1json/schema/properties/data/properties/params/properties/targetUserId"
-    },
-    "#/paths/~1removeCohost/post/requestBody/content/application~1json/schema/properties/data/properties/params/properties/targetUserId/type": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1removeCohost/post/requestBody/content/application~1json/schema/properties/data/properties/params/properties/targetUserId/type"
-    },
-    "#/paths/~1removeCohost/post/requestBody/content/application~1json/schema/properties/data/properties/params/additionalProperties": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1removeCohost/post/requestBody/content/application~1json/schema/properties/data/properties/params/additionalProperties"
-    },
-    "#/paths/~1removeCohost/post/requestBody/content/application~1json/schema/properties/data/properties/params/required/0": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1removeCohost/post/requestBody/content/application~1json/schema/properties/data/properties/params/required/0"
-    },
-    "#/paths/~1removeCohost/post/requestBody/content/application~1json/schema/properties/data/properties/params/required/1": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1removeCohost/post/requestBody/content/application~1json/schema/properties/data/properties/params/required/1"
-    },
-    "#/paths/~1removeCohost/post/requestBody/content/application~1json/schema/properties/data/properties/amplitudeDeviceId": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1removeCohost/post/requestBody/content/application~1json/schema/properties/data/properties/amplitudeDeviceId"
-    },
-    "#/paths/~1removeCohost/post/requestBody/content/application~1json/schema/properties/data/properties/amplitudeDeviceId/type": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1removeCohost/post/requestBody/content/application~1json/schema/properties/data/properties/amplitudeDeviceId/type"
-    },
-    "#/paths/~1removeCohost/post/requestBody/content/application~1json/schema/properties/data/properties/amplitudeSessionId": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1removeCohost/post/requestBody/content/application~1json/schema/properties/data/properties/amplitudeSessionId"
-    },
-    "#/paths/~1removeCohost/post/requestBody/content/application~1json/schema/properties/data/properties/amplitudeSessionId/type": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1removeCohost/post/requestBody/content/application~1json/schema/properties/data/properties/amplitudeSessionId/type"
-    },
-    "#/paths/~1removeCohost/post/requestBody/content/application~1json/schema/properties/data/properties/amplitudeSessionId/format": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1removeCohost/post/requestBody/content/application~1json/schema/properties/data/properties/amplitudeSessionId/format"
-    },
-    "#/paths/~1removeCohost/post/requestBody/content/application~1json/schema/properties/data/properties/userId": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1removeCohost/post/requestBody/content/application~1json/schema/properties/data/properties/userId"
-    },
-    "#/paths/~1removeCohost/post/requestBody/content/application~1json/schema/properties/data/properties/userId/type/0": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1removeCohost/post/requestBody/content/application~1json/schema/properties/data/properties/userId/type/0"
-    },
-    "#/paths/~1removeCohost/post/requestBody/content/application~1json/schema/properties/data/properties/userId/type/1": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1removeCohost/post/requestBody/content/application~1json/schema/properties/data/properties/userId/type/1"
-    },
-    "#/paths/~1removeCohost/post/requestBody/content/application~1json/schema/properties/data/additionalProperties": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1removeCohost/post/requestBody/content/application~1json/schema/properties/data/additionalProperties"
-    },
-    "#/paths/~1removeCohost/post/requestBody/content/application~1json/schema/additionalProperties": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1removeCohost/post/requestBody/content/application~1json/schema/additionalProperties"
-    },
-    "#/paths/~1removeCohost/post/responses/default": {
-      "classification": "explicit-unknown",
-      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision"
-    },
-    "#/paths/~1removeCohost/post/security/0/firebaseBearer": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1removeCohost/post/security/0/firebaseBearer"
-    },
-    "#/paths/~1generateEventCohostLink/post/operationId": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1generateEventCohostLink/post/operationId"
-    },
-    "#/paths/~1generateEventCohostLink/post/requestBody/required": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1generateEventCohostLink/post/requestBody/required"
-    },
-    "#/paths/~1generateEventCohostLink/post/requestBody/content/application~1json": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1generateEventCohostLink/post/requestBody/content/application~1json"
-    },
-    "#/paths/~1generateEventCohostLink/post/requestBody/content/application~1json/schema/type": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1generateEventCohostLink/post/requestBody/content/application~1json/schema/type"
-    },
-    "#/paths/~1generateEventCohostLink/post/requestBody/content/application~1json/schema/required/0": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1generateEventCohostLink/post/requestBody/content/application~1json/schema/required/0"
-    },
-    "#/paths/~1generateEventCohostLink/post/requestBody/content/application~1json/schema/properties/data": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1generateEventCohostLink/post/requestBody/content/application~1json/schema/properties/data"
-    },
-    "#/paths/~1generateEventCohostLink/post/requestBody/content/application~1json/schema/properties/data/type": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1generateEventCohostLink/post/requestBody/content/application~1json/schema/properties/data/type"
-    },
-    "#/paths/~1generateEventCohostLink/post/requestBody/content/application~1json/schema/properties/data/required/0": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1generateEventCohostLink/post/requestBody/content/application~1json/schema/properties/data/required/0"
-    },
-    "#/paths/~1generateEventCohostLink/post/requestBody/content/application~1json/schema/properties/data/required/1": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1generateEventCohostLink/post/requestBody/content/application~1json/schema/properties/data/required/1"
-    },
-    "#/paths/~1generateEventCohostLink/post/requestBody/content/application~1json/schema/properties/data/properties/params": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1generateEventCohostLink/post/requestBody/content/application~1json/schema/properties/data/properties/params"
-    },
-    "#/paths/~1generateEventCohostLink/post/requestBody/content/application~1json/schema/properties/data/properties/params/type": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1generateEventCohostLink/post/requestBody/content/application~1json/schema/properties/data/properties/params/type"
-    },
-    "#/paths/~1generateEventCohostLink/post/requestBody/content/application~1json/schema/properties/data/properties/params/properties/eventId": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1generateEventCohostLink/post/requestBody/content/application~1json/schema/properties/data/properties/params/properties/eventId"
-    },
-    "#/paths/~1generateEventCohostLink/post/requestBody/content/application~1json/schema/properties/data/properties/params/properties/eventId/type": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1generateEventCohostLink/post/requestBody/content/application~1json/schema/properties/data/properties/params/properties/eventId/type"
-    },
-    "#/paths/~1generateEventCohostLink/post/requestBody/content/application~1json/schema/properties/data/properties/params/additionalProperties": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1generateEventCohostLink/post/requestBody/content/application~1json/schema/properties/data/properties/params/additionalProperties"
-    },
-    "#/paths/~1generateEventCohostLink/post/requestBody/content/application~1json/schema/properties/data/properties/params/required/0": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1generateEventCohostLink/post/requestBody/content/application~1json/schema/properties/data/properties/params/required/0"
-    },
-    "#/paths/~1generateEventCohostLink/post/requestBody/content/application~1json/schema/properties/data/properties/amplitudeDeviceId": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1generateEventCohostLink/post/requestBody/content/application~1json/schema/properties/data/properties/amplitudeDeviceId"
-    },
-    "#/paths/~1generateEventCohostLink/post/requestBody/content/application~1json/schema/properties/data/properties/amplitudeDeviceId/type": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1generateEventCohostLink/post/requestBody/content/application~1json/schema/properties/data/properties/amplitudeDeviceId/type"
-    },
-    "#/paths/~1generateEventCohostLink/post/requestBody/content/application~1json/schema/properties/data/properties/amplitudeSessionId": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1generateEventCohostLink/post/requestBody/content/application~1json/schema/properties/data/properties/amplitudeSessionId"
-    },
-    "#/paths/~1generateEventCohostLink/post/requestBody/content/application~1json/schema/properties/data/properties/amplitudeSessionId/type": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1generateEventCohostLink/post/requestBody/content/application~1json/schema/properties/data/properties/amplitudeSessionId/type"
-    },
-    "#/paths/~1generateEventCohostLink/post/requestBody/content/application~1json/schema/properties/data/properties/amplitudeSessionId/format": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1generateEventCohostLink/post/requestBody/content/application~1json/schema/properties/data/properties/amplitudeSessionId/format"
-    },
-    "#/paths/~1generateEventCohostLink/post/requestBody/content/application~1json/schema/properties/data/properties/userId": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1generateEventCohostLink/post/requestBody/content/application~1json/schema/properties/data/properties/userId"
-    },
-    "#/paths/~1generateEventCohostLink/post/requestBody/content/application~1json/schema/properties/data/properties/userId/type/0": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1generateEventCohostLink/post/requestBody/content/application~1json/schema/properties/data/properties/userId/type/0"
-    },
-    "#/paths/~1generateEventCohostLink/post/requestBody/content/application~1json/schema/properties/data/properties/userId/type/1": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1generateEventCohostLink/post/requestBody/content/application~1json/schema/properties/data/properties/userId/type/1"
-    },
-    "#/paths/~1generateEventCohostLink/post/requestBody/content/application~1json/schema/properties/data/additionalProperties": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1generateEventCohostLink/post/requestBody/content/application~1json/schema/properties/data/additionalProperties"
-    },
-    "#/paths/~1generateEventCohostLink/post/requestBody/content/application~1json/schema/additionalProperties": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1generateEventCohostLink/post/requestBody/content/application~1json/schema/additionalProperties"
-    },
-    "#/paths/~1generateEventCohostLink/post/responses/default": {
-      "classification": "explicit-unknown",
-      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision"
-    },
-    "#/paths/~1generateEventCohostLink/post/security/0/firebaseBearer": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1generateEventCohostLink/post/security/0/firebaseBearer"
-    },
-    "#/paths/~1revokeEventCohostLink/post/operationId": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1revokeEventCohostLink/post/operationId"
-    },
-    "#/paths/~1revokeEventCohostLink/post/requestBody/required": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1revokeEventCohostLink/post/requestBody/required"
-    },
-    "#/paths/~1revokeEventCohostLink/post/requestBody/content/application~1json": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1revokeEventCohostLink/post/requestBody/content/application~1json"
-    },
-    "#/paths/~1revokeEventCohostLink/post/requestBody/content/application~1json/schema/type": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1revokeEventCohostLink/post/requestBody/content/application~1json/schema/type"
-    },
-    "#/paths/~1revokeEventCohostLink/post/requestBody/content/application~1json/schema/required/0": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1revokeEventCohostLink/post/requestBody/content/application~1json/schema/required/0"
-    },
-    "#/paths/~1revokeEventCohostLink/post/requestBody/content/application~1json/schema/properties/data": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1revokeEventCohostLink/post/requestBody/content/application~1json/schema/properties/data"
-    },
-    "#/paths/~1revokeEventCohostLink/post/requestBody/content/application~1json/schema/properties/data/type": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1revokeEventCohostLink/post/requestBody/content/application~1json/schema/properties/data/type"
-    },
-    "#/paths/~1revokeEventCohostLink/post/requestBody/content/application~1json/schema/properties/data/required/0": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1revokeEventCohostLink/post/requestBody/content/application~1json/schema/properties/data/required/0"
-    },
-    "#/paths/~1revokeEventCohostLink/post/requestBody/content/application~1json/schema/properties/data/required/1": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1revokeEventCohostLink/post/requestBody/content/application~1json/schema/properties/data/required/1"
-    },
-    "#/paths/~1revokeEventCohostLink/post/requestBody/content/application~1json/schema/properties/data/properties/params": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1revokeEventCohostLink/post/requestBody/content/application~1json/schema/properties/data/properties/params"
-    },
-    "#/paths/~1revokeEventCohostLink/post/requestBody/content/application~1json/schema/properties/data/properties/params/type": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1revokeEventCohostLink/post/requestBody/content/application~1json/schema/properties/data/properties/params/type"
-    },
-    "#/paths/~1revokeEventCohostLink/post/requestBody/content/application~1json/schema/properties/data/properties/params/properties/eventId": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1revokeEventCohostLink/post/requestBody/content/application~1json/schema/properties/data/properties/params/properties/eventId"
-    },
-    "#/paths/~1revokeEventCohostLink/post/requestBody/content/application~1json/schema/properties/data/properties/params/properties/eventId/type": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1revokeEventCohostLink/post/requestBody/content/application~1json/schema/properties/data/properties/params/properties/eventId/type"
-    },
-    "#/paths/~1revokeEventCohostLink/post/requestBody/content/application~1json/schema/properties/data/properties/params/additionalProperties": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1revokeEventCohostLink/post/requestBody/content/application~1json/schema/properties/data/properties/params/additionalProperties"
-    },
-    "#/paths/~1revokeEventCohostLink/post/requestBody/content/application~1json/schema/properties/data/properties/params/required/0": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1revokeEventCohostLink/post/requestBody/content/application~1json/schema/properties/data/properties/params/required/0"
-    },
-    "#/paths/~1revokeEventCohostLink/post/requestBody/content/application~1json/schema/properties/data/properties/amplitudeDeviceId": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1revokeEventCohostLink/post/requestBody/content/application~1json/schema/properties/data/properties/amplitudeDeviceId"
-    },
-    "#/paths/~1revokeEventCohostLink/post/requestBody/content/application~1json/schema/properties/data/properties/amplitudeDeviceId/type": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1revokeEventCohostLink/post/requestBody/content/application~1json/schema/properties/data/properties/amplitudeDeviceId/type"
-    },
-    "#/paths/~1revokeEventCohostLink/post/requestBody/content/application~1json/schema/properties/data/properties/amplitudeSessionId": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1revokeEventCohostLink/post/requestBody/content/application~1json/schema/properties/data/properties/amplitudeSessionId"
-    },
-    "#/paths/~1revokeEventCohostLink/post/requestBody/content/application~1json/schema/properties/data/properties/amplitudeSessionId/type": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1revokeEventCohostLink/post/requestBody/content/application~1json/schema/properties/data/properties/amplitudeSessionId/type"
-    },
-    "#/paths/~1revokeEventCohostLink/post/requestBody/content/application~1json/schema/properties/data/properties/amplitudeSessionId/format": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1revokeEventCohostLink/post/requestBody/content/application~1json/schema/properties/data/properties/amplitudeSessionId/format"
-    },
-    "#/paths/~1revokeEventCohostLink/post/requestBody/content/application~1json/schema/properties/data/properties/userId": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1revokeEventCohostLink/post/requestBody/content/application~1json/schema/properties/data/properties/userId"
-    },
-    "#/paths/~1revokeEventCohostLink/post/requestBody/content/application~1json/schema/properties/data/properties/userId/type/0": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1revokeEventCohostLink/post/requestBody/content/application~1json/schema/properties/data/properties/userId/type/0"
-    },
-    "#/paths/~1revokeEventCohostLink/post/requestBody/content/application~1json/schema/properties/data/properties/userId/type/1": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1revokeEventCohostLink/post/requestBody/content/application~1json/schema/properties/data/properties/userId/type/1"
-    },
-    "#/paths/~1revokeEventCohostLink/post/requestBody/content/application~1json/schema/properties/data/additionalProperties": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1revokeEventCohostLink/post/requestBody/content/application~1json/schema/properties/data/additionalProperties"
-    },
-    "#/paths/~1revokeEventCohostLink/post/requestBody/content/application~1json/schema/additionalProperties": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1revokeEventCohostLink/post/requestBody/content/application~1json/schema/additionalProperties"
-    },
-    "#/paths/~1revokeEventCohostLink/post/responses/default": {
-      "classification": "explicit-unknown",
-      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision"
-    },
-    "#/paths/~1revokeEventCohostLink/post/security/0/firebaseBearer": {
-      "classification": "typescript-derived-inference",
-      "citation": "spec/research/historical-27-operation-draft.json#/paths/~1revokeEventCohostLink/post/security/0/firebaseBearer"
     },
     "#/paths/~1getMyUpcomingEventsForHomePage/post/operationId": {
       "classification": "typescript-derived-inference",
@@ -7400,6 +6829,750 @@
     "#/paths/~1getGuests/post/security/0/firebaseBearer": {
       "classification": "current-first-party-public-asset-research",
       "citation": "docs/research/2026-08-12-guest-mapping-public-assets.md#current-callable-wrapper"
+    },
+    "#/paths/~1createCohostRequest/post/operationId": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/paths/~1createCohostRequest/post/requestBody/required": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/paths/~1createCohostRequest/post/requestBody/content/application~1json": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/paths/~1createCohostRequest/post/requestBody/content/application~1json/schema/type": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/paths/~1createCohostRequest/post/requestBody/content/application~1json/schema/required/0": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/paths/~1createCohostRequest/post/requestBody/content/application~1json/schema/properties/data": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/paths/~1createCohostRequest/post/requestBody/content/application~1json/schema/properties/data/type": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/paths/~1createCohostRequest/post/requestBody/content/application~1json/schema/properties/data/required/0": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/paths/~1createCohostRequest/post/requestBody/content/application~1json/schema/properties/data/required/1": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/paths/~1createCohostRequest/post/requestBody/content/application~1json/schema/properties/data/properties/params": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/paths/~1createCohostRequest/post/requestBody/content/application~1json/schema/properties/data/properties/params/type": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/paths/~1createCohostRequest/post/requestBody/content/application~1json/schema/properties/data/properties/params/properties/eventId": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/paths/~1createCohostRequest/post/requestBody/content/application~1json/schema/properties/data/properties/params/properties/eventId/type": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/paths/~1createCohostRequest/post/requestBody/content/application~1json/schema/properties/data/properties/params/properties/targetUserId": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/paths/~1createCohostRequest/post/requestBody/content/application~1json/schema/properties/data/properties/params/properties/targetUserId/type": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/paths/~1createCohostRequest/post/requestBody/content/application~1json/schema/properties/data/properties/params/additionalProperties": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/paths/~1createCohostRequest/post/requestBody/content/application~1json/schema/properties/data/properties/params/required/0": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/paths/~1createCohostRequest/post/requestBody/content/application~1json/schema/properties/data/properties/params/required/1": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/paths/~1createCohostRequest/post/requestBody/content/application~1json/schema/properties/data/properties/amplitudeDeviceId": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/paths/~1createCohostRequest/post/requestBody/content/application~1json/schema/properties/data/properties/amplitudeDeviceId/type": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/paths/~1createCohostRequest/post/requestBody/content/application~1json/schema/properties/data/properties/amplitudeSessionId": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/paths/~1createCohostRequest/post/requestBody/content/application~1json/schema/properties/data/properties/amplitudeSessionId/type": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/paths/~1createCohostRequest/post/requestBody/content/application~1json/schema/properties/data/properties/amplitudeSessionId/format": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/paths/~1createCohostRequest/post/requestBody/content/application~1json/schema/properties/data/properties/userId": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/paths/~1createCohostRequest/post/requestBody/content/application~1json/schema/properties/data/properties/userId/type/0": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/paths/~1createCohostRequest/post/requestBody/content/application~1json/schema/properties/data/properties/userId/type/1": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/paths/~1createCohostRequest/post/requestBody/content/application~1json/schema/properties/data/additionalProperties": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/paths/~1createCohostRequest/post/requestBody/content/application~1json/schema/additionalProperties": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/paths/~1createCohostRequest/post/responses/200": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/paths/~1createCohostRequest/post/responses/200/content/application~1json": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/paths/~1createCohostRequest/post/responses/200/content/application~1json/schema/$ref": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/paths/~1createCohostRequest/post/responses/default": {
+      "classification": "explicit-unknown",
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision"
+    },
+    "#/paths/~1createCohostRequest/post/security/0/firebaseBearer": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/paths/~1deleteCohostRequest/post/operationId": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/paths/~1deleteCohostRequest/post/requestBody/required": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/paths/~1deleteCohostRequest/post/requestBody/content/application~1json": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/paths/~1deleteCohostRequest/post/requestBody/content/application~1json/schema/type": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/paths/~1deleteCohostRequest/post/requestBody/content/application~1json/schema/required/0": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/paths/~1deleteCohostRequest/post/requestBody/content/application~1json/schema/properties/data": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/paths/~1deleteCohostRequest/post/requestBody/content/application~1json/schema/properties/data/type": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/paths/~1deleteCohostRequest/post/requestBody/content/application~1json/schema/properties/data/required/0": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/paths/~1deleteCohostRequest/post/requestBody/content/application~1json/schema/properties/data/required/1": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/paths/~1deleteCohostRequest/post/requestBody/content/application~1json/schema/properties/data/properties/params": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/paths/~1deleteCohostRequest/post/requestBody/content/application~1json/schema/properties/data/properties/params/type": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/paths/~1deleteCohostRequest/post/requestBody/content/application~1json/schema/properties/data/properties/params/properties/eventId": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/paths/~1deleteCohostRequest/post/requestBody/content/application~1json/schema/properties/data/properties/params/properties/eventId/type": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/paths/~1deleteCohostRequest/post/requestBody/content/application~1json/schema/properties/data/properties/params/properties/targetUserId": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/paths/~1deleteCohostRequest/post/requestBody/content/application~1json/schema/properties/data/properties/params/properties/targetUserId/type": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/paths/~1deleteCohostRequest/post/requestBody/content/application~1json/schema/properties/data/properties/params/additionalProperties": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/paths/~1deleteCohostRequest/post/requestBody/content/application~1json/schema/properties/data/properties/params/required/0": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/paths/~1deleteCohostRequest/post/requestBody/content/application~1json/schema/properties/data/properties/params/required/1": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/paths/~1deleteCohostRequest/post/requestBody/content/application~1json/schema/properties/data/properties/amplitudeDeviceId": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/paths/~1deleteCohostRequest/post/requestBody/content/application~1json/schema/properties/data/properties/amplitudeDeviceId/type": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/paths/~1deleteCohostRequest/post/requestBody/content/application~1json/schema/properties/data/properties/amplitudeSessionId": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/paths/~1deleteCohostRequest/post/requestBody/content/application~1json/schema/properties/data/properties/amplitudeSessionId/type": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/paths/~1deleteCohostRequest/post/requestBody/content/application~1json/schema/properties/data/properties/amplitudeSessionId/format": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/paths/~1deleteCohostRequest/post/requestBody/content/application~1json/schema/properties/data/properties/userId": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/paths/~1deleteCohostRequest/post/requestBody/content/application~1json/schema/properties/data/properties/userId/type/0": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/paths/~1deleteCohostRequest/post/requestBody/content/application~1json/schema/properties/data/properties/userId/type/1": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/paths/~1deleteCohostRequest/post/requestBody/content/application~1json/schema/properties/data/additionalProperties": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/paths/~1deleteCohostRequest/post/requestBody/content/application~1json/schema/additionalProperties": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/paths/~1deleteCohostRequest/post/responses/200": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/paths/~1deleteCohostRequest/post/responses/200/content/application~1json": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/paths/~1deleteCohostRequest/post/responses/200/content/application~1json/schema/$ref": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/paths/~1deleteCohostRequest/post/responses/default": {
+      "classification": "explicit-unknown",
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision"
+    },
+    "#/paths/~1deleteCohostRequest/post/security/0/firebaseBearer": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/paths/~1removeCohost/post/operationId": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/paths/~1removeCohost/post/requestBody/required": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/paths/~1removeCohost/post/requestBody/content/application~1json": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/paths/~1removeCohost/post/requestBody/content/application~1json/schema/type": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/paths/~1removeCohost/post/requestBody/content/application~1json/schema/required/0": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/paths/~1removeCohost/post/requestBody/content/application~1json/schema/properties/data": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/paths/~1removeCohost/post/requestBody/content/application~1json/schema/properties/data/type": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/paths/~1removeCohost/post/requestBody/content/application~1json/schema/properties/data/required/0": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/paths/~1removeCohost/post/requestBody/content/application~1json/schema/properties/data/required/1": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/paths/~1removeCohost/post/requestBody/content/application~1json/schema/properties/data/properties/params": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/paths/~1removeCohost/post/requestBody/content/application~1json/schema/properties/data/properties/params/type": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/paths/~1removeCohost/post/requestBody/content/application~1json/schema/properties/data/properties/params/properties/eventId": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/paths/~1removeCohost/post/requestBody/content/application~1json/schema/properties/data/properties/params/properties/eventId/type": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/paths/~1removeCohost/post/requestBody/content/application~1json/schema/properties/data/properties/params/properties/targetUserId": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/paths/~1removeCohost/post/requestBody/content/application~1json/schema/properties/data/properties/params/properties/targetUserId/type": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/paths/~1removeCohost/post/requestBody/content/application~1json/schema/properties/data/properties/params/additionalProperties": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/paths/~1removeCohost/post/requestBody/content/application~1json/schema/properties/data/properties/params/required/0": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/paths/~1removeCohost/post/requestBody/content/application~1json/schema/properties/data/properties/params/required/1": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/paths/~1removeCohost/post/requestBody/content/application~1json/schema/properties/data/properties/amplitudeDeviceId": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/paths/~1removeCohost/post/requestBody/content/application~1json/schema/properties/data/properties/amplitudeDeviceId/type": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/paths/~1removeCohost/post/requestBody/content/application~1json/schema/properties/data/properties/amplitudeSessionId": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/paths/~1removeCohost/post/requestBody/content/application~1json/schema/properties/data/properties/amplitudeSessionId/type": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/paths/~1removeCohost/post/requestBody/content/application~1json/schema/properties/data/properties/amplitudeSessionId/format": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/paths/~1removeCohost/post/requestBody/content/application~1json/schema/properties/data/properties/userId": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/paths/~1removeCohost/post/requestBody/content/application~1json/schema/properties/data/properties/userId/type/0": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/paths/~1removeCohost/post/requestBody/content/application~1json/schema/properties/data/properties/userId/type/1": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/paths/~1removeCohost/post/requestBody/content/application~1json/schema/properties/data/additionalProperties": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/paths/~1removeCohost/post/requestBody/content/application~1json/schema/additionalProperties": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/paths/~1removeCohost/post/responses/200": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/paths/~1removeCohost/post/responses/200/content/application~1json": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/paths/~1removeCohost/post/responses/200/content/application~1json/schema/$ref": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/paths/~1removeCohost/post/responses/default": {
+      "classification": "explicit-unknown",
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision"
+    },
+    "#/paths/~1removeCohost/post/security/0/firebaseBearer": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/paths/~1generateEventCohostLink/post/operationId": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/paths/~1generateEventCohostLink/post/requestBody/required": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/paths/~1generateEventCohostLink/post/requestBody/content/application~1json": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/paths/~1generateEventCohostLink/post/requestBody/content/application~1json/schema/type": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/paths/~1generateEventCohostLink/post/requestBody/content/application~1json/schema/required/0": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/paths/~1generateEventCohostLink/post/requestBody/content/application~1json/schema/properties/data": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/paths/~1generateEventCohostLink/post/requestBody/content/application~1json/schema/properties/data/type": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/paths/~1generateEventCohostLink/post/requestBody/content/application~1json/schema/properties/data/required/0": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/paths/~1generateEventCohostLink/post/requestBody/content/application~1json/schema/properties/data/required/1": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/paths/~1generateEventCohostLink/post/requestBody/content/application~1json/schema/properties/data/properties/params": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/paths/~1generateEventCohostLink/post/requestBody/content/application~1json/schema/properties/data/properties/params/type": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/paths/~1generateEventCohostLink/post/requestBody/content/application~1json/schema/properties/data/properties/params/properties/eventId": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/paths/~1generateEventCohostLink/post/requestBody/content/application~1json/schema/properties/data/properties/params/properties/eventId/type": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/paths/~1generateEventCohostLink/post/requestBody/content/application~1json/schema/properties/data/properties/params/additionalProperties": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/paths/~1generateEventCohostLink/post/requestBody/content/application~1json/schema/properties/data/properties/params/required/0": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/paths/~1generateEventCohostLink/post/requestBody/content/application~1json/schema/properties/data/properties/amplitudeDeviceId": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/paths/~1generateEventCohostLink/post/requestBody/content/application~1json/schema/properties/data/properties/amplitudeDeviceId/type": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/paths/~1generateEventCohostLink/post/requestBody/content/application~1json/schema/properties/data/properties/amplitudeSessionId": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/paths/~1generateEventCohostLink/post/requestBody/content/application~1json/schema/properties/data/properties/amplitudeSessionId/type": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/paths/~1generateEventCohostLink/post/requestBody/content/application~1json/schema/properties/data/properties/amplitudeSessionId/format": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/paths/~1generateEventCohostLink/post/requestBody/content/application~1json/schema/properties/data/properties/userId": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/paths/~1generateEventCohostLink/post/requestBody/content/application~1json/schema/properties/data/properties/userId/type/0": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/paths/~1generateEventCohostLink/post/requestBody/content/application~1json/schema/properties/data/properties/userId/type/1": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/paths/~1generateEventCohostLink/post/requestBody/content/application~1json/schema/properties/data/additionalProperties": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/paths/~1generateEventCohostLink/post/requestBody/content/application~1json/schema/additionalProperties": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/paths/~1generateEventCohostLink/post/responses/200": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/paths/~1generateEventCohostLink/post/responses/200/content/application~1json": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/paths/~1generateEventCohostLink/post/responses/200/content/application~1json/schema/$ref": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/paths/~1generateEventCohostLink/post/responses/default": {
+      "classification": "explicit-unknown",
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision"
+    },
+    "#/paths/~1generateEventCohostLink/post/security/0/firebaseBearer": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/paths/~1revokeEventCohostLink/post/operationId": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/paths/~1revokeEventCohostLink/post/requestBody/required": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/paths/~1revokeEventCohostLink/post/requestBody/content/application~1json": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/paths/~1revokeEventCohostLink/post/requestBody/content/application~1json/schema/type": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/paths/~1revokeEventCohostLink/post/requestBody/content/application~1json/schema/required/0": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/paths/~1revokeEventCohostLink/post/requestBody/content/application~1json/schema/properties/data": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/paths/~1revokeEventCohostLink/post/requestBody/content/application~1json/schema/properties/data/type": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/paths/~1revokeEventCohostLink/post/requestBody/content/application~1json/schema/properties/data/required/0": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/paths/~1revokeEventCohostLink/post/requestBody/content/application~1json/schema/properties/data/required/1": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/paths/~1revokeEventCohostLink/post/requestBody/content/application~1json/schema/properties/data/properties/params": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/paths/~1revokeEventCohostLink/post/requestBody/content/application~1json/schema/properties/data/properties/params/type": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/paths/~1revokeEventCohostLink/post/requestBody/content/application~1json/schema/properties/data/properties/params/properties/eventId": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/paths/~1revokeEventCohostLink/post/requestBody/content/application~1json/schema/properties/data/properties/params/properties/eventId/type": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/paths/~1revokeEventCohostLink/post/requestBody/content/application~1json/schema/properties/data/properties/params/additionalProperties": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/paths/~1revokeEventCohostLink/post/requestBody/content/application~1json/schema/properties/data/properties/params/required/0": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/paths/~1revokeEventCohostLink/post/requestBody/content/application~1json/schema/properties/data/properties/amplitudeDeviceId": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/paths/~1revokeEventCohostLink/post/requestBody/content/application~1json/schema/properties/data/properties/amplitudeDeviceId/type": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/paths/~1revokeEventCohostLink/post/requestBody/content/application~1json/schema/properties/data/properties/amplitudeSessionId": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/paths/~1revokeEventCohostLink/post/requestBody/content/application~1json/schema/properties/data/properties/amplitudeSessionId/type": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/paths/~1revokeEventCohostLink/post/requestBody/content/application~1json/schema/properties/data/properties/amplitudeSessionId/format": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/paths/~1revokeEventCohostLink/post/requestBody/content/application~1json/schema/properties/data/properties/userId": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/paths/~1revokeEventCohostLink/post/requestBody/content/application~1json/schema/properties/data/properties/userId/type/0": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/paths/~1revokeEventCohostLink/post/requestBody/content/application~1json/schema/properties/data/properties/userId/type/1": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/paths/~1revokeEventCohostLink/post/requestBody/content/application~1json/schema/properties/data/additionalProperties": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/paths/~1revokeEventCohostLink/post/requestBody/content/application~1json/schema/additionalProperties": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/paths/~1revokeEventCohostLink/post/responses/200": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/paths/~1revokeEventCohostLink/post/responses/200/content/application~1json": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/paths/~1revokeEventCohostLink/post/responses/200/content/application~1json/schema/$ref": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/paths/~1revokeEventCohostLink/post/responses/default": {
+      "classification": "explicit-unknown",
+      "citation": "docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision"
+    },
+    "#/paths/~1revokeEventCohostLink/post/security/0/firebaseBearer": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/components/schemas/CallableCompletionResponse/anyOf/0/type": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/components/schemas/CallableCompletionResponse/anyOf/0/required/0": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/components/schemas/CallableCompletionResponse/anyOf/0/properties/result": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/components/schemas/CallableCompletionResponse/anyOf/0/additionalProperties": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/components/schemas/CallableCompletionResponse/anyOf/1/type": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/components/schemas/CallableCompletionResponse/anyOf/1/required/0": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/components/schemas/CallableCompletionResponse/anyOf/1/properties/data": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/components/schemas/CallableCompletionResponse/anyOf/1/additionalProperties": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/components/schemas/GenerateEventCohostLinkResult/type": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/components/schemas/GenerateEventCohostLinkResult/required/0": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/components/schemas/GenerateEventCohostLinkResult/properties/data": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/components/schemas/GenerateEventCohostLinkResult/properties/data/type": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/components/schemas/GenerateEventCohostLinkResult/properties/data/required/0": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/components/schemas/GenerateEventCohostLinkResult/properties/data/properties/path": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/components/schemas/GenerateEventCohostLinkResult/properties/data/properties/path/type": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/components/schemas/GenerateEventCohostLinkResult/properties/data/additionalProperties": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/components/schemas/GenerateEventCohostLinkResult/additionalProperties": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/components/schemas/GenerateEventCohostLinkCompletionResponse/anyOf/0/type": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/components/schemas/GenerateEventCohostLinkCompletionResponse/anyOf/0/required/0": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/components/schemas/GenerateEventCohostLinkCompletionResponse/anyOf/0/properties/result": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/components/schemas/GenerateEventCohostLinkCompletionResponse/anyOf/0/properties/result/$ref": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/components/schemas/GenerateEventCohostLinkCompletionResponse/anyOf/0/additionalProperties": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/components/schemas/GenerateEventCohostLinkCompletionResponse/anyOf/1/type": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/components/schemas/GenerateEventCohostLinkCompletionResponse/anyOf/1/required/0": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/components/schemas/GenerateEventCohostLinkCompletionResponse/anyOf/1/properties/data": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/components/schemas/GenerateEventCohostLinkCompletionResponse/anyOf/1/properties/data/$ref": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
+    },
+    "#/components/schemas/GenerateEventCohostLinkCompletionResponse/anyOf/1/additionalProperties": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions"
     }
   },
   "posterCatalogObservation": {
@@ -8014,5 +8187,58 @@
       "addInvitedGuestsAsHost"
     ]
   },
-  "materialClaimCount": 1740
+  "materialClaimCount": 1782,
+  "publicCohostAssetResearch": {
+    "classification": "current-first-party-public-asset-research",
+    "sourceCitation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#scope-and-provenance",
+    "observedAt": "2026-08-12T17:53:08Z",
+    "buildId": "Sf-HOOx63XpPtr5pPkTvg",
+    "deployment": "dpl_D7TPPj16g1fU46JSHSyrsRURxrK9",
+    "assets": {
+      "buildManifest": {
+        "url": "https://partiful.com/_next/static/Sf-HOOx63XpPtr5pPkTvg/_buildManifest.js?dpl=dpl_D7TPPj16g1fU46JSHSyrsRURxrK9",
+        "bytes": 11476,
+        "sha256": "2de1d4a26e8d4e9e2370ef970cafab2cd1cd6f5c8402fd54a5ea6f150488cbf6"
+      },
+      "sharedApp": {
+        "url": "https://partiful.com/_next/static/chunks/pages/_app-b0dc833855a84321.js?dpl=dpl_D7TPPj16g1fU46JSHSyrsRURxrK9",
+        "bytes": 2369333,
+        "sha256": "812edcea27949b86471cfc5f970cb5b3b961e27a6eea80e7cf6d99aad6623f41"
+      },
+      "cohostShared": {
+        "url": "https://partiful.com/_next/static/chunks/6652-bc845eb80e835b16.js?dpl=dpl_D7TPPj16g1fU46JSHSyrsRURxrK9",
+        "bytes": 42498,
+        "sha256": "d6b57ad394646129f4702bb7d74aea214d7c43750c3a9898367fb9d4541a71b4"
+      },
+      "eventShared": {
+        "url": "https://partiful.com/_next/static/chunks/1585-abd7081ec2f9f79f.js?dpl=dpl_D7TPPj16g1fU46JSHSyrsRURxrK9",
+        "bytes": 464421,
+        "sha256": "437bf13262a46ca96ffb19f625c3ee2a5aaa1996ef9e97ae5b92731341d94487"
+      }
+    },
+    "modules": {
+      "callableTransport": 95722,
+      "firestorePaths": 99181,
+      "firestoreCollections": 47186,
+      "cohostProvider": 73188,
+      "cohostRequestSubscription": 35104,
+      "cohostSecretSubscription": 61713,
+      "firestoreDecoder": 17959,
+      "cohostStatus": 13680,
+      "hostGate": 70820,
+      "authUser": 26813,
+      "linkTokenQuery": 31076
+    },
+    "hostOnly": true,
+    "requestStatuses": [
+      "PENDING",
+      "ACCEPTED",
+      "DECLINED"
+    ],
+    "requestCollection": "events/{eventId}/cohostRequests",
+    "secretDocument": "events/{eventId}/private/cohostSecret",
+    "linkQueryKey": "accept-cohost",
+    "liveMutations": false,
+    "credentialsUsed": false
+  }
 }

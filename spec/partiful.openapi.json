@@ -2,7 +2,7 @@
   "openapi": "3.1.0",
   "info": {
     "title": "Partiful remote API contract",
-    "version": "2026-08-12.5",
+    "version": "2026-08-12.6",
     "description": "Owner-reviewed remote-only transport snapshot. Evidence classifications and uncertainty are recorded in spec/partiful.api-evidence.json."
   },
   "servers": [
@@ -757,8 +757,18 @@
           }
         },
         "responses": {
+          "200": {
+            "description": "Generic callable protocol completion. The current client reads response.data and does not inspect the returned value further.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CallableCompletionResponse"
+                }
+              }
+            }
+          },
           "default": {
-            "description": "Response status and body are unknown."
+            "description": "Unobserved response status or body."
           }
         },
         "security": [
@@ -827,8 +837,18 @@
           }
         },
         "responses": {
+          "200": {
+            "description": "Generic callable protocol completion. The current client inspects no endpoint business field.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CallableCompletionResponse"
+                }
+              }
+            }
+          },
           "default": {
-            "description": "Response status and body are unknown."
+            "description": "Unobserved response status or body."
           }
         },
         "security": [
@@ -897,8 +917,18 @@
           }
         },
         "responses": {
+          "200": {
+            "description": "Generic callable protocol completion. The current client inspects no endpoint business field.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CallableCompletionResponse"
+                }
+              }
+            }
+          },
           "default": {
-            "description": "Response status and body are unknown."
+            "description": "Unobserved response status or body."
           }
         },
         "security": [
@@ -963,8 +993,18 @@
           }
         },
         "responses": {
+          "200": {
+            "description": "Generic callable protocol completion with current nested data.path string.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GenerateEventCohostLinkCompletionResponse"
+                }
+              }
+            }
+          },
           "default": {
-            "description": "Response status and body are unknown."
+            "description": "Unobserved response status or body."
           }
         },
         "security": [
@@ -1029,8 +1069,18 @@
           }
         },
         "responses": {
+          "200": {
+            "description": "Generic callable protocol completion. The current client inspects no endpoint business field.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CallableCompletionResponse"
+                }
+              }
+            }
+          },
           "default": {
-            "description": "Response status and body are unknown."
+            "description": "Unobserved response status or body."
           }
         },
         "security": [
@@ -3800,6 +3850,79 @@
             }
           }
         }
+      },
+      "CallableCompletionResponse": {
+        "anyOf": [
+          {
+            "type": "object",
+            "required": [
+              "result"
+            ],
+            "properties": {
+              "result": {}
+            },
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "required": [
+              "data"
+            ],
+            "properties": {
+              "data": {}
+            },
+            "additionalProperties": false
+          }
+        ]
+      },
+      "GenerateEventCohostLinkResult": {
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "properties": {
+          "data": {
+            "type": "object",
+            "required": [
+              "path"
+            ],
+            "properties": {
+              "path": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": true
+          }
+        },
+        "additionalProperties": true
+      },
+      "GenerateEventCohostLinkCompletionResponse": {
+        "anyOf": [
+          {
+            "type": "object",
+            "required": [
+              "result"
+            ],
+            "properties": {
+              "result": {
+                "$ref": "#/components/schemas/GenerateEventCohostLinkResult"
+              }
+            },
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "required": [
+              "data"
+            ],
+            "properties": {
+              "data": {
+                "$ref": "#/components/schemas/GenerateEventCohostLinkResult"
+              }
+            },
+            "additionalProperties": false
+          }
+        ]
       }
     }
   }
