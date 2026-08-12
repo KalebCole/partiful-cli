@@ -13,9 +13,10 @@ The Go CLI ships remote contract revision `2026-08-12.7`.
 Live, privacy-safe observations can initiate a correction but do not authorize
 implementation by themselves. A proposed change must receive owner or
 delegated orchestrator approval, update the contract and
-`spec/partiful.api-evidence.json`, then run
-`npm test -- tests/remote-api-contract.test.js`. TypeScript, historical drafts,
-tests, and endpoint notes are research evidence, never automatic authority.
+`spec/partiful.api-evidence.json`, then run the Go black-box contract suite and release checks:
+`go test ./...` and `./scripts/verify-native-release.sh`. TypeScript,
+historical drafts, tests, and endpoint notes are research evidence, never
+automatic authority.
 The CLI product contract is separate and remains the authority for user-facing
 behavior.
 
