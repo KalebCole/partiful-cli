@@ -21,14 +21,12 @@ builds:
 
 archives:
   - id: native
-    ids:
+    builds:
       - partiful
-    formats:
-      - tar.gz
+    format: tar.gz
     format_overrides:
       - goos: windows
-        formats:
-          - zip
+        format: zip
     name_template: >-
       {{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ if eq .Arch "amd64" }}amd64{{ else if eq .Arch "arm64" }}arm64{{ else }}{{ .Arch }}{{ end }}
     wrap_in_directory: true

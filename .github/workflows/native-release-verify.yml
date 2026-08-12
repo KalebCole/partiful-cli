@@ -65,7 +65,7 @@ jobs:
           ./scripts/smoke-native-cli.sh ./.build/partiful "${expected_version}"
 
       - name: Install GoReleaser
-        run: go install github.com/goreleaser/goreleaser/v2@v2.12.7
+        run: go install github.com/goreleaser/goreleaser/v2@v2.2.0
 
       - name: Verify snapshot archives
         run: |

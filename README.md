@@ -43,7 +43,7 @@ Run the full native snapshot validation, including GoReleaser, archive checks,
 checksum verification, and local `version/schema/doctor` smoke tests:
 
 ```bash
-go install github.com/goreleaser/goreleaser/v2@v2.12.7
+go install github.com/goreleaser/goreleaser/v2@v2.2.0
 ./scripts/verify-native-release.sh
 ```
 
