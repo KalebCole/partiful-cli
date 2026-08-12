@@ -483,6 +483,10 @@ func parseGuestListOptions(
 	definition commandDefinition,
 	argv []string,
 ) (string, collectionOptions, *errorBody) {
+	if len(argv) < len(definition.invocation)+1 {
+		_, inputError := parseEventID(definition, argv)
+		return "", collectionOptions{}, inputError
+	}
 	eventID, inputError := parseEventID(
 		definition,
 		argv[:len(definition.invocation)+1],

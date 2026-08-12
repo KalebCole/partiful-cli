@@ -182,6 +182,17 @@ func TestExecuteGuestsListReturnsPermissionDeniedForAttendee(t *testing.T) {
 	}
 }
 
+func TestExecuteGuestsListRejectsMissingEventID(t *testing.T) {
+	result := app.Execute(context.Background(), app.Request{
+		Argv: []string{"guests", "list"},
+	}, app.Dependencies{})
+	if result.ExitCode != 2 ||
+		!strings.Contains(result.Stdout, `"type":"input.invalid"`) ||
+		!strings.Contains(result.Stdout, `"code":"EVENT_ID_REQUIRED"`) {
+		t.Fatalf("result = %#v, want missing event ID input failure", result)
+	}
+}
+
 func TestExecuteGuestsListReturnsEmptyCollectionForHost(t *testing.T) {
 	const credentials = `{"accessToken":"private-access-token","userId":"private-host","expiresAt":"2026-08-12T02:00:00Z"}`
 	call := 0

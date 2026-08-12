@@ -182,7 +182,7 @@ func (client Client) getGuestsPage(
 	if response == nil || response.Body == nil {
 		return getGuestsResponse{}, fmt.Errorf("%w: guests response", ErrProtocolChanged)
 	}
-	defer response.Body.Close()
+	defer func() { _ = response.Body.Close() }()
 	if response.StatusCode != http.StatusOK {
 		return getGuestsResponse{}, fmt.Errorf("%w: guests status", ErrProtocolChanged)
 	}
@@ -354,7 +354,7 @@ func callGuestMutation[T any](
 	if response == nil || response.Body == nil {
 		return nil, fmt.Errorf("%w: guest mutation response", ErrProtocolChanged)
 	}
-	defer response.Body.Close()
+	defer func() { _ = response.Body.Close() }()
 	if response.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("%w: guest mutation status", ErrProtocolChanged)
 	}
@@ -372,13 +372,14 @@ func callGuestMutation[T any](
 	if err != nil {
 		return nil, fmt.Errorf("%w: guest mutation response body", ErrProtocolChanged)
 	}
-	if data, ok := root["data"]; ok {
-		return bytes.Clone(data), nil
+	result, ok := root["result"]
+	if !ok {
+		return nil, fmt.Errorf("%w: guest mutation completion", ErrProtocolChanged)
 	}
-	if result, ok := root["result"]; ok {
-		return bytes.Clone(result), nil
+	if _, err := decodeEventObject(result); err != nil {
+		return nil, fmt.Errorf("%w: guest mutation completion", ErrProtocolChanged)
 	}
-	return nil, fmt.Errorf("%w: guest mutation completion", ErrProtocolChanged)
+	return bytes.Clone(result), nil
 }
 
 func decodeSingleGuestJSON(body []byte, destination any) error {
