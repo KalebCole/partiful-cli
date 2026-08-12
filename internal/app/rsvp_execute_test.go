@@ -54,6 +54,12 @@ func TestExecuteRSVPGetReturnsExplicitNoRSVPAndFailsClosedOnOtherVariants(t *tes
 			contains: `"type":"contract.protocol_changed"`,
 		},
 		{
+			name:     "null guest count",
+			body:     `{"result":{"data":{"currentGuest":{"id":"private-id","status":"GOING","count":null}}}}`,
+			exitCode: 9,
+			contains: `"type":"contract.protocol_changed"`,
+		},
+		{
 			name:        "transport unavailable",
 			remoteError: errors.New("private transport failure"),
 			exitCode:    8,
@@ -576,6 +582,24 @@ func TestExecuteRSVPSetRejectsInvalidNormalizedInputBeforeAuthenticationOrReads(
 				"--timezone", " America/Los_Angeles ",
 			},
 			code: "TIMEZONE_INVALID",
+		},
+		{
+			name: "local timezone alias is not IANA",
+			argv: []string{
+				"rsvp", "set", "event-example", "--status", "going",
+				"--display-name", "Example", "--party-size", "1",
+				"--timezone", "Local",
+			},
+			code: "TIMEZONE_INVALID",
+		},
+		{
+			name: "party size rejects trailing JSON",
+			argv: []string{
+				"rsvp", "set", "event-example", "--status", "going",
+				"--display-name", "Example", "--party-size", "1 true",
+				"--timezone", "America/Los_Angeles",
+			},
+			code: "PARTY_SIZE_INVALID",
 		},
 		{
 			name: "message length",

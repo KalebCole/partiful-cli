@@ -394,6 +394,10 @@ func requiredRSVPInteger(
 	if decoder.Decode(&decoded) != nil {
 		return 0, false
 	}
+	var trailing any
+	if err := decoder.Decode(&trailing); !errors.Is(err, io.EOF) {
+		return 0, false
+	}
 	number, ok := decoded.(json.Number)
 	if !ok {
 		return 0, false
@@ -445,7 +449,7 @@ func optionalQuestionnaire(raw json.RawMessage) (*questionnaireInput, bool) {
 }
 
 func validRSVPTimezone(value string) bool {
-	if strings.TrimSpace(value) != value {
+	if strings.TrimSpace(value) != value || value == "Local" {
 		return false
 	}
 	_, err := time.LoadLocation(value)

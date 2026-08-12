@@ -315,6 +315,9 @@ func optionalNumber(
 	if !ok {
 		return nil, nil
 	}
+	if bytes.Equal(bytes.TrimSpace(raw), []byte("null")) {
+		return nil, fmt.Errorf("number is invalid")
+	}
 	var value float64
 	if json.Unmarshal(raw, &value) != nil {
 		return nil, fmt.Errorf("number is invalid")
