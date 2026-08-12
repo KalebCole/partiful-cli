@@ -296,7 +296,7 @@ describe('remote API contract', () => {
       ...materialClaimPointers(spec.paths, '#/paths', 'paths'),
       ...materialClaimPointers(spec.components, '#/components', 'components'),
     ]);
-    expect(pointers).toHaveLength(1253);
+    expect(pointers).toHaveLength(1254);
     for (const pointer of pointers) {
       const claim = evidence.claims[pointer];
       expect(claim, pointer).toBeDefined();
@@ -354,7 +354,7 @@ describe('remote API contract', () => {
     expect(ledger).toMatch(
       /Eleven of those\s+operations have a typed `200` response body\./,
     );
-    expect(ledger.match(/The 1253 material claims/g)).toHaveLength(2);
+    expect(ledger.match(/The 1254 material claims/g)).toHaveLength(2);
     expect(ledger).toContain(
       '**Proposed contract revision:** `2026-08-12.1`',
     );
@@ -809,7 +809,7 @@ describe('remote API contract', () => {
   it('promotes only the public-asset event status, owner, and guest-status facts', () => {
     expect(spec.components.schemas.EventStatus).toEqual({
       type: 'string',
-      enum: ['PUBLISHED', 'CANCELED'],
+      enum: ['UNSAVED', 'PUBLISHED', 'CANCELED'],
     });
     expect(spec.components.schemas.GuestStatus).toEqual({
       type: 'string',
@@ -901,6 +901,7 @@ describe('remote API contract', () => {
       '**Remote API contract revision:** `2026-08-12.1` (proposed)',
       '`PUBLISHED` → `active`',
       '`CANCELED` → `cancelled`',
+      '`UNSAVED` exists in the current first-party client vocabulary',
       '`ownerIds` contains the current user → `host`',
       '`ownerIds` is present, does not contain the current user, and `guest` is present → `attendee`',
       '`cohost` is reserved',
@@ -915,6 +916,10 @@ describe('remote API contract', () => {
       '`404 NOT_FOUND` → `resource.not_found`',
       'does not call `firestoreGetEvent`',
       'permission mapping is deferred',
+      'Missing credentials return `auth.required`',
+      'A refresh rejected by the reviewed remote mapping also returns `auth.expired`',
+      'requires `result.data.event` to be an object',
+      'null, scalar, or array event value returns',
     ]) {
       expect(product, expected).toContain(expected);
     }

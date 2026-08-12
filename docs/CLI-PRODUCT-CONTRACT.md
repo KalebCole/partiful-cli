@@ -342,6 +342,12 @@ A successful token lifetime must exceed the five-minute refresh window so
 login and refresh can return `healthy`. A shorter lifetime fails closed as
 `contract.protocol_changed` rather than creating a refresh loop.
 
+Protected commands never start login and never receive a private terminal.
+Missing credentials return `auth.required`. Stored credentials that are
+expired without a usable refresh token return `auth.expired`. A refresh rejected by the reviewed remote mapping also returns `auth.expired`.
+Unavailable refresh transport returns `remote.unavailable`; an unrecognized
+released refresh response returns `contract.protocol_changed`.
+
 ## Public commands
 
 ### Events
@@ -390,6 +396,10 @@ Event state is an exact closed mapping:
 
 - `PUBLISHED` → `active`;
 - `CANCELED` → `cancelled`.
+
+`UNSAVED` exists in the current first-party client vocabulary but has no
+reviewed S3 product mapping. If it appears in a released event-read response,
+the command returns `contract.protocol_changed`.
 
 Role projection uses private current-user identity only for comparison. It
 never emits an owner ID:
@@ -459,6 +469,12 @@ The positional input supplies `eventId`. Reviewed conditional `title`,
 nullable scalar and state mappings as `EventSummary`. The current
 `getEventInfo` contract does not map owner or guest properties, so
 `userRole` and `myRsvp` are null for this command.
+
+The product boundary requires `result.data.event` to be an object before any
+nullable field projection occurs. A null, scalar, or array event value returns
+`contract.protocol_changed`; it is not converted into an all-null successful
+event. This is a CLI output invariant and does not claim that the remote
+operation accepts only one top-level variant.
 
 `description`, `location`, `address`, `visibility`, `guestLimit`, `poster`,
 and `links` are unavailable-not-claimed in S3. They are null even if an

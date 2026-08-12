@@ -4690,6 +4690,10 @@
       "classification": "current-first-party-public-asset-research",
       "citation": "docs/research/2026-08-12-event-read-mapping-public-assets.md#event-status"
     },
+    "#/components/schemas/EventStatus/enum/2": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-event-read-mapping-public-assets.md#event-status"
+    },
     "#/components/schemas/GuestStatus/type": {
       "classification": "current-first-party-public-asset-research",
       "citation": "docs/research/2026-08-12-event-read-mapping-public-assets.md#guest-statuses"

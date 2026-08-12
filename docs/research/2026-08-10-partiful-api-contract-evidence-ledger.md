@@ -58,7 +58,7 @@ rules, and limits are **explicit unknown**. Eleven operations with an observed
 HTTP `200` status have typed response bodies. The schema-free
 send-code `200` and OpenAPI `default` responses do not claim a body.
 
-The 1253 material claims are audited by
+The 1254 material claims are audited by
 `tests/remote-api-contract.test.js`. Each ledger citation resolves either to a
 JSON Pointer in the committed non-authoritative historical artifact or to a
 heading in the committed stable source index. This keeps the audit independent
@@ -150,8 +150,9 @@ No remote paging field was observed for either list. Revision
 remote pagination, limits, ordering, snapshot behavior, and list failures
 unknown. Event ID projection is supported. One selected guest status supports
 an RSVP projection for that item. Current public assets close the S3
-event-state, owner-membership, and guest-status vocabulary. The two wire event
-states are `PUBLISHED` and `CANCELED`. Owner membership uses
+event-state, owner-membership, and guest-status vocabulary. The client
+event-status vocabulary is `UNSAVED`, `PUBLISHED`, and `CANCELED`; only the
+latter two have S3 product mappings. Owner membership uses
 `event.ownerIds.includes(userId)`. The events UI treats any owner membership
 as hosting and does not expose a primary-host/cohost distinction. The 16
 current guest statuses remain lossless in the read projection.
@@ -243,7 +244,7 @@ by the Go implementation's Firebase requests:
 Origin is unmodelled and remains unknown because the reviewed evidence
 establishes no Origin request fact.
 
-The 1253 material claims are audited by `tests/remote-api-contract.test.js`.
+The 1254 material claims are audited by `tests/remote-api-contract.test.js`.
 
 ## Resolved conflict
 
