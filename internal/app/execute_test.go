@@ -80,7 +80,7 @@ func TestExecutePostersListReturnsFirstLocalPage(t *testing.T) {
 		}},
 	}))
 
-	const want = `{"ok":true,"data":{"items":[{"posterId":"first","name":"First","url":"https://example.invalid/first.png","contentType":"image/png","width":1200,"height":630,"tags":["party"],"categories":["fun"]},{"posterId":"duplicate","name":"Duplicate","url":"https://example.invalid/duplicate.gif","contentType":"image/gif","width":null,"height":null,"tags":["dance"],"categories":[]},{"posterId":"duplicate","name":"Duplicate Again","url":"https://example.invalid/duplicate-2.gif","contentType":"image/gif","width":640,"height":480,"tags":[],"categories":["night"]}]},"meta":{"command":"posters.list","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.4","warnings":[],"page":{"limit":25,"nextCursor":null,"hasMore":false}}}` + "\n"
+	const want = `{"ok":true,"data":{"items":[{"posterId":"first","name":"First","url":"https://example.invalid/first.png","contentType":"image/png","width":1200,"height":630,"tags":["party"],"categories":["fun"]},{"posterId":"duplicate","name":"Duplicate","url":"https://example.invalid/duplicate.gif","contentType":"image/gif","width":null,"height":null,"tags":["dance"],"categories":[]},{"posterId":"duplicate","name":"Duplicate Again","url":"https://example.invalid/duplicate-2.gif","contentType":"image/gif","width":640,"height":480,"tags":[],"categories":["night"]}]},"meta":{"command":"posters.list","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.5","warnings":[],"page":{"limit":25,"nextCursor":null,"hasMore":false}}}` + "\n"
 	if result.ExitCode != 0 {
 		t.Fatalf("exit code = %d, want 0", result.ExitCode)
 	}
@@ -486,7 +486,7 @@ func TestExecutePostersListRejectsCursorWhenPayloadChanges(t *testing.T) {
 		Stdin: strings.NewReader(""),
 	}, dependencies)
 
-	const want = `{"ok":false,"error":{"type":"state.conflict","code":"CURSOR_SNAPSHOT_CHANGED","message":"The poster catalog changed after this cursor was issued.","retryable":false,"details":{}},"meta":{"command":"posters.list","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.4"}}` + "\n"
+	const want = `{"ok":false,"error":{"type":"state.conflict","code":"CURSOR_SNAPSHOT_CHANGED","message":"The poster catalog changed after this cursor was issued.","retryable":false,"details":{}},"meta":{"command":"posters.list","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.5"}}` + "\n"
 	if result.ExitCode != 6 {
 		t.Fatalf("exit code = %d, want 6", result.ExitCode)
 	}
@@ -631,7 +631,7 @@ func TestExecutePostersListRejectsUnexpectedSuccessContentType(t *testing.T) {
 		}},
 	})
 
-	const wantStdout = `{"ok":false,"error":{"type":"contract.protocol_changed","code":"POSTER_CATALOG_PROTOCOL_CHANGED","message":"The poster catalog no longer matches the reviewed remote contract.","retryable":false,"details":{}},"meta":{"command":"posters.list","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.4"}}` + "\n"
+	const wantStdout = `{"ok":false,"error":{"type":"contract.protocol_changed","code":"POSTER_CATALOG_PROTOCOL_CHANGED","message":"The poster catalog no longer matches the reviewed remote contract.","retryable":false,"details":{}},"meta":{"command":"posters.list","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.5"}}` + "\n"
 	const wantStderr = "partiful: poster catalog protocol changed\n"
 	if result.ExitCode != 9 {
 		t.Fatalf("exit code = %d, want 9", result.ExitCode)
@@ -657,7 +657,7 @@ func TestExecutePostersListRejectsMalformedCursorBeforeRemoteFailure(t *testing.
 		}},
 	}))
 
-	const want = `{"ok":false,"error":{"type":"input.invalid","code":"CURSOR_INVALID","message":"The cursor is malformed.","retryable":false,"details":{}},"meta":{"command":"posters.list","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.4"}}` + "\n"
+	const want = `{"ok":false,"error":{"type":"input.invalid","code":"CURSOR_INVALID","message":"The cursor is malformed.","retryable":false,"details":{}},"meta":{"command":"posters.list","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.5"}}` + "\n"
 	if result.ExitCode != 2 {
 		t.Fatalf("exit code = %d, want 2", result.ExitCode)
 	}
@@ -712,7 +712,7 @@ func TestExecutePostersSearchRejectsCursorWithDifferentNormalizedFilter(t *testi
 		Stdin: strings.NewReader(""),
 	}, dependencies)
 
-	const want = `{"ok":false,"error":{"type":"input.invalid","code":"CURSOR_FILTER_MISMATCH","message":"The cursor does not match this command and filters.","retryable":false,"details":{}},"meta":{"command":"posters.search","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.4"}}` + "\n"
+	const want = `{"ok":false,"error":{"type":"input.invalid","code":"CURSOR_FILTER_MISMATCH","message":"The cursor does not match this command and filters.","retryable":false,"details":{}},"meta":{"command":"posters.search","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.5"}}` + "\n"
 	if result.ExitCode != 2 {
 		t.Fatalf("exit code = %d, want 2", result.ExitCode)
 	}
@@ -735,7 +735,7 @@ func TestExecutePostersListMapsNetworkFailureToRemoteUnavailable(t *testing.T) {
 		}},
 	})
 
-	const wantStdout = `{"ok":false,"error":{"type":"remote.unavailable","code":"POSTER_CATALOG_UNAVAILABLE","message":"The poster catalog is unavailable.","retryable":true,"details":{}},"meta":{"command":"posters.list","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.4"}}` + "\n"
+	const wantStdout = `{"ok":false,"error":{"type":"remote.unavailable","code":"POSTER_CATALOG_UNAVAILABLE","message":"The poster catalog is unavailable.","retryable":true,"details":{}},"meta":{"command":"posters.list","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.5"}}` + "\n"
 	const wantStderr = "partiful: poster catalog unavailable\n"
 	if result.ExitCode != 8 {
 		t.Fatalf("exit code = %d, want 8", result.ExitCode)
@@ -765,7 +765,7 @@ func TestExecutePostersListFailsClosedOnReceivedNon200(t *testing.T) {
 		}},
 	})
 
-	const wantStdout = `{"ok":false,"error":{"type":"contract.protocol_changed","code":"POSTER_CATALOG_PROTOCOL_CHANGED","message":"The poster catalog no longer matches the reviewed remote contract.","retryable":false,"details":{}},"meta":{"command":"posters.list","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.4"}}` + "\n"
+	const wantStdout = `{"ok":false,"error":{"type":"contract.protocol_changed","code":"POSTER_CATALOG_PROTOCOL_CHANGED","message":"The poster catalog no longer matches the reviewed remote contract.","retryable":false,"details":{}},"meta":{"command":"posters.list","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.5"}}` + "\n"
 	const wantStderr = "partiful: poster catalog protocol changed\n"
 	if result.ExitCode != 9 {
 		t.Fatalf("exit code = %d, want 9", result.ExitCode)
@@ -843,7 +843,7 @@ func TestExecutePostersListFailsClosedOnMalformed200Body(t *testing.T) {
 		}},
 	})
 
-	const wantStdout = `{"ok":false,"error":{"type":"contract.protocol_changed","code":"POSTER_CATALOG_PROTOCOL_CHANGED","message":"The poster catalog no longer matches the reviewed remote contract.","retryable":false,"details":{}},"meta":{"command":"posters.list","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.4"}}` + "\n"
+	const wantStdout = `{"ok":false,"error":{"type":"contract.protocol_changed","code":"POSTER_CATALOG_PROTOCOL_CHANGED","message":"The poster catalog no longer matches the reviewed remote contract.","retryable":false,"details":{}},"meta":{"command":"posters.list","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.5"}}` + "\n"
 	if result.ExitCode != 9 {
 		t.Fatalf("exit code = %d, want 9", result.ExitCode)
 	}
@@ -908,7 +908,7 @@ func TestExecutePostersListRequiresMaxItemsWithAll(t *testing.T) {
 		Stdin: strings.NewReader(""),
 	}, app.Dependencies{})
 
-	const want = `{"ok":false,"error":{"type":"input.invalid","code":"MAX_ITEMS_REQUIRED","message":"--all requires --max-items.","retryable":false,"details":{}},"meta":{"command":"posters.list","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.4"}}` + "\n"
+	const want = `{"ok":false,"error":{"type":"input.invalid","code":"MAX_ITEMS_REQUIRED","message":"--all requires --max-items.","retryable":false,"details":{}},"meta":{"command":"posters.list","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.5"}}` + "\n"
 	if result.ExitCode != 2 {
 		t.Fatalf("exit code = %d, want 2", result.ExitCode)
 	}
@@ -930,7 +930,7 @@ func TestExecutePostersListRejectsLimitWithAll(t *testing.T) {
 		Stdin: strings.NewReader(""),
 	}, app.Dependencies{})
 
-	const want = `{"ok":false,"error":{"type":"input.invalid","code":"LIMIT_WITH_ALL","message":"--limit cannot be combined with --all.","retryable":false,"details":{}},"meta":{"command":"posters.list","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.4"}}` + "\n"
+	const want = `{"ok":false,"error":{"type":"input.invalid","code":"LIMIT_WITH_ALL","message":"--limit cannot be combined with --all.","retryable":false,"details":{}},"meta":{"command":"posters.list","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.5"}}` + "\n"
 	if result.ExitCode != 2 {
 		t.Fatalf("exit code = %d, want 2", result.ExitCode)
 	}
@@ -948,7 +948,7 @@ func TestExecutePostersListRejectsLimitAboveMaximum(t *testing.T) {
 		Stdin: strings.NewReader(""),
 	}, app.Dependencies{})
 
-	const want = `{"ok":false,"error":{"type":"input.invalid","code":"LIMIT_INVALID","message":"Limit must be an integer from 1 to 100.","retryable":false,"details":{}},"meta":{"command":"posters.list","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.4"}}` + "\n"
+	const want = `{"ok":false,"error":{"type":"input.invalid","code":"LIMIT_INVALID","message":"Limit must be an integer from 1 to 100.","retryable":false,"details":{}},"meta":{"command":"posters.list","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.5"}}` + "\n"
 	if result.ExitCode != 2 {
 		t.Fatalf("exit code = %d, want 2", result.ExitCode)
 	}
@@ -963,7 +963,7 @@ func TestExecutePostersListRejectsEmptyCursor(t *testing.T) {
 		Stdin: strings.NewReader(""),
 	}, app.Dependencies{})
 
-	const want = `{"ok":false,"error":{"type":"input.invalid","code":"CURSOR_INVALID","message":"The cursor is malformed.","retryable":false,"details":{}},"meta":{"command":"posters.list","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.4"}}` + "\n"
+	const want = `{"ok":false,"error":{"type":"input.invalid","code":"CURSOR_INVALID","message":"The cursor is malformed.","retryable":false,"details":{}},"meta":{"command":"posters.list","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.5"}}` + "\n"
 	if result.ExitCode != 2 {
 		t.Fatalf("exit code = %d, want 2", result.ExitCode)
 	}
@@ -981,7 +981,7 @@ func TestExecutePostersSearchRequiresNonEmptyQuery(t *testing.T) {
 		Stdin: strings.NewReader(""),
 	}, app.Dependencies{})
 
-	const want = `{"ok":false,"error":{"type":"input.invalid","code":"QUERY_REQUIRED","message":"Search query must not be empty.","retryable":false,"details":{}},"meta":{"command":"posters.search","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.4"}}` + "\n"
+	const want = `{"ok":false,"error":{"type":"input.invalid","code":"QUERY_REQUIRED","message":"Search query must not be empty.","retryable":false,"details":{}},"meta":{"command":"posters.search","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.5"}}` + "\n"
 	if result.ExitCode != 2 {
 		t.Fatalf("exit code = %d, want 2", result.ExitCode)
 	}
@@ -996,7 +996,7 @@ func TestExecuteVersion(t *testing.T) {
 		Stdin: strings.NewReader(""),
 	}, app.Dependencies{})
 
-	const want = `{"ok":true,"data":{"version":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.4"},"meta":{"command":"version","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.4","warnings":[]}}` + "\n"
+	const want = `{"ok":true,"data":{"version":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.5"},"meta":{"command":"version","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.5","warnings":[]}}` + "\n"
 	if result.ExitCode != 0 {
 		t.Fatalf("exit code = %d, want 0", result.ExitCode)
 	}
@@ -1014,7 +1014,7 @@ func TestExecuteRejectsUnknownCommand(t *testing.T) {
 		Stdin: strings.NewReader(""),
 	}, app.Dependencies{})
 
-	const want = `{"ok":false,"error":{"type":"usage.invalid","code":"COMMAND_NOT_FOUND","message":"Unknown command.","retryable":false,"details":{}},"meta":{"command":"unknown","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.4"}}` + "\n"
+	const want = `{"ok":false,"error":{"type":"usage.invalid","code":"COMMAND_NOT_FOUND","message":"Unknown command.","retryable":false,"details":{}},"meta":{"command":"unknown","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.5"}}` + "\n"
 	if result.ExitCode != 2 {
 		t.Fatalf("exit code = %d, want 2", result.ExitCode)
 	}
@@ -1037,13 +1037,13 @@ func TestExecutePrettyPrintsOneCompleteEnvelope(t *testing.T) {
   "data": {
     "version": "1.0.0",
     "productContractRevision": "2026-08-10.1",
-    "remoteContractRevision": "2026-08-11.4"
+    "remoteContractRevision": "2026-08-11.5"
   },
   "meta": {
     "command": "version",
     "cliVersion": "1.0.0",
     "productContractRevision": "2026-08-10.1",
-    "remoteContractRevision": "2026-08-11.4",
+    "remoteContractRevision": "2026-08-11.5",
     "warnings": []
   }
 }
@@ -1065,7 +1065,7 @@ func TestExecuteAcceptsNonInteractiveGlobalFlag(t *testing.T) {
 		Stdin: strings.NewReader(""),
 	}, app.Dependencies{})
 
-	const want = `{"ok":true,"data":{"version":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.4"},"meta":{"command":"version","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.4","warnings":[]}}` + "\n"
+	const want = `{"ok":true,"data":{"version":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.5"},"meta":{"command":"version","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.5","warnings":[]}}` + "\n"
 	if result.ExitCode != 0 {
 		t.Fatalf("exit code = %d, want 0", result.ExitCode)
 	}
@@ -1098,7 +1098,7 @@ func TestExecuteRejectsRepeatedScalarFlag(t *testing.T) {
     "command": "version",
     "cliVersion": "1.0.0",
     "productContractRevision": "2026-08-10.1",
-    "remoteContractRevision": "2026-08-11.4"
+    "remoteContractRevision": "2026-08-11.5"
   }
 }
 `
@@ -1119,7 +1119,7 @@ func TestExecuteSchemaListsOnlyCompletedCatalog(t *testing.T) {
 		Stdin: strings.NewReader(""),
 	}, app.Dependencies{})
 
-	const want = `{"ok":true,"data":{"commands":["auth.login","auth.logout","auth.status","contacts.list","doctor","posters.list","posters.search","schema","version"]},"meta":{"command":"schema","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.4","warnings":[]}}` + "\n"
+	const want = `{"ok":true,"data":{"commands":["auth.login","auth.logout","auth.status","contacts.list","doctor","posters.list","posters.search","schema","version"]},"meta":{"command":"schema","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.5","warnings":[]}}` + "\n"
 	if result.ExitCode != 0 {
 		t.Fatalf("exit code = %d, want 0", result.ExitCode)
 	}
@@ -1137,7 +1137,7 @@ func TestExecuteSchemaProjectsExecutableDefinition(t *testing.T) {
 		Stdin: strings.NewReader(""),
 	}, app.Dependencies{})
 
-	const want = `{"ok":true,"data":{"command":"auth.status","positionals":[],"flags":[],"inputSchema":{"type":"object","additionalProperties":false},"successSchema":{"type":"object","additionalProperties":false,"required":["authenticated","tokenState","expiresAt"],"properties":{"authenticated":{"type":"boolean"},"expiresAt":{"type":["string","null"],"format":"date-time"},"tokenState":{"type":"string","enum":["healthy","expiring","expired","missing"]}}},"failureTypes":["usage.invalid","input.invalid","auth.expired","remote.unavailable","contract.protocol_changed","internal.failure"],"safety":{"kind":"local-mutation","planRequired":false,"confirmationRequired":false}},"meta":{"command":"schema","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.4","warnings":[]}}` + "\n"
+	const want = `{"ok":true,"data":{"command":"auth.status","positionals":[],"flags":[],"inputSchema":{"type":"object","additionalProperties":false},"successSchema":{"type":"object","additionalProperties":false,"required":["authenticated","tokenState","expiresAt"],"properties":{"authenticated":{"type":"boolean"},"expiresAt":{"type":["string","null"],"format":"date-time"},"tokenState":{"type":"string","enum":["healthy","expiring","expired","missing"]}}},"failureTypes":["usage.invalid","input.invalid","auth.expired","remote.unavailable","contract.protocol_changed","internal.failure"],"safety":{"kind":"local-mutation","planRequired":false,"confirmationRequired":false}},"meta":{"command":"schema","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.5","warnings":[]}}` + "\n"
 	if result.ExitCode != 0 {
 		t.Fatalf("exit code = %d, want 0", result.ExitCode)
 	}
@@ -1195,7 +1195,7 @@ func TestExecuteRejectsUnknownSchemaPathWithoutEchoingInput(t *testing.T) {
 		Stdin: strings.NewReader(""),
 	}, app.Dependencies{})
 
-	const want = `{"ok":false,"error":{"type":"usage.invalid","code":"COMMAND_SCHEMA_NOT_FOUND","message":"No completed command has that schema path.","retryable":false,"details":{}},"meta":{"command":"schema","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.4"}}` + "\n"
+	const want = `{"ok":false,"error":{"type":"usage.invalid","code":"COMMAND_SCHEMA_NOT_FOUND","message":"No completed command has that schema path.","retryable":false,"details":{}},"meta":{"command":"schema","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.5"}}` + "\n"
 	if result.ExitCode != 2 {
 		t.Fatalf("exit code = %d, want 2", result.ExitCode)
 	}
@@ -1226,7 +1226,7 @@ func TestExecuteAuthStatusWhenCredentialsAreMissing(t *testing.T) {
 		},
 	})
 
-	const want = `{"ok":true,"data":{"authenticated":false,"tokenState":"missing","expiresAt":null},"meta":{"command":"auth.status","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.4","warnings":[]}}` + "\n"
+	const want = `{"ok":true,"data":{"authenticated":false,"tokenState":"missing","expiresAt":null},"meta":{"command":"auth.status","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.5","warnings":[]}}` + "\n"
 	if result.ExitCode != 0 {
 		t.Fatalf("exit code = %d, want 0", result.ExitCode)
 	}
@@ -1244,7 +1244,7 @@ func TestExecuteAuthLoginRequiresPrivateTerminal(t *testing.T) {
 		Stdin: strings.NewReader("private-stdin-value"),
 	}, app.Dependencies{})
 
-	const wantStdout = `{"ok":false,"error":{"type":"auth.human_required","code":"PRIVATE_TERMINAL_REQUIRED","message":"Authentication login requires a private terminal.","retryable":false,"details":{}},"meta":{"command":"auth.login","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.4"}}` + "\n"
+	const wantStdout = `{"ok":false,"error":{"type":"auth.human_required","code":"PRIVATE_TERMINAL_REQUIRED","message":"Authentication login requires a private terminal.","retryable":false,"details":{}},"meta":{"command":"auth.login","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.5"}}` + "\n"
 	const wantStderr = "partiful: private terminal required\n"
 	if result.ExitCode != 3 {
 		t.Fatalf("exit code = %d, want 3", result.ExitCode)
@@ -1303,7 +1303,7 @@ func TestExecuteAuthLoginRejectsEmptyPrivateInputBeforeHTTP(t *testing.T) {
 		}},
 	})
 
-	const wantStdout = `{"ok":false,"error":{"type":"input.invalid","code":"AUTH_INPUT_INVALID","message":"Authentication input is invalid.","retryable":false,"details":{}},"meta":{"command":"auth.login","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.4"}}` + "\n"
+	const wantStdout = `{"ok":false,"error":{"type":"input.invalid","code":"AUTH_INPUT_INVALID","message":"Authentication input is invalid.","retryable":false,"details":{}},"meta":{"command":"auth.login","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.5"}}` + "\n"
 	if result.ExitCode != 2 || result.Stdout != wantStdout {
 		t.Fatalf("result = %#v, want invalid private input failure", result)
 	}
@@ -1445,7 +1445,7 @@ func TestExecuteAuthLoginPersistsReviewedSessionWithoutRevealingPrivateValues(t 
 		}},
 	})
 
-	const want = `{"ok":true,"data":{"authenticated":true,"tokenState":"healthy","expiresAt":"2026-08-11T01:10:00Z"},"meta":{"command":"auth.login","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.4","warnings":[]}}` + "\n"
+	const want = `{"ok":true,"data":{"authenticated":true,"tokenState":"healthy","expiresAt":"2026-08-11T01:10:00Z"},"meta":{"command":"auth.login","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.5","warnings":[]}}` + "\n"
 	if result.ExitCode != 0 || result.Stdout != want || result.Stderr != "" {
 		t.Fatalf("result = %#v, want redacted login success", result)
 	}
@@ -1518,7 +1518,7 @@ func TestExecuteAuthLoginMapsReviewedWrongCodeWithoutEchoingIt(t *testing.T) {
 		}},
 	})
 
-	const wantStdout = `{"ok":false,"error":{"type":"input.invalid","code":"AUTH_CODE_REJECTED","message":"The verification code was rejected.","retryable":false,"details":{}},"meta":{"command":"auth.login","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.4"}}` + "\n"
+	const wantStdout = `{"ok":false,"error":{"type":"input.invalid","code":"AUTH_CODE_REJECTED","message":"The verification code was rejected.","retryable":false,"details":{}},"meta":{"command":"auth.login","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.5"}}` + "\n"
 	const wantStderr = "partiful: authentication code rejected\n"
 	if result.ExitCode != 2 || result.Stdout != wantStdout || result.Stderr != wantStderr {
 		t.Fatalf("result = %#v, want reviewed wrong-code failure", result)
@@ -1659,7 +1659,7 @@ func TestExecuteAuthLoginMapsRejectedCustomTokenToExpired(t *testing.T) {
 		}},
 	})
 
-	const wantStdout = `{"ok":false,"error":{"type":"auth.expired","code":"INVALID_CUSTOM_TOKEN","message":"Authentication expired during login. Start login again.","retryable":false,"details":{}},"meta":{"command":"auth.login","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.4"}}` + "\n"
+	const wantStdout = `{"ok":false,"error":{"type":"auth.expired","code":"INVALID_CUSTOM_TOKEN","message":"Authentication expired during login. Start login again.","retryable":false,"details":{}},"meta":{"command":"auth.login","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.5"}}` + "\n"
 	const wantStderr = "partiful: authentication expired\n"
 	if result.ExitCode != 3 || result.Stdout != wantStdout || result.Stderr != wantStderr {
 		t.Fatalf("result = %#v, want reviewed custom-token failure", result)
@@ -1846,7 +1846,7 @@ func TestExecuteAuthLoginFailsClosedOnMalformedReviewedSuccess(t *testing.T) {
 		}},
 	})
 
-	const wantStdout = `{"ok":false,"error":{"type":"contract.protocol_changed","code":"AUTH_PROTOCOL_CHANGED","message":"Authentication no longer matches the reviewed remote contract.","retryable":false,"details":{}},"meta":{"command":"auth.login","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.4"}}` + "\n"
+	const wantStdout = `{"ok":false,"error":{"type":"contract.protocol_changed","code":"AUTH_PROTOCOL_CHANGED","message":"Authentication no longer matches the reviewed remote contract.","retryable":false,"details":{}},"meta":{"command":"auth.login","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.5"}}` + "\n"
 	const wantStderr = "partiful: authentication protocol changed\n"
 	if result.ExitCode != 9 || result.Stdout != wantStdout || result.Stderr != wantStderr {
 		t.Fatalf("result = %#v, want protocol drift failure", result)
@@ -1943,7 +1943,7 @@ func TestExecuteAuthLoginMapsNoResponseWithoutLeakingTransportError(t *testing.T
 		}},
 	})
 
-	const wantStdout = `{"ok":false,"error":{"type":"remote.unavailable","code":"AUTH_SERVICE_UNAVAILABLE","message":"The authentication service is unavailable.","retryable":true,"details":{}},"meta":{"command":"auth.login","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.4"}}` + "\n"
+	const wantStdout = `{"ok":false,"error":{"type":"remote.unavailable","code":"AUTH_SERVICE_UNAVAILABLE","message":"The authentication service is unavailable.","retryable":true,"details":{}},"meta":{"command":"auth.login","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.5"}}` + "\n"
 	const wantStderr = "partiful: authentication service unavailable\n"
 	if result.ExitCode != 8 || result.Stdout != wantStdout || result.Stderr != wantStderr {
 		t.Fatalf("result = %#v, want auth unavailable failure", result)
@@ -1997,7 +1997,7 @@ func TestExecuteAuthLoginAtomicPersistenceFailurePreservesExistingCredentials(t 
 		Argv: []string{"auth", "login"},
 	}, dependencies)
 
-	const wantStdout = `{"ok":false,"error":{"type":"internal.failure","code":"CREDENTIAL_STORE_UNAVAILABLE","message":"Local credential storage is unavailable.","retryable":false,"details":{}},"meta":{"command":"auth.login","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.4"}}` + "\n"
+	const wantStdout = `{"ok":false,"error":{"type":"internal.failure","code":"CREDENTIAL_STORE_UNAVAILABLE","message":"Local credential storage is unavailable.","retryable":false,"details":{}},"meta":{"command":"auth.login","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.5"}}` + "\n"
 	if result.ExitCode != 10 || result.Stdout != wantStdout {
 		t.Fatalf("result = %#v, want atomic persistence failure", result)
 	}
@@ -2109,7 +2109,7 @@ func TestExecuteContactsListTraversesReviewedPagesAndReturnsOnlyPublicFields(t *
 		}},
 	})
 
-	const want = `{"ok":true,"data":{"items":[{"displayName":"Alice Example","sharedEventCount":2}]},"meta":{"command":"contacts.list","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.4","warnings":[],"page":{"limit":25,"nextCursor":null,"hasMore":false}}}` + "\n"
+	const want = `{"ok":true,"data":{"items":[{"displayName":"Alice Example","sharedEventCount":2}]},"meta":{"command":"contacts.list","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.5","warnings":[],"page":{"limit":25,"nextCursor":null,"hasMore":false}}}` + "\n"
 	if result.ExitCode != 0 || result.Stdout != want || result.Stderr != "" {
 		t.Fatalf("result = %#v, want reviewed public contact collection", result)
 	}
@@ -2164,7 +2164,7 @@ func TestExecuteContactsListFiltersLocallyAfterFirstIdentityOccurrenceWins(t *te
 		}},
 	})
 
-	const want = `{"ok":true,"data":{"items":[{"displayName":"Alice First","sharedEventCount":1},{"displayName":"Second ALICE","sharedEventCount":3}]},"meta":{"command":"contacts.list","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.4","warnings":[],"page":{"limit":25,"nextCursor":null,"hasMore":false}}}` + "\n"
+	const want = `{"ok":true,"data":{"items":[{"displayName":"Alice First","sharedEventCount":1},{"displayName":"Second ALICE","sharedEventCount":3}]},"meta":{"command":"contacts.list","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.5","warnings":[],"page":{"limit":25,"nextCursor":null,"hasMore":false}}}` + "\n"
 	if result.ExitCode != 0 || result.Stdout != want || result.Stderr != "" {
 		t.Fatalf("result = %#v, want locally filtered first-occurrence contacts", result)
 	}
@@ -2494,7 +2494,7 @@ func TestExecuteContactsListMapsReviewedUnauthenticatedResponseToExpired(t *test
 		}},
 	})
 
-	const wantStdout = `{"ok":false,"error":{"type":"auth.expired","code":"REMOTE_SESSION_UNAUTHENTICATED","message":"Stored authentication is no longer accepted. Log in again.","retryable":false,"details":{}},"meta":{"command":"contacts.list","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.4"}}` + "\n"
+	const wantStdout = `{"ok":false,"error":{"type":"auth.expired","code":"REMOTE_SESSION_UNAUTHENTICATED","message":"Stored authentication is no longer accepted. Log in again.","retryable":false,"details":{}},"meta":{"command":"contacts.list","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.5"}}` + "\n"
 	if result.ExitCode != 3 || result.Stdout != wantStdout {
 		t.Fatalf("result = %#v, want reviewed unauthenticated mapping", result)
 	}
@@ -2633,7 +2633,7 @@ func TestExecuteContactsListRejectsCursorWhenContactCatalogChanges(t *testing.T)
 		Stdin: strings.NewReader(""),
 	}, dependencies)
 
-	const want = `{"ok":false,"error":{"type":"state.conflict","code":"CURSOR_SNAPSHOT_CHANGED","message":"The contact catalog changed after this cursor was issued.","retryable":false,"details":{}},"meta":{"command":"contacts.list","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.4"}}` + "\n"
+	const want = `{"ok":false,"error":{"type":"state.conflict","code":"CURSOR_SNAPSHOT_CHANGED","message":"The contact catalog changed after this cursor was issued.","retryable":false,"details":{}},"meta":{"command":"contacts.list","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.5"}}` + "\n"
 	if result.ExitCode != 6 || result.Stdout != want || result.Stderr != "" {
 		t.Fatalf("result = %#v, want contact snapshot conflict", result)
 	}
@@ -2779,7 +2779,7 @@ func TestExecuteContactsListMapsRejectedRefreshWithoutAttemptingRead(t *testing.
 		}},
 	})
 
-	const wantStdout = `{"ok":false,"error":{"type":"auth.expired","code":"INVALID_REFRESH_TOKEN","message":"Stored authentication has expired. Log in again.","retryable":false,"details":{}},"meta":{"command":"contacts.list","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.4"}}` + "\n"
+	const wantStdout = `{"ok":false,"error":{"type":"auth.expired","code":"INVALID_REFRESH_TOKEN","message":"Stored authentication has expired. Log in again.","retryable":false,"details":{}},"meta":{"command":"contacts.list","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.5"}}` + "\n"
 	if result.ExitCode != 3 || result.Stdout != wantStdout {
 		t.Fatalf("result = %#v, want rejected refresh failure", result)
 	}
@@ -2844,7 +2844,7 @@ func TestExecuteAuthStatusRedactsHealthyCredentials(t *testing.T) {
 		},
 	})
 
-	const want = `{"ok":true,"data":{"authenticated":true,"tokenState":"healthy","expiresAt":"2026-08-11T02:00:00Z"},"meta":{"command":"auth.status","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.4","warnings":[]}}` + "\n"
+	const want = `{"ok":true,"data":{"authenticated":true,"tokenState":"healthy","expiresAt":"2026-08-11T02:00:00Z"},"meta":{"command":"auth.status","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.5","warnings":[]}}` + "\n"
 	if result.ExitCode != 0 {
 		t.Fatalf("exit code = %d, want 0", result.ExitCode)
 	}
@@ -2878,7 +2878,7 @@ func TestExecuteAuthStatusReportsExpiringToken(t *testing.T) {
 		},
 	})
 
-	const want = `{"ok":true,"data":{"authenticated":true,"tokenState":"expiring","expiresAt":"2026-08-11T00:04:00Z"},"meta":{"command":"auth.status","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.4","warnings":[]}}` + "\n"
+	const want = `{"ok":true,"data":{"authenticated":true,"tokenState":"expiring","expiresAt":"2026-08-11T00:04:00Z"},"meta":{"command":"auth.status","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.5","warnings":[]}}` + "\n"
 	if result.ExitCode != 0 {
 		t.Fatalf("exit code = %d, want 0", result.ExitCode)
 	}
@@ -2953,7 +2953,7 @@ func TestExecuteAuthStatusDeterministicallyRefreshesExpiringSession(t *testing.T
 	first := app.Execute(context.Background(), app.Request{
 		Argv: []string{"auth", "status"},
 	}, dependencies)
-	const want = `{"ok":true,"data":{"authenticated":true,"tokenState":"healthy","expiresAt":"2026-08-11T01:10:00Z"},"meta":{"command":"auth.status","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.4","warnings":[]}}` + "\n"
+	const want = `{"ok":true,"data":{"authenticated":true,"tokenState":"healthy","expiresAt":"2026-08-11T01:10:00Z"},"meta":{"command":"auth.status","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.5","warnings":[]}}` + "\n"
 	if first.ExitCode != 0 || first.Stdout != want || first.Stderr != "" {
 		t.Fatalf("first status = %#v, want refreshed healthy session", first)
 	}
@@ -3127,7 +3127,7 @@ func TestExecuteAuthStatusMapsReviewedInvalidRefreshTokenToExpired(t *testing.T)
 		}},
 	})
 
-	const wantStdout = `{"ok":false,"error":{"type":"auth.expired","code":"INVALID_REFRESH_TOKEN","message":"Stored authentication has expired. Log in again.","retryable":false,"details":{}},"meta":{"command":"auth.status","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.4"}}` + "\n"
+	const wantStdout = `{"ok":false,"error":{"type":"auth.expired","code":"INVALID_REFRESH_TOKEN","message":"Stored authentication has expired. Log in again.","retryable":false,"details":{}},"meta":{"command":"auth.status","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.5"}}` + "\n"
 	const wantStderr = "partiful: authentication expired\n"
 	if result.ExitCode != 3 || result.Stdout != wantStdout || result.Stderr != wantStderr {
 		t.Fatalf("result = %#v, want reviewed invalid-refresh failure", result)
@@ -3246,7 +3246,7 @@ func TestExecuteAuthStatusReportsExpiredToken(t *testing.T) {
 		},
 	})
 
-	const want = `{"ok":true,"data":{"authenticated":false,"tokenState":"expired","expiresAt":"2026-08-10T23:59:00Z"},"meta":{"command":"auth.status","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.4","warnings":[]}}` + "\n"
+	const want = `{"ok":true,"data":{"authenticated":false,"tokenState":"expired","expiresAt":"2026-08-10T23:59:00Z"},"meta":{"command":"auth.status","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.5","warnings":[]}}` + "\n"
 	if result.ExitCode != 0 {
 		t.Fatalf("exit code = %d, want 0", result.ExitCode)
 	}
@@ -3275,7 +3275,7 @@ func TestExecuteAuthStatusFailureDoesNotRevealCredentialContents(t *testing.T) {
 		},
 	})
 
-	const wantStdout = `{"ok":false,"error":{"type":"internal.failure","code":"CREDENTIALS_INVALID","message":"Local credentials are invalid.","retryable":false,"details":{}},"meta":{"command":"auth.status","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.4"}}` + "\n"
+	const wantStdout = `{"ok":false,"error":{"type":"internal.failure","code":"CREDENTIALS_INVALID","message":"Local credentials are invalid.","retryable":false,"details":{}},"meta":{"command":"auth.status","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.5"}}` + "\n"
 	const wantStderr = "partiful: local operation failed\n"
 	if result.ExitCode != 10 {
 		t.Fatalf("exit code = %d, want 10", result.ExitCode)
@@ -3311,7 +3311,7 @@ func TestExecuteAuthLogoutAtomicallyRemovesCredentials(t *testing.T) {
 		Stdin: strings.NewReader(""),
 	}, dependencies)
 
-	const want = `{"ok":true,"data":{"authenticated":false,"tokenState":"missing","expiresAt":null},"meta":{"command":"auth.logout","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.4","warnings":[]}}` + "\n"
+	const want = `{"ok":true,"data":{"authenticated":false,"tokenState":"missing","expiresAt":null},"meta":{"command":"auth.logout","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.5","warnings":[]}}` + "\n"
 	if result.ExitCode != 0 {
 		t.Fatalf("exit code = %d, want 0", result.ExitCode)
 	}
@@ -3390,7 +3390,7 @@ func TestExecuteAuthLogoutFailureLeavesCredentialsAvailableAndRedactsError(t *te
 		Stdin: strings.NewReader(""),
 	}, dependencies)
 
-	const wantStdout = `{"ok":false,"error":{"type":"internal.failure","code":"CREDENTIAL_STORE_UNAVAILABLE","message":"Local credential storage is unavailable.","retryable":false,"details":{}},"meta":{"command":"auth.logout","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.4"}}` + "\n"
+	const wantStdout = `{"ok":false,"error":{"type":"internal.failure","code":"CREDENTIAL_STORE_UNAVAILABLE","message":"Local credential storage is unavailable.","retryable":false,"details":{}},"meta":{"command":"auth.logout","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.5"}}` + "\n"
 	if result.ExitCode != 10 {
 		t.Fatalf("exit code = %d, want 10", result.ExitCode)
 	}
@@ -3427,7 +3427,7 @@ func TestExecuteDoctorReportsHealthyCredentialsWithoutPrivateData(t *testing.T) 
 		},
 	})
 
-	const want = `{"ok":true,"data":{"healthy":true,"checks":[{"name":"credentials","status":"pass","message":"Authentication credentials are available.","remediation":null}]},"meta":{"command":"doctor","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.4","warnings":[]}}` + "\n"
+	const want = `{"ok":true,"data":{"healthy":true,"checks":[{"name":"credentials","status":"pass","message":"Authentication credentials are available.","remediation":null}]},"meta":{"command":"doctor","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.5","warnings":[]}}` + "\n"
 	if result.ExitCode != 0 {
 		t.Fatalf("exit code = %d, want 0", result.ExitCode)
 	}
@@ -3460,7 +3460,7 @@ func TestExecuteDoctorReportsMissingCredentialsAsARedactedCheck(t *testing.T) {
 		},
 	})
 
-	const want = `{"ok":true,"data":{"healthy":false,"checks":[{"name":"credentials","status":"fail","message":"Authentication credentials are missing.","remediation":"Establish authentication before using commands that require it."}]},"meta":{"command":"doctor","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.4","warnings":[]}}` + "\n"
+	const want = `{"ok":true,"data":{"healthy":false,"checks":[{"name":"credentials","status":"fail","message":"Authentication credentials are missing.","remediation":"Establish authentication before using commands that require it."}]},"meta":{"command":"doctor","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.5","warnings":[]}}` + "\n"
 	if result.ExitCode != 0 {
 		t.Fatalf("exit code = %d, want 0", result.ExitCode)
 	}
@@ -3489,7 +3489,7 @@ func TestExecuteDoctorWarnsWhenCredentialsExpireSoon(t *testing.T) {
 		},
 	})
 
-	const want = `{"ok":true,"data":{"healthy":true,"checks":[{"name":"credentials","status":"warn","message":"Authentication credentials expire soon.","remediation":"Refresh authentication before the credentials expire."}]},"meta":{"command":"doctor","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.4","warnings":[]}}` + "\n"
+	const want = `{"ok":true,"data":{"healthy":true,"checks":[{"name":"credentials","status":"warn","message":"Authentication credentials expire soon.","remediation":"Refresh authentication before the credentials expire."}]},"meta":{"command":"doctor","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.5","warnings":[]}}` + "\n"
 	if result.ExitCode != 0 {
 		t.Fatalf("exit code = %d, want 0", result.ExitCode)
 	}
@@ -3518,7 +3518,7 @@ func TestExecuteDoctorFailsExpiredCredentialsCheck(t *testing.T) {
 		},
 	})
 
-	const want = `{"ok":true,"data":{"healthy":false,"checks":[{"name":"credentials","status":"fail","message":"Authentication credentials have expired.","remediation":"Re-establish authentication."}]},"meta":{"command":"doctor","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.4","warnings":[]}}` + "\n"
+	const want = `{"ok":true,"data":{"healthy":false,"checks":[{"name":"credentials","status":"fail","message":"Authentication credentials have expired.","remediation":"Re-establish authentication."}]},"meta":{"command":"doctor","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.5","warnings":[]}}` + "\n"
 	if result.ExitCode != 0 {
 		t.Fatalf("exit code = %d, want 0", result.ExitCode)
 	}
@@ -3547,7 +3547,7 @@ func TestExecuteDoctorRedactsInvalidCredentialFile(t *testing.T) {
 		},
 	})
 
-	const want = `{"ok":true,"data":{"healthy":false,"checks":[{"name":"credentials","status":"fail","message":"Authentication credentials are invalid.","remediation":"Remove the invalid credentials and re-establish authentication."}]},"meta":{"command":"doctor","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.4","warnings":[]}}` + "\n"
+	const want = `{"ok":true,"data":{"healthy":false,"checks":[{"name":"credentials","status":"fail","message":"Authentication credentials are invalid.","remediation":"Remove the invalid credentials and re-establish authentication."}]},"meta":{"command":"doctor","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.5","warnings":[]}}` + "\n"
 	if result.ExitCode != 0 {
 		t.Fatalf("exit code = %d, want 0", result.ExitCode)
 	}
@@ -3579,7 +3579,7 @@ func TestExecuteDoctorRedactsCredentialStorageFailure(t *testing.T) {
 		},
 	})
 
-	const want = `{"ok":true,"data":{"healthy":false,"checks":[{"name":"credentials","status":"fail","message":"Credential storage is unavailable.","remediation":"Check local credential file permissions."}]},"meta":{"command":"doctor","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.4","warnings":[]}}` + "\n"
+	const want = `{"ok":true,"data":{"healthy":false,"checks":[{"name":"credentials","status":"fail","message":"Credential storage is unavailable.","remediation":"Check local credential file permissions."}]},"meta":{"command":"doctor","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.5","warnings":[]}}` + "\n"
 	if result.ExitCode != 0 {
 		t.Fatalf("exit code = %d, want 0", result.ExitCode)
 	}
@@ -3687,7 +3687,7 @@ func TestExecuteUsesDefinitionForFlagFailureCommandMetadata(t *testing.T) {
 		Stdin: strings.NewReader(""),
 	}, app.Dependencies{})
 
-	const want = `{"ok":false,"error":{"type":"input.invalid","code":"FLAG_REPEATED","message":"A scalar flag cannot be repeated.","retryable":false,"details":{"flag":"--non-interactive"}},"meta":{"command":"auth.status","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.4"}}` + "\n"
+	const want = `{"ok":false,"error":{"type":"input.invalid","code":"FLAG_REPEATED","message":"A scalar flag cannot be repeated.","retryable":false,"details":{"flag":"--non-interactive"}},"meta":{"command":"auth.status","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.5"}}` + "\n"
 	if result.ExitCode != 2 {
 		t.Fatalf("exit code = %d, want 2", result.ExitCode)
 	}
@@ -3731,7 +3731,7 @@ func TestExecuteUsesKnownCommandMetadataForInvalidArity(t *testing.T) {
 		Stdin: strings.NewReader(""),
 	}, app.Dependencies{})
 
-	const want = `{"ok":false,"error":{"type":"usage.invalid","code":"COMMAND_NOT_FOUND","message":"Unknown command.","retryable":false,"details":{}},"meta":{"command":"schema","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.4"}}` + "\n"
+	const want = `{"ok":false,"error":{"type":"usage.invalid","code":"COMMAND_NOT_FOUND","message":"Unknown command.","retryable":false,"details":{}},"meta":{"command":"schema","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.5"}}` + "\n"
 	if result.ExitCode != 2 {
 		t.Fatalf("exit code = %d, want 2", result.ExitCode)
 	}
@@ -3756,7 +3756,7 @@ func TestExecuteAuthStatusReportsConfigurationDirectoryFailure(t *testing.T) {
 		},
 	})
 
-	const wantStdout = `{"ok":false,"error":{"type":"internal.failure","code":"CONFIG_DIRECTORY_UNAVAILABLE","message":"Local configuration directory is unavailable.","retryable":false,"details":{}},"meta":{"command":"auth.status","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.4"}}` + "\n"
+	const wantStdout = `{"ok":false,"error":{"type":"internal.failure","code":"CONFIG_DIRECTORY_UNAVAILABLE","message":"Local configuration directory is unavailable.","retryable":false,"details":{}},"meta":{"command":"auth.status","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.5"}}` + "\n"
 	if result.ExitCode != 10 {
 		t.Fatalf("exit code = %d, want 10", result.ExitCode)
 	}
@@ -3781,7 +3781,7 @@ func TestExecuteDoctorDiagnosesConfigurationDirectoryFailure(t *testing.T) {
 		},
 	})
 
-	const want = `{"ok":true,"data":{"healthy":false,"checks":[{"name":"credentials","status":"fail","message":"Configuration directory is unavailable.","remediation":"Set a usable user configuration directory."}]},"meta":{"command":"doctor","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.4","warnings":[]}}` + "\n"
+	const want = `{"ok":true,"data":{"healthy":false,"checks":[{"name":"credentials","status":"fail","message":"Configuration directory is unavailable.","remediation":"Set a usable user configuration directory."}]},"meta":{"command":"doctor","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.5","warnings":[]}}` + "\n"
 	if result.ExitCode != 0 {
 		t.Fatalf("exit code = %d, want 0", result.ExitCode)
 	}

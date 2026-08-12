@@ -1133,7 +1133,7 @@ describe('remote API contract', () => {
     expect(evidence.readObservation.artifactPath).toBe(readEvidencePath);
   });
 
-  it('keeps the approved remote revision separate from the shipped revision', () => {
+  it('ships the owner-reviewed contact remote revision', () => {
     const productContract = fs.readFileSync(
       'docs/CLI-PRODUCT-CONTRACT.md',
       'utf8',
@@ -1153,12 +1153,12 @@ describe('remote API contract', () => {
       /"remoteContractRevision": "([^"]+)"/g,
     )].map((match) => match[1]);
 
-    expect(shippedRevision).toBe('2026-08-11.4');
+    expect(shippedRevision).toBe('2026-08-11.5');
     expect(documentedRevision).toBe(shippedRevision);
     expect(new Set(envelopeRevisions)).toEqual(new Set([shippedRevision]));
     expect(spec.info.version).toBe('2026-08-11.5');
     expect(evidence.status).toBe('owner-reviewed');
-    expect(spec.info.version).not.toBe(shippedRevision);
+    expect(spec.info.version).toBe(shippedRevision);
     expect(productContract)
       .not.toContain('currently leaves every operation response status and body unknown');
     expect(contactResearch)
@@ -1168,7 +1168,7 @@ describe('remote API contract', () => {
     expect(contactResearch).toMatch(
       /previous owner-reviewed remote contract[\s\S]+2026-08-11\.4/,
     );
-    expect(contactResearch).toMatch(/Proposed revision `2026-08-11\.5`/);
+    expect(contactResearch).toMatch(/Owner-reviewed revision `2026-08-11\.5`/);
   });
 
   it('captures the observed authentication response shapes from the attended session', () => {
