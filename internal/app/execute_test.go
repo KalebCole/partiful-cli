@@ -2464,6 +2464,118 @@ func TestExecuteContactsListFailsClosedOnNullRemoteCursor(t *testing.T) {
 	}
 }
 
+func TestExecuteContactsListMapsReviewedUnauthenticatedResponseToExpired(t *testing.T) {
+	const (
+		credentials  = `{"accessToken":"private-access-token","expiresAt":"2026-08-11T02:00:00Z"}`
+		privateValue = "private-remote-detail"
+	)
+	result := app.Execute(context.Background(), app.Request{
+		Argv:  []string{"contacts", "list"},
+		Stdin: strings.NewReader(""),
+	}, app.Dependencies{
+		Files: fakeFilesystem{
+			readFile: func(string) ([]byte, error) {
+				return []byte(credentials), nil
+			},
+		},
+		CredentialsPath: "/config/partiful/credentials.json",
+		Now: func() time.Time {
+			return time.Date(2026, time.August, 11, 0, 0, 0, 0, time.UTC)
+		},
+		AuthRandom: strings.NewReader("0123456789abcdef"),
+		HTTP: scriptedHTTP{do: func(*http.Request) (*http.Response, error) {
+			return jsonResponse(
+				http.StatusUnauthorized,
+				`{"error":{"message":"Unauthenticated","status":"UNAUTHENTICATED","detail":"`+privateValue+`"}}`,
+			), nil
+		}},
+	})
+
+	const wantStdout = `{"ok":false,"error":{"type":"auth.expired","code":"REMOTE_SESSION_UNAUTHENTICATED","message":"Stored authentication is no longer accepted. Log in again.","retryable":false,"details":{}},"meta":{"command":"contacts.list","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.4"}}` + "\n"
+	if result.ExitCode != 3 || result.Stdout != wantStdout {
+		t.Fatalf("result = %#v, want reviewed unauthenticated mapping", result)
+	}
+	if strings.Contains(result.Stdout+result.Stderr, privateValue) {
+		t.Fatal("unauthenticated failure exposed remote response content")
+	}
+}
+
+func TestExecuteContactsListRefreshesExpiringSessionBeforeProtectedRead(t *testing.T) {
+	const (
+		credentialsPath = "/config/partiful/credentials.json"
+		oldAccess       = "private-old-access"
+		newAccess       = "private-new-access"
+		newRefresh      = "private-new-refresh"
+	)
+	document := []byte(
+		`{"accessToken":"` + oldAccess +
+			`","refreshToken":"private-old-refresh","expiresAt":"2026-08-11T00:04:00Z"}`,
+	)
+	call := 0
+	result := app.Execute(context.Background(), app.Request{
+		Argv:  []string{"contacts", "list"},
+		Stdin: strings.NewReader(""),
+	}, app.Dependencies{
+		Files: fakeFilesystem{
+			readFile: func(string) ([]byte, error) {
+				return append([]byte(nil), document...), nil
+			},
+			writeFileAtomic: func(_ string, replacement []byte) error {
+				document = append([]byte(nil), replacement...)
+				return nil
+			},
+		},
+		CredentialsPath: credentialsPath,
+		Now: func() time.Time {
+			return time.Date(2026, time.August, 11, 0, 0, 0, 0, time.UTC)
+		},
+		AuthRandom: strings.NewReader("0123456789abcdef"),
+		HTTP: scriptedHTTP{do: func(request *http.Request) (*http.Response, error) {
+			call++
+			switch call {
+			case 1:
+				if request.URL.Host != "securetoken.googleapis.com" {
+					t.Fatalf("first request host = %q, want session refresh", request.URL.Host)
+				}
+				return jsonResponse(
+					http.StatusOK,
+					`{"access_token":"private-alias","id_token":"`+newAccess+`","refresh_token":"`+newRefresh+`","expires_in":"3600","token_type":"Bearer"}`,
+				), nil
+			case 2:
+				if got := request.Header.Get("Authorization"); got != "Bearer "+newAccess {
+					t.Fatalf("contacts authorization = %q, want refreshed session", got)
+				}
+				return jsonResponse(
+					http.StatusOK,
+					`{"result":{"data":[{"id":"private-contact","name":"Refreshed Contact","sharedEventCount":4}],"paging":{"nextCursor":"remote-cursor"}}}`,
+				), nil
+			case 3:
+				return jsonResponse(
+					http.StatusOK,
+					`{"result":{"data":[],"paging":{}}}`,
+				), nil
+			default:
+				return nil, errors.New("unexpected request")
+			}
+		}},
+	})
+
+	if result.ExitCode != 0 ||
+		!strings.Contains(result.Stdout, `"displayName":"Refreshed Contact"`) {
+		t.Fatalf("result = %#v, want protected read after deterministic refresh", result)
+	}
+	if !bytes.Contains(document, []byte(newAccess)) ||
+		!bytes.Contains(document, []byte(newRefresh)) ||
+		bytes.Contains(document, []byte(oldAccess)) {
+		t.Fatal("credentials were not atomically replaced with refreshed session")
+	}
+	for _, privateValue := range []string{oldAccess, newAccess, newRefresh, "private-contact"} {
+		if strings.Contains(result.Stdout+result.Stderr, privateValue) {
+			t.Fatalf("result exposed private session value %q", privateValue)
+		}
+	}
+}
+
 func TestExecuteAuthStatusRedactsHealthyCredentials(t *testing.T) {
 	const credentials = `{"accessToken":"secret-token-value","refreshToken":"secret-refresh-value","userId":"private-user-value","expiresAt":"2026-08-11T02:00:00Z"}`
 	result := app.Execute(context.Background(), app.Request{

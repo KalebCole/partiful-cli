@@ -5,6 +5,7 @@ import (
 	"context"
 	"crypto/sha256"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"mime"
@@ -21,6 +22,8 @@ const (
 	maximumContactCatalogSize = contactPageSize * maximumContactDataPages
 	maximumContactPageBytes   = 4 << 20
 )
+
+var ErrUnauthenticated = errors.New("remote authentication is required")
 
 type Contact struct {
 	ID               string
@@ -166,6 +169,12 @@ func (client Client) getContactsPage(
 		return contactsResponse{}, fmt.Errorf("%w: contacts response", ErrProtocolChanged)
 	}
 	defer response.Body.Close()
+	if response.StatusCode == http.StatusUnauthorized {
+		if !validContactsUnauthenticated(response) {
+			return contactsResponse{}, fmt.Errorf("%w: contacts unauthenticated response", ErrProtocolChanged)
+		}
+		return contactsResponse{}, ErrUnauthenticated
+	}
 	if response.StatusCode != http.StatusOK {
 		return contactsResponse{}, fmt.Errorf("%w: contacts status", ErrProtocolChanged)
 	}
@@ -187,4 +196,28 @@ func (client Client) getContactsPage(
 		return contactsResponse{}, fmt.Errorf("%w: contacts response body", ErrProtocolChanged)
 	}
 	return page, nil
+}
+
+func validContactsUnauthenticated(response *http.Response) bool {
+	mediaType, _, err := mime.ParseMediaType(response.Header.Get("Content-Type"))
+	if err != nil || mediaType != "application/json" {
+		return false
+	}
+	body, err := io.ReadAll(io.LimitReader(response.Body, maximumContactPageBytes+1))
+	if err != nil ||
+		len(body) > maximumContactPageBytes ||
+		!utf8.Valid(body) {
+		return false
+	}
+	var failure struct {
+		Error *struct {
+			Message *string `json:"message"`
+			Status  *string `json:"status"`
+		} `json:"error"`
+	}
+	return json.Unmarshal(body, &failure) == nil &&
+		failure.Error != nil &&
+		failure.Error.Message != nil &&
+		failure.Error.Status != nil &&
+		*failure.Error.Status == "UNAUTHENTICATED"
 }

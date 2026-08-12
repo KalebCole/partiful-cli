@@ -898,6 +898,14 @@ func Execute(ctx context.Context, request Request, dependencies Dependencies) Re
 					if errors.Is(err, remote.ErrUnavailable) {
 						return contactsUnavailableFailure(definition.path, pretty)
 					}
+					if errors.Is(err, remote.ErrUnauthenticated) {
+						return authenticationExpiredFailure(
+							definition.path,
+							"REMOTE_SESSION_UNAUTHENTICATED",
+							"Stored authentication is no longer accepted. Log in again.",
+							pretty,
+						)
+					}
 					return contactsProtocolChangedFailure(definition.path, pretty)
 				}
 				filteredContacts := filterContacts(catalog.Contacts, options.query)

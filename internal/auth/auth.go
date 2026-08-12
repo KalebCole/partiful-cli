@@ -189,8 +189,31 @@ func AcquireSession(
 			operationErr = err
 			return
 		}
-		if !credentials.ExpiresAt.After(now()) {
-			operationErr = ErrExpired
+		state := stateFromCredentials(credentials, now())
+		if state.TokenState == "healthy" {
+			session = Session{AccessToken: credentials.AccessToken}
+			return
+		}
+		if credentials.RefreshToken == "" {
+			if state.TokenState == "expired" {
+				operationErr = ErrExpired
+				return
+			}
+			session = Session{AccessToken: credentials.AccessToken}
+			return
+		}
+		refreshed, err := client.RefreshToken(ctx, credentials.RefreshToken)
+		if err != nil {
+			operationErr = err
+			return
+		}
+		credentials = credentialRecord{
+			AccessToken:  refreshed.IDToken,
+			RefreshToken: refreshed.RefreshToken,
+			ExpiresAt:    now().Add(refreshed.ExpiresIn).UTC(),
+		}
+		if err := saveCredentialsUnlocked(files, path, credentials); err != nil {
+			operationErr = ErrPersistence
 			return
 		}
 		session = Session{AccessToken: credentials.AccessToken}
