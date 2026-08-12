@@ -8,6 +8,9 @@ const historicalDraftPath = 'spec/research/historical-27-operation-draft.json';
 const historicalDraft = JSON.parse(fs.readFileSync(historicalDraftPath, 'utf8'));
 const readEvidencePath = 'spec/research/read-evidence-redacted-20260811.json';
 const readEvidence = JSON.parse(fs.readFileSync(readEvidencePath, 'utf8'));
+const eventAssetResearchPath =
+  'docs/research/2026-08-12-event-read-mapping-public-assets.md';
+const productContractPath = 'docs/CLI-PRODUCT-CONTRACT.md';
 const sourceCache = new Map([
   [historicalDraftPath, historicalDraft],
   [readEvidencePath, readEvidence],
@@ -239,9 +242,15 @@ function citationResolves(citation) {
 describe('remote API contract', () => {
   it('is a consistently versioned OpenAPI 3.1 document with unique operation IDs', () => {
     expect(spec.openapi).toBe('3.1.0');
-    expect(evidence.contractRevision).toBe('2026-08-11.5');
+    expect(evidence.contractRevision).toBe('2026-08-12.1');
     expect(spec.info.version).toBe(evidence.contractRevision);
     expect(evidence.status).toBe('owner-reviewed');
+    expect(evidence.sources.publicEventMapping20260812)
+      .toBe(`${eventAssetResearchPath}#scope-and-provenance`);
+    expect(citationResolves(evidence.sources.publicEventMapping20260812)).toBe(true);
+    const appSource = fs.readFileSync('internal/app/app.go', 'utf8');
+    expect(appSource).toContain('ProductContractRevision = "2026-08-10.1"');
+    expect(appSource).toContain('RemoteContractRevision  = "2026-08-11.5"');
     const ids = operations().map(({ operation }) => operation.operationId);
     expect(ids).toHaveLength(27);
     expect(new Set(ids).size).toBe(ids.length);
@@ -287,7 +296,7 @@ describe('remote API contract', () => {
       ...materialClaimPointers(spec.paths, '#/paths', 'paths'),
       ...materialClaimPointers(spec.components, '#/components', 'components'),
     ]);
-    expect(pointers).toHaveLength(1230);
+    expect(pointers).toHaveLength(1254);
     for (const pointer of pointers) {
       const claim = evidence.claims[pointer];
       expect(claim, pointer).toBeDefined();
@@ -345,7 +354,14 @@ describe('remote API contract', () => {
     expect(ledger).toMatch(
       /Eleven of those\s+operations have a typed `200` response body\./,
     );
-    expect(ledger.match(/The 1230 material claims/g)).toHaveLength(2);
+    expect(ledger.match(/The 1254 material claims/g)).toHaveLength(2);
+    expect(ledger).toContain(
+      '**Owner-reviewed contract revision:** `2026-08-12.1`',
+    );
+    expect(ledger).toContain(
+      '**Status:** Owner-reviewed under the issue #114 delegation',
+    );
+    expect(ledger).toContain('Current first-party public-asset research');
   });
 
   it('contains remote transport facts rather than product or implementation policy', () => {
@@ -693,6 +709,7 @@ describe('remote API contract', () => {
         response: 'dated-live-observation',
         status: 'dated-live-observation',
       });
+
       expect(evidence.readObservation.eventLists[rawField]).toMatchObject({
         rawPath: `result.data.${rawField}`,
         firstCount: count,
@@ -727,23 +744,198 @@ describe('remote API contract', () => {
         startDate: { type: 'string' },
         endDate: { type: ['string', 'null'] },
         timezone: { type: 'string' },
-        status: { type: 'string' },
+        status: { $ref: '#/components/schemas/EventStatus' },
+        ownerIds: {
+          type: 'array',
+          items: { type: 'string' },
+        },
         location: { type: ['string', 'null'] },
         displaySettings: { type: 'object' },
         image: { type: ['object', 'null'] },
         guest: {
           type: 'object',
-          properties: { status: { type: 'string' } },
+          properties: {
+            status: { $ref: '#/components/schemas/GuestStatus' },
+          },
         },
       },
     });
     expect(evidence.readObservation.productProjection).toMatchObject({
       eventId: 'supported-by-complete-item-id',
-      titleStartEndTimezone: 'observed-types-only-presence-not-proven',
-      myRsvp: 'selected-item-guest-status-observed',
-      stateMapping: 'explicit-unknown',
-      userRoleMapping: 'explicit-unknown',
+      optionalScalars: 'null-when-reviewed-property-is-unavailable',
+      myRsvp: 'lossless-closed-guest-status-normalization-or-null',
+      stateMapping: {
+        PUBLISHED: 'active',
+        CANCELED: 'cancelled',
+      },
+      userRoleMapping: {
+        ownerMembership: 'host',
+        nonOwnerWithGuest: 'attendee',
+        nonOwnerWithoutGuest: 'none',
+        ownerIdsUnavailable: null,
+        cohost: 'reserved-not-emitted',
+      },
     });
+  });
+
+  it('records the current first-party event mapping assets without private data', () => {
+    expect(fs.existsSync(eventAssetResearchPath)).toBe(true);
+    const research = fs.readFileSync(eventAssetResearchPath, 'utf8');
+    for (const expected of [
+      'z1npyrEHkwRMn_JlKXQXR',
+      'pages/events-16d5030ecfa4fd91.js',
+      'pages/_app-05be110884cfdc20.js',
+      'module `18539`',
+      'module `50218`',
+      'module `54257`',
+      'LIVE: "PUBLISHED"',
+      'CANCELED: "CANCELED"',
+      'event.ownerIds.includes(userId)',
+      'READY_TO_SEND',
+      'RESPONDED_TO_FIND_A_TIME',
+    ]) {
+      expect(research, expected).toContain(expected);
+    }
+    for (const unsafe of [
+      /(?<![\w])\+[1-9]\d{9,14}(?!\d)/,
+      /\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/i,
+      /\beyJ[A-Za-z0-9_-]{12,}\.[A-Za-z0-9_-]{8,}\./,
+      /"(?:eventId|guestId|userId|id|name)"\s*:\s*"[^"]+"/,
+    ]) {
+      expect(research).not.toMatch(unsafe);
+    }
+  });
+
+  it('promotes only the public-asset event status, owner, and guest-status facts', () => {
+    expect(spec.components.schemas.EventStatus).toEqual({
+      type: 'string',
+      enum: ['UNSAVED', 'PUBLISHED', 'CANCELED'],
+    });
+    expect(spec.components.schemas.GuestStatus).toEqual({
+      type: 'string',
+      enum: [
+        'READY_TO_SEND',
+        'SENDING',
+        'SEND_ERROR',
+        'DELIVERY_ERROR',
+        'SENT',
+        'INTERESTED',
+        'WAITLIST',
+        'MAYBE',
+        'DECLINED',
+        'GOING',
+        'PENDING_APPROVAL',
+        'APPROVED',
+        'WITHDRAWN',
+        'WAITLISTED_FOR_APPROVAL',
+        'REJECTED',
+        'RESPONDED_TO_FIND_A_TIME',
+      ],
+    });
+
+    const homePageEvent = spec.components.schemas.HomePageEvent;
+    expect(homePageEvent.required).toEqual(['id']);
+    expect(homePageEvent.properties.status)
+      .toEqual({ $ref: '#/components/schemas/EventStatus' });
+    expect(homePageEvent.properties.ownerIds).toEqual({
+      type: 'array',
+      items: { type: 'string' },
+    });
+    expect(homePageEvent.properties.guest.properties.status)
+      .toEqual({ $ref: '#/components/schemas/GuestStatus' });
+    expect(spec.components.schemas.EventInfo.properties.status)
+      .toEqual({ $ref: '#/components/schemas/EventStatus' });
+    expect(spec.components.schemas.EventInfo.properties).not.toHaveProperty('ownerIds');
+    expect(spec.components.schemas.EventInfo.properties).not.toHaveProperty('guest');
+
+    const publicAssetClass = 'current-first-party-public-asset-research';
+    expect(evidence.allowedClassifications).toContain(publicAssetClass);
+    for (const [pointer, citation] of [
+      [
+        '#/components/schemas/EventStatus/type',
+        evidence.sources.publicEventStatus20260812,
+      ],
+      [
+        '#/components/schemas/GuestStatus/type',
+        evidence.sources.publicGuestStatus20260812,
+      ],
+      [
+        '#/components/schemas/HomePageEvent/properties/ownerIds',
+        evidence.sources.publicEventOwnership20260812,
+      ],
+    ]) {
+      expect(evidence.claims[pointer]).toEqual({
+        classification: publicAssetClass,
+        citation,
+      });
+      expect(citationResolves(citation), citation).toBe(true);
+    }
+    expect(evidence.publicEventAssetResearch).toMatchObject({
+      sourceCitation: evidence.sources.publicEventMapping20260812,
+      observedAt: '2026-08-12T02:03:29Z',
+      buildId: 'z1npyrEHkwRMn_JlKXQXR',
+      modules: {
+        eventStatus: 18539,
+        eventOwnership: 50218,
+        guestStatus: 54257,
+      },
+      eventStatus: {
+        LIVE: 'PUBLISHED',
+        CANCELED: 'CANCELED',
+      },
+      ownership: {
+        field: 'ownerIds',
+        comparison: 'event.ownerIds.includes(userId)',
+        ownerProductRole: 'host',
+        cohostDistinction: 'not-present',
+      },
+      guestStatuses: spec.components.schemas.GuestStatus.enum,
+    });
+  });
+
+  it('defines conservative nullable event reads and bounded local snapshots', () => {
+    const product = fs.readFileSync(productContractPath, 'utf8');
+    for (const expected of [
+      '**Status:** Approved product contract',
+      '**Product contract revision:** `2026-08-12.1`',
+      '**Remote API contract revision:** `2026-08-12.1`',
+      '`PUBLISHED` → `active`',
+      '`CANCELED` → `cancelled`',
+      '`UNSAVED` exists in the current first-party client vocabulary',
+      '`ownerIds` contains the current user → `host`',
+      '`ownerIds` is present, does not contain the current user, and `guest` is present → `attendee`',
+      '`cohost` is reserved',
+      '| `READY_TO_SEND` | `ready-to-send` |',
+      '| `RESPONDED_TO_FIND_A_TIME` | `responded-to-find-a-time` |',
+      'Null `myRsvp` means that no current guest object or status is available.',
+      'unavailable-not-claimed',
+      '1,000 items',
+      '8 MiB',
+      'digest-bound',
+      '`CURSOR_SNAPSHOT_CHANGED`',
+      '`404 NOT_FOUND` → `resource.not_found`',
+      'does not call `firestoreGetEvent`',
+      'permission mapping is deferred',
+      'Missing credentials return `auth.required`',
+      'A refresh rejected by the reviewed remote mapping also returns `auth.expired`',
+      'requires `result.data.event` to be an object',
+      'null, scalar, or array event value returns',
+    ]) {
+      expect(product, expected).toContain(expected);
+    }
+    expect(product).toMatch(
+      /`eventId` is the only non-null event-read field[\s\S]+all other documented event-read fields are\s+nullable/i,
+    );
+    expect(product).toMatch(
+      /`links` is\s+`null`[\s\S]+does not mean that the remote event has\s+no\s+links/,
+    );
+    expect(product).toMatch(
+      /unrecognized received status[\s\S]+`contract\.protocol_changed`/,
+    );
+
+    const appSource = fs.readFileSync('internal/app/app.go', 'utf8');
+    expect(appSource).toContain('ProductContractRevision = "2026-08-10.1"');
+    expect(appSource).toContain('RemoteContractRevision  = "2026-08-11.5"');
   });
 
   it('formalizes only the observed event-detail and guest read variants', () => {
@@ -765,7 +957,7 @@ describe('remote API contract', () => {
       startDate: { type: 'string' },
       endDate: { type: ['string', 'null'] },
       timezone: { type: 'string' },
-      status: { type: 'string' },
+      status: { $ref: '#/components/schemas/EventStatus' },
       description: {},
       displaySettings: { type: 'object' },
       image: { type: ['object', 'null'] },
@@ -791,11 +983,14 @@ describe('remote API contract', () => {
     });
     const eventListCitation =
       'docs/research/2026-08-11-event-contacts-read-observation.md#event-list-observations';
-    for (const field of ['id', 'startDate', 'timezone', 'status', 'displaySettings']) {
+    for (const field of ['id', 'startDate', 'timezone', 'displaySettings']) {
       expect(evidence.claims[
         `#/components/schemas/EventInfo/properties/${field}/type`
       ]?.citation).toBe(eventListCitation);
     }
+    expect(evidence.claims[
+      '#/components/schemas/EventInfo/properties/status/$ref'
+    ]?.citation).toBe(evidence.sources.publicEventStatus20260812);
     for (const field of ['endDate', 'image']) {
       for (const index of [0, 1]) {
         expect(evidence.claims[
@@ -1133,7 +1328,7 @@ describe('remote API contract', () => {
     expect(evidence.readObservation.artifactPath).toBe(readEvidencePath);
   });
 
-  it('ships the owner-reviewed contact remote revision', () => {
+  it('keeps shipped Go revisions unchanged while the event contracts are proposed', () => {
     const productContract = fs.readFileSync(
       'docs/CLI-PRODUCT-CONTRACT.md',
       'utf8',
@@ -1149,16 +1344,21 @@ describe('remote API contract', () => {
     const documentedRevision = productContract.match(
       /\*\*Remote API contract revision:\*\* `([^`]+)`/,
     )?.[1];
+    const documentedProductRevision = productContract.match(
+      /\*\*Product contract revision:\*\* `([^`]+)`/,
+    )?.[1];
     const envelopeRevisions = [...productContract.matchAll(
       /"remoteContractRevision": "([^"]+)"/g,
     )].map((match) => match[1]);
 
     expect(shippedRevision).toBe('2026-08-11.5');
-    expect(documentedRevision).toBe(shippedRevision);
-    expect(new Set(envelopeRevisions)).toEqual(new Set([shippedRevision]));
-    expect(spec.info.version).toBe('2026-08-11.5');
+    expect(documentedRevision).toBe('2026-08-12.1');
+    expect(documentedProductRevision).toBe('2026-08-12.1');
+    expect(new Set(envelopeRevisions)).toEqual(new Set([documentedRevision]));
+    expect(spec.info.version).toBe(documentedRevision);
     expect(evidence.status).toBe('owner-reviewed');
-    expect(spec.info.version).toBe(shippedRevision);
+    expect(spec.info.version).not.toBe(shippedRevision);
+    expect(appSource).toContain('ProductContractRevision = "2026-08-10.1"');
     expect(productContract)
       .not.toContain('currently leaves every operation response status and body unknown');
     expect(contactResearch)

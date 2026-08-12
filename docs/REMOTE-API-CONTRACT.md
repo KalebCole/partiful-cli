@@ -1,9 +1,10 @@
 # Remote API contract
 
-`spec/partiful.openapi.json` is owner-reviewed revision `2026-08-11.5` of the
-remote transport snapshot. It describes only network operations and wire
-shapes. It does not prescribe commands, output, credentials, mutation
-safeguards, or implementation architecture.
+`spec/partiful.openapi.json` is owner-reviewed revision `2026-08-12.1` of the
+remote transport snapshot. It is based on owner-reviewed revision
+`2026-08-11.5`. It describes only network operations and wire shapes. It does
+not prescribe commands, output, credentials, mutation safeguards, or
+implementation architecture.
 
 ## Authority and change process
 
@@ -23,7 +24,7 @@ with guessed fields, captured credentials, real identifiers, or personal data.
 `docs/research/2026-08-10-partiful-api-contract-evidence-ledger.md` is the
 human-readable companion to the machine-readable ledger.
 
-## Read evidence revision
+## Owner-reviewed read evidence baseline
 
 Revision `2026-08-11.5` records dated response and status evidence for
 `getMyUpcomingEventsForHomePage`, `getMyPastEventsForHomePage`,
@@ -64,6 +65,38 @@ output remains display name and shared-event count. Signed-out access returned
 Unsupported statuses, ordering, snapshots, invalid cursors, cursor lifetime,
 `useAuthUser`, rate limiting, future catalog completeness, inaccessible-event
 permission behavior, and other unobserved variants remain explicit unknowns.
+
+## Event mapping correction
+
+Revision `2026-08-12.1` adds current first-party public-asset
+research from
+`docs/research/2026-08-12-event-read-mapping-public-assets.md`. It promotes
+only facts used directly by the current `/events` build:
+
+- module `18539` defines the client event-status vocabulary `UNSAVED`,
+  `PUBLISHED`, and `CANCELED`; only `PUBLISHED` and `CANCELED` have S3 product
+  mappings;
+- homepage event `ownerIds` is the private identity collection used by
+  `event.ownerIds.includes(userId)` for host membership; and
+- module `54257` defines the closed 16-value guest-status enum.
+
+The `HomePageEvent.status` and conditional `EventInfo.status` properties now
+reference that three-value client vocabulary. `HomePageEvent.ownerIds` remains
+optional. The inline homepage guest status references the closed
+`GuestStatus` schema. No new field is required, and the single-sample
+`EventInfo` and `CurrentGuest` top-level uncertainty is unchanged.
+
+The public assets send no paging argument for the two homepage list calls.
+This agrees with the observed one-response arrays but does not establish
+remote order, limits, snapshots, paging, or future completeness. Digest-bound
+pagination and local item/body ceilings are CLI product behavior, not remote
+claims.
+
+No response status changed in this proposal. `getEventInfo` retains only
+reviewed `200` and `404 NOT_FOUND`; an unobserved `403` remains protocol drift.
+`firestoreGetEvent` remains unusable as an S3 success or permission path
+because its selected and synthetic requests both returned
+`403 PERMISSION_DENIED`.
 
 ## Historical provenance
 

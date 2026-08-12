@@ -149,3 +149,14 @@ deduplication by contact `id` with the first occurrence winning. These client
 behaviors do not establish server ordering or duplicate behavior. This is
 reviewed first-party repository research, not a live-server request-shape
 observation.
+
+## Current public event mapping assets
+
+The unauthenticated first-party asset research in
+`docs/research/2026-08-12-event-read-mapping-public-assets.md`, under “Scope and
+provenance,” records the current `/events` build, exact module IDs, asset
+digests, event-status wire values, owner-membership host check, and closed
+guest-status enum. It contains no account-scoped response values or private
+identifiers. Public assets establish current client field and enum behavior;
+they do not establish server statuses, field presence, remote pagination,
+ordering, limits, or inaccessible-event behavior.

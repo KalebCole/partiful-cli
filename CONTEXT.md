@@ -23,6 +23,11 @@ until it is reviewed into the remote API contract.
 A remote-evidence condition that must be satisfied before a public command can
 ship. A command does not use an implementation gate as a runtime fallback.
 
+**Unavailable-not-claimed**:
+A documented nullable product field that the current implementation
+intentionally does not project because no reviewed remote mapping exists.
+Null does not claim that the remote field is absent and is not protocol drift.
+
 **Protocol change**:  
 A difference between current Partiful behavior and the remote API contract
 that a released command was built against.

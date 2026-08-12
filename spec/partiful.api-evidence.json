@@ -1,8 +1,9 @@
 {
-  "contractRevision": "2026-08-11.5",
+  "contractRevision": "2026-08-12.1",
   "contractPath": "spec/partiful.openapi.json",
   "allowedClassifications": [
     "dated-live-observation",
+    "current-first-party-public-asset-research",
     "reviewed-first-party-repository-research",
     "typescript-derived-inference",
     "explicit-unknown"
@@ -32,7 +33,12 @@
     "readPrivacy20260811": "docs/research/2026-08-11-event-contacts-read-observation.md#privacy-boundary",
     "readUnknowns20260811": "docs/research/2026-08-11-event-contacts-read-observation.md#remaining-unknowns",
     "publicContactPaging20260811": "docs/research/2026-08-11-contacts-pagination-public-assets.md#exact-callable-argument",
-    "publicContactDeduplication20260811": "docs/research/2026-08-11-contacts-pagination-public-assets.md#ordering-duplicates-and-filtering"
+    "publicContactDeduplication20260811": "docs/research/2026-08-11-contacts-pagination-public-assets.md#ordering-duplicates-and-filtering",
+    "publicEventMapping20260812": "docs/research/2026-08-12-event-read-mapping-public-assets.md#scope-and-provenance",
+    "publicEventStatus20260812": "docs/research/2026-08-12-event-read-mapping-public-assets.md#event-status",
+    "publicEventOwnership20260812": "docs/research/2026-08-12-event-read-mapping-public-assets.md#owner-membership-and-hosting",
+    "publicGuestStatus20260812": "docs/research/2026-08-12-event-read-mapping-public-assets.md#guest-statuses",
+    "publicEventPagination20260812": "docs/research/2026-08-12-event-read-mapping-public-assets.md#pagination-boundary"
   },
   "operations": {
     "createEvent": {
@@ -4672,6 +4678,90 @@
       "classification": "typescript-derived-inference",
       "citation": "docs/research/2026-08-11-auth-observation.md#refreshtoken"
     },
+    "#/components/schemas/EventStatus/type": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-event-read-mapping-public-assets.md#event-status"
+    },
+    "#/components/schemas/EventStatus/enum/0": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-event-read-mapping-public-assets.md#event-status"
+    },
+    "#/components/schemas/EventStatus/enum/1": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-event-read-mapping-public-assets.md#event-status"
+    },
+    "#/components/schemas/EventStatus/enum/2": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-event-read-mapping-public-assets.md#event-status"
+    },
+    "#/components/schemas/GuestStatus/type": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-event-read-mapping-public-assets.md#guest-statuses"
+    },
+    "#/components/schemas/GuestStatus/enum/0": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-event-read-mapping-public-assets.md#guest-statuses"
+    },
+    "#/components/schemas/GuestStatus/enum/1": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-event-read-mapping-public-assets.md#guest-statuses"
+    },
+    "#/components/schemas/GuestStatus/enum/2": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-event-read-mapping-public-assets.md#guest-statuses"
+    },
+    "#/components/schemas/GuestStatus/enum/3": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-event-read-mapping-public-assets.md#guest-statuses"
+    },
+    "#/components/schemas/GuestStatus/enum/4": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-event-read-mapping-public-assets.md#guest-statuses"
+    },
+    "#/components/schemas/GuestStatus/enum/5": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-event-read-mapping-public-assets.md#guest-statuses"
+    },
+    "#/components/schemas/GuestStatus/enum/6": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-event-read-mapping-public-assets.md#guest-statuses"
+    },
+    "#/components/schemas/GuestStatus/enum/7": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-event-read-mapping-public-assets.md#guest-statuses"
+    },
+    "#/components/schemas/GuestStatus/enum/8": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-event-read-mapping-public-assets.md#guest-statuses"
+    },
+    "#/components/schemas/GuestStatus/enum/9": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-event-read-mapping-public-assets.md#guest-statuses"
+    },
+    "#/components/schemas/GuestStatus/enum/10": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-event-read-mapping-public-assets.md#guest-statuses"
+    },
+    "#/components/schemas/GuestStatus/enum/11": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-event-read-mapping-public-assets.md#guest-statuses"
+    },
+    "#/components/schemas/GuestStatus/enum/12": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-event-read-mapping-public-assets.md#guest-statuses"
+    },
+    "#/components/schemas/GuestStatus/enum/13": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-event-read-mapping-public-assets.md#guest-statuses"
+    },
+    "#/components/schemas/GuestStatus/enum/14": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-event-read-mapping-public-assets.md#guest-statuses"
+    },
+    "#/components/schemas/GuestStatus/enum/15": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-event-read-mapping-public-assets.md#guest-statuses"
+    },
     "#/components/schemas/HomePageEvent/type": {
       "classification": "dated-live-observation",
       "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#event-list-observations"
@@ -4724,9 +4814,21 @@
       "classification": "dated-live-observation",
       "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#event-list-observations"
     },
-    "#/components/schemas/HomePageEvent/properties/status/type": {
-      "classification": "dated-live-observation",
-      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#event-list-observations"
+    "#/components/schemas/HomePageEvent/properties/status/$ref": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-event-read-mapping-public-assets.md#event-status"
+    },
+    "#/components/schemas/HomePageEvent/properties/ownerIds": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-event-read-mapping-public-assets.md#owner-membership-and-hosting"
+    },
+    "#/components/schemas/HomePageEvent/properties/ownerIds/type": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-event-read-mapping-public-assets.md#owner-membership-and-hosting"
+    },
+    "#/components/schemas/HomePageEvent/properties/ownerIds/items/type": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-event-read-mapping-public-assets.md#owner-membership-and-hosting"
     },
     "#/components/schemas/HomePageEvent/properties/location": {
       "classification": "dated-live-observation",
@@ -4772,9 +4874,9 @@
       "classification": "dated-live-observation",
       "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#event-list-observations"
     },
-    "#/components/schemas/HomePageEvent/properties/guest/properties/status/type": {
-      "classification": "dated-live-observation",
-      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#event-list-observations"
+    "#/components/schemas/HomePageEvent/properties/guest/properties/status/$ref": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-event-read-mapping-public-assets.md#guest-statuses"
     },
     "#/components/schemas/EventInfo/properties/id": {
       "classification": "dated-live-observation",
@@ -4820,9 +4922,9 @@
       "classification": "dated-live-observation",
       "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#event-detail-observations"
     },
-    "#/components/schemas/EventInfo/properties/status/type": {
-      "classification": "dated-live-observation",
-      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#event-list-observations"
+    "#/components/schemas/EventInfo/properties/status/$ref": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-event-read-mapping-public-assets.md#event-status"
     },
     "#/components/schemas/EventInfo/properties/description": {
       "classification": "dated-live-observation",
@@ -5354,6 +5456,73 @@
       "rateLimiting": "not-claimed"
     }
   },
+  "publicEventAssetResearch": {
+    "classification": "current-first-party-public-asset-research",
+    "sourceCitation": "docs/research/2026-08-12-event-read-mapping-public-assets.md#scope-and-provenance",
+    "observedAt": "2026-08-12T02:03:29Z",
+    "buildId": "z1npyrEHkwRMn_JlKXQXR",
+    "assets": {
+      "buildManifest": {
+        "url": "https://partiful.com/_next/static/z1npyrEHkwRMn_JlKXQXR/_buildManifest.js",
+        "bytes": 11476,
+        "sha256": "6014233108449ef82cd4066e6f29476845e3a637e0adfceb79b7cb17fd7d0159"
+      },
+      "eventsPage": {
+        "url": "https://partiful.com/_next/static/chunks/pages/events-16d5030ecfa4fd91.js",
+        "bytes": 65476,
+        "sha256": "f06c1b0d78258ebb02ad6a95152ef4f9628c25c7ab54720180ed43db97e9f1fa"
+      },
+      "sharedApp": {
+        "url": "https://partiful.com/_next/static/chunks/pages/_app-05be110884cfdc20.js",
+        "bytes": 2369333,
+        "sha256": "46a2fe543a4aa17f2cd5d5f8d0547b8f8e692b43b9d7b7061d78f1a01228c9fe"
+      }
+    },
+    "modules": {
+      "eventStatus": 18539,
+      "eventOwnership": 50218,
+      "guestStatus": 54257,
+      "upcomingOperation": 48666,
+      "upcomingQuery": 17350,
+      "pastOperation": 35932,
+      "pastQuery": 22920
+    },
+    "eventStatus": {
+      "LIVE": "PUBLISHED",
+      "CANCELED": "CANCELED"
+    },
+    "ownership": {
+      "field": "ownerIds",
+      "comparison": "event.ownerIds.includes(userId)",
+      "ownerProductRole": "host",
+      "cohostDistinction": "not-present"
+    },
+    "guestStatuses": [
+      "READY_TO_SEND",
+      "SENDING",
+      "SEND_ERROR",
+      "DELIVERY_ERROR",
+      "SENT",
+      "INTERESTED",
+      "WAITLIST",
+      "MAYBE",
+      "DECLINED",
+      "GOING",
+      "PENDING_APPROVAL",
+      "APPROVED",
+      "WITHDRAWN",
+      "WAITLISTED_FOR_APPROVAL",
+      "REJECTED",
+      "RESPONDED_TO_FIND_A_TIME"
+    ],
+    "listTransport": {
+      "requestPaging": "absent",
+      "responsePaging": "absent-in-reviewed-observation",
+      "remoteOrdering": "explicit-unknown",
+      "remoteLimits": "explicit-unknown",
+      "remoteSnapshot": "explicit-unknown"
+    }
+  },
   "authObservation": {
     "sourceCitation": "docs/research/2026-08-11-auth-observation.md#scope-and-provenance",
     "observedAt": "2026-08-11T02:30:19Z",
@@ -5444,9 +5613,19 @@
     "productProjection": {
       "eventId": "supported-by-complete-item-id",
       "titleStartEndTimezone": "observed-types-only-presence-not-proven",
-      "myRsvp": "selected-item-guest-status-observed",
-      "stateMapping": "explicit-unknown",
-      "userRoleMapping": "explicit-unknown"
+      "optionalScalars": "null-when-reviewed-property-is-unavailable",
+      "myRsvp": "lossless-closed-guest-status-normalization-or-null",
+      "stateMapping": {
+        "PUBLISHED": "active",
+        "CANCELED": "cancelled"
+      },
+      "userRoleMapping": {
+        "ownerMembership": "host",
+        "nonOwnerWithGuest": "attendee",
+        "nonOwnerWithoutGuest": "none",
+        "ownerIdsUnavailable": null,
+        "cohost": "reserved-not-emitted"
+      }
     },
     "getEventInfo": {
       "selectedAuthenticatedStatus": 200,
