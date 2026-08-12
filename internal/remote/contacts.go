@@ -51,12 +51,12 @@ type contactsPaging struct {
 type contactsResponse struct {
 	Result struct {
 		Data []struct {
-			ID               string `json:"id"`
-			Name             string `json:"name"`
-			SharedEventCount int    `json:"sharedEventCount"`
+			ID               *string `json:"id"`
+			Name             *string `json:"name"`
+			SharedEventCount *int    `json:"sharedEventCount"`
 		} `json:"data"`
-		Paging struct {
-			NextCursor *string `json:"nextCursor"`
+		Paging *struct {
+			NextCursor json.RawMessage `json:"nextCursor"`
 		} `json:"paging"`
 	} `json:"result"`
 }
@@ -77,7 +77,11 @@ func (client Client) GetContacts(
 		if err != nil {
 			return ContactCatalog{}, err
 		}
-		if page.Result.Paging.NextCursor == nil {
+		nextCursor, err := decodeContactNextCursor(page.Result.Paging.NextCursor)
+		if err != nil {
+			return ContactCatalog{}, err
+		}
+		if nextCursor == nil {
 			if len(page.Result.Data) != 0 {
 				return ContactCatalog{}, fmt.Errorf("%w: terminal page", ErrProtocolChanged)
 			}
@@ -96,21 +100,35 @@ func (client Client) GetContacts(
 			return ContactCatalog{}, fmt.Errorf("%w: contacts traversal bound", ErrProtocolChanged)
 		}
 		for _, item := range page.Result.Data {
-			if item.SharedEventCount < 0 {
+			if item.ID == nil ||
+				item.Name == nil ||
+				item.SharedEventCount == nil ||
+				*item.SharedEventCount < 0 {
 				return ContactCatalog{}, fmt.Errorf("%w: contact", ErrProtocolChanged)
 			}
 			contacts = append(contacts, Contact{
-				ID:               item.ID,
-				Name:             item.Name,
-				SharedEventCount: item.SharedEventCount,
+				ID:               *item.ID,
+				Name:             *item.Name,
+				SharedEventCount: *item.SharedEventCount,
 			})
 		}
-		if _, repeated := seenCursors[*page.Result.Paging.NextCursor]; repeated {
+		if _, repeated := seenCursors[*nextCursor]; repeated {
 			return ContactCatalog{}, fmt.Errorf("%w: repeated contacts cursor", ErrProtocolChanged)
 		}
-		seenCursors[*page.Result.Paging.NextCursor] = struct{}{}
-		cursor = page.Result.Paging.NextCursor
+		seenCursors[*nextCursor] = struct{}{}
+		cursor = nextCursor
 	}
+}
+
+func decodeContactNextCursor(value json.RawMessage) (*string, error) {
+	if len(value) == 0 {
+		return nil, nil
+	}
+	var cursor *string
+	if err := json.Unmarshal(value, &cursor); err != nil || cursor == nil {
+		return nil, fmt.Errorf("%w: contacts cursor", ErrProtocolChanged)
+	}
+	return cursor, nil
 }
 
 func (client Client) getContactsPage(
@@ -163,7 +181,9 @@ func (client Client) getContactsPage(
 		return contactsResponse{}, fmt.Errorf("%w: contacts response body", ErrProtocolChanged)
 	}
 	var page contactsResponse
-	if err := json.Unmarshal(body, &page); err != nil || page.Result.Data == nil {
+	if err := json.Unmarshal(body, &page); err != nil ||
+		page.Result.Data == nil ||
+		page.Result.Paging == nil {
 		return contactsResponse{}, fmt.Errorf("%w: contacts response body", ErrProtocolChanged)
 	}
 	return page, nil
