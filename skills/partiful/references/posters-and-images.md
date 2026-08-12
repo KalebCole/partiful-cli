@@ -1,30 +1,28 @@
 # Posters and Images
 
-The built-in poster catalog is public and does not require Partiful authentication.
+The approved Go CLI exposes the built-in poster catalog.
 
-## Browse and Select
-
-```bash
-partiful posters list --limit 20
-partiful posters list --category "Birthday" --type gif --limit 10
-partiful posters search "disco" --limit 5
-partiful posters get <poster-id>
-```
-
-Search covers names, tags, and categories. Apply a selected poster with either an exact ID or a fuzzy query:
+## Browse posters
 
 ```bash
-partiful events create --title "Party" --date "2026-08-01T19:00" --poster <poster-id> --dry-run
-partiful events update <event-id> --poster-search "disco" --dry-run
+partiful posters list
+partiful posters search --query "disco"
 ```
 
-## Custom Images
+List or search the catalog, choose a `posterId`, then apply it on an event
+write.
+
+## Apply a poster ID
 
 ```bash
-partiful events create --title "Party" --date "2026-08-01T19:00" --image ./flyer.png --dry-run
-partiful events update <event-id> --image "https://example.com/poster.jpg" --dry-run
+partiful events create   --title "Party"   --start 2026-08-01T19:00:00-07:00   --timezone America/Los_Angeles   --poster-id <poster-id>
 ```
 
-Custom image upload requires authentication and may fail with a `404` even when other operations work. If it does, use a built-in poster through `--poster` or `--poster-search` rather than repeatedly retrying upload.
+`events create` and `events update` return a plan until you add
+`--apply --plan <token>`.
 
-Only choose one of `--poster`, `--poster-search`, or `--image` per command. Verify the event afterward with `partiful events get <event-id>`.
+## Limits
+
+Custom image upload is not part of the approved public Go command catalog.
+If the user needs a custom upload path, stop and explain that the current native
+CLI does not ship it as a reviewed public command.

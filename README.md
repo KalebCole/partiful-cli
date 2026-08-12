@@ -4,21 +4,19 @@
 
 JSON-first native Go CLI for reviewed Partiful event workflows.
 
-## Install native binaries
+The first native-only release line starts at `v3.0.0`. The install command
+below becomes available after the coordinated cutover release is published.
 
-Download the matching archive from GitHub Releases:
+## Install
 
-- macOS: `darwin_amd64` or `darwin_arm64`
-- Linux: `linux_amd64` or `linux_arm64`
-- Windows: `windows_amd64` or `windows_arm64`
+Use a native release archive from GitHub Releases, or install the tagged Go
+module directly:
 
-Each release includes:
+```bash
+go install github.com/KalebCole/partiful-cli/cmd/partiful@v3.0.0
+```
 
-- one archive per target OS and CPU
-- `partiful` or `partiful.exe`
-- `partiful_<version>_checksums.txt`
-
-Verify and smoke-test a release locally:
+Verify a local install safely:
 
 ```bash
 partiful --version
@@ -28,8 +26,8 @@ partiful doctor
 
 ## Development
 
-The native release path is Go-only. Node and npm are not part of release,
-archive verification, or smoke testing.
+Repository runtime, development, CI, verification, and release flow are
+Go-only.
 
 ```bash
 go mod verify
@@ -39,52 +37,30 @@ go vet ./...
 go build ./...
 ```
 
-Run the full native snapshot validation, including GoReleaser, archive checks,
+Run the full native release rehearsal, including GoReleaser snapshot archives,
 checksum verification, and local `version/schema/doctor` smoke tests:
 
 ```bash
-go install github.com/goreleaser/goreleaser/v2@v2.2.0
+GOTOOLCHAIN=go1.22.12 go install github.com/goreleaser/goreleaser/v2@v2.2.0
 ./scripts/verify-native-release.sh
 ```
 
 ## Approved command catalog
 
-### Discovery and diagnostics
-
 ```text
 partiful --version
 partiful schema [command.path]
 partiful doctor
-```
-
-### Authentication
-
-```text
 partiful auth login
 partiful auth status
 partiful auth logout
-```
-
-### Posters and contacts
-
-```text
 partiful posters list
 partiful posters search --query <text>
 partiful contacts list [--query <text>]
-```
-
-### Event and guest reads
-
-```text
 partiful events list --when <upcoming|past>
 partiful events get <event-id>
 partiful guests list <event-id>
 partiful rsvp get <event-id>
-```
-
-### Reviewed remote mutations
-
-```text
 partiful events create [flags]
 partiful events update <event-id> [flags]
 partiful events cancel <event-id> [flags]
@@ -101,13 +77,12 @@ partiful cohosts link revoke <event-id>
 All command results are JSON. Use `partiful schema <command.path>` for the
 exact input, success, failure, and safety contract for any approved command.
 
-## Notes
+## Release notes
 
-- `src/` and `tests/` keep historical TypeScript research artifacts. They are
-  not part of the native release path.
-- Release archives bundle `README.md` and `LICENSE` with the native binary.
-- `doctor` is the safe local smoke command for authentication state. It does
-  not require live Partiful credentials.
+- GoReleaser injects the tagged release version with ldflags.
+- Source builds default to `3.0.0` until a release tag overrides it.
+- Each native archive bundles `README.md` and `LICENSE`.
+- `doctor` is the safe local smoke command for authentication state.
 
 ## License
 

@@ -3,41 +3,39 @@
 ## Discovery
 
 ```bash
-partiful --help
-partiful events create --help
+partiful schema
 partiful schema events.create
 partiful schema guests.invite
+partiful schema blasts.send
 ```
 
-Treat live help and schema output as authoritative when this reference and the installed CLI differ.
+Treat `schema` output as authoritative when any human note and the installed
+CLI differ.
 
-## Global Flags
+## Global flags
 
 | Flag | Purpose |
 |---|---|
-| `--format <json, table, csv, or ndjson>` | Output format; JSON is default |
-| `--dry-run` | Preview without executing |
-| `-y, --yes` | Skip confirmation after approval |
-| `--force` | Override confirmation or overwrite protection after approval |
-| `-v, --verbose` | Write request diagnostics to stderr |
-| `-o, --output <path>` | Write output to a file |
-| `--no-color` | Disable color |
+| `--pretty` | Indent JSON output without changing fields |
+| `--non-interactive` | Disable terminal prompts |
+| `--version` | Return the version envelope |
 
-Success and failure use structured envelopes:
+Standard mutations return a plan until you add `--apply --plan <token>`.
+Consequential actions return a plan until you add `--apply --confirm <token>`
+after approval.
+
+Success and failure use stable JSON envelopes:
 
 ```json
-{"status":"success","data":{},"metadata":{}}
+{"ok":true,"data":{},"meta":{"command":"schema"}}
 ```
 
 ```json
-{"status":"error","error":{"code":2,"type":"auth_error","message":"Token expired"}}
+{"ok":false,"error":{"type":"auth.required","code":"AUTH_REQUIRED","message":"Authentication is required.","retryable":false,"details":{}},"meta":{"command":"events.list"}}
 ```
-
-Exit codes: `0` success, `1` API, `2` auth, `3` validation, `4` not found, `5` internal.
 
 ## Safety
 
-- Use `--dry-run` before mutations when available.
-- Get explicit approval before sending blasts, cancelling events, inviting guests, or bulk actions.
-- Keep JSON on stdout and diagnostics on stderr for reliable automation.
-- Do not include phone numbers or Partiful user IDs in user-facing summaries.
+- Get explicit approval before sending blasts, cancelling events, inviting guests, changing cohosts, or creating/revoking cohost links.
+- Keep JSON on stdout and diagnostics on stderr.
+- Do not include phone numbers, email addresses, access tokens, or Partiful user IDs in user-facing summaries.

@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Partiful CLI | Give your agent the party</title>
-  <meta name="description" content="An unofficial, JSON-first CLI and agent skill for creating and managing Partiful events.">
+  <meta name="description" content="An unofficial, JSON-first native Go CLI for creating and managing Partiful events.">
   <meta name="theme-color" content="#6f54ee">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='30' fill='%2317151a'/%3E%3Ccircle cx='23' cy='27' r='4' fill='white'/%3E%3Ccircle cx='41' cy='27' r='4' fill='white'/%3E%3Cpath d='M21 38c7 7 15 7 22 0' fill='none' stroke='white' stroke-width='4' stroke-linecap='round'/%3E%3C/svg%3E">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -420,7 +420,7 @@
             <div class="life-row"><span class="life-no">1</span><div><h3>Start with the outcome</h3><p>Your agent researches the plan before touching the guest list.</p></div><span class="life-code">events create</span></div>
             <div class="life-row"><span class="life-no">2</span><div><h3>Make it feel real</h3><p>Create the event, choose a poster, and return the share link.</p></div><span class="life-code">posters search</span></div>
             <div class="life-row"><span class="life-no">3</span><div><h3>Bring your people</h3><p>Resolve contacts by name, preview the group, then invite.</p></div><span class="life-code">guests invite</span></div>
-            <div class="life-row"><span class="life-no">4</span><div><h3>Keep the energy up</h3><p>Poll RSVP changes, review the guest list, and send approved text blasts.</p></div><span class="life-code">+watch · blasts send</span></div>
+            <div class="life-row"><span class="life-no">4</span><div><h3>Keep the energy up</h3><p>Review guest state, check RSVPs, and send approved text blasts.</p></div><span class="life-code">guests list · blasts send</span></div>
           </div>
         </div>
       </section>
@@ -428,8 +428,8 @@
       <section class="truth-section" id="how-it-works" aria-labelledby="truth-title">
         <div class="shell">
           <div class="truth-intro">
-            <h2 id="truth-title">Two parts. One party.</h2>
-            <p>The CLI does the deterministic work. The bundled skill teaches your agent how to use it safely.</p>
+            <h2 id="truth-title">One native CLI. One reviewed contract.</h2>
+            <p>The CLI does the deterministic work. The published contracts define the exact user and remote behavior it ships.</p>
           </div>
           <div class="boundary-map">
             <article class="boundary">
@@ -440,9 +440,9 @@
             </article>
             <article class="boundary">
               <span class="boundary-mark" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 3h9l3 3v15H6z"/><path d="M9 9h6M9 13h6M9 17h4"/></svg></span>
-              <h3>Bundled skill</h3>
-              <p>Gives supported agents the command map, privacy boundaries, confirmation rules, and the two-step flow for inviting a contact by name.</p>
-              <code>partiful skill install</code>
+              <h3>Reviewed contracts</h3>
+              <p>Bind the native CLI to approved command behavior, revisioned transport facts, and safe mutation flow.</p>
+              <code>partiful schema events.create</code>
             </article>
 
           </div>
@@ -452,32 +452,32 @@
       <section class="install-section" id="install" aria-labelledby="install-title">
         <div class="shell install-grid">
           <div class="install-copy">
-            <h2 id="install-title">Install it where your agent works.</h2>
-            <p>Use the CLI yourself, or add the bundled skill so your agent gets the same command and safety context.</p>
+            <h2 id="install-title">Install the native CLI with Go-only tooling.</h2>
+            <p>Use a native release archive, `go install`, or a local source build. No Node or npm is required.</p>
           </div>
           <div class="install-panel">
             <div class="install-tabs" role="tablist" aria-label="Installation options">
-              <button class="install-tab" type="button" role="tab" aria-selected="true" aria-controls="install-npm" id="tab-npm">npm</button>
-              <button class="install-tab" type="button" role="tab" aria-selected="false" aria-controls="install-npx" id="tab-npx" tabindex="-1">npx</button>
-              <button class="install-tab" type="button" role="tab" aria-selected="false" aria-controls="install-agent" id="tab-agent" tabindex="-1">Agent skill</button>
+              <button class="install-tab" type="button" role="tab" aria-selected="true" aria-controls="install-release" id="tab-release">GitHub Releases</button>
+              <button class="install-tab" type="button" role="tab" aria-selected="false" aria-controls="install-go" id="tab-go" tabindex="-1">go install</button>
+              <button class="install-tab" type="button" role="tab" aria-selected="false" aria-controls="install-source" id="tab-source" tabindex="-1">Source verify</button>
             </div>
-            <div class="install-view" id="install-npm" role="tabpanel" aria-labelledby="tab-npm">
-              <h3>Install globally</h3>
-              <p>Requires Node.js 18 or newer.</p>
-              <div class="command-row"><code>npm install -g partiful-cli</code><button class="copy-command" type="button" data-copy="npm install -g partiful-cli" aria-label="Copy npm install command"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/></svg></button></div>
-              <p class="install-note">Then run <code>partiful auth login +120****1234</code> and <code>partiful doctor</code>.</p>
+            <div class="install-view" id="install-release" role="tabpanel" aria-labelledby="tab-release">
+              <h3>Download a native archive</h3>
+              <p>After the coordinated cutover release is published, fetch the first native major release or a newer tag from GitHub Releases.</p>
+              <div class="command-row"><code>gh release download v3.0.0 --repo KalebCole/partiful-cli --pattern 'partiful_v3.0.0_*'</code><button class="copy-command" type="button" data-copy="gh release download v3.0.0 --repo KalebCole/partiful-cli --pattern 'partiful_v3.0.0_*'" aria-label="Copy GitHub Releases download command"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/></svg></button></div>
+              <p class="install-note">Verify with <code>partiful --version</code>, <code>partiful schema</code>, and <code>partiful doctor</code>.</p>
             </div>
-            <div class="install-view" id="install-npx" role="tabpanel" aria-labelledby="tab-npx" hidden>
-              <h3>Run without installing</h3>
-              <p>Open the command reference immediately.</p>
-              <div class="command-row"><code>npx partiful-cli --help</code><button class="copy-command" type="button" data-copy="npx partiful-cli --help" aria-label="Copy npx command"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/></svg></button></div>
-              <p class="install-note">Every command defaults to JSON output for scripts and agents.</p>
+            <div class="install-view" id="install-go" role="tabpanel" aria-labelledby="tab-go" hidden>
+              <h3>Install the tagged module</h3>
+              <p>After the coordinated cutover release is published, use the Go toolchain to install the native binary directly.</p>
+              <div class="command-row"><code>go install github.com/KalebCole/partiful-cli/cmd/partiful@v3.0.0</code><button class="copy-command" type="button" data-copy="go install github.com/KalebCole/partiful-cli/cmd/partiful@v3.0.0" aria-label="Copy go install command"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/></svg></button></div>
+              <p class="install-note">The native release line starts at <code>v3.0.0</code>.</p>
             </div>
-            <div class="install-view" id="install-agent" role="tabpanel" aria-labelledby="tab-agent" hidden>
-              <h3>Teach your agent Partiful</h3>
-              <p>Install the bundled skill after installing the CLI.</p>
-              <div class="command-row"><code>partiful skill install hermes</code><button class="copy-command" type="button" data-copy="partiful skill install hermes" aria-label="Copy agent skill install command"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/></svg></button></div>
-              <p class="install-note">Targets: <code>hermes</code>, <code>openclaw</code>, <code>copilot</code>, and <code>claude</code>. Add <code>--dry-run</code> to preview filesystem changes.</p>
+            <div class="install-view" id="install-source" role="tabpanel" aria-labelledby="tab-source" hidden>
+              <h3>Rehearse the release from source</h3>
+              <p>Run the full Go-only release verification flow locally.</p>
+              <div class="command-row"><code>GOTOOLCHAIN=go1.22.12 go install github.com/goreleaser/goreleaser/v2@v2.2.0 &amp;&amp; ./scripts/verify-native-release.sh</code><button class="copy-command" type="button" data-copy="GOTOOLCHAIN=go1.22.12 go install github.com/goreleaser/goreleaser/v2@v2.2.0 && ./scripts/verify-native-release.sh" aria-label="Copy source verification command"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/></svg></button></div>
+              <p class="install-note">This builds, tests, packages, checks checksums, and smokes the native CLI.</p>
             </div>
           </div>
         </div>
@@ -488,14 +488,14 @@
           <div class="proof-copy">
             <h2 id="proof-title">Built for tools, not screenshots.</h2>
             <p>Inspect parameters before acting, preview writes, and keep machine-readable output all the way through.</p>
-            <div class="proof-actions"><a class="button" href="https://github.com/KalebCole/partiful-cli">View on GitHub</a><a class="button secondary" href="https://www.npmjs.com/package/partiful-cli">Open npm</a></div>
+            <div class="proof-actions"><a class="button" href="https://github.com/KalebCole/partiful-cli">View on GitHub</a><a class="button secondary" href="./CLI-PRODUCT-CONTRACT.md">Read the contract</a></div>
           </div>
           <div class="proof-lines">
             <article class="proof-line"><div><h3>Discover the contract</h3><p>Inspect command parameters without scraping help text.</p></div><code>partiful schema events.create</code></article>
             <article class="proof-line"><div><h3>Check the setup</h3><p>Verify authentication, configuration, and API connectivity.</p></div><code>partiful doctor</code></article>
-            <article class="proof-line"><div><h3>Preview consequential writes</h3><p>See what supported commands would do before they touch an event.</p></div><code>partiful --dry-run …</code></article>
-            <article class="proof-line"><div><h3>Compose with structured output</h3><p>JSON is the default. Table, CSV, and NDJSON are available when they fit.</p></div><code>--format json</code></article>
-            <article class="proof-line"><div><h3>Watch RSVP changes</h3><p>Run a bounded polling stream with an explicit interval and duration.</p></div><code>partiful +watch &lt;eventId&gt;</code></article>
+            <article class="proof-line"><div><h3>Plan event writes</h3><p>Standard mutations return a reviewed plan until you add <code>--apply --plan</code>.</p></div><code>partiful events create --title … --start … --timezone …</code></article>
+            <article class="proof-line"><div><h3>Inspect host-visible guests</h3><p>Host-only guest access fails closed instead of guessing beyond the reviewed contract.</p></div><code>partiful guests list &lt;eventId&gt;</code></article>
+            <article class="proof-line"><div><h3>Send approved text blasts</h3><p>Consequential actions require review, approval, and an exact confirmation token.</p></div><code>partiful blasts send &lt;eventId&gt; --audience all-guests --message-file note.txt</code></article>
           </div>
         </div>
       </section>

@@ -1,47 +1,35 @@
-name: Verify Native Release
+name: Release Native Archives
 
 on:
-  pull_request:
-    paths:
-      - .github/workflows/native-release-verify.yml
-      - .github/workflows/release.yml
-      - .goreleaser.yml
-      - README.md
-      - AGENTS.md
-      - docs/**
-      - cmd/**
-      - internal/**
-      - scripts/**
-      - go.mod
-      - go.sum
   push:
-    branches:
-      - main
-    paths:
-      - .github/workflows/native-release-verify.yml
-      - .github/workflows/release.yml
-      - .goreleaser.yml
-      - README.md
-      - AGENTS.md
-      - docs/**
-      - cmd/**
-      - internal/**
-      - scripts/**
-      - go.mod
-      - go.sum
-  workflow_dispatch:
+    tags:
+      - v3.*
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
-  verify:
+  release:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
           fetch-depth: 0
+
+      - name: Verify approved release point
+        run: |
+          if [[ ! "${GITHUB_REF_NAME}" =~ ^v3\.[0-9]+\.[0-9]+$ ]]; then
+            echo "release tag must be a v3 semantic version" >&2
+            exit 1
+          fi
+          git fetch origin main
+          git merge-base --is-ancestor "${GITHUB_SHA}" origin/main
+          source_version="$(sed -n 's/^[[:space:]]*Version[[:space:]]*=[[:space:]]*"\([^"]*\)".*/\1/p' internal/app/buildinfo.go)"
+          if [[ "v${source_version}" != "${GITHUB_REF_NAME}" ]]; then
+            echo "tag ${GITHUB_REF_NAME} does not match source version ${source_version}" >&2
+            exit 1
+          fi
 
       - name: Set up Go
         uses: actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00 # v6
@@ -69,7 +57,9 @@ jobs:
       - name: Install GoReleaser
         run: GOTOOLCHAIN=go1.22.12 go install github.com/goreleaser/goreleaser/v2@v2.2.0
 
-      - name: Verify snapshot archives
+      - name: Publish release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           export PATH="$(go env GOPATH)/bin:${PATH}"
-          ./scripts/verify-native-release.sh
+          goreleaser release --clean

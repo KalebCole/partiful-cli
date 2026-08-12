@@ -1,39 +1,26 @@
 # Text Blasts
 
-Text blasts send real SMS messages. Partiful prepends its own host/event attribution.
+Text blasts send real SMS messages.
 
-## Draft and Preview
-
-Messages are limited to 480 characters. Valid target statuses: `GOING`, `MAYBE`, `DECLINED`, `SENT`, `INTERESTED`, `WAITLIST`, `APPROVED`, and `RESPONDED_TO_FIND_A_TIME`.
+## Plan the blast
 
 ```bash
-partiful guests list <event-id> --status GOING
-partiful blasts send <event-id> \
-  --message "See you tonight. Parking is on the left." \
-  --to GOING,MAYBE \
-  --dry-run
+partiful blasts send <event-id>   --audience all-guests   --message-file blast.txt
 ```
 
-Before sending, show the exact message, event, target statuses, and dry-run result. Get explicit approval. Never infer approval from a request to draft or preview.
+This is a consequential action. By default it returns a plan that includes the
+message SHA-256 and length, not the raw message body. Show the exact message
+from your local file before asking for approval.
 
-## Send
+## Send after approval
 
-```bash
-partiful blasts send <event-id> \
-  --message "See you tonight. Parking is on the left." \
-  --to GOING,MAYBE \
-  --yes
-```
+Repeat the same command with `--apply --confirm <token>` after explicit
+approval. Use `--show-on-event-page false` when the blast should stay off the
+event activity feed.
 
-Blasts appear on the event page by default. Use `--no-show-on-event-page` to hide one from the activity feed.
-
-## Safety Checklist
+## Safety checklist
 
 - Correct event ID and title
-- Exact final text, at most 480 characters
-- Correct target statuses
-- Dry run completed
-- Explicit approval received
-- `--yes` added only after approval
-
-Report delivery result and aggregate targeting, but do not expose recipient phone numbers or Partiful user IDs.
+- Exact final message text in the local file or stdin stream
+- Approval received before `--apply --confirm`
+- No phone numbers, email addresses, or Partiful user IDs in summaries

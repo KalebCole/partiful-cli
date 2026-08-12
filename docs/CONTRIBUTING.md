@@ -3,8 +3,8 @@
 ## Source of truth
 
 The shipped CLI is the Go program in `cmd/partiful` and `internal/`.
-The historical TypeScript tree under `src/` and `tests/` remains research
-material only. Do not use Node or npm for native release work.
+Reviewed transport evidence lives under `docs/research/`, `spec/`, and
+`spec/research/`.
 
 ## Core commands
 
@@ -20,7 +20,7 @@ Use the native release verification script when you change build metadata,
 release packaging, command contracts, or archive contents:
 
 ```bash
-go install github.com/goreleaser/goreleaser/v2@v2.2.0
+GOTOOLCHAIN=go1.22.12 go install github.com/goreleaser/goreleaser/v2@v2.2.0
 ./scripts/verify-native-release.sh
 ```
 
@@ -48,6 +48,7 @@ They do not require live Partiful credentials or remote mutations.
 - Ship native archives for darwin, linux, and windows on amd64 and arm64.
 - Bundle `README.md` and `LICENSE` in every archive.
 - Publish one SHA-256 checksum file that covers every archive.
+- Use the pinned GoReleaser tool in workflow and local release rehearsal.
 - Do not add a release workflow that invokes Node or npm.
 
 ## Privacy and safety
