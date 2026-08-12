@@ -261,6 +261,7 @@ func cursorSnapshotOffset(
 	payload cursorPayload,
 	payloadDigest [sha256.Size]byte,
 	itemCount int,
+	changedMessage string,
 ) (int, *cursorValidationFailure) {
 	if payload.Digest != hex.EncodeToString(payloadDigest[:]) {
 		return 0, &cursorValidationFailure{
@@ -268,7 +269,7 @@ func cursorSnapshotOffset(
 			body: errorBody{
 				Type:      "state.conflict",
 				Code:      "CURSOR_SNAPSHOT_CHANGED",
-				Message:   "The poster catalog changed after this cursor was issued.",
+				Message:   changedMessage,
 				Retryable: false,
 				Details:   map[string]any{},
 			},

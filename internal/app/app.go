@@ -216,6 +216,7 @@ var commandCatalog = []commandDefinition{
 		failureTypes: []string{
 			"auth.required",
 			"auth.expired",
+			"state.conflict",
 			"remote.unavailable",
 			"contract.protocol_changed",
 			"internal.failure",
@@ -788,6 +789,7 @@ func Execute(ctx context.Context, request Request, dependencies Dependencies) Re
 						decodedCursor,
 						catalog.PayloadSHA256,
 						len(filteredPosters),
+						"The poster catalog changed after this cursor was issued.",
 					)
 					if cursorFailure != nil {
 						return failure(definition.path, cursorFailure.exitCode, cursorFailure.body, pretty)
@@ -916,6 +918,7 @@ func Execute(ctx context.Context, request Request, dependencies Dependencies) Re
 						decodedCursor,
 						catalog.PayloadSHA256,
 						len(filteredContacts),
+						"The contact catalog changed after this cursor was issued.",
 					)
 					if cursorFailure != nil {
 						return failure(definition.path, cursorFailure.exitCode, cursorFailure.body, pretty)

@@ -2576,6 +2576,166 @@ func TestExecuteContactsListRefreshesExpiringSessionBeforeProtectedRead(t *testi
 	}
 }
 
+func TestExecuteContactsListRejectsCursorWhenContactCatalogChanges(t *testing.T) {
+	const credentials = `{"accessToken":"private-access-token","expiresAt":"2026-08-11T02:00:00Z"}`
+	call := 0
+	dependencies := withTestCursorCrypto(app.Dependencies{
+		Files: fakeFilesystem{
+			readFile: func(string) ([]byte, error) {
+				return []byte(credentials), nil
+			},
+		},
+		CredentialsPath: "/config/partiful/credentials.json",
+		Now: func() time.Time {
+			return time.Date(2026, time.August, 11, 0, 0, 0, 0, time.UTC)
+		},
+		AuthRandom: strings.NewReader("0123456789abcdefFEDCBA9876543210"),
+		HTTP: scriptedHTTP{do: func(*http.Request) (*http.Response, error) {
+			call++
+			switch call {
+			case 1:
+				return jsonResponse(
+					http.StatusOK,
+					`{"result":{"data":[{"id":"private-one","name":"One","sharedEventCount":1},{"id":"private-two","name":"Two","sharedEventCount":2}],"paging":{"nextCursor":"cursor-one"}}}`,
+				), nil
+			case 2, 4:
+				return jsonResponse(http.StatusOK, `{"result":{"data":[],"paging":{}}}`), nil
+			case 3:
+				return jsonResponse(
+					http.StatusOK,
+					`{"result":{"data":[{"id":"private-replacement","name":"Replacement","sharedEventCount":3}],"paging":{"nextCursor":"cursor-two"}}}`,
+				), nil
+			default:
+				return nil, errors.New("unexpected request")
+			}
+		}},
+	})
+	first := app.Execute(context.Background(), app.Request{
+		Argv:  []string{"contacts", "list", "--limit", "1"},
+		Stdin: strings.NewReader(""),
+	}, dependencies)
+	var envelope struct {
+		Meta struct {
+			Page struct {
+				NextCursor string `json:"nextCursor"`
+			} `json:"page"`
+		} `json:"meta"`
+	}
+	if err := json.Unmarshal([]byte(first.Stdout), &envelope); err != nil {
+		t.Fatalf("decode first result: %v", err)
+	}
+
+	result := app.Execute(context.Background(), app.Request{
+		Argv:  []string{"contacts", "list", "--cursor", envelope.Meta.Page.NextCursor},
+		Stdin: strings.NewReader(""),
+	}, dependencies)
+
+	const want = `{"ok":false,"error":{"type":"state.conflict","code":"CURSOR_SNAPSHOT_CHANGED","message":"The contact catalog changed after this cursor was issued.","retryable":false,"details":{}},"meta":{"command":"contacts.list","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.4"}}` + "\n"
+	if result.ExitCode != 6 || result.Stdout != want || result.Stderr != "" {
+		t.Fatalf("result = %#v, want contact snapshot conflict", result)
+	}
+	for _, privateValue := range []string{"private-one", "private-two", "private-replacement"} {
+		if strings.Contains(result.Stdout+result.Stderr, privateValue) {
+			t.Fatalf("snapshot failure exposed private value %q", privateValue)
+		}
+	}
+}
+
+func TestExecuteSchemaProjectsCompleteContactsListDefinition(t *testing.T) {
+	result := app.Execute(context.Background(), app.Request{
+		Argv:  []string{"schema", "contacts.list"},
+		Stdin: strings.NewReader(""),
+	}, app.Dependencies{})
+
+	var envelope struct {
+		Data struct {
+			Command string `json:"command"`
+			Flags   []struct {
+				Name     string `json:"name"`
+				Required bool   `json:"required"`
+			} `json:"flags"`
+			InputSchema struct {
+				Properties map[string]struct {
+					Minimum   *int   `json:"minimum"`
+					Maximum   *int   `json:"maximum"`
+					MinLength *int   `json:"minLength"`
+					Pattern   string `json:"pattern"`
+				} `json:"properties"`
+			} `json:"inputSchema"`
+			SuccessSchema struct {
+				Properties map[string]struct {
+					Items struct {
+						Required []string `json:"required"`
+					} `json:"items"`
+				} `json:"properties"`
+			} `json:"successSchema"`
+			FailureTypes []string `json:"failureTypes"`
+			Safety       struct {
+				Kind                 string `json:"kind"`
+				PlanRequired         bool   `json:"planRequired"`
+				ConfirmationRequired bool   `json:"confirmationRequired"`
+			} `json:"safety"`
+		} `json:"data"`
+	}
+	if err := json.Unmarshal([]byte(result.Stdout), &envelope); err != nil {
+		t.Fatalf("decode schema: %v", err)
+	}
+	if result.ExitCode != 0 || envelope.Data.Command != "contacts.list" {
+		t.Fatalf("result = %#v, schema = %#v, want contacts definition", result, envelope.Data)
+	}
+	var flags []string
+	for _, flag := range envelope.Data.Flags {
+		flags = append(flags, fmt.Sprintf("%s:%t", flag.Name, flag.Required))
+	}
+	wantFlags := []string{
+		"--query:false",
+		"--limit:false",
+		"--cursor:false",
+		"--all:false",
+		"--max-items:false",
+	}
+	if !reflect.DeepEqual(flags, wantFlags) {
+		t.Fatalf("flags = %v, want %v", flags, wantFlags)
+	}
+	query := envelope.Data.InputSchema.Properties["query"]
+	limit := envelope.Data.InputSchema.Properties["limit"]
+	maxItems := envelope.Data.InputSchema.Properties["maxItems"]
+	if query.MinLength == nil || *query.MinLength != 1 || query.Pattern != `\S` ||
+		limit.Minimum == nil || *limit.Minimum != 1 ||
+		limit.Maximum == nil || *limit.Maximum != 100 ||
+		maxItems.Minimum == nil || *maxItems.Minimum != 1 ||
+		maxItems.Maximum == nil || *maxItems.Maximum != 1000 {
+		t.Fatalf("input constraints = %#v, want product collection bounds", envelope.Data.InputSchema.Properties)
+	}
+	wantFields := []string{"displayName", "sharedEventCount"}
+	if got := envelope.Data.SuccessSchema.Properties["items"].Items.Required; !reflect.DeepEqual(got, wantFields) {
+		t.Fatalf("contact fields = %v, want only %v", got, wantFields)
+	}
+	wantFailures := []string{
+		"usage.invalid",
+		"input.invalid",
+		"auth.required",
+		"auth.expired",
+		"state.conflict",
+		"remote.unavailable",
+		"contract.protocol_changed",
+		"internal.failure",
+	}
+	if !reflect.DeepEqual(envelope.Data.FailureTypes, wantFailures) {
+		t.Fatalf("failure types = %v, want %v", envelope.Data.FailureTypes, wantFailures)
+	}
+	if envelope.Data.Safety.Kind != "read-only" ||
+		envelope.Data.Safety.PlanRequired ||
+		envelope.Data.Safety.ConfirmationRequired {
+		t.Fatalf("safety = %#v, want read-only", envelope.Data.Safety)
+	}
+	if strings.Contains(result.Stdout, `"id"`) ||
+		strings.Contains(result.Stdout, `"phone"`) ||
+		strings.Contains(result.Stdout, `"email"`) {
+		t.Fatal("public contact schema exposed a private field")
+	}
+}
+
 func TestExecuteAuthStatusRedactsHealthyCredentials(t *testing.T) {
 	const credentials = `{"accessToken":"secret-token-value","refreshToken":"secret-refresh-value","userId":"private-user-value","expiresAt":"2026-08-11T02:00:00Z"}`
 	result := app.Execute(context.Background(), app.Request{
