@@ -40,10 +40,15 @@ future completeness remain unknown.
 ## Event detail observations
 
 `getEventInfo` returned HTTP `200` for one selected readable event. The
-response used `result.data.event` and had the named fields and types in
-`EventInfo`. The same selected event returned HTTP `200` while signed out.
-This is a fact about that selected event only. It does not establish that all
-events are public.
+response used `result.data.event`. The one object had the field presence and
+value types recorded by the sanitized aggregate. It does not establish
+operation-wide field presence, nullability, or alternate variants, so
+`EventInfo` has no required field list. Related event-list representations
+support only the optional `endDate` string/null and `image` object/null
+unions; selected-only fields without related support remain unconstrained.
+The same selected event returned HTTP `200` while signed out. This is a fact
+about that selected event only. It does not establish that all events are
+public.
 
 A synthetic missing ID returned HTTP `404` with callable error status
 `NOT_FOUND`. No known inaccessible event was supplied. An authenticated
@@ -54,7 +59,11 @@ callable permission denial was not observed and is not claimed.
 `getCurrentGuest` returned HTTP `200` for the selected event. The observed
 path was `result.data.currentGuest`. It was an object with string `id`,
 `name`, `status`, and `userId`, integer `count`, and null `plusOnes`.
-No null `currentGuest` or other variant was observed.
+This one object does not establish operation-wide field presence,
+nullability, or alternate variants, so `CurrentGuest` has no required field
+list. The proposed schema leaves `count`, `plusOnes`, and `userId`
+unconstrained. In particular, the shape of an ordinary non-null plus-one
+value is unknown. No null `currentGuest` or other variant was observed.
 
 `firestoreGetGuest` returned HTTP `200` for the document selected by the
 observed current guest ID. The document had `name`, `fields`, `createTime`,
@@ -111,5 +120,7 @@ Unsupported statuses and error bodies remain unknown. No claim is made for
 rate limiting, request retries, invalid cursors, cursor lifetime or reuse,
 backend ordering, snapshot behavior, `useAuthUser`, duplicates outside the
 two contact traversals, future catalog completeness, list pagination, or null
-and alternate current-guest variants. No inaccessible-event permission probe
+and alternate current-guest variants. Event-detail field presence and
+alternate variants, including plus-one shape, remain unknown beyond the
+stated related event-list support. No inaccessible-event permission probe
 exists.

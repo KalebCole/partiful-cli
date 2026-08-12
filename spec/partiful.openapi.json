@@ -2562,18 +2562,6 @@
       },
       "EventInfo": {
         "type": "object",
-        "required": [
-          "id",
-          "title",
-          "startDate",
-          "endDate",
-          "timezone",
-          "status",
-          "description",
-          "displaySettings",
-          "image",
-          "visibility"
-        ],
         "properties": {
           "id": {
             "type": "string"
@@ -2585,7 +2573,10 @@
             "type": "string"
           },
           "endDate": {
-            "type": "null"
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "timezone": {
             "type": "string"
@@ -2593,18 +2584,17 @@
           "status": {
             "type": "string"
           },
-          "description": {
-            "type": "string"
-          },
+          "description": {},
           "displaySettings": {
             "type": "object"
           },
           "image": {
-            "type": "object"
+            "type": [
+              "object",
+              "null"
+            ]
           },
-          "visibility": {
-            "type": "string"
-          }
+          "visibility": {}
         }
       },
       "GetEventInfoResponse": {
@@ -2660,33 +2650,19 @@
       },
       "CurrentGuest": {
         "type": "object",
-        "required": [
-          "id",
-          "count",
-          "name",
-          "plusOnes",
-          "status",
-          "userId"
-        ],
         "properties": {
           "id": {
             "type": "string"
           },
-          "count": {
-            "type": "integer"
-          },
+          "count": {},
           "name": {
             "type": "string"
           },
-          "plusOnes": {
-            "type": "null"
-          },
+          "plusOnes": {},
           "status": {
             "type": "string"
           },
-          "userId": {
-            "type": "string"
-          }
+          "userId": {}
         }
       },
       "GetCurrentGuestResponse": {

@@ -287,7 +287,7 @@ describe('remote API contract', () => {
       ...materialClaimPointers(spec.paths, '#/paths', 'paths'),
       ...materialClaimPointers(spec.components, '#/components', 'components'),
     ]);
-    expect(pointers).toHaveLength(1250);
+    expect(pointers).toHaveLength(1232);
     for (const pointer of pointers) {
       const claim = evidence.claims[pointer];
       expect(claim, pointer).toBeDefined();
@@ -345,6 +345,7 @@ describe('remote API contract', () => {
     expect(ledger).toMatch(
       /Eleven of those\s+operations have a typed `200` response body\./,
     );
+    expect(ledger.match(/The 1232 material claims/g)).toHaveLength(2);
   });
 
   it('contains remote transport facts rather than product or implementation policy', () => {
@@ -754,18 +755,22 @@ describe('remote API contract', () => {
       .toEqual({ $ref: '#/components/schemas/CallableNotFoundError' });
     expect(eventInfo.responses['200'].description).toContain('selected readable event');
     expect(eventInfo.responses['200'].description).not.toContain('signed out');
-    expect(spec.components.schemas.EventInfo.properties).toMatchObject({
+    const eventInfoSchema = spec.components.schemas.EventInfo;
+    expect(eventInfoSchema.required ?? []).toEqual([]);
+    expect(eventInfoSchema.properties).toMatchObject({
       id: { type: 'string' },
       title: { type: 'string' },
       startDate: { type: 'string' },
-      endDate: { type: 'null' },
+      endDate: { type: ['string', 'null'] },
       timezone: { type: 'string' },
       status: { type: 'string' },
-      description: { type: 'string' },
+      description: {},
       displaySettings: { type: 'object' },
-      image: { type: 'object' },
-      visibility: { type: 'string' },
+      image: { type: ['object', 'null'] },
+      visibility: {},
     });
+    expect(eventInfoSchema.properties.description).toEqual({});
+    expect(eventInfoSchema.properties.visibility).toEqual({});
     expect(evidence.readObservation.getEventInfo).toMatchObject({
       selectedAuthenticatedStatus: 200,
       selectedSignedOutStatus: 200,
@@ -774,7 +779,39 @@ describe('remote API contract', () => {
       syntheticMissingCode: 'NOT_FOUND',
       authenticatedPermission: 'not-observed',
       inaccessibleEvent: 'not-observed',
+      sampleScope: 'one-selected-event',
+      fieldPresence: 'selected-object-only',
+      fieldNullabilityAndAlternateVariants: 'explicit-unknown',
+      relatedEventRepresentationTypes: {
+        endDate: ['string', 'null'],
+        image: ['object', 'null'],
+      },
     });
+    const eventListCitation =
+      'docs/research/2026-08-11-event-contacts-read-observation.md#event-list-observations';
+    for (const field of ['id', 'startDate', 'timezone', 'status', 'displaySettings']) {
+      expect(evidence.claims[
+        `#/components/schemas/EventInfo/properties/${field}/type`
+      ]?.citation).toBe(eventListCitation);
+    }
+    for (const field of ['endDate', 'image']) {
+      for (const index of [0, 1]) {
+        expect(evidence.claims[
+          `#/components/schemas/EventInfo/properties/${field}/type/${index}`
+        ]?.citation).toBe(eventListCitation);
+      }
+      expect(evidence.claims[
+        `#/components/schemas/EventInfo/properties/${field}/type`
+      ]).toBeUndefined();
+    }
+    expect(evidence.claims[
+      '#/components/schemas/EventInfo/properties/visibility/type'
+    ]).toBeUndefined();
+    for (let index = 0; index < 10; index += 1) {
+      expect(evidence.claims[
+        `#/components/schemas/EventInfo/required/${index}`
+      ]).toBeUndefined();
+    }
 
     const currentGuest = spec.paths['/getCurrentGuest'].post.responses['200']
       .content['application/json'].schema;
@@ -787,20 +824,43 @@ describe('remote API contract', () => {
       .properties.data.required)
       .toEqual(['currentGuest']);
     expect(spec.components.schemas.CurrentGuest).toMatchObject({
-      required: ['id', 'count', 'name', 'plusOnes', 'status', 'userId'],
       properties: {
         id: { type: 'string' },
-        count: { type: 'integer' },
+        count: {},
         name: { type: 'string' },
-        plusOnes: { type: 'null' },
+        plusOnes: {},
         status: { type: 'string' },
-        userId: { type: 'string' },
+        userId: {},
       },
     });
+    expect(spec.components.schemas.CurrentGuest.properties.count).toEqual({});
+    expect(spec.components.schemas.CurrentGuest.properties.plusOnes).toEqual({});
+    expect(spec.components.schemas.CurrentGuest.properties.userId).toEqual({});
+    expect(spec.components.schemas.CurrentGuest.required ?? []).toEqual([]);
     expect(evidence.readObservation.getCurrentGuest.otherVariants)
       .toBe('explicit-unknown');
     expect(evidence.readObservation.getCurrentGuest.currentGuestNullability)
       .toBe('explicit-unknown');
+    expect(evidence.readObservation.getCurrentGuest).toMatchObject({
+      sampleScope: 'one-selected-event',
+      fieldPresence: 'selected-object-only',
+      fieldNullabilityAndAlternateVariants: 'explicit-unknown',
+      plusOnesVariants: 'explicit-unknown',
+    });
+    for (const field of ['count', 'plusOnes', 'userId']) {
+      expect(evidence.claims[
+        `#/components/schemas/CurrentGuest/properties/${field}/type`
+      ]).toBeUndefined();
+    }
+    for (let index = 0; index < 6; index += 1) {
+      expect(evidence.claims[
+        `#/components/schemas/CurrentGuest/required/${index}`
+      ]).toBeUndefined();
+    }
+    expect(evidence.unresolvedUncertainty).toEqual(expect.arrayContaining([
+      'Only one selected EventInfo object was observed; operation-wide field presence, nullability, and alternate variants remain unknown. Related event-list representations support only the optional endDate string/null and image object/null unions.',
+      'Only one CurrentGuest object was observed; operation-wide field presence, nullability, alternate variants, plus-one shape, unsupported statuses, and failure bodies remain unknown.',
+    ]));
   });
 
   it('distinguishes the observed Firestore guest success from event-document denial', () => {
@@ -1074,11 +1134,27 @@ describe('remote API contract', () => {
       'docs/CLI-PRODUCT-CONTRACT.md',
       'utf8',
     );
+    const appSource = fs.readFileSync('internal/app/app.go', 'utf8');
     const contactResearch = fs.readFileSync(
       'docs/research/2026-08-11-contacts-pagination-public-assets.md',
       'utf8',
     );
+    const shippedRevision = appSource.match(
+      /RemoteContractRevision\s*=\s*"([^"]+)"/,
+    )?.[1];
+    const documentedRevision = productContract.match(
+      /\*\*Remote API contract revision:\*\* `([^`]+)`/,
+    )?.[1];
+    const envelopeRevisions = [...productContract.matchAll(
+      /"remoteContractRevision": "([^"]+)"/g,
+    )].map((match) => match[1]);
 
+    expect(shippedRevision).toBe('2026-08-11.4');
+    expect(documentedRevision).toBe(shippedRevision);
+    expect(new Set(envelopeRevisions)).toEqual(new Set([shippedRevision]));
+    expect(spec.info.version).toBe('2026-08-11.5');
+    expect(evidence.status).toBe('proposed');
+    expect(spec.info.version).not.toBe(shippedRevision);
     expect(productContract)
       .not.toContain('currently leaves every operation response status and body unknown');
     expect(contactResearch)

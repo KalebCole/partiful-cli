@@ -389,7 +389,8 @@
     "Origin is unmodelled and remains unknown because the reviewed evidence establishes no Origin request fact.",
     "Event-list remote pagination, limits, ordering key, snapshot behavior, unsupported statuses, and failure bodies remain unknown.",
     "Only the selected getEventInfo event was observed signed out; readability of other events and authenticated inaccessible-event denial remain unknown.",
-    "Current-guest null and alternate variants, unsupported statuses, and failure bodies remain unknown.",
+    "Only one selected EventInfo object was observed; operation-wide field presence, nullability, and alternate variants remain unknown. Related event-list representations support only the optional endDate string/null and image object/null unions.",
+    "Only one CurrentGuest object was observed; operation-wide field presence, nullability, alternate variants, plus-one shape, unsupported statuses, and failure bodies remain unknown.",
     "Firestore event GET returned PERMISSION_DENIED for selected readable and synthetic IDs with one credential; success, not-found, attendee-denial, and other credential behavior remain unknown.",
     "Contact invalid-cursor behavior, cursor lifetime and reuse, ordering key, snapshot behavior, useAuthUser, rate limiting, unsupported statuses, future catalog completeness, server duplicate behavior, and duplicates outside two traversals remain unknown."
   ],
@@ -4779,53 +4780,13 @@
       "classification": "dated-live-observation",
       "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#event-detail-observations"
     },
-    "#/components/schemas/EventInfo/required/0": {
-      "classification": "dated-live-observation",
-      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#event-detail-observations"
-    },
-    "#/components/schemas/EventInfo/required/1": {
-      "classification": "dated-live-observation",
-      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#event-detail-observations"
-    },
-    "#/components/schemas/EventInfo/required/2": {
-      "classification": "dated-live-observation",
-      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#event-detail-observations"
-    },
-    "#/components/schemas/EventInfo/required/3": {
-      "classification": "dated-live-observation",
-      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#event-detail-observations"
-    },
-    "#/components/schemas/EventInfo/required/4": {
-      "classification": "dated-live-observation",
-      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#event-detail-observations"
-    },
-    "#/components/schemas/EventInfo/required/5": {
-      "classification": "dated-live-observation",
-      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#event-detail-observations"
-    },
-    "#/components/schemas/EventInfo/required/6": {
-      "classification": "dated-live-observation",
-      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#event-detail-observations"
-    },
-    "#/components/schemas/EventInfo/required/7": {
-      "classification": "dated-live-observation",
-      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#event-detail-observations"
-    },
-    "#/components/schemas/EventInfo/required/8": {
-      "classification": "dated-live-observation",
-      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#event-detail-observations"
-    },
-    "#/components/schemas/EventInfo/required/9": {
-      "classification": "dated-live-observation",
-      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#event-detail-observations"
-    },
     "#/components/schemas/EventInfo/properties/id": {
       "classification": "dated-live-observation",
       "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#event-detail-observations"
     },
     "#/components/schemas/EventInfo/properties/id/type": {
       "classification": "dated-live-observation",
-      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#event-detail-observations"
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#event-list-observations"
     },
     "#/components/schemas/EventInfo/properties/title": {
       "classification": "dated-live-observation",
@@ -4837,15 +4798,19 @@
     },
     "#/components/schemas/EventInfo/properties/startDate/type": {
       "classification": "dated-live-observation",
-      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#event-detail-observations"
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#event-list-observations"
     },
     "#/components/schemas/EventInfo/properties/endDate": {
       "classification": "dated-live-observation",
       "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#event-detail-observations"
     },
-    "#/components/schemas/EventInfo/properties/endDate/type": {
+    "#/components/schemas/EventInfo/properties/endDate/type/0": {
       "classification": "dated-live-observation",
-      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#event-detail-observations"
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#event-list-observations"
+    },
+    "#/components/schemas/EventInfo/properties/endDate/type/1": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#event-list-observations"
     },
     "#/components/schemas/EventInfo/properties/timezone": {
       "classification": "dated-live-observation",
@@ -4853,7 +4818,7 @@
     },
     "#/components/schemas/EventInfo/properties/timezone/type": {
       "classification": "dated-live-observation",
-      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#event-detail-observations"
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#event-list-observations"
     },
     "#/components/schemas/EventInfo/properties/status": {
       "classification": "dated-live-observation",
@@ -4861,7 +4826,7 @@
     },
     "#/components/schemas/EventInfo/properties/status/type": {
       "classification": "dated-live-observation",
-      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#event-detail-observations"
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#event-list-observations"
     },
     "#/components/schemas/EventInfo/properties/description": {
       "classification": "dated-live-observation",
@@ -4873,21 +4838,21 @@
     },
     "#/components/schemas/EventInfo/properties/displaySettings/type": {
       "classification": "dated-live-observation",
-      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#event-detail-observations"
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#event-list-observations"
     },
     "#/components/schemas/EventInfo/properties/image": {
       "classification": "dated-live-observation",
       "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#event-detail-observations"
     },
-    "#/components/schemas/EventInfo/properties/image/type": {
+    "#/components/schemas/EventInfo/properties/image/type/0": {
       "classification": "dated-live-observation",
-      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#event-detail-observations"
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#event-list-observations"
+    },
+    "#/components/schemas/EventInfo/properties/image/type/1": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#event-list-observations"
     },
     "#/components/schemas/EventInfo/properties/visibility": {
-      "classification": "dated-live-observation",
-      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#event-detail-observations"
-    },
-    "#/components/schemas/EventInfo/properties/visibility/type": {
       "classification": "dated-live-observation",
       "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#event-detail-observations"
     },
@@ -4979,30 +4944,6 @@
       "classification": "dated-live-observation",
       "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#guest-and-firestore-observations"
     },
-    "#/components/schemas/CurrentGuest/required/0": {
-      "classification": "dated-live-observation",
-      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#guest-and-firestore-observations"
-    },
-    "#/components/schemas/CurrentGuest/required/1": {
-      "classification": "dated-live-observation",
-      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#guest-and-firestore-observations"
-    },
-    "#/components/schemas/CurrentGuest/required/2": {
-      "classification": "dated-live-observation",
-      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#guest-and-firestore-observations"
-    },
-    "#/components/schemas/CurrentGuest/required/3": {
-      "classification": "dated-live-observation",
-      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#guest-and-firestore-observations"
-    },
-    "#/components/schemas/CurrentGuest/required/4": {
-      "classification": "dated-live-observation",
-      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#guest-and-firestore-observations"
-    },
-    "#/components/schemas/CurrentGuest/required/5": {
-      "classification": "dated-live-observation",
-      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#guest-and-firestore-observations"
-    },
     "#/components/schemas/CurrentGuest/properties/id": {
       "classification": "dated-live-observation",
       "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#guest-and-firestore-observations"
@@ -5012,10 +4953,6 @@
       "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#guest-and-firestore-observations"
     },
     "#/components/schemas/CurrentGuest/properties/count": {
-      "classification": "dated-live-observation",
-      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#guest-and-firestore-observations"
-    },
-    "#/components/schemas/CurrentGuest/properties/count/type": {
       "classification": "dated-live-observation",
       "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#guest-and-firestore-observations"
     },
@@ -5031,10 +4968,6 @@
       "classification": "dated-live-observation",
       "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#guest-and-firestore-observations"
     },
-    "#/components/schemas/CurrentGuest/properties/plusOnes/type": {
-      "classification": "dated-live-observation",
-      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#guest-and-firestore-observations"
-    },
     "#/components/schemas/CurrentGuest/properties/status": {
       "classification": "dated-live-observation",
       "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#guest-and-firestore-observations"
@@ -5044,10 +4977,6 @@
       "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#guest-and-firestore-observations"
     },
     "#/components/schemas/CurrentGuest/properties/userId": {
-      "classification": "dated-live-observation",
-      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#guest-and-firestore-observations"
-    },
-    "#/components/schemas/CurrentGuest/properties/userId/type": {
       "classification": "dated-live-observation",
       "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#guest-and-firestore-observations"
     },
@@ -5534,13 +5463,30 @@
       "syntheticMissingStatus": 404,
       "syntheticMissingCode": "NOT_FOUND",
       "authenticatedPermission": "not-observed",
-      "inaccessibleEvent": "not-observed"
+      "inaccessibleEvent": "not-observed",
+      "sampleScope": "one-selected-event",
+      "fieldPresence": "selected-object-only",
+      "fieldNullabilityAndAlternateVariants": "explicit-unknown",
+      "relatedEventRepresentationTypes": {
+        "endDate": [
+          "string",
+          "null"
+        ],
+        "image": [
+          "object",
+          "null"
+        ]
+      }
     },
     "getCurrentGuest": {
       "status": 200,
       "rawPath": "result.data.currentGuest",
       "otherVariants": "explicit-unknown",
-      "currentGuestNullability": "explicit-unknown"
+      "currentGuestNullability": "explicit-unknown",
+      "sampleScope": "one-selected-event",
+      "fieldPresence": "selected-object-only",
+      "fieldNullabilityAndAlternateVariants": "explicit-unknown",
+      "plusOnesVariants": "explicit-unknown"
     },
     "firestoreGuest": {
       "status": 200,
