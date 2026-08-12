@@ -303,7 +303,7 @@ describe('remote API contract', () => {
       ...materialClaimPointers(spec.paths, '#/paths', 'paths'),
       ...materialClaimPointers(spec.components, '#/components', 'components'),
     ]);
-    expect(pointers).toHaveLength(1298);
+    expect(pointers).toHaveLength(1285);
     for (const pointer of pointers) {
       const claim = evidence.claims[pointer];
       expect(claim, pointer).toBeDefined();
@@ -364,7 +364,7 @@ describe('remote API contract', () => {
     expect(ledger).toContain(
       'Two additional callable operations have protocol-specified HTTP `200` completion responses.',
     );
-    expect(ledger.match(/The 1298 material claims/g)).toHaveLength(2);
+    expect(ledger.match(/The 1285 material claims/g)).toHaveLength(2);
     expect(ledger).toContain(
       '**Proposed contract revision:** `2026-08-12.2`',
     );
@@ -945,10 +945,10 @@ describe('remote API contract', () => {
       count: { type: 'integer', minimum: 1 },
       plusOnes: {
         type: 'array',
-        items: { $ref: '#/components/schemas/RsvpNamedPlusOne' },
+        items: {},
       },
       message: { type: 'string', maxLength: 400 },
-      status: { type: 'string', enum: ['GOING', 'DECLINED'] },
+      status: { type: 'string', enum: ['GOING', 'MAYBE', 'DECLINED'] },
       timezone: { type: 'string' },
       shouldFollowOrgs: { type: 'boolean', const: false },
       questionnaireResponse: {
@@ -959,6 +959,12 @@ describe('remote API contract', () => {
     expect(rsvp.properties).not.toHaveProperty('channelPreference');
     expect(rsvp.properties).not.toHaveProperty('captchaToken');
     expect(rsvp.properties).not.toHaveProperty('_discoverSource');
+    for (const operation of [addGuest, interest]) {
+      const data = operation.requestBody.content['application/json'].schema
+        .properties.data;
+      expect(data.properties.deviceInfo).toEqual({});
+      expect(data.properties.adminAccessRequested).toEqual({});
+    }
 
     expect(interestParams.required).toEqual(['eventId', 'interested']);
     expect(interestParams.properties).toEqual({
@@ -983,13 +989,14 @@ describe('remote API contract', () => {
       .toEqual({ $ref: '#/components/schemas/AddGuestCompletionResponse' });
     expect(interest.responses['200'].content['application/json'].schema)
       .toEqual({ $ref: '#/components/schemas/MarkEventInterestCompletionResponse' });
+    const addGuestData = spec.components.schemas.AddGuestCompletionResponse
+      .properties.result.properties.data;
     const interestData = spec.components.schemas.MarkEventInterestCompletionResponse
       .properties.result.properties.data;
-    expect(interestData.required).toEqual(['success', 'interested']);
-    expect(interestData.properties).toEqual({
-      success: { type: 'boolean', const: true },
-      interested: { type: 'boolean' },
-    });
+    expect(addGuestData).not.toHaveProperty('type');
+    expect(interestData).not.toHaveProperty('type');
+    expect(interestData).not.toHaveProperty('required');
+    expect(interestData).not.toHaveProperty('properties');
 
     expect(evidence.publicRsvpAssetResearch).toMatchObject({
       sourceCitation: evidence.sources.publicRsvpMapping20260812,

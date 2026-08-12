@@ -1079,6 +1079,8 @@
                           "rsvp"
                         ]
                       },
+                      "deviceInfo": {},
+                      "adminAccessRequested": {},
                       "amplitudeDeviceId": {
                         "type": "string"
                       },
@@ -1161,6 +1163,8 @@
                           "interested"
                         ]
                       },
+                      "deviceInfo": {},
+                      "adminAccessRequested": {},
                       "amplitudeDeviceId": {
                         "type": "string"
                       },
@@ -2040,9 +2044,7 @@
           },
           "plusOnes": {
             "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/RsvpNamedPlusOne"
-            }
+            "items": {}
           },
           "message": {
             "type": "string",
@@ -2055,6 +2057,7 @@
             "type": "string",
             "enum": [
               "GOING",
+              "MAYBE",
               "DECLINED"
             ]
           },
@@ -2073,19 +2076,6 @@
           "shouldFollowOrgs": {
             "type": "boolean",
             "const": false
-          }
-        },
-        "additionalProperties": false
-      },
-      "RsvpNamedPlusOne": {
-        "type": "object",
-        "required": [
-          "name"
-        ],
-        "properties": {
-          "name": {
-            "type": "string",
-            "minLength": 1
           }
         },
         "additionalProperties": false
@@ -2123,8 +2113,7 @@
             ],
             "properties": {
               "data": {
-                "type": "object",
-                "additionalProperties": true
+                "description": "Completion data is not constrained by the current client."
               }
             },
             "additionalProperties": true
@@ -2145,21 +2134,7 @@
             ],
             "properties": {
               "data": {
-                "type": "object",
-                "required": [
-                  "success",
-                  "interested"
-                ],
-                "properties": {
-                  "success": {
-                    "type": "boolean",
-                    "const": true
-                  },
-                  "interested": {
-                    "type": "boolean"
-                  }
-                },
-                "additionalProperties": true
+                "description": "The current client applies a truthy success and matching interested predicate; the remote value types remain unconstrained."
               }
             },
             "additionalProperties": true

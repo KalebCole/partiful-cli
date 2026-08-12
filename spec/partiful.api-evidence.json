@@ -2205,6 +2205,14 @@
       "classification": "current-first-party-public-asset-research",
       "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#addguest-request"
     },
+    "#/paths/~1addGuest/post/requestBody/content/application~1json/schema/properties/data/properties/deviceInfo": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#callable-transport"
+    },
+    "#/paths/~1addGuest/post/requestBody/content/application~1json/schema/properties/data/properties/adminAccessRequested": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#callable-transport"
+    },
     "#/paths/~1addGuest/post/requestBody/content/application~1json/schema/properties/data/properties/amplitudeDeviceId": {
       "classification": "current-first-party-public-asset-research",
       "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#addguest-request"
@@ -2328,6 +2336,14 @@
     "#/paths/~1markEventInterest/post/requestBody/content/application~1json/schema/properties/data/properties/params/required/1": {
       "classification": "current-first-party-public-asset-research",
       "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#markeventinterest-request-and-completion"
+    },
+    "#/paths/~1markEventInterest/post/requestBody/content/application~1json/schema/properties/data/properties/deviceInfo": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#callable-transport"
+    },
+    "#/paths/~1markEventInterest/post/requestBody/content/application~1json/schema/properties/data/properties/adminAccessRequested": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#callable-transport"
     },
     "#/paths/~1markEventInterest/post/requestBody/content/application~1json/schema/properties/data/properties/amplitudeDeviceId": {
       "classification": "current-first-party-public-asset-research",
@@ -5381,10 +5397,6 @@
       "classification": "current-first-party-public-asset-research",
       "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#addguest-request"
     },
-    "#/components/schemas/RsvpDraft/properties/plusOnes/items/$ref": {
-      "classification": "current-first-party-public-asset-research",
-      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#addguest-request"
-    },
     "#/components/schemas/RsvpDraft/properties/message/type": {
       "classification": "current-first-party-public-asset-research",
       "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#addguest-request"
@@ -5404,6 +5416,10 @@
     "#/components/schemas/RsvpDraft/properties/status/enum/1": {
       "classification": "current-first-party-public-asset-research",
       "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#addguest-request"
+    },
+    "#/components/schemas/RsvpDraft/properties/status/enum/2": {
+      "classification": "current-first-party-public-asset-research",
+      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#guest-status-and-product-intent"
     },
     "#/components/schemas/RsvpDraft/properties/guestId/type": {
       "classification": "current-first-party-public-asset-research",
@@ -5426,30 +5442,6 @@
       "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#addguest-request"
     },
     "#/components/schemas/RsvpDraft/properties/shouldFollowOrgs/const": {
-      "classification": "current-first-party-public-asset-research",
-      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#addguest-request"
-    },
-    "#/components/schemas/RsvpNamedPlusOne/type": {
-      "classification": "current-first-party-public-asset-research",
-      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#addguest-request"
-    },
-    "#/components/schemas/RsvpNamedPlusOne/required/0": {
-      "classification": "current-first-party-public-asset-research",
-      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#addguest-request"
-    },
-    "#/components/schemas/RsvpNamedPlusOne/properties/name": {
-      "classification": "current-first-party-public-asset-research",
-      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#addguest-request"
-    },
-    "#/components/schemas/RsvpNamedPlusOne/properties/name/type": {
-      "classification": "current-first-party-public-asset-research",
-      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#addguest-request"
-    },
-    "#/components/schemas/RsvpNamedPlusOne/properties/name/minLength": {
-      "classification": "current-first-party-public-asset-research",
-      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#addguest-request"
-    },
-    "#/components/schemas/RsvpNamedPlusOne/additionalProperties": {
       "classification": "current-first-party-public-asset-research",
       "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#addguest-request"
     },
@@ -5517,14 +5509,6 @@
       "classification": "current-first-party-public-asset-research",
       "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#addguest-completion"
     },
-    "#/components/schemas/AddGuestCompletionResponse/properties/result/properties/data/type": {
-      "classification": "current-first-party-public-asset-research",
-      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#addguest-completion"
-    },
-    "#/components/schemas/AddGuestCompletionResponse/properties/result/properties/data/additionalProperties": {
-      "classification": "current-first-party-public-asset-research",
-      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#addguest-completion"
-    },
     "#/components/schemas/AddGuestCompletionResponse/properties/result/additionalProperties": {
       "classification": "current-first-party-public-asset-research",
       "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#addguest-completion"
@@ -5554,42 +5538,6 @@
       "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#markeventinterest-request-and-completion"
     },
     "#/components/schemas/MarkEventInterestCompletionResponse/properties/result/properties/data": {
-      "classification": "current-first-party-public-asset-research",
-      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#markeventinterest-request-and-completion"
-    },
-    "#/components/schemas/MarkEventInterestCompletionResponse/properties/result/properties/data/type": {
-      "classification": "current-first-party-public-asset-research",
-      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#markeventinterest-request-and-completion"
-    },
-    "#/components/schemas/MarkEventInterestCompletionResponse/properties/result/properties/data/required/0": {
-      "classification": "current-first-party-public-asset-research",
-      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#markeventinterest-request-and-completion"
-    },
-    "#/components/schemas/MarkEventInterestCompletionResponse/properties/result/properties/data/required/1": {
-      "classification": "current-first-party-public-asset-research",
-      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#markeventinterest-request-and-completion"
-    },
-    "#/components/schemas/MarkEventInterestCompletionResponse/properties/result/properties/data/properties/success": {
-      "classification": "current-first-party-public-asset-research",
-      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#markeventinterest-request-and-completion"
-    },
-    "#/components/schemas/MarkEventInterestCompletionResponse/properties/result/properties/data/properties/success/type": {
-      "classification": "current-first-party-public-asset-research",
-      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#markeventinterest-request-and-completion"
-    },
-    "#/components/schemas/MarkEventInterestCompletionResponse/properties/result/properties/data/properties/success/const": {
-      "classification": "current-first-party-public-asset-research",
-      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#markeventinterest-request-and-completion"
-    },
-    "#/components/schemas/MarkEventInterestCompletionResponse/properties/result/properties/data/properties/interested": {
-      "classification": "current-first-party-public-asset-research",
-      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#markeventinterest-request-and-completion"
-    },
-    "#/components/schemas/MarkEventInterestCompletionResponse/properties/result/properties/data/properties/interested/type": {
-      "classification": "current-first-party-public-asset-research",
-      "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#markeventinterest-request-and-completion"
-    },
-    "#/components/schemas/MarkEventInterestCompletionResponse/properties/result/properties/data/additionalProperties": {
       "classification": "current-first-party-public-asset-research",
       "citation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#markeventinterest-request-and-completion"
     },
@@ -5949,15 +5897,14 @@
     },
     "addGuestCompletion": {
       "statusSource": "official-firebase-callable-protocol",
-      "requiredResultDataType": "object",
+      "requiredResultDataType": "unconstrained",
+      "clientCompletion": "callable-resolved",
       "requiredBusinessFields": []
     },
     "markEventInterestCompletion": {
       "statusSource": "official-firebase-callable-protocol",
-      "requiredFields": {
-        "success": true,
-        "interested": "equals-submitted-boolean"
-      }
+      "remoteDataType": "unconstrained",
+      "clientCompletionPredicate": "truthy-success-and-interested-equals-submitted"
     },
     "successSemantics": "submitted-request-only",
     "currentGuestNullability": "explicit-unknown",
