@@ -36,10 +36,18 @@ The two event lists were observed as complete arrays in one response, at
 `result.data.upcomingEvents` and `result.data.pastEvents`. No remote list
 pagination was observed, so pagination remains unknown. One selected event
 was readable both authenticated and signed out. This does not make all events
-public. A synthetic missing event returned `404 NOT_FOUND`.
+public. A synthetic missing event returned `404 NOT_FOUND`. That one detail
+object does not establish operation-wide field presence, nullability, or
+alternate variants. `EventInfo` therefore has no required field list.
+Related event-list representations support only optional `endDate`
+string/null and `image` object/null unions; unsupported selected-only variants
+remain unconstrained.
 
 The current guest callable and its Firestore guest document returned `200`,
-and their guest status matched. Firestore event GET returned
+and their guest status matched. The one current-guest object does not
+establish operation-wide field presence or variants, so `CurrentGuest` has no
+required field list. `count`, `plusOnes`, and `userId` remain unconstrained;
+ordinary non-null plus-one shape is unknown. Firestore event GET returned
 `403 PERMISSION_DENIED` for both the selected readable ID and a synthetic ID
 with the observed authenticated request context. This does not establish
 attendee denial or Firestore not-found behavior.
