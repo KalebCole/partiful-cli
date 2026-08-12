@@ -856,6 +856,9 @@ func Execute(ctx context.Context, request Request, dependencies Dependencies) Re
 						return failure(definition.path, cursorFailure.exitCode, cursorFailure.body, pretty)
 					}
 				}
+				if dependencies.CredentialsPathError != nil {
+					return configurationDirectoryFailure(definition.path, pretty)
+				}
 				clock := time.Now
 				if dependencies.Now != nil {
 					clock = dependencies.Now

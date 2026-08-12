@@ -13,14 +13,15 @@ import (
 	"unicode/utf8"
 )
 
-// The reviewed traversal has three data pages of at most the requested 1,000
-// items, followed by one empty terminal page. Do not traverse beyond that
-// finite execution boundary until a larger bound is reviewed.
+// The reviewed traversal used three data pages with a requested maximum of
+// 1,000 items, followed by one empty terminal page. Do not exceed three data
+// pages or 3,000 retained items until a larger boundary is reviewed.
 const (
 	contactPageSize           = 1000
 	maximumContactDataPages   = 3
 	maximumContactCatalogSize = contactPageSize * maximumContactDataPages
-	maximumContactPageBytes   = 4 << 20
+	// The observed full page was below 1 MiB; this is a local memory ceiling.
+	maximumContactPageBytes = 4 << 20
 )
 
 var ErrUnauthenticated = errors.New("remote authentication is required")

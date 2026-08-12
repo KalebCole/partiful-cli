@@ -2827,6 +2827,143 @@ func TestExecuteContactsListPreservesUnauthenticatedBodyReadFailureAsUnavailable
 	}
 }
 
+func TestExecuteContactsListReportsUnavailableConfigurationBeforeProtectedRead(t *testing.T) {
+	const privateConfigurationError = "private configuration path failure"
+	result := app.Execute(context.Background(), app.Request{
+		Argv:  []string{"contacts", "list"},
+		Stdin: strings.NewReader(""),
+	}, app.Dependencies{
+		CredentialsPathError: errors.New(privateConfigurationError),
+		AuthRandom:           strings.NewReader("must-not-be-read"),
+		HTTP: scriptedHTTP{do: func(*http.Request) (*http.Response, error) {
+			return nil, errors.New("remote must not be called")
+		}},
+	})
+
+	const wantStdout = `{"ok":false,"error":{"type":"internal.failure","code":"CONFIG_DIRECTORY_UNAVAILABLE","message":"Local configuration directory is unavailable.","retryable":false,"details":{}},"meta":{"command":"contacts.list","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.5"}}` + "\n"
+	if result.ExitCode != 10 || result.Stdout != wantStdout {
+		t.Fatalf("result = %#v, want unavailable configuration failure", result)
+	}
+	if strings.Contains(result.Stdout+result.Stderr, privateConfigurationError) {
+		t.Fatal("configuration failure exposed private local details")
+	}
+}
+
+func TestExecuteContactsListRequiresAuthenticationWithoutRemoteCall(t *testing.T) {
+	result := app.Execute(context.Background(), app.Request{
+		Argv:  []string{"contacts", "list"},
+		Stdin: strings.NewReader(""),
+	}, app.Dependencies{
+		Files: fakeFilesystem{
+			readFile: func(string) ([]byte, error) {
+				return nil, fs.ErrNotExist
+			},
+		},
+		CredentialsPath: "/config/partiful/credentials.json",
+		Now: func() time.Time {
+			return time.Date(2026, time.August, 11, 0, 0, 0, 0, time.UTC)
+		},
+		AuthRandom: strings.NewReader("must-not-be-read"),
+		HTTP: scriptedHTTP{do: func(*http.Request) (*http.Response, error) {
+			return nil, errors.New("remote must not be called")
+		}},
+	})
+
+	const wantStdout = `{"ok":false,"error":{"type":"auth.required","code":"AUTHENTICATION_REQUIRED","message":"Authentication is required. Log in and try again.","retryable":false,"details":{}},"meta":{"command":"contacts.list","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.5"}}` + "\n"
+	if result.ExitCode != 3 || result.Stdout != wantStdout {
+		t.Fatalf("result = %#v, want authentication requirement", result)
+	}
+}
+
+func TestExecuteContactsListPreservesAmbiguousDisplayNamesWithoutIdentity(t *testing.T) {
+	const ambiguousName = "Same Display Name"
+	call := 0
+	result := app.Execute(context.Background(), app.Request{
+		Argv:  []string{"contacts", "list", "--query", "same display"},
+		Stdin: strings.NewReader(""),
+	}, app.Dependencies{
+		Files: fakeFilesystem{
+			readFile: func(string) ([]byte, error) {
+				return []byte(
+					`{"accessToken":"private-access-token","expiresAt":"2026-08-11T02:00:00Z"}`,
+				), nil
+			},
+		},
+		CredentialsPath: "/config/partiful/credentials.json",
+		Now: func() time.Time {
+			return time.Date(2026, time.August, 11, 0, 0, 0, 0, time.UTC)
+		},
+		AuthRandom: strings.NewReader("0123456789abcdef"),
+		HTTP: scriptedHTTP{do: func(*http.Request) (*http.Response, error) {
+			call++
+			if call == 1 {
+				return jsonResponse(
+					http.StatusOK,
+					`{"result":{"data":[{"id":"private-first","name":"`+ambiguousName+`","sharedEventCount":1},{"id":"private-second","name":"`+ambiguousName+`","sharedEventCount":2}],"paging":{"nextCursor":"private-cursor"}}}`,
+				), nil
+			}
+			return jsonResponse(http.StatusOK, `{"result":{"data":[],"paging":{}}}`), nil
+		}},
+	})
+
+	var envelope struct {
+		Data struct {
+			Items []contactOutput `json:"items"`
+		} `json:"data"`
+	}
+	if err := json.Unmarshal([]byte(result.Stdout), &envelope); err != nil {
+		t.Fatalf("decode result: %v", err)
+	}
+	want := []contactOutput{
+		{DisplayName: ambiguousName, SharedEventCount: 1},
+		{DisplayName: ambiguousName, SharedEventCount: 2},
+	}
+	if result.ExitCode != 0 || !reflect.DeepEqual(envelope.Data.Items, want) {
+		t.Fatalf("result = %#v, items = %#v, want both ambiguous public matches", result, envelope.Data.Items)
+	}
+	for _, privateValue := range []string{"private-first", "private-second", "private-cursor"} {
+		if strings.Contains(result.Stdout+result.Stderr, privateValue) {
+			t.Fatalf("ambiguous result exposed private identity %q", privateValue)
+		}
+	}
+}
+
+func TestExecuteContactsListFailsClosedOnUnsupportedStatus(t *testing.T) {
+	const privateBody = "private unsupported response"
+	result := app.Execute(context.Background(), app.Request{
+		Argv:  []string{"contacts", "list"},
+		Stdin: strings.NewReader(""),
+	}, app.Dependencies{
+		Files: fakeFilesystem{
+			readFile: func(string) ([]byte, error) {
+				return []byte(
+					`{"accessToken":"private-access-token","expiresAt":"2026-08-11T02:00:00Z"}`,
+				), nil
+			},
+		},
+		CredentialsPath: "/config/partiful/credentials.json",
+		Now: func() time.Time {
+			return time.Date(2026, time.August, 11, 0, 0, 0, 0, time.UTC)
+		},
+		AuthRandom: strings.NewReader("0123456789abcdef"),
+		HTTP: scriptedHTTP{do: func(*http.Request) (*http.Response, error) {
+			return jsonResponse(
+				http.StatusTooManyRequests,
+				`{"error":"`+privateBody+`"}`,
+			), nil
+		}},
+	})
+
+	if result.ExitCode != 9 ||
+		!strings.Contains(result.Stdout, `"type":"contract.protocol_changed"`) ||
+		strings.Contains(result.Stdout, `"type":"remote.rate_limited"`) {
+		t.Fatalf("result = %#v, want unsupported status protocol failure", result)
+	}
+	if strings.Contains(result.Stdout+result.Stderr, privateBody) {
+		t.Fatal("unsupported status exposed remote response body")
+	}
+}
+
 func TestExecuteAuthStatusRedactsHealthyCredentials(t *testing.T) {
 	const credentials = `{"accessToken":"secret-token-value","refreshToken":"secret-refresh-value","userId":"private-user-value","expiresAt":"2026-08-11T02:00:00Z"}`
 	result := app.Execute(context.Background(), app.Request{
