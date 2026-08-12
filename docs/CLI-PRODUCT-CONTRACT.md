@@ -1,8 +1,13 @@
 # CLI product contract
 
-**Status:** Approved product contract  
-**Product contract revision:** `2026-08-10.1`  
-**Remote API contract revision:** `2026-08-11.5`
+**Status:** Proposed product contract pending delegated review
+
+**Product contract revision:** `2026-08-12.1`
+
+**Remote API contract revision:** `2026-08-12.1` (proposed)
+
+**Currently shipped Go revisions:** product `2026-08-10.1`; remote
+`2026-08-11.5`
 
 This document defines the public behavior of the greenfield Go `partiful` CLI.
 It is the authority for commands, inputs, JSON outputs, failures, and mutation
@@ -77,8 +82,8 @@ Every successful command returns:
   "meta": {
     "command": "events.get",
     "cliVersion": "1.0.0",
-    "productContractRevision": "2026-08-10.1",
-    "remoteContractRevision": "2026-08-11.5",
+    "productContractRevision": "2026-08-12.1",
+    "remoteContractRevision": "2026-08-12.1",
     "warnings": []
   }
 }
@@ -101,8 +106,8 @@ Every failed command returns:
   "meta": {
     "command": "guests.list",
     "cliVersion": "1.0.0",
-    "productContractRevision": "2026-08-10.1",
-    "remoteContractRevision": "2026-08-11.5"
+    "productContractRevision": "2026-08-12.1",
+    "remoteContractRevision": "2026-08-12.1"
   }
 }
 ```
@@ -149,8 +154,8 @@ Collection commands return:
   "meta": {
     "command": "events.list",
     "cliVersion": "1.0.0",
-    "productContractRevision": "2026-08-10.1",
-    "remoteContractRevision": "2026-08-11.5",
+    "productContractRevision": "2026-08-12.1",
+    "remoteContractRevision": "2026-08-12.1",
     "warnings": [],
     "page": {
       "limit": 25,
@@ -175,6 +180,26 @@ different filters. If the remote capability cannot support this contract
 safely, the collection command remains behind its implementation gate.
 When `--all` reaches `--max-items` before the collection ends, `hasMore` is
 `true` and `nextCursor` lets the caller resume from that exact point.
+
+### Event-list local snapshots
+
+`events list` has no remote paging contract. One invocation fetches exactly
+one reviewed upcoming or past one-response representation and paginates that
+array locally. The CLI preserves the received sequence without claiming what
+the remote order means.
+
+The local safety ceiling is 1,000 items and 8 MiB for the complete response.
+If either ceiling is exceeded, the CLI returns
+`contract.protocol_changed` / `EVENT_LIST_BOUND_EXCEEDED`; it does not
+truncate a successful result.
+
+An event-list cursor is digest-bound to the complete response representation,
+the `events.list` command, the normalized `--when` value, and the next array
+offset. Resumption refetches the same one-response representation once. If
+its digest changed, the CLI returns `state.conflict` /
+`CURSOR_SNAPSHOT_CHANGED` rather than skip, repeat, merge, or guess items.
+This is local snapshot pagination. It does not claim a remote cursor, limit,
+ordering key, snapshot, or future completeness.
 
 ## Mutation safety
 
@@ -202,8 +227,8 @@ remote mutation:
   "meta": {
     "command": "events.update",
     "cliVersion": "1.0.0",
-    "productContractRevision": "2026-08-10.1",
-    "remoteContractRevision": "2026-08-11.5",
+    "productContractRevision": "2026-08-12.1",
+    "remoteContractRevision": "2026-08-12.1",
     "warnings": []
   }
 }
@@ -343,8 +368,67 @@ Each `data.items` entry is an `EventSummary`:
 }
 ```
 
-`state` is `active` or `cancelled`. `userRole` is `host`, `cohost`,
-`attendee`, or `none`.
+For S3 reads, `eventId` is the only non-null event-read field. It comes from
+the reviewed list item `id`. All other documented event-read fields are
+nullable because the reviewed remote representation does not establish their
+universal presence. A missing optional property produces JSON `null`; it does
+not make an otherwise reviewed response protocol drift. A present property
+that violates its reviewed type or closed enum is
+`contract.protocol_changed`.
+
+The conditional scalar projection is:
+
+| Product field | Reviewed remote property | Null meaning |
+| --- | --- | --- |
+| `title` | string `title` | The property is unavailable. |
+| `start` | string `startDate` | The property is unavailable. |
+| `end` | string or null `endDate` | The property is absent or explicitly null. |
+| `timezone` | string `timezone` | The property is unavailable. |
+| `state` | `status` mapping below | The property is unavailable. |
+
+Event state is an exact closed mapping:
+
+- `PUBLISHED` → `active`;
+- `CANCELED` → `cancelled`.
+
+Role projection uses private current-user identity only for comparison. It
+never emits an owner ID:
+
+- `ownerIds` contains the current user → `host`;
+- `ownerIds` is present, does not contain the current user, and `guest` is present → `attendee`;
+- `ownerIds` is present, does not contain the current user, and `guest` is absent → `none`;
+- `ownerIds` is absent → `null`.
+
+Owner membership takes precedence if a representation also has `guest`.
+`cohost` is reserved in the product enum, but S3 does not emit it. Current
+first-party assets do not distinguish a primary host from a cohost, so every
+owner membership maps to `host` until a distinct reviewed field exists.
+
+`myRsvp` uses the read-only `EventReadRsvp` enum. It is a lossless,
+one-to-one normalization and is separate from S5's narrower writable RSVP
+intent:
+
+| Remote guest status | `EventReadRsvp` |
+| --- | --- |
+| `READY_TO_SEND` | `ready-to-send` |
+| `SENDING` | `sending` |
+| `SEND_ERROR` | `send-error` |
+| `DELIVERY_ERROR` | `delivery-error` |
+| `SENT` | `sent` |
+| `INTERESTED` | `interested` |
+| `WAITLIST` | `waitlist` |
+| `MAYBE` | `maybe` |
+| `DECLINED` | `declined` |
+| `GOING` | `going` |
+| `PENDING_APPROVAL` | `pending-approval` |
+| `APPROVED` | `approved` |
+| `WITHDRAWN` | `withdrawn` |
+| `WAITLISTED_FOR_APPROVAL` | `waitlisted-for-approval` |
+| `REJECTED` | `rejected` |
+| `RESPONDED_TO_FIND_A_TIME` | `responded-to-find-a-time` |
+
+Null `myRsvp` means that no current guest object or status is available. An
+unknown present guest status is `contract.protocol_changed`, not null.
 
 #### `partiful events get <event-id>`
 
@@ -353,22 +437,56 @@ Returns an `Event`:
 ```json
 {
   "eventId": "evt_example",
-  "title": "Example event",
-  "start": "2026-09-12T19:00:00-07:00",
+  "title": null,
+  "start": null,
   "end": null,
-  "timezone": "America/Los_Angeles",
-  "state": "active",
-  "userRole": "host",
+  "timezone": null,
+  "state": null,
+  "userRole": null,
   "myRsvp": null,
   "description": null,
   "location": null,
   "address": null,
-  "visibility": "private",
+  "visibility": null,
   "guestLimit": null,
   "poster": null,
-  "links": []
+  "links": null
 }
 ```
+
+The positional input supplies `eventId`. Reviewed conditional `title`,
+`startDate`, `endDate`, `timezone`, and `status` properties use the same
+nullable scalar and state mappings as `EventSummary`. The current
+`getEventInfo` contract does not map owner or guest properties, so
+`userRole` and `myRsvp` are null for this command.
+
+`description`, `location`, `address`, `visibility`, `guestLimit`, `poster`,
+and `links` are unavailable-not-claimed in S3. They are null even if an
+unreviewed remote property has a similar name. In particular, `links` is
+`null`, not an empty array; this does not mean that the remote event has no
+links. A later contract revision can add a field only after its transport
+shape and product projection are reviewed.
+
+`getEventInfo` has this read failure boundary:
+
+- `200` uses the nullable projection above;
+- `404 NOT_FOUND` → `resource.not_found` / `EVENT_NOT_FOUND`;
+- no response → `remote.unavailable`;
+- every other unrecognized received status or malformed reviewed property →
+  `contract.protocol_changed`.
+
+An unobserved `403` is not `permission.denied`. The permission mapping is deferred
+until an inaccessible-event response is reviewed. S3 does not call `firestoreGetEvent`;
+`.5` returned the same `403 PERMISSION_DENIED` for a
+selected readable event and a synthetic ID, so that operation cannot
+distinguish permission or existence. S3 also does not call
+`getCurrentGuest` or `firestoreGetGuest`; the list's conditional inline
+`guest.status` is the only reviewed guest projection used here.
+
+The two list operations accept only their reviewed `200` bodies. No response
+is `remote.unavailable`; every unrecognized received status is
+`contract.protocol_changed`. Their remote permission and failure mappings
+remain unclaimed.
 
 #### `partiful events create`
 
