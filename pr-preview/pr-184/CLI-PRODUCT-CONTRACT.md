@@ -1,6 +1,6 @@
 # CLI product contract
 
-**Status:** Proposed, pending delegated review
+**Status:** Approved product contract
 
 **Product contract revision:** `2026-08-12.2`
 
