@@ -437,7 +437,7 @@ func decodeEventInfo(raw json.RawMessage) (Event, error) {
 			return Event{}, errors.New("event owners are invalid")
 		}
 	}
-	guestCount, err := eventIntegerField(object, "guestCount", false)
+	guestCount, err := eventIntegerField(object, "guestCount", true)
 	if err != nil {
 		return Event{}, err
 	}

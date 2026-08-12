@@ -4997,7 +4997,7 @@ func TestExecuteSchemaDescribesBothDiscoveryResultShapes(t *testing.T) {
 						"additionalProperties": false,
 						"required": ["kind", "planRequired", "confirmationRequired"],
 						"properties": {
-							"kind": {"type": "string", "enum": ["read-only", "local-mutation", "standard-mutation"]},
+							"kind": {"type": "string", "enum": ["read-only", "local-mutation", "standard-mutation", "consequential-action"]},
 							"planRequired": {"type": "boolean"},
 							"confirmationRequired": {"type": "boolean"}
 						}

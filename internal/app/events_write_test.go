@@ -499,6 +499,27 @@ func TestExecuteEventUpdateBindsAbsentCustomFields(t *testing.T) {
 	}
 }
 
+func TestExecuteEventUpdateAllowsIrrelevantNullGuestCount(t *testing.T) {
+	files := &memoryFilesystem{files: map[string][]byte{
+		eventWriteCredentialsPath: []byte(eventWriteCredentials),
+	}}
+	dependencies := eventWriteDependencies(files)
+	dependencies.MutationRandom = strings.NewReader(strings.Repeat("n", 32))
+	event := compatibleUpdateEvent()
+	event["guestCount"] = nil
+	dependencies.HTTP = scriptedHTTP{do: func(request *http.Request) (*http.Response, error) {
+		assertEventCallableRequest(t, request, "getEventInfo", `{"data":{"params":{"eventId":"event-example"},"amplitudeDeviceId":"MDEyMzQ1Njc4OWFiY2RlZg"}}`)
+		return jsonResponse(http.StatusOK, eventResponse(t, event)), nil
+	}}
+
+	result := app.Execute(context.Background(), app.Request{
+		Argv: []string{"events", "update", "event-example", "--title", "Updated title"},
+	}, dependencies)
+	if result.ExitCode != 0 {
+		t.Fatalf("result = %#v, want irrelevant null guest count accepted", result)
+	}
+}
+
 func TestExecuteEventCancelRequiresConfirmAndAppliesConsequentialPlan(t *testing.T) {
 	files := &memoryFilesystem{files: map[string][]byte{
 		eventWriteCredentialsPath: []byte(eventWriteCredentials),
@@ -605,6 +626,29 @@ func TestExecuteEventCancelFailsClosedOnMalformedFactsAndSubmissionUncertainty(t
 				t.Fatalf("reused = %#v, want stale consumed plan", reused)
 			}
 		})
+	}
+}
+
+func TestExecuteEventCancelPreservesPrettyFailureMetadata(t *testing.T) {
+	files := &memoryFilesystem{files: map[string][]byte{
+		eventWriteCredentialsPath: []byte(eventWriteCredentials),
+	}}
+	dependencies := eventWriteDependencies(files)
+	event := compatibleCancelEvent()
+	event["startDate"] = "not-a-timestamp"
+	dependencies.HTTP = scriptedHTTP{do: func(request *http.Request) (*http.Response, error) {
+		assertEventCallableRequest(t, request, "getEventInfo", `{"data":{"params":{"eventId":"event-example"},"amplitudeDeviceId":"MDEyMzQ1Njc4OWFiY2RlZg"}}`)
+		return jsonResponse(http.StatusOK, eventResponse(t, event)), nil
+	}}
+
+	result := app.Execute(context.Background(), app.Request{
+		Argv: []string{"--pretty", "events", "cancel", "event-example"},
+	}, dependencies)
+	if result.ExitCode != 9 ||
+		!strings.Contains(result.Stdout, `"code": "EVENT_CANCEL_PROTOCOL_CHANGED"`) ||
+		!strings.Contains(result.Stdout, `"command": "events.cancel"`) ||
+		!strings.Contains(result.Stdout, "\n  \"error\"") {
+		t.Fatalf("result = %#v, want pretty cancel protocol failure", result)
 	}
 }
 

@@ -278,9 +278,9 @@ var commandCatalog = []commandDefinition{
 		safety: readOnlySafety(),
 	},
 	{
-		path:       "events.create",
-		invocation: []string{"events", "create"},
-		kind:       eventsCreateCommand,
+		path:        "events.create",
+		invocation:  []string{"events", "create"},
+		kind:        eventsCreateCommand,
 		positionals: []positionalDefinition{},
 		flags: []flagDefinition{
 			{Name: "--input", Description: "Read one structured JSON input object.", TakesValue: true},
@@ -540,7 +540,7 @@ func schemaSuccessSchema() jsonSchema {
 		map[string]jsonSchema{
 			"kind": {
 				Type: "string",
-				Enum: []string{"read-only", "local-mutation", "standard-mutation"},
+				Enum: []string{"read-only", "local-mutation", "standard-mutation", "consequential-action"},
 			},
 			"planRequired":         {Type: "boolean"},
 			"confirmationRequired": {Type: "boolean"},

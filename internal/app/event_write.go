@@ -226,11 +226,26 @@ func executeEventUpdate(
 	if mergedRangeError != nil {
 		return *mergedRangeError
 	}
-	preconditions, conditionFailure := buildUpdatePreconditions(event, session.UserID, options.Input, clock())
+	preconditions, conditionFailure := buildUpdatePreconditions(
+		definition.path,
+		event,
+		session.UserID,
+		options.Input,
+		clock(),
+		pretty,
+	)
 	if conditionFailure != nil {
 		return *conditionFailure
 	}
-	privateRequest, publicRequest, fieldPaths, prepareErr := buildUpdateRequest(ctx, client, event, options.Input, session.UserID)
+	privateRequest, publicRequest, fieldPaths, prepareErr := buildUpdateRequest(
+		ctx,
+		definition.path,
+		client,
+		event,
+		options.Input,
+		session.UserID,
+		pretty,
+	)
 	if prepareErr != nil {
 		return *prepareErr
 	}
@@ -326,7 +341,13 @@ func executeEventCancel(
 			return eventWriteProtocolChangedFailure(definition.path, "EVENT_CANCEL_PROTOCOL_CHANGED", "The event cancel flow no longer matches the reviewed remote contract.", "partiful: event cancel protocol changed\n", pretty)
 		}
 	}
-	preconditions, conditionFailure := buildCancelPreconditions(event, session.UserID, clock())
+	preconditions, conditionFailure := buildCancelPreconditions(
+		definition.path,
+		event,
+		session.UserID,
+		clock(),
+		pretty,
+	)
 	if conditionFailure != nil {
 		return *conditionFailure
 	}
@@ -463,7 +484,14 @@ func mapPosterError(command string, err error, pretty bool) Result {
 	}
 }
 
-func buildUpdatePreconditions(event remote.Event, currentUserID string, input normalizedEventUpdateInput, now time.Time) (eventUpdatePrivatePreconditions, *Result) {
+func buildUpdatePreconditions(
+	command string,
+	event remote.Event,
+	currentUserID string,
+	input normalizedEventUpdateInput,
+	now time.Time,
+	pretty bool,
+) (eventUpdatePrivatePreconditions, *Result) {
 	preconditions := eventUpdatePrivatePreconditions{
 		OwnerIDs: rawEventField(event, "ownerIds"),
 		Status:   rawEventField(event, "status"),
@@ -496,10 +524,10 @@ func buildUpdatePreconditions(event remote.Event, currentUserID string, input no
 	}
 	if input.HasStart || input.HasEnd || input.HasTimezone {
 		if event.HasGuests.State == remote.FieldAbsent {
-			return eventUpdatePrivatePreconditions{}, resultPointer(eventWriteProtocolChangedFailure("events.update", "EVENT_UPDATE_PROTOCOL_CHANGED", "The event update no longer matches the reviewed remote contract.", "partiful: event update protocol changed\n", false))
+			return eventUpdatePrivatePreconditions{}, resultPointer(eventTimeProtocolChangedFailure(command, pretty))
 		}
 		if event.Safeguards.Ticketing.State == remote.FieldValue {
-			return eventUpdatePrivatePreconditions{}, resultPointer(eventPreconditionFailure("events.update", prettyFalse))
+			return eventUpdatePrivatePreconditions{}, resultPointer(eventPreconditionFailure(command, pretty))
 		}
 		preconditions.DateGuard = map[string]eventFieldSnapshot{
 			"startDate": rawEventField(event, "startDate"),
@@ -508,14 +536,14 @@ func buildUpdatePreconditions(event remote.Event, currentUserID string, input no
 			"ticketing": rawEventField(event, "ticketing"),
 		}
 		if event.HasGuests.State != remote.FieldValue {
-			return eventUpdatePrivatePreconditions{}, resultPointer(eventWriteProtocolChangedFailure("events.update", "EVENT_UPDATE_PROTOCOL_CHANGED", "The event update no longer matches the reviewed remote contract.", "partiful: event update protocol changed\n", false))
+			return eventUpdatePrivatePreconditions{}, resultPointer(eventTimeProtocolChangedFailure(command, pretty))
 		}
 		if event.HasGuests.Value {
-			start, failure := requiredCurrentEventTime(event, "startDate")
+			start, failure := requiredCurrentEventTime(command, event, "startDate", pretty)
 			if failure != nil {
 				return eventUpdatePrivatePreconditions{}, resultPointer(*failure)
 			}
-			end, hasEnd, failure := optionalCurrentEventTime(event, "endDate")
+			end, hasEnd, failure := optionalCurrentEventTime(command, event, "endDate", pretty)
 			if failure != nil {
 				return eventUpdatePrivatePreconditions{}, resultPointer(*failure)
 			}
@@ -524,7 +552,7 @@ func buildUpdatePreconditions(event remote.Event, currentUserID string, input no
 				boundary = end.Add(2 * time.Hour)
 			}
 			if now.After(boundary) {
-				return eventUpdatePrivatePreconditions{}, resultPointer(eventPreconditionFailure("events.update", prettyFalse))
+				return eventUpdatePrivatePreconditions{}, resultPointer(eventPreconditionFailure(command, pretty))
 			}
 		}
 	}
@@ -532,14 +560,14 @@ func buildUpdatePreconditions(event remote.Event, currentUserID string, input no
 	return preconditions, nil
 }
 
-var prettyFalse = false
-
 func buildUpdateRequest(
 	ctx context.Context,
+	command string,
 	client remote.Client,
 	event remote.Event,
 	input normalizedEventUpdateInput,
 	currentUserID string,
+	pretty bool,
 ) (remote.FirestoreWriteDocument, map[string]any, []string, *Result) {
 	fields := make(map[string]any)
 	publicFields := make(map[string]any)
@@ -596,7 +624,7 @@ func buildUpdateRequest(
 		if input.PosterID != nil {
 			image, _, err := resolvePosterBinding(ctx, client, *input.PosterID)
 			if err != nil {
-				result := mapPosterError("events.update", err, false)
+				result := mapPosterError(command, err, pretty)
 				return remote.FirestoreWriteDocument{}, nil, nil, &result
 			}
 			encoded := firestoreImageValue(image)
@@ -673,7 +701,13 @@ func firestoreStringArray(values []string) []any {
 	return encoded
 }
 
-func buildCancelPreconditions(event remote.Event, currentUserID string, now time.Time) (eventCancelPrivatePreconditions, *Result) {
+func buildCancelPreconditions(
+	command string,
+	event remote.Event,
+	currentUserID string,
+	now time.Time,
+	pretty bool,
+) (eventCancelPrivatePreconditions, *Result) {
 	preconditions := eventCancelPrivatePreconditions{
 		OwnerIDs:   rawEventField(event, "ownerIds"),
 		Status:     rawEventField(event, "status"),
@@ -681,35 +715,35 @@ func buildCancelPreconditions(event remote.Event, currentUserID string, now time
 		GuestCount: rawEventField(event, "guestCount"),
 	}
 	if preconditions.OwnerIDs.State != "value" {
-		result := eventWriteProtocolChangedFailure("events.cancel", "EVENT_CANCEL_PROTOCOL_CHANGED", "The event cancel flow no longer matches the reviewed remote contract.", "partiful: event cancel protocol changed\n", false)
+		result := eventTimeProtocolChangedFailure(command, pretty)
 		return eventCancelPrivatePreconditions{}, &result
 	}
 	if !event.OwnerIDsPresent || !slices.Contains(event.OwnerIDs, currentUserID) {
-		result := hostPermissionFailure("events.cancel", false)
+		result := hostPermissionFailure(command, pretty)
 		return eventCancelPrivatePreconditions{}, &result
 	}
 	if preconditions.Status.State != "value" || event.Status == nil {
-		result := eventWriteProtocolChangedFailure("events.cancel", "EVENT_CANCEL_PROTOCOL_CHANGED", "The event cancel flow no longer matches the reviewed remote contract.", "partiful: event cancel protocol changed\n", false)
+		result := eventTimeProtocolChangedFailure(command, pretty)
 		return eventCancelPrivatePreconditions{}, &result
 	}
 	if *event.Status != "PUBLISHED" {
-		result := eventPreconditionFailure("events.cancel", false)
+		result := eventPreconditionFailure(command, pretty)
 		return eventCancelPrivatePreconditions{}, &result
 	}
 	if preconditions.GuestCount.State != "value" || event.GuestCount.State != remote.FieldValue {
-		result := eventWriteProtocolChangedFailure("events.cancel", "EVENT_CANCEL_PROTOCOL_CHANGED", "The event cancel flow no longer matches the reviewed remote contract.", "partiful: event cancel protocol changed\n", false)
+		result := eventTimeProtocolChangedFailure(command, pretty)
 		return eventCancelPrivatePreconditions{}, &result
 	}
 	if event.GuestCount.Value <= 0 {
-		result := eventPreconditionFailure("events.cancel", false)
+		result := eventPreconditionFailure(command, pretty)
 		return eventCancelPrivatePreconditions{}, &result
 	}
-	start, failure := requiredCurrentEventTime(event, "startDate")
+	start, failure := requiredCurrentEventTime(command, event, "startDate", pretty)
 	if failure != nil {
 		return eventCancelPrivatePreconditions{}, resultPointer(*failure)
 	}
 	if !start.After(now) {
-		result := eventPreconditionFailure("events.cancel", false)
+		result := eventPreconditionFailure(command, pretty)
 		return eventCancelPrivatePreconditions{}, &result
 	}
 	return preconditions, nil
@@ -723,7 +757,7 @@ func validateMergedUpdateRange(command string, event remote.Event, input normali
 	if input.HasStart {
 		start = input.Start
 	} else {
-		parsed, failure := requiredCurrentEventTime(event, "startDate")
+		parsed, failure := requiredCurrentEventTime(command, event, "startDate", pretty)
 		if failure != nil {
 			return failure
 		}
@@ -732,7 +766,7 @@ func validateMergedUpdateRange(command string, event remote.Event, input normali
 	var end *time.Time
 	if input.HasEnd {
 		end = input.End
-	} else if parsed, hasValue, failure := optionalCurrentEventTime(event, "endDate"); failure == nil && hasValue {
+	} else if parsed, hasValue, failure := optionalCurrentEventTime(command, event, "endDate", pretty); failure == nil && hasValue {
 		end = &parsed
 	} else if failure != nil {
 		return failure
@@ -744,26 +778,36 @@ func validateMergedUpdateRange(command string, event remote.Event, input normali
 	return nil
 }
 
-func requiredCurrentEventTime(event remote.Event, field string) (time.Time, *Result) {
+func requiredCurrentEventTime(
+	command string,
+	event remote.Event,
+	field string,
+	pretty bool,
+) (time.Time, *Result) {
 	snapshot := rawEventField(event, field)
 	if snapshot.State != "value" {
-		result := eventWriteProtocolChangedFailure("events.update", "EVENT_UPDATE_PROTOCOL_CHANGED", "The event update no longer matches the reviewed remote contract.", "partiful: event update protocol changed\n", false)
+		result := eventTimeProtocolChangedFailure(command, pretty)
 		return time.Time{}, &result
 	}
 	var value string
 	if json.Unmarshal(snapshot.Value, &value) != nil {
-		result := eventWriteProtocolChangedFailure("events.update", "EVENT_UPDATE_PROTOCOL_CHANGED", "The event update no longer matches the reviewed remote contract.", "partiful: event update protocol changed\n", false)
+		result := eventTimeProtocolChangedFailure(command, pretty)
 		return time.Time{}, &result
 	}
 	decoded, err := time.Parse(time.RFC3339, value)
 	if err != nil {
-		result := eventWriteProtocolChangedFailure("events.update", "EVENT_UPDATE_PROTOCOL_CHANGED", "The event update no longer matches the reviewed remote contract.", "partiful: event update protocol changed\n", false)
+		result := eventTimeProtocolChangedFailure(command, pretty)
 		return time.Time{}, &result
 	}
 	return decoded, nil
 }
 
-func optionalCurrentEventTime(event remote.Event, field string) (time.Time, bool, *Result) {
+func optionalCurrentEventTime(
+	command string,
+	event remote.Event,
+	field string,
+	pretty bool,
+) (time.Time, bool, *Result) {
 	snapshot := rawEventField(event, field)
 	switch snapshot.State {
 	case "absent", "null":
@@ -771,19 +815,38 @@ func optionalCurrentEventTime(event remote.Event, field string) (time.Time, bool
 	case "value":
 		var value string
 		if json.Unmarshal(snapshot.Value, &value) != nil {
-			result := eventWriteProtocolChangedFailure("events.update", "EVENT_UPDATE_PROTOCOL_CHANGED", "The event update no longer matches the reviewed remote contract.", "partiful: event update protocol changed\n", false)
+			result := eventTimeProtocolChangedFailure(command, pretty)
 			return time.Time{}, false, &result
 		}
 		decoded, err := time.Parse(time.RFC3339, value)
 		if err != nil {
-			result := eventWriteProtocolChangedFailure("events.update", "EVENT_UPDATE_PROTOCOL_CHANGED", "The event update no longer matches the reviewed remote contract.", "partiful: event update protocol changed\n", false)
+			result := eventTimeProtocolChangedFailure(command, pretty)
 			return time.Time{}, false, &result
 		}
 		return decoded, true, nil
 	default:
-		result := eventWriteProtocolChangedFailure("events.update", "EVENT_UPDATE_PROTOCOL_CHANGED", "The event update no longer matches the reviewed remote contract.", "partiful: event update protocol changed\n", false)
+		result := eventTimeProtocolChangedFailure(command, pretty)
 		return time.Time{}, false, &result
 	}
+}
+
+func eventTimeProtocolChangedFailure(command string, pretty bool) Result {
+	if command == "events.cancel" {
+		return eventWriteProtocolChangedFailure(
+			command,
+			"EVENT_CANCEL_PROTOCOL_CHANGED",
+			"The event cancel flow no longer matches the reviewed remote contract.",
+			"partiful: event cancel protocol changed\n",
+			pretty,
+		)
+	}
+	return eventWriteProtocolChangedFailure(
+		command,
+		"EVENT_UPDATE_PROTOCOL_CHANGED",
+		"The event update no longer matches the reviewed remote contract.",
+		"partiful: event update protocol changed\n",
+		pretty,
+	)
 }
 
 func rawEventField(event remote.Event, name string) eventFieldSnapshot {

@@ -235,7 +235,7 @@ func callEventMutation[T any](
 	if response == nil || response.Body == nil {
 		return nil, fmt.Errorf("%w: event write response", ErrProtocolChanged)
 	}
-	defer response.Body.Close()
+	defer func() { _ = response.Body.Close() }()
 	if response.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("%w: event write status", ErrProtocolChanged)
 	}
@@ -296,7 +296,7 @@ func (client Client) FirestorePatchEvent(
 	if response == nil || response.Body == nil {
 		return fmt.Errorf("%w: firestore response", ErrProtocolChanged)
 	}
-	defer response.Body.Close()
+	defer func() { _ = response.Body.Close() }()
 	if response.StatusCode != http.StatusOK {
 		return fmt.Errorf("%w: firestore status", ErrProtocolChanged)
 	}
