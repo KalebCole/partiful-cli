@@ -73,14 +73,15 @@ research from
 `docs/research/2026-08-12-event-read-mapping-public-assets.md`. It promotes
 only facts used directly by the current `/events` build:
 
-- symbolic event status `LIVE` has wire value `PUBLISHED`, and `CANCELED` has
-  wire value `CANCELED`;
+- module `18539` defines the client event-status vocabulary `UNSAVED`,
+  `PUBLISHED`, and `CANCELED`; only `PUBLISHED` and `CANCELED` have S3 product
+  mappings;
 - homepage event `ownerIds` is the private identity collection used by
   `event.ownerIds.includes(userId)` for host membership; and
 - module `54257` defines the closed 16-value guest-status enum.
 
 The `HomePageEvent.status` and conditional `EventInfo.status` properties now
-reference the closed `EventStatus` schema. `HomePageEvent.ownerIds` remains
+reference that three-value client vocabulary. `HomePageEvent.ownerIds` remains
 optional. The inline homepage guest status references the closed
 `GuestStatus` schema. No new field is required, and the single-sample
 `EventInfo` and `CurrentGuest` top-level uncertainty is unchanged.
