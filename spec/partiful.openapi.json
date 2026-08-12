@@ -2561,7 +2561,6 @@
         }
       },
       "EventInfo": {
-        "type": "object",
         "properties": {
           "id": {
             "type": "string"
@@ -2649,7 +2648,6 @@
         }
       },
       "CurrentGuest": {
-        "type": "object",
         "properties": {
           "id": {
             "type": "string"

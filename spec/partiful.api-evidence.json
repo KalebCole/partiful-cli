@@ -4776,10 +4776,6 @@
       "classification": "dated-live-observation",
       "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#event-list-observations"
     },
-    "#/components/schemas/EventInfo/type": {
-      "classification": "dated-live-observation",
-      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#event-detail-observations"
-    },
     "#/components/schemas/EventInfo/properties/id": {
       "classification": "dated-live-observation",
       "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#event-detail-observations"
@@ -4939,10 +4935,6 @@
     "#/components/schemas/CallableNotFoundError/properties/error/properties/status/const": {
       "classification": "dated-live-observation",
       "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#event-detail-observations"
-    },
-    "#/components/schemas/CurrentGuest/type": {
-      "classification": "dated-live-observation",
-      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#guest-and-firestore-observations"
     },
     "#/components/schemas/CurrentGuest/properties/id": {
       "classification": "dated-live-observation",

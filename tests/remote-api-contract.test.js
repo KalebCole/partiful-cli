@@ -287,7 +287,7 @@ describe('remote API contract', () => {
       ...materialClaimPointers(spec.paths, '#/paths', 'paths'),
       ...materialClaimPointers(spec.components, '#/components', 'components'),
     ]);
-    expect(pointers).toHaveLength(1232);
+    expect(pointers).toHaveLength(1230);
     for (const pointer of pointers) {
       const claim = evidence.claims[pointer];
       expect(claim, pointer).toBeDefined();
@@ -345,7 +345,7 @@ describe('remote API contract', () => {
     expect(ledger).toMatch(
       /Eleven of those\s+operations have a typed `200` response body\./,
     );
-    expect(ledger.match(/The 1232 material claims/g)).toHaveLength(2);
+    expect(ledger.match(/The 1230 material claims/g)).toHaveLength(2);
   });
 
   it('contains remote transport facts rather than product or implementation policy', () => {
@@ -756,6 +756,8 @@ describe('remote API contract', () => {
     expect(eventInfo.responses['200'].description).toContain('selected readable event');
     expect(eventInfo.responses['200'].description).not.toContain('signed out');
     const eventInfoSchema = spec.components.schemas.EventInfo;
+    expect(eventInfoSchema).not.toHaveProperty('type');
+    expect(evidence.claims['#/components/schemas/EventInfo/type']).toBeUndefined();
     expect(eventInfoSchema.required ?? []).toEqual([]);
     expect(eventInfoSchema.properties).toMatchObject({
       id: { type: 'string' },
@@ -823,6 +825,8 @@ describe('remote API contract', () => {
     expect(spec.components.schemas.GetCurrentGuestResponse.properties.result
       .properties.data.required)
       .toEqual(['currentGuest']);
+    expect(spec.components.schemas.CurrentGuest).not.toHaveProperty('type');
+    expect(evidence.claims['#/components/schemas/CurrentGuest/type']).toBeUndefined();
     expect(spec.components.schemas.CurrentGuest).toMatchObject({
       properties: {
         id: { type: 'string' },

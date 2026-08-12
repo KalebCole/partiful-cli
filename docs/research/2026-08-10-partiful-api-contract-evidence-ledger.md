@@ -55,7 +55,7 @@ rules, and limits are **explicit unknown**. Eleven operations with an observed
 HTTP `200` status have typed response bodies. The schema-free
 send-code `200` and OpenAPI `default` responses do not claim a body.
 
-The 1232 material claims are audited by
+The 1230 material claims are audited by
 `tests/remote-api-contract.test.js`. Each ledger citation resolves either to a
 JSON Pointer in the committed non-authoritative historical artifact or to a
 heading in the committed stable source index. This keeps the audit independent
@@ -155,17 +155,18 @@ event also returned `200` signed out. The proposal does not generalize this
 fact to other events. No inaccessible event was supplied, and no authenticated
 callable permission denial is claimed. One event-detail object cannot
 establish operation-wide field presence, nullability, or alternate variants,
-so `EventInfo` has no required field list. Related event-list representations
-support only optional `endDate` string/null and `image` object/null unions.
-Selected-only fields without related variant evidence remain unconstrained.
+so `EventInfo` has no operation-wide top-level type and no required field
+list. Related event-list representations support only optional `endDate`
+string/null and `image` object/null unions. Selected-only fields without
+related variant evidence remain unconstrained.
 
 `getCurrentGuest` returned `200` with an object at
 `result.data.currentGuest`. This single object cannot establish
 operation-wide field presence, nullability, or alternate variants, so
-`CurrentGuest` has no required field list. Cross-source fields retain only
-their supported types; `count`, `plusOnes`, and `userId` remain
-unconstrained. A null current guest, an ordinary non-null plus-one shape, and
-other variants remain unknown.
+`CurrentGuest` has no operation-wide top-level type and no required field
+list. Cross-source fields retain only their supported types; `count`,
+`plusOnes`, and `userId` remain unconstrained. A null current guest, an
+ordinary non-null plus-one shape, and other variants remain unknown.
 
 `firestoreGetGuest` returned `200` for the current guest document. Its
 document ID and status matched the callable guest. The complete Firestore
@@ -235,7 +236,7 @@ by the Go implementation's Firebase requests:
 Origin is unmodelled and remains unknown because the reviewed evidence
 establishes no Origin request fact.
 
-The 1232 material claims are audited by `tests/remote-api-contract.test.js`.
+The 1230 material claims are audited by `tests/remote-api-contract.test.js`.
 
 ## Resolved conflict
 
