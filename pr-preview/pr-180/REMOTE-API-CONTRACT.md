@@ -46,14 +46,15 @@ attendee denial or Firestore not-found behavior.
 
 `getContacts` used sibling empty `params` and cursor `paging`. Two traversals
 returned 1000, 1000, and 451 items followed by an empty terminal sentinel.
-Name filtering is client-side over the traversed catalog. Private identity is
-modeled only as internal transport data; public product output remains display
-name and shared-event count. Signed-out access returned
+Name filtering and first-occurrence ID deduplication are client-side over the
+traversed catalog. They do not establish server ordering or duplicate behavior.
+Private identity is modeled only as internal transport data; public product
+output remains display name and shared-event count. Signed-out access returned
 `401 UNAUTHENTICATED`.
 
 Unsupported statuses, ordering, snapshots, invalid cursors, cursor lifetime,
-`useAuthUser`, inaccessible-event permission behavior, and other unobserved
-variants remain explicit unknowns.
+`useAuthUser`, rate limiting, future catalog completeness, inaccessible-event
+permission behavior, and other unobserved variants remain explicit unknowns.
 
 ## Historical provenance
 

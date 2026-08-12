@@ -145,7 +145,7 @@ assets and that observation still do not establish:
 - cursor lifetime, reuse, and invalid-cursor behavior;
 - the backend ordering key and snapshot behavior;
 - the behavior of `useAuthUser`;
-- unsupported status and error-body mappings; and
+- rate limiting and unsupported status or error-body mappings; and
 - future completeness and duplicates outside the two observed traversals.
 
 The authenticated evidence and remaining limits are recorded in

@@ -90,14 +90,18 @@ data for internal resolution only. Public product output remains
 
 The current first-party client traverses the cursor sequence and then filters
 names locally. Thus the product name filter applies to the complete traversed
-catalog, not to a remote filter parameter. Signed-out `getContacts` returned
-HTTP `401` with callable error status `UNAUTHENTICATED`.
+catalog, not to a remote filter parameter. The client also deduplicates by
+contact `id` and keeps the first occurrence. This does not establish server
+duplicate or ordering behavior. Signed-out `getContacts` returned HTTP `401`
+with callable error status `UNAUTHENTICATED`.
 
 ## Privacy boundary
 
 The committed artifact contains no raw body values, credentials, identities,
-names, IDs, phone numbers, email addresses, or tokens. Tests reject identity
-or credential value keys, JWT-like values, phone numbers, and email
+names, IDs, phone numbers, email addresses, or tokens. Tests strictly walk
+every aggregate key and string value against an exact allowlist, including
+mutation checks for unknown keys and arbitrary values. They also reject
+identity or credential value keys, JWT-like values, phone numbers, and email
 addresses. Only allowlisted metadata, paths, types, counts, equality facts,
 and stable error codes can remain.
 
@@ -106,5 +110,6 @@ and stable error codes can remain.
 Unsupported statuses and error bodies remain unknown. No claim is made for
 rate limiting, request retries, invalid cursors, cursor lifetime or reuse,
 backend ordering, snapshot behavior, `useAuthUser`, duplicates outside the
-two contact traversals, list pagination, or null and alternate current-guest
-variants. No inaccessible-event permission probe exists.
+two contact traversals, future catalog completeness, list pagination, or null
+and alternate current-guest variants. No inaccessible-event permission probe
+exists.

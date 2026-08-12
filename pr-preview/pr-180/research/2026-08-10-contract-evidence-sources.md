@@ -144,5 +144,8 @@ The public-asset research in
 callable argument,” records `getContacts` request paging as a sibling of `params`.
 Normal contact loading uses empty `params`; a separate administrator flow can
 send boolean `useAuthUser`. Its behavior remains unknown. The assets also
-record local cursor traversal and client-side name filtering. This is reviewed
-first-party repository research, not a live-server request-shape observation.
+record local cursor traversal, client-side name filtering, and client-side
+deduplication by contact `id` with the first occurrence winning. These client
+behaviors do not establish server ordering or duplicate behavior. This is
+reviewed first-party repository research, not a live-server request-shape
+observation.
