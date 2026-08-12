@@ -2125,6 +2125,61 @@ func TestExecuteContactsListTraversesReviewedPagesAndReturnsOnlyPublicFields(t *
 	}
 }
 
+func TestExecuteContactsListFiltersLocallyAfterFirstIdentityOccurrenceWins(t *testing.T) {
+	const credentials = `{"accessToken":"private-access-token","expiresAt":"2026-08-11T02:00:00Z"}`
+	responses := []string{
+		`{"result":{"data":[{"id":"private-duplicate","name":"Alice First","sharedEventCount":1},{"id":"private-other","name":"Bob","sharedEventCount":2}],"paging":{"nextCursor":"cursor-one"}}}`,
+		`{"result":{"data":[{"id":"private-duplicate","name":"Alice Later","sharedEventCount":99},{"id":"private-second","name":"Second ALICE","sharedEventCount":3}],"paging":{"nextCursor":"cursor-two"}}}`,
+		`{"result":{"data":[],"paging":{}}}`,
+	}
+	call := 0
+	result := app.Execute(context.Background(), app.Request{
+		Argv:  []string{"contacts", "list", "--query", "  ALICE  "},
+		Stdin: strings.NewReader(""),
+	}, app.Dependencies{
+		Files: fakeFilesystem{
+			readFile: func(string) ([]byte, error) {
+				return []byte(credentials), nil
+			},
+		},
+		CredentialsPath: "/config/partiful/credentials.json",
+		Now: func() time.Time {
+			return time.Date(2026, time.August, 11, 0, 0, 0, 0, time.UTC)
+		},
+		AuthRandom: strings.NewReader("0123456789abcdef"),
+		HTTP: scriptedHTTP{do: func(request *http.Request) (*http.Response, error) {
+			body, err := io.ReadAll(request.Body)
+			if err != nil {
+				t.Fatalf("read request body: %v", err)
+			}
+			if bytes.Contains(body, []byte("ALICE")) || bytes.Contains(body, []byte("alice")) {
+				t.Fatalf("request sent local query to remote: %s", body)
+			}
+			response := jsonResponse(http.StatusOK, responses[call])
+			call++
+			return response, nil
+		}},
+	})
+
+	const want = `{"ok":true,"data":{"items":[{"displayName":"Alice First","sharedEventCount":1},{"displayName":"Second ALICE","sharedEventCount":3}]},"meta":{"command":"contacts.list","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.4","warnings":[],"page":{"limit":25,"nextCursor":null,"hasMore":false}}}` + "\n"
+	if result.ExitCode != 0 || result.Stdout != want || result.Stderr != "" {
+		t.Fatalf("result = %#v, want locally filtered first-occurrence contacts", result)
+	}
+	if call != len(responses) {
+		t.Fatalf("request count = %d, want %d", call, len(responses))
+	}
+	for _, privateValue := range []string{
+		"private-duplicate",
+		"private-other",
+		"private-second",
+		"Alice Later",
+	} {
+		if strings.Contains(result.Stdout+result.Stderr, privateValue) {
+			t.Fatalf("result exposed non-public value %q", privateValue)
+		}
+	}
+}
+
 func TestExecuteAuthStatusRedactsHealthyCredentials(t *testing.T) {
 	const credentials = `{"accessToken":"secret-token-value","refreshToken":"secret-refresh-value","userId":"private-user-value","expiresAt":"2026-08-11T02:00:00Z"}`
 	result := app.Execute(context.Background(), app.Request{

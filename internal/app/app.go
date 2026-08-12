@@ -202,12 +202,16 @@ var commandCatalog = []commandDefinition{
 		safety: readOnlySafety(),
 	},
 	{
-		path:          "contacts.list",
-		invocation:    []string{"contacts", "list"},
-		kind:          contactsListCommand,
-		positionals:   []positionalDefinition{},
-		flags:         collectionFlagDefinitions(),
-		inputSchema:   collectionInputSchema(false),
+		path:        "contacts.list",
+		invocation:  []string{"contacts", "list"},
+		kind:        contactsListCommand,
+		positionals: []positionalDefinition{},
+		flags: append([]flagDefinition{{
+			Name:        "--query",
+			Description: "Optional non-empty contact name filter.",
+			TakesValue:  true,
+		}}, collectionFlagDefinitions()...),
+		inputSchema:   contactCollectionInputSchema(),
 		successSchema: contactCollectionSuccessSchema(),
 		failureTypes: []string{
 			"auth.required",
@@ -405,6 +409,13 @@ func collectionInputSchema(search bool) jsonSchema {
 	schema.AllOf = []jsonSchema{{
 		Not: &jsonSchema{Required: []string{"all", "limit"}},
 	}}
+	return schema
+}
+
+func contactCollectionInputSchema() jsonSchema {
+	schema := collectionInputSchema(false)
+	one := 1
+	schema.Properties["query"] = jsonSchema{Type: "string", MinLength: &one, Pattern: `\S`}
 	return schema
 }
 
@@ -874,9 +885,10 @@ func Execute(ctx context.Context, request Request, dependencies Dependencies) Re
 					}
 					return contactsProtocolChangedFailure(definition.path, pretty)
 				}
-				end := min(options.limit, len(catalog.Contacts))
+				filteredContacts := filterContacts(catalog.Contacts, options.query)
+				end := min(options.limit, len(filteredContacts))
 				items := make([]contact, 0, end)
-				for _, remoteContact := range catalog.Contacts[:end] {
+				for _, remoteContact := range filteredContacts[:end] {
 					items = append(items, contact{
 						DisplayName:      remoteContact.Name,
 						SharedEventCount: remoteContact.SharedEventCount,
