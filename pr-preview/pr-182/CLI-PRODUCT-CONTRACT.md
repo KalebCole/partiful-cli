@@ -1,10 +1,10 @@
 # CLI product contract
 
-**Status:** Proposed product contract pending delegated review
+**Status:** Approved product contract
 
 **Product contract revision:** `2026-08-12.1`
 
-**Remote API contract revision:** `2026-08-12.1` (proposed)
+**Remote API contract revision:** `2026-08-12.1`
 
 **Currently shipped Go revisions:** product `2026-08-10.1`; remote
 `2026-08-11.5`
