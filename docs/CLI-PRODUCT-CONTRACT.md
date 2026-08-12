@@ -2,13 +2,13 @@
 
 **Status:** Approved product contract
 
-**Product contract revision:** `2026-08-12.5`
+**Product contract revision:** `2026-08-12.6`
 
-**Remote API contract revision:** `2026-08-12.5`
+**Remote API contract revision:** `2026-08-12.6`
 
 **Owner-reviewed baseline:** product and remote `2026-08-12.3`
 
-**Currently shipped Go revisions:** product and remote `2026-08-12.5`
+**Currently shipped Go revisions:** product and remote `2026-08-12.6`
 
 This document defines the public behavior of the greenfield Go `partiful` CLI.
 It is the authority for commands, inputs, JSON outputs, failures, and mutation
@@ -83,8 +83,8 @@ Every successful command returns:
   "meta": {
     "command": "events.get",
     "cliVersion": "1.0.0",
-    "productContractRevision": "2026-08-12.5",
-    "remoteContractRevision": "2026-08-12.5",
+    "productContractRevision": "2026-08-12.6",
+    "remoteContractRevision": "2026-08-12.6",
     "warnings": []
   }
 }
@@ -107,8 +107,8 @@ Every failed command returns:
   "meta": {
     "command": "guests.list",
     "cliVersion": "1.0.0",
-    "productContractRevision": "2026-08-12.5",
-    "remoteContractRevision": "2026-08-12.5"
+    "productContractRevision": "2026-08-12.6",
+    "remoteContractRevision": "2026-08-12.6"
   }
 }
 ```
@@ -155,8 +155,8 @@ Collection commands return:
   "meta": {
     "command": "events.list",
     "cliVersion": "1.0.0",
-    "productContractRevision": "2026-08-12.5",
-    "remoteContractRevision": "2026-08-12.5",
+    "productContractRevision": "2026-08-12.6",
+    "remoteContractRevision": "2026-08-12.6",
     "warnings": [],
     "page": {
       "limit": 25,
@@ -228,8 +228,8 @@ remote mutation:
   "meta": {
     "command": "events.update",
     "cliVersion": "1.0.0",
-    "productContractRevision": "2026-08-12.5",
-    "remoteContractRevision": "2026-08-12.5",
+    "productContractRevision": "2026-08-12.6",
+    "remoteContractRevision": "2026-08-12.6",
     "warnings": []
   }
 }
@@ -988,7 +988,7 @@ reviewed callable and client completion condition. It does not prove
 persisted RSVP state, delivery, notification, or another business side
 effect.
 
-This `2026-08-12.5` contract is the approved event-write product contract and
+This `2026-08-12.6` contract is the approved event-write product contract and
 the current shipped Go contract revision.
 
 ### Contacts
@@ -1033,9 +1033,41 @@ partiful cohosts link revoke <event-id>
 
 All are host-only consequential actions. Contact commands use the same
 privacy-safe match rules and resolved-identity plan binding as guest
-invitations.
-The machine-readable schema paths for the subresource commands are
-`cohosts.link.create` and `cohosts.link.revoke`.
+invitations. The machine-readable schema paths for the subresource commands
+are `cohosts.link.create` and `cohosts.link.revoke`.
+
+Each no-apply invocation returns a five-minute single-use consequential plan.
+Execution must repeat the exact same input with `--apply --confirm <token>`.
+Apply re-reads the bound event, contact, request-state, or link-state facts
+once, compares them to the stored plan, consumes the token immediately before
+one dispatch attempt, and never retries.
+
+The contact commands use the same privacy-safe resolution rules as guest
+invitations:
+
+- a unique exact display-name match wins;
+- otherwise a unique partial display-name match wins;
+- no safe match returns `resource.not_found`; and
+- multiple safe matches return `match.ambiguous`.
+
+The resolved private contact identity is bound into the private plan record.
+Apply does not resolve by name again and does not emit a user ID.
+
+The observable preconditions are:
+
+- `invite`: the event `ownerIds` must contain the current account and the
+  selected contact must have no current request or a current `DECLINED`
+  request;
+- `revoke-invite`: the selected contact must have current request status
+  `PENDING` or `DECLINED`;
+- `remove`: the selected contact must have current request status
+  `ACCEPTED`;
+- `link create`: the current `cohostSecret` document must be absent; and
+- `link revoke`: the current `cohostSecret` document must be present.
+
+A changed role, changed contact binding, changed cohost request state, changed
+link state, changed account, expired token, or replayed token returns
+`safety.plan_stale` before a mutation request.
 
 The three contact actions return:
 
@@ -1049,7 +1081,8 @@ The three contact actions return:
 }
 ```
 
-`status` is `invited`, `revoked`, or `removed`.
+`status` is exactly `invited`, `revoked`, or `removed`, according to the
+command.
 
 Link creation returns:
 
@@ -1057,14 +1090,26 @@ Link creation returns:
 {
   "eventId": "evt_example",
   "link": {
-    "url": "https://partiful.com/example-cohost-link",
+    "url": "https://partiful.com/e/evt_example?accept-cohost=token",
     "state": "active"
   }
 }
 ```
 
-Link revocation returns the same shape with `url: null` and `state:
-"revoked"`.
+Only reviewed `generateEventCohostLink` success may emit the URL. The CLI
+does not echo a pre-existing active URL from a read-only precondition check.
+
+Link revocation returns:
+
+```json
+{
+  "eventId": "evt_example",
+  "link": {
+    "url": null,
+    "state": "revoked"
+  }
+}
+```
 
 ### Blasts
 

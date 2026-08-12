@@ -14,8 +14,8 @@ import (
 
 const (
 	Version                 = "1.0.0"
-	ProductContractRevision = "2026-08-12.5"
-	RemoteContractRevision  = "2026-08-12.5"
+	ProductContractRevision = "2026-08-12.6"
+	RemoteContractRevision  = "2026-08-12.6"
 )
 
 type Request struct {
@@ -64,6 +64,11 @@ const (
 	eventsCancelCommand
 	rsvpGetCommand
 	rsvpSetCommand
+	cohostsInviteCommand
+	cohostsRevokeInviteCommand
+	cohostsRemoveCommand
+	cohostsLinkCreateCommand
+	cohostsLinkRevokeCommand
 )
 
 type commandDefinition struct {
@@ -490,6 +495,157 @@ var commandCatalog = []commandDefinition{
 			"internal.failure",
 		},
 		safety: standardMutationSafety(),
+	},
+	{
+		path:       "cohosts.invite",
+		invocation: []string{"cohosts", "invite"},
+		kind:       cohostsInviteCommand,
+		positionals: []positionalDefinition{{
+			Name:        "event-id",
+			Required:    true,
+			Description: "Event identifier.",
+		}},
+		flags: []flagDefinition{
+			{Name: "--contact", Description: "Resolvable contact display name.", TakesValue: true, Required: true},
+			{Name: "--apply", Description: "Apply a reviewed consequential plan."},
+			{Name: "--confirm", Description: "Exact consequential confirmation token.", TakesValue: true},
+		},
+		inputSchema:   cohostContactInputSchema(),
+		successSchema: cohostInviteSuccessSchema(),
+		failureTypes: []string{
+			"auth.required",
+			"auth.expired",
+			"permission.denied",
+			"resource.not_found",
+			"match.ambiguous",
+			"state.conflict",
+			"safety.confirmation_required",
+			"safety.plan_stale",
+			"remote.unavailable",
+			"contract.protocol_changed",
+			"internal.failure",
+		},
+		safety: consequentialActionSafety(),
+	},
+	{
+		path:       "cohosts.revoke-invite",
+		invocation: []string{"cohosts", "revoke-invite"},
+		kind:       cohostsRevokeInviteCommand,
+		positionals: []positionalDefinition{{
+			Name:        "event-id",
+			Required:    true,
+			Description: "Event identifier.",
+		}},
+		flags: []flagDefinition{
+			{Name: "--contact", Description: "Resolvable contact display name.", TakesValue: true, Required: true},
+			{Name: "--apply", Description: "Apply a reviewed consequential plan."},
+			{Name: "--confirm", Description: "Exact consequential confirmation token.", TakesValue: true},
+		},
+		inputSchema:   cohostContactInputSchema(),
+		successSchema: cohostRevokeInviteSuccessSchema(),
+		failureTypes: []string{
+			"auth.required",
+			"auth.expired",
+			"permission.denied",
+			"resource.not_found",
+			"match.ambiguous",
+			"state.conflict",
+			"safety.confirmation_required",
+			"safety.plan_stale",
+			"remote.unavailable",
+			"contract.protocol_changed",
+			"internal.failure",
+		},
+		safety: consequentialActionSafety(),
+	},
+	{
+		path:       "cohosts.remove",
+		invocation: []string{"cohosts", "remove"},
+		kind:       cohostsRemoveCommand,
+		positionals: []positionalDefinition{{
+			Name:        "event-id",
+			Required:    true,
+			Description: "Event identifier.",
+		}},
+		flags: []flagDefinition{
+			{Name: "--contact", Description: "Resolvable contact display name.", TakesValue: true, Required: true},
+			{Name: "--apply", Description: "Apply a reviewed consequential plan."},
+			{Name: "--confirm", Description: "Exact consequential confirmation token.", TakesValue: true},
+		},
+		inputSchema:   cohostContactInputSchema(),
+		successSchema: cohostRemoveSuccessSchema(),
+		failureTypes: []string{
+			"auth.required",
+			"auth.expired",
+			"permission.denied",
+			"resource.not_found",
+			"match.ambiguous",
+			"state.conflict",
+			"safety.confirmation_required",
+			"safety.plan_stale",
+			"remote.unavailable",
+			"contract.protocol_changed",
+			"internal.failure",
+		},
+		safety: consequentialActionSafety(),
+	},
+	{
+		path:       "cohosts.link.create",
+		invocation: []string{"cohosts", "link", "create"},
+		kind:       cohostsLinkCreateCommand,
+		positionals: []positionalDefinition{{
+			Name:        "event-id",
+			Required:    true,
+			Description: "Event identifier.",
+		}},
+		flags: []flagDefinition{
+			{Name: "--apply", Description: "Apply a reviewed consequential plan."},
+			{Name: "--confirm", Description: "Exact consequential confirmation token.", TakesValue: true},
+		},
+		inputSchema:   emptyInputSchema(),
+		successSchema: cohostLinkCreateSuccessSchema(),
+		failureTypes: []string{
+			"auth.required",
+			"auth.expired",
+			"permission.denied",
+			"resource.not_found",
+			"state.conflict",
+			"safety.confirmation_required",
+			"safety.plan_stale",
+			"remote.unavailable",
+			"contract.protocol_changed",
+			"internal.failure",
+		},
+		safety: consequentialActionSafety(),
+	},
+	{
+		path:       "cohosts.link.revoke",
+		invocation: []string{"cohosts", "link", "revoke"},
+		kind:       cohostsLinkRevokeCommand,
+		positionals: []positionalDefinition{{
+			Name:        "event-id",
+			Required:    true,
+			Description: "Event identifier.",
+		}},
+		flags: []flagDefinition{
+			{Name: "--apply", Description: "Apply a reviewed consequential plan."},
+			{Name: "--confirm", Description: "Exact consequential confirmation token.", TakesValue: true},
+		},
+		inputSchema:   emptyInputSchema(),
+		successSchema: cohostLinkRevokeSuccessSchema(),
+		failureTypes: []string{
+			"auth.required",
+			"auth.expired",
+			"permission.denied",
+			"resource.not_found",
+			"state.conflict",
+			"safety.confirmation_required",
+			"safety.plan_stale",
+			"remote.unavailable",
+			"contract.protocol_changed",
+			"internal.failure",
+		},
+		safety: consequentialActionSafety(),
 	},
 }
 
@@ -1341,6 +1497,16 @@ func Execute(ctx context.Context, request Request, dependencies Dependencies) Re
 				return executeRSVPGet(ctx, definition, argv, dependencies, pretty)
 			case rsvpSetCommand:
 				return executeRSVPSet(ctx, request, definition, argv, dependencies, pretty)
+			case cohostsInviteCommand:
+				return executeCohostInvite(ctx, definition, argv, dependencies, pretty)
+			case cohostsRevokeInviteCommand:
+				return executeCohostRevokeInvite(ctx, definition, argv, dependencies, pretty)
+			case cohostsRemoveCommand:
+				return executeCohostRemove(ctx, definition, argv, dependencies, pretty)
+			case cohostsLinkCreateCommand:
+				return executeCohostLinkCreate(ctx, definition, argv, dependencies, pretty)
+			case cohostsLinkRevokeCommand:
+				return executeCohostLinkRevoke(ctx, definition, argv, dependencies, pretty)
 			}
 		}
 	}
@@ -1379,7 +1545,12 @@ func (definition commandDefinition) matches(argv []string) bool {
 		definition.kind == eventsUpdateCommand ||
 		definition.kind == eventsCancelCommand ||
 		definition.kind == rsvpGetCommand ||
-		definition.kind == rsvpSetCommand) &&
+		definition.kind == rsvpSetCommand ||
+		definition.kind == cohostsInviteCommand ||
+		definition.kind == cohostsRevokeInviteCommand ||
+		definition.kind == cohostsRemoveCommand ||
+		definition.kind == cohostsLinkCreateCommand ||
+		definition.kind == cohostsLinkRevokeCommand) &&
 		len(argv) >= len(definition.invocation) {
 		return slices.Equal(argv[:len(definition.invocation)], definition.invocation)
 	}

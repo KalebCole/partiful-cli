@@ -1,6 +1,6 @@
 # Partiful remote API contract evidence ledger
 
-**Proposed contract revision:** `2026-08-12.5`
+**Proposed contract revision:** `2026-08-12.6`
 **Owner-reviewed baseline:** `2026-08-12.3`
 **Status:** Owner-reviewed
 **Contract:** `spec/partiful.openapi.json`
@@ -44,15 +44,19 @@ retains an unknown response. The Firestore event read has an observed typed
 ### Current public-asset operations
 
 `addGuest`, `markEventInterest`, `createEvent`, `cancelEvent`, `getGuests`,
-and `addInvitedGuestsAsHost` have current first-party public-asset request
-and/or completion mappings. Their endpoint business meanings, errors, and all
-non-`200` statuses remain unknown unless separately observed.
+`addInvitedGuestsAsHost`, `createCohostRequest`, `deleteCohostRequest`,
+`removeCohost`, `generateEventCohostLink`, and `revokeEventCohostLink` have
+current first-party public-asset request and/or completion mappings. Their
+endpoint business meanings, errors, and all non-`200` statuses remain unknown
+unless separately observed.
 
-Five callable operations have protocol-specified HTTP `200` completion
+Ten callable operations have protocol-specified HTTP `200` completion
 responses. `addGuest`, `markEventInterest`, `createEvent`, `cancelEvent`, and
 `addInvitedGuestsAsHost` use the official Firebase callable
 status/result envelope plus current first-party client completion behavior.
-None is a live business-success observation.
+`createCohostRequest`, `deleteCohostRequest`, `removeCohost`,
+`generateEventCohostLink`, and `revokeEventCohostLink` now do the same. None
+is a live business-success observation.
 
 ### Official-protocol operations
 
@@ -65,11 +69,8 @@ success is inferred.
 
 ### TypeScript-derived operations
 
-The other 7 operations remain TypeScript-derived inferences:
+The other 2 operations remain TypeScript-derived inferences:
 
-- callable: `createCohostRequest`, `deleteCohostRequest`,
-  `removeCohost`, `generateEventCohostLink`, and
-  `revokeEventCohostLink`;
 - Firestore: `firestoreListDocuments`;
 - Firebase auxiliary: `uploadEventPhoto`.
 
@@ -78,12 +79,12 @@ the JSON ledger, including operation, parameter, content-type, security,
 schema, constraint, and response claims. Unless a claim is specifically
 observed, callable result payloads, status codes, error bodies, permission
 rules, and limits are **explicit unknown**. Eleven operations with an observed
-HTTP `200` status, five operations with protocol-specified callable
+HTTP `200` status, ten operations with protocol-specified callable
 completion, and one official Firestore PATCH completion have typed response
 bodies. The schema-free send-code `200` and OpenAPI `default` responses do not
 claim a body.
 
-The 1740 material claims are audited by
+The 1782 material claims are audited by
 `tests/remote-api-contract.test.js`. Each ledger citation resolves either to a
 JSON Pointer in the committed non-authoritative historical artifact or to a
 heading in the committed stable source index. This keeps the audit independent
@@ -140,6 +141,39 @@ completion. They do not supply endpoint business success. Complete
 post-write Event state, Partiful authorization, inaccessible-event behavior,
 unobserved statuses and errors, cancellation or notification delivery, and
 retry safety remain unknown.
+
+## Cohost lifecycle public-asset evidence
+
+The August 12 cohost note records current public build
+`Sf-HOOx63XpPtr5pPkTvg`, deployment
+`dpl_D7TPPj16g1fU46JSHSyrsRURxrK9`, exact URLs, module IDs, and hashes. The
+research used no credential and made no cohost or access-link mutation. It
+establishes current host-only cohost controls, the exact five callable
+request shapes, the current request-state and secret-document read paths, and
+the current completion checks.
+
+The shared callable wrapper supplies `params` and can attach
+`amplitudeDeviceId`, `amplitudeSessionId`, and `userId`. The cohost callers
+send:
+
+- `createCohostRequest({params:{eventId,targetUserId}})`
+- `deleteCohostRequest({params:{eventId,targetUserId}})`
+- `removeCohost({params:{eventId,targetUserId}})`
+- `generateEventCohostLink({params:{eventId}})`
+- `revokeEventCohostLink({params:{eventId}})`
+
+Current read-path helpers select Firestore collection
+`events/{eventId}/cohostRequests` and document
+`events/{eventId}/private/cohostSecret`. The closed cohost-request status enum
+is `PENDING`, `ACCEPTED`, and `DECLINED`. The link query token key is
+`accept-cohost`.
+
+The current client inspects no endpoint business field for
+`deleteCohostRequest`, `removeCohost`, or `revokeEventCohostLink`. It reads
+`response.data` for `createCohostRequest`, and reads `response.data.path` for
+`generateEventCohostLink`. These are client completion checks only. They do
+not prove stored cohost state, invitation delivery, access grant, revocation,
+or any endpoint error mapping.
 
 ## Authentication evidence
 
@@ -371,7 +405,7 @@ by the Go implementation's Firebase requests:
 Origin is unmodelled and remains unknown because the reviewed evidence
 establishes no Origin request fact.
 
-The 1740 material claims are audited by `tests/remote-api-contract.test.js`.
+The 1782 material claims are audited by `tests/remote-api-contract.test.js`.
 
 ## Resolved conflict
 
@@ -385,6 +419,6 @@ nested `message` object with `text`, `to`, `showOnEventPage`, and optional
 
 Future safe observations must update both ledgers, preserve privacy-safe
 evidence, and receive owner review before changing the revision. The remaining
-8 TypeScript-derived operations have no observed response status or shape.
+2 TypeScript-derived operations have no observed response status or shape.
 The read-specific and event-write business-state unknowns above remain
 explicit and must not become inferred implementation behavior.
