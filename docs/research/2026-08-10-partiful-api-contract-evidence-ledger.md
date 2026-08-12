@@ -1,8 +1,8 @@
 # Partiful remote API contract evidence ledger
 
-**Proposed contract revision:** `2026-08-12.4`
+**Proposed contract revision:** `2026-08-12.5`
 **Owner-reviewed baseline:** `2026-08-12.3`
-**Status:** Pending one delegated review under issue #167
+**Status:** Owner-reviewed
 **Contract:** `spec/partiful.openapi.json`
 **Machine-readable ledger:** `spec/partiful.api-evidence.json`
 **Stable citation sources:** `docs/research/2026-08-10-contract-evidence-sources.md`
@@ -24,7 +24,7 @@
 
 ## Operation inventory
 
-The recovered 27 operations remain in the remote inventory.
+The recovered 28 operations now in use remain in the remote inventory.
 
 ### Dated-live operations
 
@@ -43,15 +43,16 @@ retains an unknown response. The Firestore event read has an observed typed
 
 ### Current public-asset operations
 
-`addGuest`, `markEventInterest`, `createEvent`, and `cancelEvent` have current
-first-party public-asset request and completion mappings. Their endpoint
-business meanings, errors, and all non-`200` statuses remain unknown.
+`addGuest`, `markEventInterest`, `createEvent`, `cancelEvent`, `getGuests`,
+and `addInvitedGuestsAsHost` have current first-party public-asset request
+and/or completion mappings. Their endpoint business meanings, errors, and all
+non-`200` statuses remain unknown unless separately observed.
 
-Four callable operations have protocol-specified HTTP `200` completion
-responses. `addGuest`, `markEventInterest`, `createEvent`, and `cancelEvent`
-use the official Firebase callable status/result envelope plus current
-first-party client completion behavior. None is a live business-success
-observation.
+Five callable operations have protocol-specified HTTP `200` completion
+responses. `addGuest`, `markEventInterest`, `createEvent`, `cancelEvent`, and
+`addInvitedGuestsAsHost` use the official Firebase callable
+status/result envelope plus current first-party client completion behavior.
+None is a live business-success observation.
 
 ### Official-protocol operations
 
@@ -64,10 +65,10 @@ success is inferred.
 
 ### TypeScript-derived operations
 
-The other 8 operations remain TypeScript-derived inferences:
+The other 7 operations remain TypeScript-derived inferences:
 
-- callable: `addInvitedGuestsAsHost`, `createCohostRequest`,
-  `deleteCohostRequest`, `removeCohost`, `generateEventCohostLink`, and
+- callable: `createCohostRequest`, `deleteCohostRequest`,
+  `removeCohost`, `generateEventCohostLink`, and
   `revokeEventCohostLink`;
 - Firestore: `firestoreListDocuments`;
 - Firebase auxiliary: `uploadEventPhoto`.
@@ -77,12 +78,12 @@ the JSON ledger, including operation, parameter, content-type, security,
 schema, constraint, and response claims. Unless a claim is specifically
 observed, callable result payloads, status codes, error bodies, permission
 rules, and limits are **explicit unknown**. Eleven operations with an observed
-HTTP `200` status, four operations with protocol-specified callable
+HTTP `200` status, five operations with protocol-specified callable
 completion, and one official Firestore PATCH completion have typed response
 bodies. The schema-free send-code `200` and OpenAPI `default` responses do not
 claim a body.
 
-The 1639 material claims are audited by
+The 1740 material claims are audited by
 `tests/remote-api-contract.test.js`. Each ledger citation resolves either to a
 JSON Pointer in the committed non-authoritative historical artifact or to a
 heading in the committed stable source index. This keeps the audit independent
@@ -370,7 +371,7 @@ by the Go implementation's Firebase requests:
 Origin is unmodelled and remains unknown because the reviewed evidence
 establishes no Origin request fact.
 
-The 1639 material claims are audited by `tests/remote-api-contract.test.js`.
+The 1740 material claims are audited by `tests/remote-api-contract.test.js`.
 
 ## Resolved conflict
 

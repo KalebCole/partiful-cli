@@ -1,12 +1,12 @@
 # Remote API contract
 
-`spec/partiful.openapi.json` is owner-reviewed revision `2026-08-12.4` of the
+`spec/partiful.openapi.json` is owner-reviewed revision `2026-08-12.5` of the
 remote transport snapshot. Its owner-reviewed baseline is `2026-08-12.3`,
 which is based on owner-reviewed revision `2026-08-12.2`. It describes only
 network operations and wire shapes. It does not prescribe commands, output,
 credentials, mutation safeguards, or implementation architecture.
 
-The Go CLI ships remote contract revision `2026-08-12.4`.
+The Go CLI ships remote contract revision `2026-08-12.5`.
 
 ## Authority and change process
 
@@ -265,9 +265,40 @@ authorization rule, persisted state, post-write complete Event, delivery,
 and retry meaning remains unknown and fails closed. The proposal does not
 register upload.
 
+## Guest list and host-invite proposal
+
+Revision `2026-08-12.5` adds unauthenticated current-client evidence from
+`docs/research/2026-08-12-guest-mapping-public-assets.md`. No credential,
+account-scoped response, or live mutation was used.
+
+Current build `Sf-HOOx63XpPtr5pPkTvg` and deployment
+`dpl_D7TPPj16g1fU46JSHSyrsRURxrK9` establish these request facts:
+
+- `getGuests` sends `params.eventId`, `params.includeInvitedGuests: true`,
+  optional `params.password`, and sibling `paging.cursor` /
+  `paging.maxResults`, with current client default `maxResults: 500`; and
+- `addInvitedGuestsAsHost` sends
+  `eventId`, `userIdsToInvite`, `invitationMessage`,
+  `otherMutualsCount`, `phoneContactsToInvite`, and `emailsToInvite`.
+
+The current guest-list client consumes `getGuests` payload objects as
+`{data,paging}` and stops when `paging.nextCursor` is nullish or after 20
+pages. The final data page is therefore consumed; unlike current contacts
+traversal, no empty terminal sentinel is required. The reviewed guest subset
+used by the Go product is string `id`, string `name`, reviewed guest
+`status`, numeric `count`, null-or-string `anchorGuestId`, and optional
+string `userId`.
+
+Current public assets await `addInvitedGuestsAsHost` completion but inspect no
+business field before success UI. This promotes only generic callable
+completion, not persisted invite state or delivery. Non-empty
+`phoneContactsToInvite` and `emailsToInvite` member shapes, failure bodies,
+permission responses, attendee-denial behavior, and business-success state
+remain unknown and fail closed.
+
 ## Historical provenance
 
-The 27-operation historical draft in commit
+The 27-operation historical draft lineage in commit
 `17e9800753ada577408074bbbcadbae8cc8eacf0` is preserved at
 `spec/research/historical-27-operation-draft.json` as a non-authoritative,
 stable research artifact. It was not copied as an approved contract and its

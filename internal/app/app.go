@@ -14,8 +14,8 @@ import (
 
 const (
 	Version                 = "1.0.0"
-	ProductContractRevision = "2026-08-12.4"
-	RemoteContractRevision  = "2026-08-12.4"
+	ProductContractRevision = "2026-08-12.5"
+	RemoteContractRevision  = "2026-08-12.5"
 )
 
 type Request struct {
@@ -55,6 +55,8 @@ const (
 	postersListCommand
 	postersSearchCommand
 	contactsListCommand
+	guestsListCommand
+	guestsInviteCommand
 	eventsListCommand
 	eventsGetCommand
 	eventsCreateCommand
@@ -231,6 +233,60 @@ var commandCatalog = []commandDefinition{
 			"internal.failure",
 		},
 		safety: readOnlySafety(),
+	},
+	{
+		path:       "guests.list",
+		invocation: []string{"guests", "list"},
+		kind:       guestsListCommand,
+		positionals: []positionalDefinition{{
+			Name:        "event-id",
+			Required:    true,
+			Description: "Event identifier.",
+		}},
+		flags:         collectionFlagDefinitions(),
+		inputSchema:   guestListInputSchema(),
+		successSchema: guestsCollectionSuccessSchema(),
+		failureTypes: []string{
+			"auth.required",
+			"auth.expired",
+			"permission.denied",
+			"resource.not_found",
+			"state.conflict",
+			"remote.unavailable",
+			"contract.protocol_changed",
+			"internal.failure",
+		},
+		safety: readOnlySafety(),
+	},
+	{
+		path:       "guests.invite",
+		invocation: []string{"guests", "invite"},
+		kind:       guestsInviteCommand,
+		positionals: []positionalDefinition{{
+			Name:        "event-id",
+			Required:    true,
+			Description: "Event identifier.",
+		}},
+		flags: []flagDefinition{
+			{Name: "--contact", Description: "Resolvable contact display name.", Required: true, TakesValue: true},
+			{Name: "--apply", Description: "Apply a reviewed consequential plan."},
+			{Name: "--confirm", Description: "Exact consequential confirmation token.", TakesValue: true},
+		},
+		inputSchema:   guestInviteInputSchema(),
+		successSchema: guestInviteSuccessSchema(),
+		failureTypes: []string{
+			"auth.required",
+			"auth.expired",
+			"permission.denied",
+			"resource.not_found",
+			"match.ambiguous",
+			"safety.confirmation_required",
+			"safety.plan_stale",
+			"remote.unavailable",
+			"contract.protocol_changed",
+			"internal.failure",
+		},
+		safety: consequentialActionSafety(),
 	},
 	{
 		path:        "events.list",
@@ -1267,6 +1323,10 @@ func Execute(ctx context.Context, request Request, dependencies Dependencies) Re
 					NextCursor: cursor,
 					HasMore:    hasMore,
 				}, pretty)
+			case guestsListCommand:
+				return executeGuestsList(ctx, definition, argv, dependencies, pretty)
+			case guestsInviteCommand:
+				return executeGuestsInvite(ctx, definition, argv, dependencies, pretty)
 			case eventsListCommand:
 				return executeEventsList(ctx, definition, argv, dependencies, pretty)
 			case eventsGetCommand:
@@ -1311,6 +1371,8 @@ func (definition commandDefinition) matches(argv []string) bool {
 	if (definition.kind == postersListCommand ||
 		definition.kind == postersSearchCommand ||
 		definition.kind == contactsListCommand ||
+		definition.kind == guestsListCommand ||
+		definition.kind == guestsInviteCommand ||
 		definition.kind == eventsListCommand ||
 		definition.kind == eventsGetCommand ||
 		definition.kind == eventsCreateCommand ||
