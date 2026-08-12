@@ -69,6 +69,13 @@ Read status stays separate. A present `CurrentGuest.status` can use the full
 16-value lossless `EventReadRsvp` mapping. This does not make all 16 values
 writable.
 
+## Capacity-consuming guest statuses
+
+Shared event helper module `50218` calculates `attendedGuestCount` by summing
+only statuses accepted by guest-status helper `i9`. Module `54257` defines
+that set as `GOING` and `APPROVED`. A current guest in any other status is not
+subtracted from remaining capacity when planning an update.
+
 ## getCurrentGuest
 
 Page module `77504` sends:

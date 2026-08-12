@@ -749,9 +749,12 @@ The product then applies these local rules:
   `partySize <= maxCountPerGuest`;
 - a numeric `maxCapacity` without numeric `remainingCapacity` is unsupported
   because this slice cannot calculate a safe capacity delta;
-- for going, create uses current count zero and update computes
-  `additionalCount = max(0, partySize - currentGuest.count)`; when
-  `remainingCapacity` is present, it requires
+- for going, create uses current capacity count zero. Update subtracts
+  `currentGuest.count` only when the current status is `GOING` or `APPROVED`,
+  the two statuses the current client counts as attended; every other current
+  status uses capacity count zero. It computes
+  `additionalCount = max(0, partySize - currentCapacityCount)` and, when
+  `remainingCapacity` is present, requires
   `additionalCount <= remainingCapacity`;
 - every supplied plus one has a nonempty normalized name, and
   `partySize = 1 + plusOnes.length`; this also satisfies
@@ -763,7 +766,7 @@ The product then applies these local rules:
   questionnaire response and omits it; and
 - `not-going` omits `questionnaireResponse` for every event.
 
-Input violations return `validation.invalid_input`. An RSVP-disabled,
+Input violations return `input.invalid`. An RSVP-disabled,
 application, ticketed, password-protected, at-capacity, or insufficient
 capacity event returns `state.conflict` without a mutation. These are product
 compatibility decisions, not server error mappings. Any received server
