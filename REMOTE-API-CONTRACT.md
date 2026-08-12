@@ -7,6 +7,8 @@ describes only network operations and wire shapes. It does not prescribe
 commands, output, credentials, mutation safeguards, or implementation
 architecture.
 
+The Go CLI ships remote contract revision `2026-08-12.3`.
+
 ## Authority and change process
 
 Live, privacy-safe observations can initiate a correction but do not authorize

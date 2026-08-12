@@ -50,6 +50,6 @@ application can return the normalized submitted request, but it cannot claim
 stored RSVP state, delivery, or another side effect without a separately
 reviewed post-write read. The RSVP application returns only the minimal
 submitted request projection: event ID, intent, and `submitted: true`. It
-performs no post-write read. RSVP remains outside the releasable catalog until
-delegated review approves the dated object/null current-guest variants and
-event safeguard boundary.
+performs no post-write read. RSVP enters the releasable catalog only with the
+approved dated object/null current-guest variants, event safeguard boundary,
+and matching product and remote revision constants.
