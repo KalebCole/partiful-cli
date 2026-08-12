@@ -434,6 +434,71 @@ func TestExecuteEventUpdateRejectsDisallowedFieldsAndInvertedMergedRange(t *test
 	}
 }
 
+func TestExecuteEventWriteRejectsMalformedLinkFlag(t *testing.T) {
+	dependencies := eventWriteDependencies(&memoryFilesystem{files: map[string][]byte{}})
+	dependencies.HTTP = scriptedHTTP{do: func(*http.Request) (*http.Response, error) {
+		return nil, errors.New("must not call HTTP")
+	}}
+
+	result := app.Execute(context.Background(), app.Request{
+		Argv: []string{"events", "create", "--link", "missing-separator"},
+	}, dependencies)
+	if result.ExitCode != 2 || !strings.Contains(result.Stdout, `"code":"LINKS_INVALID"`) {
+		t.Fatalf("result = %#v, want malformed link input failure", result)
+	}
+}
+
+func TestExecuteEventUpdateFailsClosedWhenMergedRangeNeedsMissingStart(t *testing.T) {
+	files := &memoryFilesystem{files: map[string][]byte{
+		eventWriteCredentialsPath: []byte(eventWriteCredentials),
+	}}
+	dependencies := eventWriteDependencies(files)
+	event := compatibleUpdateEvent()
+	delete(event, "startDate")
+	dependencies.HTTP = scriptedHTTP{do: func(request *http.Request) (*http.Response, error) {
+		assertEventCallableRequest(t, request, "getEventInfo", `{"data":{"params":{"eventId":"event-example"},"amplitudeDeviceId":"MDEyMzQ1Njc4OWFiY2RlZg"}}`)
+		return jsonResponse(http.StatusOK, eventResponse(t, event)), nil
+	}}
+
+	result := app.Execute(context.Background(), app.Request{
+		Argv: []string{"events", "update", "event-example", "--end", "2026-09-12T23:00:00Z"},
+	}, dependencies)
+	if result.ExitCode != 9 || !strings.Contains(result.Stdout, `"type":"contract.protocol_changed"`) {
+		t.Fatalf("result = %#v, want missing current start protocol failure", result)
+	}
+}
+
+func TestExecuteEventUpdateBindsAbsentCustomFields(t *testing.T) {
+	files := &memoryFilesystem{files: map[string][]byte{
+		eventWriteCredentialsPath: []byte(eventWriteCredentials),
+	}}
+	dependencies := eventWriteDependencies(files)
+	dependencies.MutationRandom = strings.NewReader(strings.Repeat("l", 32))
+	call := 0
+	dependencies.HTTP = scriptedHTTP{do: func(request *http.Request) (*http.Response, error) {
+		call++
+		event := compatibleUpdateEvent()
+		if call == 2 {
+			event["customFields"] = []any{}
+		}
+		assertEventCallableRequest(t, request, "getEventInfo", `{"data":{"params":{"eventId":"event-example"},"amplitudeDeviceId":"MDEyMzQ1Njc4OWFiY2RlZg"}}`)
+		return jsonResponse(http.StatusOK, eventResponse(t, event)), nil
+	}}
+	argv := []string{"events", "update", "event-example", "--link", "Tickets=https://example.test/tickets"}
+
+	plan := app.Execute(context.Background(), app.Request{Argv: argv}, dependencies)
+	if plan.ExitCode != 0 {
+		t.Fatalf("plan = %#v, want absent target field bound", plan)
+	}
+	token := rsvpPlanToken(t, plan)
+	applied := app.Execute(context.Background(), app.Request{
+		Argv: append(append([]string{}, argv...), "--apply", "--plan", token),
+	}, dependencies)
+	if applied.ExitCode != 7 || !strings.Contains(applied.Stdout, `"type":"safety.plan_stale"`) {
+		t.Fatalf("applied = %#v, want changed target state stale failure", applied)
+	}
+}
+
 func TestExecuteEventCancelRequiresConfirmAndAppliesConsequentialPlan(t *testing.T) {
 	files := &memoryFilesystem{files: map[string][]byte{
 		eventWriteCredentialsPath: []byte(eventWriteCredentials),

@@ -722,10 +722,12 @@ func validateMergedUpdateRange(command string, event remote.Event, input normali
 	var start *time.Time
 	if input.HasStart {
 		start = input.Start
-	} else if parsed, failure := requiredCurrentEventTime(event, "startDate"); failure == nil {
+	} else {
+		parsed, failure := requiredCurrentEventTime(event, "startDate")
+		if failure != nil {
+			return failure
+		}
 		start = &parsed
-	} else if rawEventField(event, "startDate").State == "value" {
-		return failure
 	}
 	var end *time.Time
 	if input.HasEnd {

@@ -353,10 +353,10 @@ func eventInputDocument(
 		}
 		return document, nil
 	}
-	return eventFlagsDocument(scalars, links), nil
+	return eventFlagsDocument(scalars, links)
 }
 
-func eventFlagsDocument(values map[string]string, links []string) map[string]json.RawMessage {
+func eventFlagsDocument(values map[string]string, links []string) (map[string]json.RawMessage, *errorBody) {
 	document := make(map[string]json.RawMessage)
 	copyString := func(flag, field string) {
 		if value, ok := values[flag]; ok {
@@ -383,14 +383,15 @@ func eventFlagsDocument(values map[string]string, links []string) map[string]jso
 		mapped := make([]eventLink, 0, len(links))
 		for _, entry := range links {
 			parts := strings.SplitN(entry, "=", 2)
-			if len(parts) == 2 {
-				mapped = append(mapped, eventLink{Label: parts[0], URL: parts[1]})
+			if len(parts) != 2 {
+				return nil, eventWriteInputFailure("LINKS_INVALID", "--link must use label=url.")
 			}
+			mapped = append(mapped, eventLink{Label: parts[0], URL: parts[1]})
 		}
 		raw, _ := json.Marshal(mapped)
 		document["links"] = raw
 	}
-	return document
+	return document, nil
 }
 
 func normalizeEventCreateInput(document map[string]json.RawMessage) (normalizedEventCreateInput, *errorBody) {
