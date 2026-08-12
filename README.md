@@ -97,29 +97,25 @@ partiful events update <id> --title "New Title"
 partiful events cancel <id>
 ```
 
-### `events rsvp` / `events interested` — RSVP to events
+### `rsvp` — RSVP to events
 
 ```bash
-partiful events rsvp get <id>                      # Read your RSVP and questionnaire answers
-partiful events rsvp set <id>                      # RSVP going (default)
-partiful events rsvp set <id> --status maybe       # going | maybe | declined
-partiful events rsvp set <id> --plus-one Maddie --plus-one Justin   # bring guests
-partiful events rsvp set <id> --name "Kaleb Cole" --message "Stoked!"
-partiful events rsvp set <id> --answer "<question-id-or-text>=<value>"  # repeat per host question
-partiful events interested <id>                    # mark interest
-partiful events interested <id> --remove           # remove interest
+partiful rsvp get <id>
+partiful rsvp set <id> --status going --display-name "Example" \
+  --party-size 1 --timezone America/Los_Angeles
+partiful rsvp set <id> --status not-going --display-name "Example" \
+  --party-size 1 --timezone America/Los_Angeles
+partiful rsvp set <id> --status interested
+partiful rsvp set <id> --input rsvp.json
 ```
 
-`events rsvp get` reads your saved status, guest details, and questionnaire
-answers without changing the RSVP. RSVP writes do a read-before-write: they update your existing guest record if you
-already RSVP'd, otherwise create one. Ticketed events are refused with a clear
-error (use the app to purchase a ticket). For host-questionnaire events, pass one
-repeatable `--answer "<question-id-or-exact-text>=<value>"` per answer; required
-answers are validated before submission. Plain `--dry-run` stays offline, while
-`--answer ... --dry-run` performs read-only guest/event lookups so the preview can
-validate and preserve live questionnaire state, then read the Firestore guest record
-back to verify the saved status and answers. The same verbs are available under
-`explore` (`partiful explore rsvp get <id>`) for the discovery flow.
+`rsvp get` returns only the reviewed status projection. `rsvp set` first
+returns a five-minute, single-use plan and does not mutate. Apply the same
+normalized input with `--apply --plan <token>`. Ticketed, application,
+protected, at-capacity going, and unsupported questionnaire flows fail
+closed. A successful apply reports only that one reviewed request was
+submitted; it does not claim persisted RSVP state and does not read after the
+write.
 
 ### `guests` — Manage event guests
 

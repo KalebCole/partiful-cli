@@ -27,6 +27,8 @@ func main() {
 		CursorKeys:           app.FileCursorKeyProvider{Path: cursorKeyPath},
 		CursorRandom:         rand.Reader,
 		AuthRandom:           rand.Reader,
+		MutationPath:         credentialsPath + ".mutation-plans",
+		MutationRandom:       rand.Reader,
 		Terminal: auth.OSTerminal{
 			Input:  os.Stdin,
 			Output: os.Stderr,

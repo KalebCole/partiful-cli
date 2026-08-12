@@ -14,8 +14,8 @@ import (
 
 const (
 	Version                 = "1.0.0"
-	ProductContractRevision = "2026-08-12.1"
-	RemoteContractRevision  = "2026-08-12.1"
+	ProductContractRevision = "2026-08-12.3"
+	RemoteContractRevision  = "2026-08-12.3"
 )
 
 type Request struct {
@@ -38,6 +38,8 @@ type Dependencies struct {
 	CursorKeys           CursorKeyProvider
 	CursorRandom         io.Reader
 	AuthRandom           io.Reader
+	MutationPath         string
+	MutationRandom       io.Reader
 	Terminal             auth.PrivateTerminal
 }
 
@@ -55,6 +57,8 @@ const (
 	contactsListCommand
 	eventsListCommand
 	eventsGetCommand
+	rsvpGetCommand
+	rsvpSetCommand
 )
 
 type commandDefinition struct {
@@ -270,6 +274,62 @@ var commandCatalog = []commandDefinition{
 		},
 		safety: readOnlySafety(),
 	},
+	{
+		path:       "rsvp.get",
+		invocation: []string{"rsvp", "get"},
+		kind:       rsvpGetCommand,
+		positionals: []positionalDefinition{{
+			Name:        "event-id",
+			Required:    true,
+			Description: "Event identifier.",
+		}},
+		flags:         []flagDefinition{},
+		inputSchema:   eventGetInputSchema(),
+		successSchema: rsvpReadSuccessSchema(),
+		failureTypes: []string{
+			"auth.required",
+			"auth.expired",
+			"remote.unavailable",
+			"contract.protocol_changed",
+			"internal.failure",
+		},
+		safety: readOnlySafety(),
+	},
+	{
+		path:       "rsvp.set",
+		invocation: []string{"rsvp", "set"},
+		kind:       rsvpSetCommand,
+		positionals: []positionalDefinition{{
+			Name:        "event-id",
+			Required:    true,
+			Description: "Event identifier.",
+		}},
+		flags: []flagDefinition{
+			{Name: "--input", Description: "Read one structured JSON input object.", TakesValue: true},
+			{Name: "--status", Description: "Writable RSVP intent.", TakesValue: true},
+			{Name: "--display-name", Description: "Attendee display name.", TakesValue: true},
+			{Name: "--party-size", Description: "Total attendee count.", TakesValue: true},
+			{Name: "--plus-one", Description: "Named plus one; this flag can repeat.", TakesValue: true},
+			{Name: "--message", Description: "Optional RSVP message.", TakesValue: true},
+			{Name: "--timezone", Description: "IANA timezone.", TakesValue: true},
+			{Name: "--questionnaire-response", Description: "Questionnaire response JSON.", TakesValue: true},
+			{Name: "--apply", Description: "Apply a reviewed mutation plan."},
+			{Name: "--plan", Description: "Opaque mutation plan token.", TakesValue: true},
+		},
+		inputSchema:   rsvpSetInputSchema(),
+		successSchema: rsvpSetSuccessSchema(),
+		failureTypes: []string{
+			"auth.required",
+			"auth.expired",
+			"resource.not_found",
+			"state.conflict",
+			"safety.plan_stale",
+			"remote.unavailable",
+			"contract.protocol_changed",
+			"internal.failure",
+		},
+		safety: standardMutationSafety(),
+	},
 }
 
 type positionalDefinition struct {
@@ -287,14 +347,16 @@ type flagDefinition struct {
 
 type jsonSchema struct {
 	Type                 any                   `json:"type,omitempty"`
-	AdditionalProperties *bool                 `json:"additionalProperties,omitempty"`
+	AdditionalProperties any                   `json:"additionalProperties,omitempty"`
 	Required             []string              `json:"required,omitempty"`
 	Properties           map[string]jsonSchema `json:"properties,omitempty"`
 	Enum                 []string              `json:"enum,omitempty"`
+	Const                any                   `json:"const,omitempty"`
 	Format               string                `json:"format,omitempty"`
 	Minimum              *int                  `json:"minimum,omitempty"`
 	Maximum              *int                  `json:"maximum,omitempty"`
 	MinLength            *int                  `json:"minLength,omitempty"`
+	MaxLength            *int                  `json:"maxLength,omitempty"`
 	Pattern              string                `json:"pattern,omitempty"`
 	DependentRequired    map[string][]string   `json:"dependentRequired,omitempty"`
 	Items                *jsonSchema           `json:"items,omitempty"`
@@ -373,7 +435,7 @@ func schemaSuccessSchema() jsonSchema {
 		map[string]jsonSchema{
 			"kind": {
 				Type: "string",
-				Enum: []string{"read-only", "local-mutation"},
+				Enum: []string{"read-only", "local-mutation", "standard-mutation"},
 			},
 			"planRequired":         {Type: "boolean"},
 			"confirmationRequired": {Type: "boolean"},
@@ -599,6 +661,21 @@ func eventGetSuccessSchema() jsonSchema {
 			"guestLimit":  {Type: "null"},
 			"poster":      {Type: "null"},
 			"links":       {Type: "null"},
+		},
+	)
+}
+
+func rsvpReadSuccessSchema() jsonSchema {
+	return objectSchema(
+		[]string{"eventId", "status"},
+		map[string]jsonSchema{
+			"eventId": {Type: "string"},
+			"status": {
+				OneOf: []jsonSchema{
+					{Type: "string", Enum: eventReadRsvpValues()},
+					{Type: "null"},
+				},
+			},
 		},
 	)
 }
@@ -1089,6 +1166,10 @@ func Execute(ctx context.Context, request Request, dependencies Dependencies) Re
 				return executeEventsList(ctx, definition, argv, dependencies, pretty)
 			case eventsGetCommand:
 				return executeEventGet(ctx, definition, argv, dependencies, pretty)
+			case rsvpGetCommand:
+				return executeRSVPGet(ctx, definition, argv, dependencies, pretty)
+			case rsvpSetCommand:
+				return executeRSVPSet(ctx, request, definition, argv, dependencies, pretty)
 			}
 		}
 	}
@@ -1120,7 +1201,9 @@ func (definition commandDefinition) matches(argv []string) bool {
 		definition.kind == postersSearchCommand ||
 		definition.kind == contactsListCommand ||
 		definition.kind == eventsListCommand ||
-		definition.kind == eventsGetCommand) &&
+		definition.kind == eventsGetCommand ||
+		definition.kind == rsvpGetCommand ||
+		definition.kind == rsvpSetCommand) &&
 		len(argv) >= len(definition.invocation) {
 		return slices.Equal(argv[:len(definition.invocation)], definition.invocation)
 	}

@@ -493,8 +493,8 @@ describe('remote API contract', () => {
       .toBe(`${rsvpReadObservationPath}#scope-and-provenance`);
     expect(citationResolves(evidence.sources.rsvpReadObservation20260812)).toBe(true);
     const appSource = fs.readFileSync('internal/app/app.go', 'utf8');
-    expect(appSource).toContain('ProductContractRevision = "2026-08-12.1"');
-    expect(appSource).toContain('RemoteContractRevision  = "2026-08-12.1"');
+    expect(appSource).toContain('ProductContractRevision = "2026-08-12.3"');
+    expect(appSource).toContain('RemoteContractRevision  = "2026-08-12.3"');
     const ids = operations().map(({ operation }) => operation.operationId);
     expect(ids).toHaveLength(27);
     expect(new Set(ids).size).toBe(ids.length);
@@ -1343,7 +1343,7 @@ describe('remote API contract', () => {
       '**Status:** Approved product contract',
       '**Product contract revision:** `2026-08-12.3`',
       '**Remote API contract revision:** `2026-08-12.3`',
-      '**Currently shipped Go revisions:** product and remote `2026-08-12.1`',
+      '**Currently shipped Go revisions:** product and remote `2026-08-12.3`',
       '`PUBLISHED` → `active`',
       '`CANCELED` → `cancelled`',
       '`UNSAVED` exists in the current first-party client vocabulary',
@@ -1388,8 +1388,8 @@ describe('remote API contract', () => {
     );
 
     const appSource = fs.readFileSync('internal/app/app.go', 'utf8');
-    expect(appSource).toContain('ProductContractRevision = "2026-08-12.1"');
-    expect(appSource).toContain('RemoteContractRevision  = "2026-08-12.1"');
+    expect(appSource).toContain('ProductContractRevision = "2026-08-12.3"');
+    expect(appSource).toContain('RemoteContractRevision  = "2026-08-12.3"');
   });
 
   it('defines evidence-backed RSVP planning and submitted-only completion', () => {
@@ -1897,7 +1897,7 @@ describe('remote API contract', () => {
       .toBe(rsvpReadEvidencePath);
   });
 
-  it('keeps shipped Go revisions on the reviewed baseline while RSVP is proposed', () => {
+  it('ships the approved RSVP product and remote revisions together', () => {
     const productContract = fs.readFileSync(
       'docs/CLI-PRODUCT-CONTRACT.md',
       'utf8',
@@ -1920,14 +1920,14 @@ describe('remote API contract', () => {
       /"remoteContractRevision": "([^"]+)"/g,
     )].map((match) => match[1]);
 
-    expect(shippedRevision).toBe('2026-08-12.1');
+    expect(shippedRevision).toBe('2026-08-12.3');
     expect(documentedRevision).toBe('2026-08-12.3');
     expect(documentedProductRevision).toBe('2026-08-12.3');
     expect(new Set(envelopeRevisions)).toEqual(new Set([documentedRevision]));
     expect(spec.info.version).toBe(documentedRevision);
     expect(evidence.status).toBe('owner-reviewed');
-    expect(spec.info.version).not.toBe(shippedRevision);
-    expect(appSource).toContain('ProductContractRevision = "2026-08-12.1"');
+    expect(spec.info.version).toBe(shippedRevision);
+    expect(appSource).toContain('ProductContractRevision = "2026-08-12.3"');
     expect(productContract)
       .not.toContain('currently leaves every operation response status and body unknown');
     expect(contactResearch)
