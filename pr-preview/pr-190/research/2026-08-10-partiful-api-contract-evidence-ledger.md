@@ -78,12 +78,12 @@ the JSON ledger, including operation, parameter, content-type, security,
 schema, constraint, and response claims. Unless a claim is specifically
 observed, callable result payloads, status codes, error bodies, permission
 rules, and limits are **explicit unknown**. Eleven operations with an observed
-HTTP `200` status, four operations with protocol-specified callable
+HTTP `200` status, five operations with protocol-specified callable
 completion, and one official Firestore PATCH completion have typed response
 bodies. The schema-free send-code `200` and OpenAPI `default` responses do not
 claim a body.
 
-The 1739 material claims are audited by
+The 1740 material claims are audited by
 `tests/remote-api-contract.test.js`. Each ledger citation resolves either to a
 JSON Pointer in the committed non-authoritative historical artifact or to a
 heading in the committed stable source index. This keeps the audit independent
@@ -371,7 +371,7 @@ by the Go implementation's Firebase requests:
 Origin is unmodelled and remains unknown because the reviewed evidence
 establishes no Origin request fact.
 
-The 1739 material claims are audited by `tests/remote-api-contract.test.js`.
+The 1740 material claims are audited by `tests/remote-api-contract.test.js`.
 
 ## Resolved conflict
 
