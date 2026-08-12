@@ -2,7 +2,7 @@
 
 **Status:** Approved product contract  
 **Product contract revision:** `2026-08-10.1`  
-**Remote API contract revision:** `2026-08-11.4`
+**Remote API contract revision:** `2026-08-11.5`
 
 This document defines the public behavior of the greenfield Go `partiful` CLI.
 It is the authority for commands, inputs, JSON outputs, failures, and mutation
@@ -78,7 +78,7 @@ Every successful command returns:
     "command": "events.get",
     "cliVersion": "1.0.0",
     "productContractRevision": "2026-08-10.1",
-    "remoteContractRevision": "2026-08-11.4",
+    "remoteContractRevision": "2026-08-11.5",
     "warnings": []
   }
 }
@@ -102,7 +102,7 @@ Every failed command returns:
     "command": "guests.list",
     "cliVersion": "1.0.0",
     "productContractRevision": "2026-08-10.1",
-    "remoteContractRevision": "2026-08-11.4"
+    "remoteContractRevision": "2026-08-11.5"
   }
 }
 ```
@@ -150,7 +150,7 @@ Collection commands return:
     "command": "events.list",
     "cliVersion": "1.0.0",
     "productContractRevision": "2026-08-10.1",
-    "remoteContractRevision": "2026-08-11.4",
+    "remoteContractRevision": "2026-08-11.5",
     "warnings": [],
     "page": {
       "limit": 25,
@@ -203,7 +203,7 @@ remote mutation:
     "command": "events.update",
     "cliVersion": "1.0.0",
     "productContractRevision": "2026-08-10.1",
-    "remoteContractRevision": "2026-08-11.4",
+    "remoteContractRevision": "2026-08-11.5",
     "warnings": []
   }
 }
@@ -509,6 +509,17 @@ is:
 
 No command returns contact phone numbers, email addresses, or Partiful user
 IDs.
+
+The CLI traverses contact pages sequentially, keeps the first occurrence of
+each private contact identity, and then applies the name filter locally.
+Private identity remains internal.
+
+Contact traversal permits at most three nonempty pages and 3,000 transport
+items, then requires the empty terminal sentinel. This client execution bound
+uses the reviewed 1,000-item request size and observed traversal. It does not
+claim future remote completeness. A repeated remote cursor, data beyond the
+bound, or a missing empty sentinel fails with `contract.protocol_changed`; the
+CLI does not return a truncated collection as complete.
 
 ### Cohosts
 
