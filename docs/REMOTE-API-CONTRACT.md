@@ -1,12 +1,12 @@
 # Remote API contract
 
-`spec/partiful.openapi.json` is owner-reviewed revision `2026-08-12.6` of the
-remote transport snapshot. Its owner-reviewed baseline is `2026-08-12.3`,
-which is based on owner-reviewed revision `2026-08-12.2`. It describes only
+`spec/partiful.openapi.json` is owner-reviewed revision `2026-08-12.7` of the
+remote transport snapshot. Its owner-reviewed baseline is `2026-08-12.6`,
+which is based on owner-reviewed revision `2026-08-12.3`. It describes only
 network operations and wire shapes. It does not prescribe commands, output,
 credentials, mutation safeguards, or implementation architecture.
 
-The Go CLI ships remote contract revision `2026-08-12.6`.
+The Go CLI ships remote contract revision `2026-08-12.7`.
 
 ## Authority and change process
 
@@ -343,6 +343,52 @@ safe planning:
 
 The current client treats the secret document as optional and uses the
 server-returned link `path`; it does not synthesize an `accept-cohost` token.
+
+## Text-blast proposal
+
+Revision `2026-08-12.7` adds unauthenticated current-client research from
+`docs/research/2026-08-12-text-blast-mapping-public-assets.md`. No text blast,
+guest contact, credential, or private event data was used.
+
+The dated March 24 request observation remains the request authority for the
+nested `message` object. The new proposal retains that dated request mapping
+and promotes only reviewed current-client completion and precondition facts.
+
+The current helper awaits `createTextBlast(...).data`, the caller ignores the
+returned value, and no post-send read occurs. `createTextBlast` therefore gains
+only generic callable HTTP `200` completion under the official Firebase
+callable protocol plus the current client rule that the decoded completion
+value must be non-nullish. No reviewed nested business-success field,
+recipient report, or delivery result exists.
+
+The same current asset computes `all-guests` as the exact ordered `message.to`
+group array, not a sentinel, not an empty array, and not an expanded identity
+list. The ordered groups are `invited`, `checkedIn`, and the current status
+set for the event mode. `invited` represents the invited-status family
+`READY_TO_SEND`, `SENDING`, `SENT`, `SEND_ERROR`, and `DELIVERY_ERROR`.
+`checkedIn` represents guests with non-null `checkIn`. The event-mode status
+set is:
+
+- `APPROVED`, `PENDING_APPROVAL`, `WAITLISTED_FOR_APPROVAL`, `WITHDRAWN`, and
+  `REJECTED` when `guestAction` is `APPLY`;
+- `RESPONDED_TO_FIND_A_TIME` for the current find-a-time predicate; or
+- `GOING`, `MAYBE`, `DECLINED`, and conditional `WAITLIST` for ordinary RSVP.
+
+The current first-party asset excludes the invited group from its all-guests
+selection when the invited count exceeds `100`. Its one private owner-ID
+exception is not promoted. A privacy-safe implementation must therefore fail
+closed or conservatively exclude `invited` when it cannot verify an exemption.
+
+Current host tooling also reads the Firestore guest and host-message
+collections before enabling send. The public asset uses
+`events/{eventId}/guests` to derive guest `status` and `checkIn`, and
+`events/{eventId}/hostMessages` to count current text blasts by `type`
+missing/null/`TEXT_BLAST`. OpenAPI now records official Firestore
+list-documents HTTP `200` completion for
+`/v1/projects/getpartiful/databases/(default)/documents/{collectionPath}`.
+This remains broad transport grammar. It does not infer Partiful authorization,
+query completeness, or business meaning beyond the collection paths reviewed
+for this slice.
 
 ## Historical provenance
 

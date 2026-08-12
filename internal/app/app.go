@@ -14,8 +14,8 @@ import (
 
 const (
 	Version                 = "1.0.0"
-	ProductContractRevision = "2026-08-12.6"
-	RemoteContractRevision  = "2026-08-12.6"
+	ProductContractRevision = "2026-08-12.7"
+	RemoteContractRevision  = "2026-08-12.7"
 )
 
 type Request struct {
@@ -62,6 +62,7 @@ const (
 	eventsCreateCommand
 	eventsUpdateCommand
 	eventsCancelCommand
+	blastsSendCommand
 	rsvpGetCommand
 	rsvpSetCommand
 	cohostsInviteCommand
@@ -426,6 +427,38 @@ var commandCatalog = []commandDefinition{
 		},
 		inputSchema:   eventCancelInputSchema(),
 		successSchema: eventCancelSuccessSchema(),
+		failureTypes: []string{
+			"auth.required",
+			"auth.expired",
+			"permission.denied",
+			"resource.not_found",
+			"state.conflict",
+			"safety.confirmation_required",
+			"safety.plan_stale",
+			"remote.unavailable",
+			"contract.protocol_changed",
+			"internal.failure",
+		},
+		safety: consequentialActionSafety(),
+	},
+	{
+		path:       "blasts.send",
+		invocation: []string{"blasts", "send"},
+		kind:       blastsSendCommand,
+		positionals: []positionalDefinition{{
+			Name:        "event-id",
+			Required:    true,
+			Description: "Event identifier.",
+		}},
+		flags: []flagDefinition{
+			{Name: "--audience", Description: "Only all-guests is supported.", TakesValue: true},
+			{Name: "--message-file", Description: "Read the private message from a file path or - for stdin.", TakesValue: true},
+			{Name: "--show-on-event-page", Description: "Show the blast in the event activity feed."},
+			{Name: "--apply", Description: "Apply a reviewed consequential plan."},
+			{Name: "--confirm", Description: "Exact consequential confirmation token.", TakesValue: true},
+		},
+		inputSchema:   blastSendInputSchema(),
+		successSchema: blastSendSuccessSchema(),
 		failureTypes: []string{
 			"auth.required",
 			"auth.expired",
@@ -1493,6 +1526,8 @@ func Execute(ctx context.Context, request Request, dependencies Dependencies) Re
 				return executeEventUpdate(ctx, request, definition, argv, dependencies, pretty)
 			case eventsCancelCommand:
 				return executeEventCancel(ctx, request, definition, argv, dependencies, pretty)
+			case blastsSendCommand:
+				return executeBlastSend(ctx, request, definition, argv, dependencies, pretty)
 			case rsvpGetCommand:
 				return executeRSVPGet(ctx, definition, argv, dependencies, pretty)
 			case rsvpSetCommand:
@@ -1544,6 +1579,7 @@ func (definition commandDefinition) matches(argv []string) bool {
 		definition.kind == eventsCreateCommand ||
 		definition.kind == eventsUpdateCommand ||
 		definition.kind == eventsCancelCommand ||
+		definition.kind == blastsSendCommand ||
 		definition.kind == rsvpGetCommand ||
 		definition.kind == rsvpSetCommand ||
 		definition.kind == cohostsInviteCommand ||
