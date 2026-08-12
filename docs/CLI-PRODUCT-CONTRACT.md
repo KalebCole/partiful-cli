@@ -6,8 +6,7 @@
 
 **Remote API contract revision:** `2026-08-12.1`
 
-**Currently shipped Go revisions:** product `2026-08-10.1`; remote
-`2026-08-11.5`
+**Currently shipped Go revisions:** product and remote `2026-08-12.1`
 
 This document defines the public behavior of the greenfield Go `partiful` CLI.
 It is the authority for commands, inputs, JSON outputs, failures, and mutation
@@ -834,9 +833,9 @@ hatch.
 
 ## Implementation gates and remote changes
 
-The proposed remote API contract records observed response statuses and bodies
-for some operations. Unobserved mappings remain unknown. Before a public
-command ships, its implementation slice must:
+The owner-reviewed remote API contract records observed response statuses and
+bodies for some operations. Unobserved mappings remain unknown. Before a
+public command ships, its implementation slice must:
 
 1. obtain privacy-safe evidence for every remote response and failure mapping
    it needs;

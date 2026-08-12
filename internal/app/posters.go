@@ -28,6 +28,7 @@ type collectionOptions struct {
 	all            bool
 	max            int
 	query          string
+	when           string
 }
 
 type cursorPayload struct {
@@ -80,6 +81,18 @@ func parseCollectionOptions(definition commandDefinition, argv []string) (collec
 				Type:      "input.invalid",
 				Code:      "QUERY_REQUIRED",
 				Message:   message,
+				Retryable: false,
+				Details:   map[string]any{},
+			}
+		}
+	}
+	if definition.kind == eventsListCommand {
+		options.when = strings.ToLower(strings.TrimSpace(values["--when"]))
+		if options.when != "upcoming" && options.when != "past" {
+			return collectionOptions{}, &errorBody{
+				Type:      "input.invalid",
+				Code:      "WHEN_INVALID",
+				Message:   "--when must be upcoming or past.",
 				Retryable: false,
 				Details:   map[string]any{},
 			}

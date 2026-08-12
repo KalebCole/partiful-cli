@@ -14,8 +14,8 @@ import (
 
 const (
 	Version                 = "1.0.0"
-	ProductContractRevision = "2026-08-10.1"
-	RemoteContractRevision  = "2026-08-11.5"
+	ProductContractRevision = "2026-08-12.1"
+	RemoteContractRevision  = "2026-08-12.1"
 )
 
 type Request struct {
@@ -53,6 +53,8 @@ const (
 	postersListCommand
 	postersSearchCommand
 	contactsListCommand
+	eventsListCommand
+	eventsGetCommand
 )
 
 type commandDefinition struct {
@@ -217,6 +219,51 @@ var commandCatalog = []commandDefinition{
 			"auth.required",
 			"auth.expired",
 			"state.conflict",
+			"remote.unavailable",
+			"contract.protocol_changed",
+			"internal.failure",
+		},
+		safety: readOnlySafety(),
+	},
+	{
+		path:        "events.list",
+		invocation:  []string{"events", "list"},
+		kind:        eventsListCommand,
+		positionals: []positionalDefinition{},
+		flags: append([]flagDefinition{{
+			Name:        "--when",
+			Required:    true,
+			Description: "Select upcoming or past events.",
+			TakesValue:  true,
+		}}, collectionFlagDefinitions()...),
+		inputSchema:   eventCollectionInputSchema(),
+		successSchema: eventCollectionSuccessSchema(),
+		failureTypes: []string{
+			"auth.required",
+			"auth.expired",
+			"state.conflict",
+			"remote.unavailable",
+			"contract.protocol_changed",
+			"internal.failure",
+		},
+		safety: readOnlySafety(),
+	},
+	{
+		path:       "events.get",
+		invocation: []string{"events", "get"},
+		kind:       eventsGetCommand,
+		positionals: []positionalDefinition{{
+			Name:        "event-id",
+			Required:    true,
+			Description: "Event identifier.",
+		}},
+		flags:         []flagDefinition{},
+		inputSchema:   eventGetInputSchema(),
+		successSchema: eventGetSuccessSchema(),
+		failureTypes: []string{
+			"auth.required",
+			"auth.expired",
+			"resource.not_found",
 			"remote.unavailable",
 			"contract.protocol_changed",
 			"internal.failure",
@@ -420,6 +467,26 @@ func contactCollectionInputSchema() jsonSchema {
 	return schema
 }
 
+func eventCollectionInputSchema() jsonSchema {
+	schema := collectionInputSchema(false)
+	schema.Required = append(schema.Required, "when")
+	schema.Properties["when"] = jsonSchema{
+		Type: "string",
+		Enum: []string{"upcoming", "past"},
+	}
+	return schema
+}
+
+func eventGetInputSchema() jsonSchema {
+	one := 1
+	return objectSchema(
+		[]string{"eventId"},
+		map[string]jsonSchema{
+			"eventId": {Type: "string", MinLength: &one},
+		},
+	)
+}
+
 func posterCollectionSuccessSchema() jsonSchema {
 	nullableInteger := jsonSchema{Type: []string{"integer", "null"}}
 	stringItem := jsonSchema{Type: "string"}
@@ -452,6 +519,88 @@ func contactCollectionSuccessSchema() jsonSchema {
 	)
 	items := jsonSchema{Type: "array", Items: &contact}
 	return objectSchema([]string{"items"}, map[string]jsonSchema{"items": items})
+}
+
+func eventCollectionSuccessSchema() jsonSchema {
+	nullableString := jsonSchema{Type: []string{"string", "null"}}
+	nullableEnum := func(values []string) jsonSchema {
+		return jsonSchema{OneOf: []jsonSchema{
+			{Type: "string", Enum: values},
+			{Type: "null"},
+		}}
+	}
+	summary := objectSchema(
+		[]string{
+			"eventId",
+			"title",
+			"start",
+			"end",
+			"timezone",
+			"state",
+			"userRole",
+			"myRsvp",
+		},
+		map[string]jsonSchema{
+			"eventId":  {Type: "string"},
+			"title":    nullableString,
+			"start":    nullableString,
+			"end":      nullableString,
+			"timezone": nullableString,
+			"state":    nullableEnum([]string{"active", "cancelled"}),
+			"userRole": nullableEnum(
+				[]string{"host", "cohost", "attendee", "none"},
+			),
+			"myRsvp": nullableEnum(eventReadRsvpValues()),
+		},
+	)
+	items := jsonSchema{Type: "array", Items: &summary}
+	return objectSchema([]string{"items"}, map[string]jsonSchema{"items": items})
+}
+
+func eventGetSuccessSchema() jsonSchema {
+	nullableString := jsonSchema{Type: []string{"string", "null"}}
+	nullableEnum := func(values []string) jsonSchema {
+		return jsonSchema{OneOf: []jsonSchema{
+			{Type: "string", Enum: values},
+			{Type: "null"},
+		}}
+	}
+	return objectSchema(
+		[]string{
+			"eventId",
+			"title",
+			"start",
+			"end",
+			"timezone",
+			"state",
+			"userRole",
+			"myRsvp",
+			"description",
+			"location",
+			"address",
+			"visibility",
+			"guestLimit",
+			"poster",
+			"links",
+		},
+		map[string]jsonSchema{
+			"eventId":     {Type: "string"},
+			"title":       nullableString,
+			"start":       nullableString,
+			"end":         nullableString,
+			"timezone":    nullableString,
+			"state":       nullableEnum([]string{"active", "cancelled"}),
+			"userRole":    {Type: "null"},
+			"myRsvp":      {Type: "null"},
+			"description": {Type: "null"},
+			"location":    {Type: "null"},
+			"address":     {Type: "null"},
+			"visibility":  {Type: "null"},
+			"guestLimit":  {Type: "null"},
+			"poster":      {Type: "null"},
+			"links":       {Type: "null"},
+		},
+	)
 }
 
 func readOnlySafety() safetyDefinition {
@@ -856,47 +1005,14 @@ func Execute(ctx context.Context, request Request, dependencies Dependencies) Re
 						return failure(definition.path, cursorFailure.exitCode, cursorFailure.body, pretty)
 					}
 				}
-				if dependencies.CredentialsPathError != nil {
-					return configurationDirectoryFailure(definition.path, pretty)
-				}
-				clock := time.Now
-				if dependencies.Now != nil {
-					clock = dependencies.Now
-				}
-				session, err := auth.AcquireSession(
+				session, sessionFailure := acquireProtectedSession(
 					ctx,
-					dependencies.Files,
-					dependencies.CredentialsPath,
-					clock,
-					remote.AuthClient{HTTP: dependencies.HTTP},
+					definition.path,
+					dependencies,
+					pretty,
 				)
-				if err != nil {
-					if errors.Is(err, auth.ErrRequired) {
-						return authenticationRequiredFailure(definition.path, pretty)
-					}
-					if errors.Is(err, auth.ErrRemoteTokenExpired) {
-						return authenticationExpiredFailure(
-							definition.path,
-							"INVALID_REFRESH_TOKEN",
-							"Stored authentication has expired. Log in again.",
-							pretty,
-						)
-					}
-					if errors.Is(err, auth.ErrExpired) {
-						return authenticationExpiredFailure(
-							definition.path,
-							"SESSION_EXPIRED",
-							"Stored authentication has expired. Log in again.",
-							pretty,
-						)
-					}
-					if errors.Is(err, auth.ErrRemoteProtocolChanged) {
-						return authenticationProtocolChangedFailure(definition.path, pretty)
-					}
-					if errors.Is(err, auth.ErrRemoteUnavailable) {
-						return authenticationUnavailableFailure(definition.path, pretty)
-					}
-					return internalFailure(definition.path, pretty)
+				if sessionFailure != nil {
+					return *sessionFailure
 				}
 				deviceID, err := randomDeviceID(dependencies.AuthRandom)
 				if err != nil {
@@ -969,6 +1085,10 @@ func Execute(ctx context.Context, request Request, dependencies Dependencies) Re
 					NextCursor: cursor,
 					HasMore:    hasMore,
 				}, pretty)
+			case eventsListCommand:
+				return executeEventsList(ctx, definition, argv, dependencies, pretty)
+			case eventsGetCommand:
+				return executeEventGet(ctx, definition, argv, dependencies, pretty)
 			}
 		}
 	}
@@ -998,7 +1118,9 @@ func (definition commandDefinition) matches(argv []string) bool {
 	}
 	if (definition.kind == postersListCommand ||
 		definition.kind == postersSearchCommand ||
-		definition.kind == contactsListCommand) &&
+		definition.kind == contactsListCommand ||
+		definition.kind == eventsListCommand ||
+		definition.kind == eventsGetCommand) &&
 		len(argv) >= len(definition.invocation) {
 		return slices.Equal(argv[:len(definition.invocation)], definition.invocation)
 	}

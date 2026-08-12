@@ -45,11 +45,13 @@ type State struct {
 
 type Session struct {
 	AccessToken string
+	UserID      string
 }
 
 type credentialRecord struct {
 	AccessToken  string    `json:"accessToken"`
 	RefreshToken string    `json:"refreshToken"`
+	UserID       string    `json:"userId,omitempty"`
 	ExpiresAt    time.Time `json:"expiresAt"`
 }
 
@@ -128,6 +130,7 @@ func Login(
 	err = saveCredentials(files, path, credentialRecord{
 		AccessToken:  session.IDToken,
 		RefreshToken: session.RefreshToken,
+		UserID:       tokenUserID(session.IDToken),
 		ExpiresAt:    expiresAt,
 	})
 	if err != nil {
@@ -190,8 +193,15 @@ func AcquireSession(
 			return
 		}
 		state := stateFromCredentials(credentials, now())
+		userID := credentials.UserID
+		if userID == "" {
+			userID = tokenUserID(credentials.AccessToken)
+		}
 		if state.TokenState == "healthy" {
-			session = Session{AccessToken: credentials.AccessToken}
+			session = Session{
+				AccessToken: credentials.AccessToken,
+				UserID:      userID,
+			}
 			return
 		}
 		if credentials.RefreshToken == "" {
@@ -199,7 +209,10 @@ func AcquireSession(
 				operationErr = ErrExpired
 				return
 			}
-			session = Session{AccessToken: credentials.AccessToken}
+			session = Session{
+				AccessToken: credentials.AccessToken,
+				UserID:      userID,
+			}
 			return
 		}
 		refreshed, err := client.RefreshToken(ctx, credentials.RefreshToken)
@@ -207,16 +220,24 @@ func AcquireSession(
 			operationErr = err
 			return
 		}
+		refreshedUserID := tokenUserID(refreshed.IDToken)
+		if refreshedUserID == "" {
+			refreshedUserID = userID
+		}
 		credentials = credentialRecord{
 			AccessToken:  refreshed.IDToken,
 			RefreshToken: refreshed.RefreshToken,
+			UserID:       refreshedUserID,
 			ExpiresAt:    now().Add(refreshed.ExpiresIn).UTC(),
 		}
 		if err := saveCredentialsUnlocked(files, path, credentials); err != nil {
 			operationErr = ErrPersistence
 			return
 		}
-		session = Session{AccessToken: credentials.AccessToken}
+		session = Session{
+			AccessToken: credentials.AccessToken,
+			UserID:      credentials.UserID,
+		}
 	}); err != nil {
 		return Session{}, ErrUnavailable
 	}
@@ -281,6 +302,7 @@ func refreshCredentials(
 		credentials = credentialRecord{
 			AccessToken:  refreshed.IDToken,
 			RefreshToken: refreshed.RefreshToken,
+			UserID:       refreshedCredentialUserID(credentials, refreshed.IDToken),
 			ExpiresAt:    expiresAt,
 		}
 		operationErr = saveCredentialsUnlocked(files, path, credentials)
@@ -324,6 +346,31 @@ func stateFromCredentials(credentials credentialRecord, now time.Time) State {
 		return State{Authenticated: true, TokenState: "expiring", ExpiresAt: &expiresAt}
 	}
 	return State{Authenticated: false, TokenState: "expired", ExpiresAt: &expiresAt}
+}
+
+func refreshedCredentialUserID(credentials credentialRecord, token string) string {
+	if userID := tokenUserID(token); userID != "" {
+		return userID
+	}
+	return credentials.UserID
+}
+
+func tokenUserID(token string) string {
+	parts := strings.Split(token, ".")
+	if len(parts) != 3 {
+		return ""
+	}
+	payload, err := base64.RawURLEncoding.DecodeString(parts[1])
+	if err != nil {
+		return ""
+	}
+	var claims struct {
+		Subject string `json:"sub"`
+	}
+	if json.Unmarshal(payload, &claims) != nil {
+		return ""
+	}
+	return claims.Subject
 }
 
 func missingState() State {
