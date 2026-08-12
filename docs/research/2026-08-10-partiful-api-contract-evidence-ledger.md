@@ -1,8 +1,8 @@
 # Partiful remote API contract evidence ledger
 
-**Owner-reviewed contract revision:** `2026-08-12.2`
-**Owner-reviewed baseline:** `2026-08-12.1`
-**Status:** Owner-reviewed under the issue #114 delegation
+**Proposed contract revision:** `2026-08-12.3`
+**Owner-reviewed baseline:** `2026-08-12.2`
+**Status:** Proposed pending delegated review
 **Contract:** `spec/partiful.openapi.json`
 **Machine-readable ledger:** `spec/partiful.api-evidence.json`
 **Stable citation sources:** `docs/research/2026-08-10-contract-evidence-sources.md`
@@ -71,7 +71,7 @@ HTTP `200` status and two operations with protocol-specified callable
 completion have typed response bodies. The schema-free send-code `200` and
 OpenAPI `default` responses do not claim a body.
 
-The 1285 material claims are audited by
+The 1316 material claims are audited by
 `tests/remote-api-contract.test.js`. Each ledger citation resolves either to a
 JSON Pointer in the committed non-authoritative historical artifact or to a
 heading in the committed stable source index. This keeps the audit independent
@@ -181,13 +181,15 @@ list. Related event-list representations support only optional `endDate`
 string/null and `image` object/null unions. Selected-only fields without
 related variant evidence remain unconstrained.
 
-`getCurrentGuest` returned `200` with an object at
+The August 11 `getCurrentGuest` observation returned `200` with an object at
 `result.data.currentGuest`. This single object cannot establish
 operation-wide field presence, nullability, or alternate variants, so
 `CurrentGuest` has no operation-wide top-level type and no required field
 list. Cross-source fields retain only their supported types; `count`,
 `plusOnes`, and `userId` remain unconstrained. A null current guest, an
-ordinary non-null plus-one shape, and other variants remain unknown.
+ordinary non-null plus-one shape, and other variants remained unknown at that
+revision. The RSVP dated-read section below supersedes only the null and
+selected count-type gaps.
 
 `firestoreGetGuest` returned `200` for the current guest document. Its
 document ID and status matched the callable guest. The complete Firestore
@@ -229,9 +231,39 @@ remote response type claims or live observations of stored Partiful state.
 Every unobserved error and status remains explicit unknown.
 
 `CurrentGuest.status` references the existing closed `GuestStatus` vocabulary,
-but remains optional. Current-guest nullability, no-guest create behavior,
-required profile name, selected-event mutation preconditions, endpoint
-failure mappings, and post-write business state remain unknown.
+but remains optional. Revision `2026-08-12.2` left current-guest nullability,
+no-guest create behavior, required profile name, selected-event mutation
+preconditions, endpoint failure mappings, and post-write business state
+unknown.
+
+## RSVP dated read evidence
+
+The owner-authorized sanitized observation at
+`spec/research/rsvp-read-evidence-redacted-20260812.json` covers 36 upcoming
+and 294 past events, 330 unique `getEventInfo` details, and HTTP `200` for all
+330 detail calls. The human source is
+`docs/research/2026-08-12-rsvp-read-observation.md`.
+
+One `getCurrentGuest` HTTP `200` returned explicit null, and one returned an
+object. The selected object fields establish string ID, string status, and
+number count. `CurrentGuest` now admits the observed object/null top-level
+union and types count as number. No object field becomes operation-wide
+required. Missing `currentGuest`, scalar, array, non-null plus-one shape,
+other object variants, unsupported statuses, and failure responses remain
+unknown.
+
+The optional `EventInfo` safeguard schemas record only the retained field
+types and values. `rsvpsEnabled`, `atCapacity`, and
+`plusOneNamesRequired` were present booleans in all 330 details.
+`questionnaireVersions` was always present as array or null. Optional
+questionnaire, ticketing, action, capacity, and waitlist fields preserve the
+observed unions. Raw presence counts remain separate from aggregate null
+buckets; absent properties are not rewritten into remote null claims.
+
+These read facts support a narrow product-compatible event class. They do not
+establish server rejection mappings or any mutation success. Ticketing,
+application, waitlist, password-protected submission, persisted RSVP state,
+post-write reads, and all unobserved errors remain unknown.
 
 ## Contact read evidence
 
@@ -293,7 +325,7 @@ by the Go implementation's Firebase requests:
 Origin is unmodelled and remains unknown because the reviewed evidence
 establishes no Origin request fact.
 
-The 1285 material claims are audited by `tests/remote-api-contract.test.js`.
+The 1316 material claims are audited by `tests/remote-api-contract.test.js`.
 
 ## Resolved conflict
 

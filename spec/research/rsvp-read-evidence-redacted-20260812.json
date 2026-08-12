@@ -1,0 +1,613 @@
+{
+  "purpose": "Privacy-safe RSVP read facts",
+  "capturedAt": "2026-08-12T13:49:55.431Z",
+  "listCounts": {
+    "upcoming": 36,
+    "past": 294,
+    "unique": 330,
+    "noGuestCandidates": 41,
+    "guestCandidates": 289
+  },
+  "currentGuestVariants": [
+    {
+      "sourceGuest": "absent",
+      "status": 200,
+      "currentGuest": {
+        "type": "null"
+      }
+    },
+    {
+      "sourceGuest": "present",
+      "status": 200,
+      "currentGuest": {
+        "type": "object",
+        "fields": [
+          {
+            "name": "anchorGuestId",
+            "type": "null"
+          },
+          {
+            "name": "count",
+            "type": "number"
+          },
+          {
+            "name": "id",
+            "type": "string"
+          },
+          {
+            "name": "invitedBy",
+            "type": "object"
+          },
+          {
+            "name": "name",
+            "type": "string"
+          },
+          {
+            "name": "plusOneCount",
+            "type": "number"
+          },
+          {
+            "name": "plusOnes",
+            "type": "null"
+          },
+          {
+            "name": "rsvpDate",
+            "type": "null"
+          },
+          {
+            "name": "rsvpHistory",
+            "type": "array"
+          },
+          {
+            "name": "status",
+            "type": "string"
+          },
+          {
+            "name": "userId",
+            "type": "string"
+          }
+        ]
+      }
+    }
+  ],
+  "eventDetails": {
+    "count": 330,
+    "statuses": [
+      {
+        "status": 200,
+        "count": 330
+      }
+    ],
+    "fields": [
+      {
+        "name": "_disableTwoWeekReminders",
+        "presentCount": 14
+      },
+      {
+        "name": "address",
+        "presentCount": 10
+      },
+      {
+        "name": "allowGuestPhotoUpload",
+        "presentCount": 329
+      },
+      {
+        "name": "allowGuestsToInviteMutuals",
+        "presentCount": 329
+      },
+      {
+        "name": "allowResponsesAfterRsvpDeadline",
+        "presentCount": 4
+      },
+      {
+        "name": "approvedGuestCount",
+        "presentCount": 329
+      },
+      {
+        "name": "atCapacity",
+        "presentCount": 330
+      },
+      {
+        "name": "attendedGuestCount",
+        "presentCount": 329
+      },
+      {
+        "name": "calendarFile",
+        "presentCount": 329
+      },
+      {
+        "name": "cancelSkipNotify",
+        "presentCount": 1
+      },
+      {
+        "name": "canceledAt",
+        "presentCount": 20
+      },
+      {
+        "name": "cancellationMessage",
+        "presentCount": 11
+      },
+      {
+        "name": "checkInStaffIds",
+        "presentCount": 330
+      },
+      {
+        "name": "cohostIds",
+        "presentCount": 2
+      },
+      {
+        "name": "createdAt",
+        "presentCount": 330
+      },
+      {
+        "name": "customFields",
+        "presentCount": 75
+      },
+      {
+        "name": "customSections",
+        "presentCount": 67
+      },
+      {
+        "name": "declinedGuestCount",
+        "presentCount": 43
+      },
+      {
+        "name": "description",
+        "presentCount": 321
+      },
+      {
+        "name": "disableMaybe",
+        "presentCount": 330
+      },
+      {
+        "name": "discoverableAudience",
+        "presentCount": 1
+      },
+      {
+        "name": "displayInviteButton",
+        "presentCount": 329
+      },
+      {
+        "name": "displaySettings",
+        "presentCount": 330
+      },
+      {
+        "name": "emailInvitesSentCount",
+        "presentCount": 21
+      },
+      {
+        "name": "enableGuestReminders",
+        "presentCount": 329
+      },
+      {
+        "name": "enableWaitlist",
+        "presentCount": 78
+      },
+      {
+        "name": "endDate",
+        "presentCount": 330
+      },
+      {
+        "name": "feedbackShortUrl",
+        "presentCount": 18
+      },
+      {
+        "name": "findATime",
+        "presentCount": 330
+      },
+      {
+        "name": "followerInvitesSentCount",
+        "presentCount": 3
+      },
+      {
+        "name": "goingGuestCount",
+        "presentCount": 329
+      },
+      {
+        "name": "guestAction",
+        "presentCount": 22
+      },
+      {
+        "name": "guestCount",
+        "presentCount": 43
+      },
+      {
+        "name": "guestLimit",
+        "presentCount": 5
+      },
+      {
+        "name": "guestStatusCounts",
+        "presentCount": 330
+      },
+      {
+        "name": "hasGuests",
+        "presentCount": 330
+      },
+      {
+        "name": "hostName",
+        "presentCount": 17
+      },
+      {
+        "name": "id",
+        "presentCount": 330
+      },
+      {
+        "name": "image",
+        "presentCount": 330
+      },
+      {
+        "name": "interestedGuestCount",
+        "presentCount": 329
+      },
+      {
+        "name": "invitationMessage",
+        "presentCount": 284
+      },
+      {
+        "name": "invitedGuestCount",
+        "presentCount": 43
+      },
+      {
+        "name": "invitesSentCount",
+        "presentCount": 21
+      },
+      {
+        "name": "isCapped",
+        "presentCount": 330
+      },
+      {
+        "name": "isPartyCartEnabled",
+        "presentCount": 1
+      },
+      {
+        "name": "isPublic",
+        "presentCount": 18
+      },
+      {
+        "name": "isPublicUpdatedAt",
+        "presentCount": 7
+      },
+      {
+        "name": "location",
+        "presentCount": 220
+      },
+      {
+        "name": "locationInfo",
+        "presentCount": 301
+      },
+      {
+        "name": "maxCapacity",
+        "presentCount": 68
+      },
+      {
+        "name": "maxCountPerGuest",
+        "presentCount": 36
+      },
+      {
+        "name": "maybeGuestCount",
+        "presentCount": 329
+      },
+      {
+        "name": "mutualsProcessedAt",
+        "presentCount": 269
+      },
+      {
+        "name": "otherMutualsInvitedCount",
+        "presentCount": 22
+      },
+      {
+        "name": "ownerIds",
+        "presentCount": 330
+      },
+      {
+        "name": "pendingGuestCount",
+        "presentCount": 43
+      },
+      {
+        "name": "plusOneNamesRequired",
+        "presentCount": 330
+      },
+      {
+        "name": "publicShortUrl",
+        "presentCount": 234
+      },
+      {
+        "name": "publishedAt",
+        "presentCount": 330
+      },
+      {
+        "name": "questionnaire",
+        "presentCount": 330
+      },
+      {
+        "name": "questionnaireEnabled",
+        "presentCount": 93
+      },
+      {
+        "name": "questionnaireVersions",
+        "presentCount": 330
+      },
+      {
+        "name": "rejectedGuestCount",
+        "presentCount": 43
+      },
+      {
+        "name": "remainingCapacity",
+        "presentCount": 52
+      },
+      {
+        "name": "removedGuestCount",
+        "presentCount": 2
+      },
+      {
+        "name": "respondedGuestCount",
+        "presentCount": 43
+      },
+      {
+        "name": "respondedToFindATimeGuestCount",
+        "presentCount": 329
+      },
+      {
+        "name": "rsvpButtonGlyphType",
+        "presentCount": 330
+      },
+      {
+        "name": "rsvpDeadline",
+        "presentCount": 22
+      },
+      {
+        "name": "rsvpsEnabled",
+        "presentCount": 330
+      },
+      {
+        "name": "sentGuestReminderDates",
+        "presentCount": 204
+      },
+      {
+        "name": "sentGuestReminders",
+        "presentCount": 204
+      },
+      {
+        "name": "sentHostReminderDates",
+        "presentCount": 234
+      },
+      {
+        "name": "sentHostReminders",
+        "presentCount": 234
+      },
+      {
+        "name": "showActivityTimestamps",
+        "presentCount": 329
+      },
+      {
+        "name": "showGuestCount",
+        "presentCount": 330
+      },
+      {
+        "name": "showGuestList",
+        "presentCount": 329
+      },
+      {
+        "name": "showGuestsInviteMutualsField",
+        "presentCount": 149
+      },
+      {
+        "name": "showHostList",
+        "presentCount": 329
+      },
+      {
+        "name": "sitemapLastModifiedAt",
+        "presentCount": 11
+      },
+      {
+        "name": "startDate",
+        "presentCount": 330
+      },
+      {
+        "name": "status",
+        "presentCount": 330
+      },
+      {
+        "name": "ticketing",
+        "presentCount": 101
+      },
+      {
+        "name": "timezone",
+        "presentCount": 330
+      },
+      {
+        "name": "title",
+        "presentCount": 330
+      },
+      {
+        "name": "unreadRemovedGuestCount",
+        "presentCount": 2
+      },
+      {
+        "name": "updatedAt",
+        "presentCount": 330
+      },
+      {
+        "name": "visibility",
+        "presentCount": 329
+      },
+      {
+        "name": "waitlistGuestCount",
+        "presentCount": 330
+      },
+      {
+        "name": "withdrawnGuestCount",
+        "presentCount": 43
+      }
+    ],
+    "safeguards": {
+      "questionnaireEnabled": [
+        {
+          "type": "boolean",
+          "count": 93
+        },
+        {
+          "type": "null",
+          "count": 237
+        }
+      ],
+      "questionnaireEnabledValues": [
+        {
+          "value": false,
+          "count": 46
+        },
+        {
+          "value": true,
+          "count": 47
+        }
+      ],
+      "questionnaireVersionLengths": [
+        {
+          "length": 1,
+          "count": 44
+        },
+        {
+          "length": 2,
+          "count": 39
+        },
+        {
+          "length": 3,
+          "count": 6
+        }
+      ],
+      "questionnaireItemFields": [
+        "createdAt",
+        "questions"
+      ],
+      "maxCountPerGuest": [
+        {
+          "type": "null",
+          "count": 294,
+          "min": null,
+          "max": null
+        },
+        {
+          "type": "number",
+          "count": 36,
+          "min": 1,
+          "max": 10
+        }
+      ],
+      "maxCapacity": [
+        {
+          "type": "null",
+          "count": 278,
+          "min": null,
+          "max": null
+        },
+        {
+          "type": "number",
+          "count": 52,
+          "min": 8,
+          "max": 300
+        }
+      ],
+      "remainingCapacity": [
+        {
+          "type": "null",
+          "count": 278,
+          "min": null,
+          "max": null
+        },
+        {
+          "type": "number",
+          "count": 52,
+          "min": -9,
+          "max": 116
+        }
+      ],
+      "ticketing": [
+        {
+          "type": "null",
+          "count": 239
+        },
+        {
+          "type": "object",
+          "count": 91
+        }
+      ],
+      "ticketingFields": [
+        "currency",
+        "mode",
+        "payment",
+        "price",
+        "type"
+      ],
+      "guestAction": [
+        {
+          "value": null,
+          "count": 308
+        },
+        {
+          "value": "APPLY",
+          "count": 18
+        },
+        {
+          "value": "RSVP",
+          "count": 4
+        }
+      ],
+      "rsvpsEnabled": [
+        {
+          "value": false,
+          "count": 5
+        },
+        {
+          "value": true,
+          "count": 325
+        }
+      ],
+      "atCapacity": [
+        {
+          "value": false,
+          "count": 315
+        },
+        {
+          "value": true,
+          "count": 15
+        }
+      ],
+      "enableWaitlist": [
+        {
+          "value": null,
+          "count": 266
+        },
+        {
+          "value": false,
+          "count": 31
+        },
+        {
+          "value": true,
+          "count": 33
+        }
+      ],
+      "plusOneNamesRequired": [
+        {
+          "value": false,
+          "count": 317
+        },
+        {
+          "value": true,
+          "count": 13
+        }
+      ],
+      "password": [
+        {
+          "type": "null",
+          "count": 330
+        }
+      ],
+      "passwordProtected": [
+        {
+          "type": "null",
+          "count": 330
+        }
+      ]
+    }
+  }
+}

@@ -1,5 +1,6 @@
 {
-  "contractRevision": "2026-08-12.2",
+  "contractRevision": "2026-08-12.3",
+  "ownerReviewedBaseline": "2026-08-12.2",
   "contractPath": "spec/partiful.openapi.json",
   "allowedClassifications": [
     "dated-live-observation",
@@ -48,7 +49,11 @@
     "publicInterestRequest20260812": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#markeventinterest-request-and-completion",
     "publicInterestCompletion20260812": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#markeventinterest-request-and-completion",
     "publicRsvpGuestStatus20260812": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#guest-status-and-product-intent",
-    "publicRsvpBlockers20260812": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#apply-preconditions-and-irreducible-blockers"
+    "publicRsvpBlockers20260812": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#apply-preconditions-and-irreducible-blockers",
+    "rsvpReadObservation20260812": "docs/research/2026-08-12-rsvp-read-observation.md#scope-and-provenance",
+    "rsvpReadCurrentGuest20260812": "docs/research/2026-08-12-rsvp-read-observation.md#current-guest-variants",
+    "rsvpReadSafeguards20260812": "docs/research/2026-08-12-rsvp-read-observation.md#event-safeguard-observations",
+    "rsvpReadPrivacy20260812": "docs/research/2026-08-12-rsvp-read-observation.md#privacy-boundary"
   },
   "operations": {
     "createEvent": {
@@ -113,7 +118,7 @@
     },
     "getCurrentGuest": {
       "classification": "dated-live-observation",
-      "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#guest-and-firestore-observations"
+      "citation": "docs/research/2026-08-12-rsvp-read-observation.md#current-guest-variants"
     },
     "firestoreGetEvent": {
       "classification": "dated-live-observation",
@@ -285,9 +290,9 @@
       "request": "current-first-party-public-asset-research",
       "requestCitation": "docs/research/2026-08-12-rsvp-mapping-public-assets.md#getcurrentguest",
       "response": "dated-live-observation",
-      "responseCitation": "docs/research/2026-08-11-event-contacts-read-observation.md#guest-and-firestore-observations",
+      "responseCitation": "docs/research/2026-08-12-rsvp-read-observation.md#current-guest-variants",
       "status": "dated-live-observation",
-      "statusCitation": "docs/research/2026-08-11-event-contacts-read-observation.md#guest-and-firestore-observations"
+      "statusCitation": "docs/research/2026-08-12-rsvp-read-observation.md#current-guest-variants"
     },
     "firestoreGetEvent": {
       "request": "typescript-derived-inference",
@@ -405,13 +410,13 @@
     "Origin is unmodelled and remains unknown because the reviewed evidence establishes no Origin request fact.",
     "Event-list remote pagination, limits, ordering key, snapshot behavior, unsupported statuses, and failure bodies remain unknown.",
     "Only the selected getEventInfo event was observed signed out; readability of other events and authenticated inaccessible-event denial remain unknown.",
-    "Only one selected EventInfo object was observed; operation-wide field presence, nullability, and alternate variants remain unknown. Related event-list representations support only the optional endDate string/null and image object/null unions.",
-    "Only one CurrentGuest object was observed; operation-wide field presence, nullability, alternate variants, plus-one shape, unsupported statuses, and failure bodies remain unknown.",
+    "The RSVP read observation establishes aggregate presence and safeguard variants for 330 listed EventInfo objects; behavior outside that account-visible set, other field types, inaccessible events, and alternate responses remain unknown.",
+    "One CurrentGuest null and one object variant are observed; operation-wide object field presence, non-null plus-one shapes, unsupported statuses, other variants, and failure bodies remain unknown.",
     "Firestore event GET returned PERMISSION_DENIED for selected readable and synthetic IDs with one credential; success, not-found, attendee-denial, and other credential behavior remain unknown.",
     "Contact invalid-cursor behavior, cursor lifetime and reuse, ordering key, snapshot behavior, useAuthUser, rate limiting, unsupported statuses, future catalog completeness, server duplicate behavior, and duplicates outside two traversals remain unknown.",
-    "getCurrentGuest null and alternate responses, no-guest addGuest name and create behavior, selected-event RSVP preconditions, mutation failures, and post-write RSVP business state remain unknown."
+    "RSVP mutation failures, server-side rejection mappings, ticketing, application, waitlist, protected-event submission, and post-write RSVP business state remain unknown."
   ],
-  "status": "owner-reviewed",
+  "status": "proposed-pending-delegated-review",
   "claims": {
     "#/servers/0/url": {
       "classification": "typescript-derived-inference",
@@ -4897,6 +4902,118 @@
       "classification": "dated-live-observation",
       "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#event-detail-observations"
     },
+    "#/components/schemas/EventInfo/properties/rsvpsEnabled": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-12-rsvp-read-observation.md#event-safeguard-observations"
+    },
+    "#/components/schemas/EventInfo/properties/rsvpsEnabled/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-12-rsvp-read-observation.md#event-safeguard-observations"
+    },
+    "#/components/schemas/EventInfo/properties/atCapacity": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-12-rsvp-read-observation.md#event-safeguard-observations"
+    },
+    "#/components/schemas/EventInfo/properties/atCapacity/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-12-rsvp-read-observation.md#event-safeguard-observations"
+    },
+    "#/components/schemas/EventInfo/properties/plusOneNamesRequired": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-12-rsvp-read-observation.md#event-safeguard-observations"
+    },
+    "#/components/schemas/EventInfo/properties/plusOneNamesRequired/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-12-rsvp-read-observation.md#event-safeguard-observations"
+    },
+    "#/components/schemas/EventInfo/properties/questionnaireEnabled": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-12-rsvp-read-observation.md#event-safeguard-observations"
+    },
+    "#/components/schemas/EventInfo/properties/questionnaireEnabled/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-12-rsvp-read-observation.md#event-safeguard-observations"
+    },
+    "#/components/schemas/EventInfo/properties/questionnaireVersions": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-12-rsvp-read-observation.md#event-safeguard-observations"
+    },
+    "#/components/schemas/EventInfo/properties/questionnaireVersions/type/0": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-12-rsvp-read-observation.md#event-safeguard-observations"
+    },
+    "#/components/schemas/EventInfo/properties/questionnaireVersions/type/1": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-12-rsvp-read-observation.md#event-safeguard-observations"
+    },
+    "#/components/schemas/EventInfo/properties/ticketing": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-12-rsvp-read-observation.md#event-safeguard-observations"
+    },
+    "#/components/schemas/EventInfo/properties/ticketing/type/0": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-12-rsvp-read-observation.md#event-safeguard-observations"
+    },
+    "#/components/schemas/EventInfo/properties/ticketing/type/1": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-12-rsvp-read-observation.md#event-safeguard-observations"
+    },
+    "#/components/schemas/EventInfo/properties/guestAction": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-12-rsvp-read-observation.md#event-safeguard-observations"
+    },
+    "#/components/schemas/EventInfo/properties/guestAction/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-12-rsvp-read-observation.md#event-safeguard-observations"
+    },
+    "#/components/schemas/EventInfo/properties/guestAction/enum/0": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-12-rsvp-read-observation.md#event-safeguard-observations"
+    },
+    "#/components/schemas/EventInfo/properties/guestAction/enum/1": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-12-rsvp-read-observation.md#event-safeguard-observations"
+    },
+    "#/components/schemas/EventInfo/properties/maxCountPerGuest": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-12-rsvp-read-observation.md#event-safeguard-observations"
+    },
+    "#/components/schemas/EventInfo/properties/maxCountPerGuest/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-12-rsvp-read-observation.md#event-safeguard-observations"
+    },
+    "#/components/schemas/EventInfo/properties/maxCapacity": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-12-rsvp-read-observation.md#event-safeguard-observations"
+    },
+    "#/components/schemas/EventInfo/properties/maxCapacity/type/0": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-12-rsvp-read-observation.md#event-safeguard-observations"
+    },
+    "#/components/schemas/EventInfo/properties/maxCapacity/type/1": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-12-rsvp-read-observation.md#event-safeguard-observations"
+    },
+    "#/components/schemas/EventInfo/properties/remainingCapacity": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-12-rsvp-read-observation.md#event-safeguard-observations"
+    },
+    "#/components/schemas/EventInfo/properties/remainingCapacity/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-12-rsvp-read-observation.md#event-safeguard-observations"
+    },
+    "#/components/schemas/EventInfo/properties/enableWaitlist": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-12-rsvp-read-observation.md#event-safeguard-observations"
+    },
+    "#/components/schemas/EventInfo/properties/enableWaitlist/type/0": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-12-rsvp-read-observation.md#event-safeguard-observations"
+    },
+    "#/components/schemas/EventInfo/properties/enableWaitlist/type/1": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-12-rsvp-read-observation.md#event-safeguard-observations"
+    },
     "#/components/schemas/GetEventInfoResponse/type": {
       "classification": "dated-live-observation",
       "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#event-detail-observations"
@@ -4981,6 +5098,14 @@
       "classification": "dated-live-observation",
       "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#event-detail-observations"
     },
+    "#/components/schemas/CurrentGuest/type/0": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-12-rsvp-read-observation.md#current-guest-variants"
+    },
+    "#/components/schemas/CurrentGuest/type/1": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-12-rsvp-read-observation.md#current-guest-variants"
+    },
     "#/components/schemas/CurrentGuest/properties/id": {
       "classification": "dated-live-observation",
       "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#guest-and-firestore-observations"
@@ -4992,6 +5117,10 @@
     "#/components/schemas/CurrentGuest/properties/count": {
       "classification": "dated-live-observation",
       "citation": "docs/research/2026-08-11-event-contacts-read-observation.md#guest-and-firestore-observations"
+    },
+    "#/components/schemas/CurrentGuest/properties/count/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-08-12-rsvp-read-observation.md#current-guest-variants"
     },
     "#/components/schemas/CurrentGuest/properties/name": {
       "classification": "dated-live-observation",
@@ -5788,11 +5917,12 @@
       "status": 200,
       "rawPath": "result.data.currentGuest",
       "otherVariants": "explicit-unknown",
-      "currentGuestNullability": "explicit-unknown",
-      "sampleScope": "one-selected-event",
+      "currentGuestNullability": "null-observed",
+      "sampleScope": "two-selected-events-one-object-one-null",
       "fieldPresence": "selected-object-only",
       "fieldNullabilityAndAlternateVariants": "explicit-unknown",
-      "plusOnesVariants": "explicit-unknown"
+      "plusOnesVariants": "explicit-unknown",
+      "selectedObjectCountType": "number"
     },
     "firestoreGuest": {
       "status": 200,
@@ -5864,6 +5994,222 @@
       "inaccessibleEventPermission": "not-observed",
       "listFailures": "explicit-unknown",
       "currentGuestFailures": "explicit-unknown"
+    }
+  },
+  "rsvpReadObservation": {
+    "classification": "dated-live-observation",
+    "citation": "docs/research/2026-08-12-rsvp-read-observation.md#scope-and-provenance",
+    "artifactPath": "spec/research/rsvp-read-evidence-redacted-20260812.json",
+    "capturedAt": "2026-08-12T13:49:55.431Z",
+    "listCounts": {
+      "upcoming": 36,
+      "past": 294,
+      "unique": 330,
+      "noGuestCandidates": 41,
+      "guestCandidates": 289
+    },
+    "getEventInfo": {
+      "status": 200,
+      "count": 330
+    },
+    "currentGuest": {
+      "status": 200,
+      "nullCount": 1,
+      "objectCount": 1,
+      "objectFields": {
+        "id": "string",
+        "count": "number",
+        "status": "string",
+        "name": "string",
+        "plusOnes": "null",
+        "userId": "string"
+      }
+    },
+    "eventSafeguards": {
+      "fieldPresence": {
+        "rsvpsEnabled": 330,
+        "atCapacity": 330,
+        "plusOneNamesRequired": 330,
+        "questionnaireEnabled": 93,
+        "questionnaireVersions": 330,
+        "ticketing": 101,
+        "guestAction": 22,
+        "maxCountPerGuest": 36,
+        "maxCapacity": 68,
+        "remainingCapacity": 52,
+        "enableWaitlist": 78,
+        "password": 0,
+        "passwordProtected": 0
+      },
+      "aggregates": {
+        "questionnaireEnabled": [
+          {
+            "type": "boolean",
+            "count": 93
+          },
+          {
+            "type": "null",
+            "count": 237
+          }
+        ],
+        "questionnaireEnabledValues": [
+          {
+            "value": false,
+            "count": 46
+          },
+          {
+            "value": true,
+            "count": 47
+          }
+        ],
+        "questionnaireVersionLengths": [
+          {
+            "length": 1,
+            "count": 44
+          },
+          {
+            "length": 2,
+            "count": 39
+          },
+          {
+            "length": 3,
+            "count": 6
+          }
+        ],
+        "questionnaireItemFields": [
+          "createdAt",
+          "questions"
+        ],
+        "maxCountPerGuest": [
+          {
+            "type": "null",
+            "count": 294,
+            "min": null,
+            "max": null
+          },
+          {
+            "type": "number",
+            "count": 36,
+            "min": 1,
+            "max": 10
+          }
+        ],
+        "maxCapacity": [
+          {
+            "type": "null",
+            "count": 278,
+            "min": null,
+            "max": null
+          },
+          {
+            "type": "number",
+            "count": 52,
+            "min": 8,
+            "max": 300
+          }
+        ],
+        "remainingCapacity": [
+          {
+            "type": "null",
+            "count": 278,
+            "min": null,
+            "max": null
+          },
+          {
+            "type": "number",
+            "count": 52,
+            "min": -9,
+            "max": 116
+          }
+        ],
+        "ticketing": [
+          {
+            "type": "null",
+            "count": 239
+          },
+          {
+            "type": "object",
+            "count": 91
+          }
+        ],
+        "ticketingFields": [
+          "currency",
+          "mode",
+          "payment",
+          "price",
+          "type"
+        ],
+        "guestAction": [
+          {
+            "value": null,
+            "count": 308
+          },
+          {
+            "value": "APPLY",
+            "count": 18
+          },
+          {
+            "value": "RSVP",
+            "count": 4
+          }
+        ],
+        "rsvpsEnabled": [
+          {
+            "value": false,
+            "count": 5
+          },
+          {
+            "value": true,
+            "count": 325
+          }
+        ],
+        "atCapacity": [
+          {
+            "value": false,
+            "count": 315
+          },
+          {
+            "value": true,
+            "count": 15
+          }
+        ],
+        "enableWaitlist": [
+          {
+            "value": null,
+            "count": 266
+          },
+          {
+            "value": false,
+            "count": 31
+          },
+          {
+            "value": true,
+            "count": 33
+          }
+        ],
+        "plusOneNamesRequired": [
+          {
+            "value": false,
+            "count": 317
+          },
+          {
+            "value": true,
+            "count": 13
+          }
+        ],
+        "password": [
+          {
+            "type": "null",
+            "count": 330
+          }
+        ],
+        "passwordProtected": [
+          {
+            "type": "null",
+            "count": 330
+          }
+        ]
+      }
     }
   },
   "publicRsvpAssetResearch": {

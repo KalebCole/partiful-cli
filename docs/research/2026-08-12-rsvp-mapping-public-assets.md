@@ -244,3 +244,14 @@ The current public and owner-reviewed evidence leaves these blockers:
 These blockers prevent a releasable Go RSVP read or addGuest-backed mutation.
 They do not prevent review of the exact request projections, the interest
 completion check, or the mutation safety contract.
+
+## Later dated read evidence
+
+The blocker list above records the public-asset-only boundary at capture time.
+The later owner-authorized read-only observation in
+`docs/research/2026-08-12-rsvp-read-observation.md` supplies an explicit null
+current guest and event safeguard aggregates for proposed revision
+`2026-08-12.3`. Caller-supplied `displayName` is a product decision that
+removes the profile-read dependency. These later facts do not change this
+note's request mappings or add any mutation response, failure, or persisted
+state evidence.
