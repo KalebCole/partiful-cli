@@ -67,7 +67,7 @@ Global flags are:
 | --- | --- |
 | `--pretty` | Indent the JSON result without changing its fields. |
 | `--non-interactive` | Prohibit terminal prompts. This is the default for every command except `auth login`. |
-| `--version` | Return `{"version","productContractRevision","remoteContractRevision"}` in the success envelope with command `version`. |
+| `--version` | Return `{"version","productContractRevision","remoteContractRevision"}` in the success envelope with command `version`. Release builds may inject the version string at link time; development builds use the source default. |
 
 `schema` is the machine-readable discovery interface. Help text can guide a
 human to `schema`, but scripts must not parse help text.
@@ -83,8 +83,6 @@ Every successful command returns:
   "meta": {
     "command": "events.get",
     "cliVersion": "1.0.0",
-    "productContractRevision": "2026-08-12.7",
-    "remoteContractRevision": "2026-08-12.7",
     "productContractRevision": "2026-08-12.7",
     "remoteContractRevision": "2026-08-12.7",
     "warnings": []
@@ -109,8 +107,6 @@ Every failed command returns:
   "meta": {
     "command": "guests.list",
     "cliVersion": "1.0.0",
-    "productContractRevision": "2026-08-12.7",
-    "remoteContractRevision": "2026-08-12.7"
     "productContractRevision": "2026-08-12.7",
     "remoteContractRevision": "2026-08-12.7"
   }
@@ -159,8 +155,6 @@ Collection commands return:
   "meta": {
     "command": "events.list",
     "cliVersion": "1.0.0",
-    "productContractRevision": "2026-08-12.7",
-    "remoteContractRevision": "2026-08-12.7",
     "productContractRevision": "2026-08-12.7",
     "remoteContractRevision": "2026-08-12.7",
     "warnings": [],
@@ -234,8 +228,6 @@ remote mutation:
   "meta": {
     "command": "events.update",
     "cliVersion": "1.0.0",
-    "productContractRevision": "2026-08-12.7",
-    "remoteContractRevision": "2026-08-12.7",
     "productContractRevision": "2026-08-12.7",
     "remoteContractRevision": "2026-08-12.7",
     "warnings": []
@@ -996,7 +988,6 @@ reviewed callable and client completion condition. It does not prove
 persisted RSVP state, delivery, notification, or another business side
 effect.
 
-This `2026-08-12.7` contract is the approved event-write product contract and
 This `2026-08-12.7` contract is the approved event-write product contract and
 the current shipped Go contract revision.
 
