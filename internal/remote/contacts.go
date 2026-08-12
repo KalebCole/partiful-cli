@@ -129,7 +129,7 @@ func decodeContactNextCursor(value json.RawMessage) (*string, error) {
 		return nil, nil
 	}
 	var cursor *string
-	if err := json.Unmarshal(value, &cursor); err != nil || cursor == nil {
+	if err := decodeStrictContactJSON(value, &cursor); err != nil || cursor == nil {
 		return nil, fmt.Errorf("%w: contacts cursor", ErrProtocolChanged)
 	}
 	return cursor, nil
@@ -191,7 +191,7 @@ func (client Client) getContactsPage(
 		return contactsResponse{}, fmt.Errorf("%w: contacts response body", ErrProtocolChanged)
 	}
 	var page contactsResponse
-	if err := json.Unmarshal(body, &page); err != nil ||
+	if err := decodeStrictContactJSON(body, &page); err != nil ||
 		page.Result.Data == nil ||
 		page.Result.Paging == nil {
 		return contactsResponse{}, fmt.Errorf("%w: contacts response body", ErrProtocolChanged)

@@ -2437,6 +2437,86 @@ func TestExecuteContactsListFailsClosedWhenTerminalPagingIsMissing(t *testing.T)
 	}
 }
 
+func TestExecuteContactsListRejectsUnknownSuccessEnvelopeFields(t *testing.T) {
+	const (
+		credentials  = `{"accessToken":"private-access-token","expiresAt":"2026-08-11T02:00:00Z"}`
+		privateValue = "private-unknown-envelope-value"
+	)
+	call := 0
+	result := app.Execute(context.Background(), app.Request{
+		Argv:  []string{"contacts", "list"},
+		Stdin: strings.NewReader(""),
+	}, app.Dependencies{
+		Files: fakeFilesystem{
+			readFile: func(string) ([]byte, error) {
+				return []byte(credentials), nil
+			},
+		},
+		CredentialsPath: "/config/partiful/credentials.json",
+		Now: func() time.Time {
+			return time.Date(2026, time.August, 11, 0, 0, 0, 0, time.UTC)
+		},
+		AuthRandom: strings.NewReader("0123456789abcdef"),
+		HTTP: scriptedHTTP{do: func(*http.Request) (*http.Response, error) {
+			call++
+			if call > 1 {
+				return nil, errors.New("unknown success field was accepted")
+			}
+			return jsonResponse(
+				http.StatusOK,
+				`{"result":{"data":[],"paging":{}},"unknown":"`+privateValue+`"}`,
+			), nil
+		}},
+	})
+
+	if result.ExitCode != 9 ||
+		!strings.Contains(result.Stdout, `"type":"contract.protocol_changed"`) {
+		t.Fatalf("result = %#v, want unknown success field protocol failure", result)
+	}
+	if call != 1 {
+		t.Fatalf("request count = %d, want immediate envelope failure", call)
+	}
+	if strings.Contains(result.Stdout+result.Stderr, privateValue) {
+		t.Fatal("unknown success field exposed private transport content")
+	}
+}
+
+func TestExecuteContactsListRejectsTrailingSuccessJSON(t *testing.T) {
+	const (
+		credentials  = `{"accessToken":"private-access-token","expiresAt":"2026-08-11T02:00:00Z"}`
+		privateValue = "private-trailing-json-value"
+	)
+	result := app.Execute(context.Background(), app.Request{
+		Argv:  []string{"contacts", "list"},
+		Stdin: strings.NewReader(""),
+	}, app.Dependencies{
+		Files: fakeFilesystem{
+			readFile: func(string) ([]byte, error) {
+				return []byte(credentials), nil
+			},
+		},
+		CredentialsPath: "/config/partiful/credentials.json",
+		Now: func() time.Time {
+			return time.Date(2026, time.August, 11, 0, 0, 0, 0, time.UTC)
+		},
+		AuthRandom: strings.NewReader("0123456789abcdef"),
+		HTTP: scriptedHTTP{do: func(*http.Request) (*http.Response, error) {
+			return jsonResponse(
+				http.StatusOK,
+				`{"result":{"data":[],"paging":{}}}{"trailing":"`+privateValue+`"}`,
+			), nil
+		}},
+	})
+
+	if result.ExitCode != 9 ||
+		!strings.Contains(result.Stdout, `"type":"contract.protocol_changed"`) {
+		t.Fatalf("result = %#v, want trailing JSON protocol failure", result)
+	}
+	if strings.Contains(result.Stdout+result.Stderr, privateValue) {
+		t.Fatal("trailing JSON failure exposed private transport content")
+	}
+}
+
 func TestExecuteContactsListFailsClosedOnNullRemoteCursor(t *testing.T) {
 	const credentials = `{"accessToken":"private-access-token","expiresAt":"2026-08-11T02:00:00Z"}`
 	result := app.Execute(context.Background(), app.Request{
@@ -2500,6 +2580,36 @@ func TestExecuteContactsListRejectsUnknownUnauthenticatedErrorFields(t *testing.
 	}
 	if strings.Contains(result.Stdout+result.Stderr, privateValue) {
 		t.Fatal("unauthenticated failure exposed remote response content")
+	}
+}
+
+func TestExecuteContactsListMapsReviewedUnauthenticatedResponseToExpired(t *testing.T) {
+	const credentials = `{"accessToken":"private-access-token","expiresAt":"2026-08-11T02:00:00Z"}`
+	result := app.Execute(context.Background(), app.Request{
+		Argv:  []string{"contacts", "list"},
+		Stdin: strings.NewReader(""),
+	}, app.Dependencies{
+		Files: fakeFilesystem{
+			readFile: func(string) ([]byte, error) {
+				return []byte(credentials), nil
+			},
+		},
+		CredentialsPath: "/config/partiful/credentials.json",
+		Now: func() time.Time {
+			return time.Date(2026, time.August, 11, 0, 0, 0, 0, time.UTC)
+		},
+		AuthRandom: strings.NewReader("0123456789abcdef"),
+		HTTP: scriptedHTTP{do: func(*http.Request) (*http.Response, error) {
+			return jsonResponse(
+				http.StatusUnauthorized,
+				`{"error":{"message":"Unauthenticated","status":"UNAUTHENTICATED"}}`,
+			), nil
+		}},
+	})
+
+	const wantStdout = `{"ok":false,"error":{"type":"auth.expired","code":"REMOTE_SESSION_UNAUTHENTICATED","message":"Stored authentication is no longer accepted. Log in again.","retryable":false,"details":{}},"meta":{"command":"contacts.list","cliVersion":"1.0.0","productContractRevision":"2026-08-10.1","remoteContractRevision":"2026-08-11.5"}}` + "\n"
+	if result.ExitCode != 3 || result.Stdout != wantStdout {
+		t.Fatalf("result = %#v, want reviewed unauthenticated mapping", result)
 	}
 }
 
