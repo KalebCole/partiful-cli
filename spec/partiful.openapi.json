@@ -2,8 +2,8 @@
   "openapi": "3.1.0",
   "info": {
     "title": "Partiful remote API contract",
-    "version": "2026-08-12.3",
-    "description": "Owner-reviewed remote-only transport snapshot. Evidence classifications and uncertainty are recorded in spec/partiful.api-evidence.json."
+    "version": "2026-08-12.4",
+    "description": "Proposed remote-only transport snapshot pending delegated review. Evidence classifications and uncertainty are recorded in spec/partiful.api-evidence.json."
   },
   "servers": [
     {
@@ -29,7 +29,7 @@
                     "type": "object",
                     "required": [
                       "params",
-                      "amplitudeDeviceId"
+                      "userId"
                     ],
                     "properties": {
                       "params": {
@@ -43,6 +43,11 @@
                             "items": {
                               "type": "string"
                             }
+                          },
+                          "ticketTypes": {},
+                          "promoCodes": {},
+                          "affiliateId": {
+                            "type": "string"
                           }
                         },
                         "additionalProperties": false,
@@ -51,6 +56,16 @@
                           "cohostIds"
                         ]
                       },
+                      "userId": {
+                        "type": [
+                          "string",
+                          "null"
+                        ]
+                      },
+                      "deviceInfo": {
+                        "type": "object",
+                        "additionalProperties": true
+                      },
                       "amplitudeDeviceId": {
                         "type": "string"
                       },
@@ -58,11 +73,9 @@
                         "type": "integer",
                         "format": "int64"
                       },
-                      "userId": {
-                        "type": [
-                          "string",
-                          "null"
-                        ]
+                      "adminAccessRequested": {
+                        "type": "boolean",
+                        "const": true
                       }
                     },
                     "additionalProperties": false
@@ -74,8 +87,18 @@
           }
         },
         "responses": {
+          "200": {
+            "description": "Generic callable protocol completion. The current client uses decoded completion data as an event ID; persisted event state is not established.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateEventCompletionResponse"
+                }
+              }
+            }
+          },
           "default": {
-            "description": "Response status and body are unknown."
+            "description": "Unobserved response status or body."
           }
         },
         "security": [
@@ -102,7 +125,7 @@
                     "type": "object",
                     "required": [
                       "params",
-                      "amplitudeDeviceId"
+                      "userId"
                     ],
                     "properties": {
                       "params": {
@@ -110,12 +133,30 @@
                         "properties": {
                           "eventId": {
                             "type": "string"
+                          },
+                          "cancellationMessage": {
+                            "type": "string"
+                          },
+                          "shouldSkipNotifyGuests": {
+                            "type": "boolean"
                           }
                         },
                         "additionalProperties": false,
                         "required": [
-                          "eventId"
+                          "eventId",
+                          "cancellationMessage",
+                          "shouldSkipNotifyGuests"
                         ]
+                      },
+                      "userId": {
+                        "type": [
+                          "string",
+                          "null"
+                        ]
+                      },
+                      "deviceInfo": {
+                        "type": "object",
+                        "additionalProperties": true
                       },
                       "amplitudeDeviceId": {
                         "type": "string"
@@ -124,11 +165,9 @@
                         "type": "integer",
                         "format": "int64"
                       },
-                      "userId": {
-                        "type": [
-                          "string",
-                          "null"
-                        ]
+                      "adminAccessRequested": {
+                        "type": "boolean",
+                        "const": true
                       }
                     },
                     "additionalProperties": false
@@ -140,8 +179,18 @@
           }
         },
         "responses": {
+          "200": {
+            "description": "Generic callable protocol completion. The current client inspects no endpoint business field; cancellation and notification delivery are not established.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CancelEventCompletionResponse"
+                }
+              }
+            }
+          },
           "default": {
-            "description": "Response status and body are unknown."
+            "description": "Unobserved response status or body."
           }
         },
         "security": [
@@ -1346,6 +1395,23 @@
             },
             "style": "form",
             "explode": true
+          },
+          {
+            "name": "currentDocument.exists",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "currentDocument.updateTime",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
           }
         ],
         "requestBody": {
@@ -1359,8 +1425,18 @@
           }
         },
         "responses": {
+          "200": {
+            "description": "Official Firestore PATCH protocol completion with a Document. Partiful business state and a complete product Event are not established.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FirestoreDocument"
+                }
+              }
+            }
+          },
           "default": {
-            "description": "Response status and body are unknown."
+            "description": "Unobserved response status or body."
           }
         },
         "security": [
@@ -1509,9 +1585,6 @@
               }
             }
           },
-          "default": {
-            "description": "Response status and body are unknown."
-          },
           "400": {
             "description": "Invalid or expired refresh token.",
             "content": {
@@ -1521,6 +1594,9 @@
                 }
               }
             }
+          },
+          "default": {
+            "description": "Response status and body are unknown."
           }
         },
         "security": [
@@ -1706,9 +1782,6 @@
               }
             }
           },
-          "default": {
-            "description": "Response status and body are unknown."
-          },
           "403": {
             "description": "Invalid authentication code.",
             "content": {
@@ -1718,6 +1791,9 @@
                 }
               }
             }
+          },
+          "default": {
+            "description": "Response status and body are unknown."
           }
         }
       }
@@ -1759,9 +1835,6 @@
               }
             }
           },
-          "default": {
-            "description": "Response status and body are unknown."
-          },
           "400": {
             "description": "Invalid or expired custom token.",
             "content": {
@@ -1771,6 +1844,9 @@
                 }
               }
             }
+          },
+          "default": {
+            "description": "Response status and body are unknown."
           }
         },
         "security": [
@@ -1830,9 +1906,6 @@
               }
             }
           },
-          "default": {
-            "description": "Response status and body are unknown."
-          },
           "400": {
             "description": "Invalid or expired ID token.",
             "content": {
@@ -1842,6 +1915,9 @@
                 }
               }
             }
+          },
+          "default": {
+            "description": "Response status and body are unknown."
           }
         },
         "security": [
@@ -1971,54 +2047,114 @@
           "title",
           "startDate",
           "timezone",
-          "displaySettings"
+          "guestStatusCounts",
+          "displaySettings",
+          "status",
+          "rsvpButtonGlyphType",
+          "image",
+          "showHostList",
+          "showGuestCount",
+          "showGuestList",
+          "showActivityTimestamps",
+          "displayInviteButton",
+          "visibility",
+          "allowGuestPhotoUpload",
+          "enableGuestReminders",
+          "rsvpsEnabled",
+          "allowGuestsToInviteMutuals"
         ],
         "properties": {
           "title": {
             "type": "string"
           },
           "startDate": {
-            "type": "string",
-            "format": "date-time"
+            "type": "string"
           },
           "endDate": {
-            "type": "string",
-            "format": "date-time"
+            "type": "string"
           },
           "timezone": {
             "type": "string"
           },
+          "guestStatusCounts": {
+            "$ref": "#/components/schemas/NewEventGuestStatusCounts"
+          },
           "displaySettings": {
-            "type": "object",
-            "additionalProperties": true
+            "$ref": "#/components/schemas/EventDisplaySettings"
+          },
+          "status": {
+            "type": "string",
+            "const": "UNSAVED"
+          },
+          "rsvpButtonGlyphType": {
+            "type": "string",
+            "const": "emojis"
+          },
+          "image": {
+            "$ref": "#/components/schemas/PartifulPosterImage"
+          },
+          "showHostList": {
+            "type": "boolean",
+            "const": true
+          },
+          "showGuestCount": {
+            "type": "boolean",
+            "const": true
+          },
+          "showGuestList": {
+            "type": "boolean",
+            "const": true
+          },
+          "showActivityTimestamps": {
+            "type": "boolean",
+            "const": true
+          },
+          "displayInviteButton": {
+            "type": "boolean",
+            "const": true
           },
           "visibility": {
             "type": "string",
-            "enum": [
-              "public",
-              "private"
-            ]
+            "const": "public"
           },
-          "location": {
-            "type": "string"
+          "allowGuestPhotoUpload": {
+            "type": "boolean",
+            "const": true
           },
-          "address": {
-            "type": "string"
+          "enableGuestReminders": {
+            "type": "boolean",
+            "const": true
+          },
+          "rsvpsEnabled": {
+            "type": "boolean",
+            "const": true
+          },
+          "allowGuestsToInviteMutuals": {
+            "type": "boolean",
+            "const": true
           },
           "description": {
             "type": "string"
           },
-          "guestLimit": {
-            "type": "integer"
+          "locationInfo": {
+            "$ref": "#/components/schemas/EventLocationInfo"
           },
-          "links": {
+          "isPublic": {
+            "type": "boolean"
+          },
+          "maxCapacity": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "enableWaitlist": {
+            "type": "boolean"
+          },
+          "customFields": {
             "type": "array",
             "items": {
-              "type": "object",
-              "additionalProperties": true
+              "$ref": "#/components/schemas/EventCustomField"
             }
-          },
-          "image": {}
+          }
         },
         "additionalProperties": true
       },
@@ -2156,8 +2292,155 @@
         "additionalProperties": true
       },
       "FirestoreValue": {
-        "type": "object",
-        "additionalProperties": true
+        "oneOf": [
+          {
+            "type": "object",
+            "required": [
+              "nullValue"
+            ],
+            "properties": {
+              "nullValue": {
+                "type": "null"
+              }
+            },
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "required": [
+              "booleanValue"
+            ],
+            "properties": {
+              "booleanValue": {
+                "type": "boolean"
+              }
+            },
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "required": [
+              "integerValue"
+            ],
+            "properties": {
+              "integerValue": {
+                "type": "string",
+                "pattern": "^-?[0-9]+$"
+              }
+            },
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "required": [
+              "doubleValue"
+            ],
+            "properties": {
+              "doubleValue": {
+                "oneOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "string",
+                    "enum": [
+                      "NaN",
+                      "Infinity",
+                      "-Infinity"
+                    ]
+                  }
+                ]
+              }
+            },
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "required": [
+              "timestampValue"
+            ],
+            "properties": {
+              "timestampValue": {
+                "type": "string",
+                "format": "date-time"
+              }
+            },
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "required": [
+              "stringValue"
+            ],
+            "properties": {
+              "stringValue": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "required": [
+              "bytesValue"
+            ],
+            "properties": {
+              "bytesValue": {
+                "type": "string",
+                "format": "byte"
+              }
+            },
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "required": [
+              "referenceValue"
+            ],
+            "properties": {
+              "referenceValue": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "required": [
+              "geoPointValue"
+            ],
+            "properties": {
+              "geoPointValue": {
+                "$ref": "#/components/schemas/FirestoreLatLng"
+              }
+            },
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "required": [
+              "arrayValue"
+            ],
+            "properties": {
+              "arrayValue": {
+                "$ref": "#/components/schemas/FirestoreArrayValue"
+              }
+            },
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "required": [
+              "mapValue"
+            ],
+            "properties": {
+              "mapValue": {
+                "$ref": "#/components/schemas/FirestoreMapValue"
+              }
+            },
+            "additionalProperties": false
+          }
+        ]
       },
       "FirestoreDocument": {
         "type": "object",
@@ -2180,7 +2463,7 @@
             "format": "date-time"
           }
         },
-        "additionalProperties": true
+        "additionalProperties": false
       },
       "FirestoreWriteDocument": {
         "type": "object",
@@ -2696,6 +2979,28 @@
             ]
           },
           "visibility": {},
+          "ownerIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "guestCount": {},
+          "guestStatusCounts": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "number"
+            }
+          },
+          "hasGuests": {
+            "type": "boolean"
+          },
+          "customFields": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/EventCustomField"
+            }
+          },
           "rsvpsEnabled": {
             "type": "boolean"
           },
@@ -2999,6 +3304,295 @@
             }
           }
         }
+      },
+      "NewEventGuestStatusCounts": {
+        "type": "object",
+        "required": [
+          "READY_TO_SEND",
+          "SENDING",
+          "SENT",
+          "SEND_ERROR",
+          "DELIVERY_ERROR",
+          "INTERESTED",
+          "MAYBE",
+          "GOING",
+          "DECLINED",
+          "WAITLIST",
+          "PENDING_APPROVAL",
+          "APPROVED",
+          "WITHDRAWN",
+          "RESPONDED_TO_FIND_A_TIME",
+          "WAITLISTED_FOR_APPROVAL",
+          "REJECTED"
+        ],
+        "properties": {
+          "READY_TO_SEND": {
+            "type": "integer",
+            "const": 0
+          },
+          "SENDING": {
+            "type": "integer",
+            "const": 0
+          },
+          "SENT": {
+            "type": "integer",
+            "const": 0
+          },
+          "SEND_ERROR": {
+            "type": "integer",
+            "const": 0
+          },
+          "DELIVERY_ERROR": {
+            "type": "integer",
+            "const": 0
+          },
+          "INTERESTED": {
+            "type": "integer",
+            "const": 0
+          },
+          "MAYBE": {
+            "type": "integer",
+            "const": 0
+          },
+          "GOING": {
+            "type": "integer",
+            "const": 0
+          },
+          "DECLINED": {
+            "type": "integer",
+            "const": 0
+          },
+          "WAITLIST": {
+            "type": "integer",
+            "const": 0
+          },
+          "PENDING_APPROVAL": {
+            "type": "integer",
+            "const": 0
+          },
+          "APPROVED": {
+            "type": "integer",
+            "const": 0
+          },
+          "WITHDRAWN": {
+            "type": "integer",
+            "const": 0
+          },
+          "RESPONDED_TO_FIND_A_TIME": {
+            "type": "integer",
+            "const": 0
+          },
+          "WAITLISTED_FOR_APPROVAL": {
+            "type": "integer",
+            "const": 0
+          },
+          "REJECTED": {
+            "type": "integer",
+            "const": 0
+          }
+        },
+        "additionalProperties": false
+      },
+      "EventDisplaySettings": {
+        "type": "object",
+        "required": [
+          "theme",
+          "effect",
+          "titleFont"
+        ],
+        "properties": {
+          "theme": {
+            "type": "string"
+          },
+          "effect": {
+            "type": "string"
+          },
+          "titleFont": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "additionalProperties": true
+      },
+      "EventLocationInfo": {
+        "type": "object",
+        "required": [
+          "type"
+        ],
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "freeform",
+              "structured"
+            ]
+          },
+          "value": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": true
+      },
+      "EventCustomField": {
+        "type": "object",
+        "required": [
+          "icon",
+          "value"
+        ],
+        "properties": {
+          "icon": {
+            "type": "string"
+          },
+          "value": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string",
+            "format": "uri"
+          }
+        },
+        "additionalProperties": true
+      },
+      "PartifulPosterImage": {
+        "type": "object",
+        "required": [
+          "source",
+          "poster",
+          "url",
+          "blurHash",
+          "contentType",
+          "name",
+          "height",
+          "width"
+        ],
+        "properties": {
+          "source": {
+            "type": "string",
+            "const": "partiful_posters"
+          },
+          "poster": {
+            "$ref": "#/components/schemas/Poster"
+          },
+          "url": {
+            "type": "string",
+            "format": "uri"
+          },
+          "blurHash": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "contentType": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "height": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "width": {
+            "type": [
+              "number",
+              "null"
+            ]
+          }
+        },
+        "additionalProperties": false
+      },
+      "CreateEventCompletionResponse": {
+        "anyOf": [
+          {
+            "type": "object",
+            "required": [
+              "result"
+            ],
+            "properties": {
+              "result": {}
+            },
+            "additionalProperties": true
+          },
+          {
+            "type": "object",
+            "required": [
+              "data"
+            ],
+            "properties": {
+              "data": {}
+            },
+            "additionalProperties": true
+          }
+        ]
+      },
+      "CancelEventCompletionResponse": {
+        "anyOf": [
+          {
+            "type": "object",
+            "required": [
+              "result"
+            ],
+            "properties": {
+              "result": {}
+            },
+            "additionalProperties": true
+          },
+          {
+            "type": "object",
+            "required": [
+              "data"
+            ],
+            "properties": {
+              "data": {}
+            },
+            "additionalProperties": true
+          }
+        ]
+      },
+      "FirestoreLatLng": {
+        "type": "object",
+        "required": [
+          "latitude",
+          "longitude"
+        ],
+        "properties": {
+          "latitude": {
+            "type": "number"
+          },
+          "longitude": {
+            "type": "number"
+          }
+        },
+        "additionalProperties": false
+      },
+      "FirestoreArrayValue": {
+        "type": "object",
+        "properties": {
+          "values": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FirestoreValue"
+            }
+          }
+        },
+        "additionalProperties": false
+      },
+      "FirestoreMapValue": {
+        "type": "object",
+        "properties": {
+          "fields": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/FirestoreValue"
+            }
+          }
+        },
+        "additionalProperties": false
       }
     }
   }

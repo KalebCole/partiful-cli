@@ -19,6 +19,8 @@ const rsvpAssetResearchPath =
   'docs/research/2026-08-12-rsvp-mapping-public-assets.md';
 const rsvpReadObservationPath =
   'docs/research/2026-08-12-rsvp-read-observation.md';
+const eventWriteAssetResearchPath =
+  'docs/research/2026-08-12-event-write-mapping-public-assets.md';
 const productContractPath = 'docs/CLI-PRODUCT-CONTRACT.md';
 const sourceCache = new Map([
   [historicalDraftPath, historicalDraft],
@@ -479,10 +481,14 @@ function citationResolves(citation) {
 describe('remote API contract', () => {
   it('is a consistently versioned OpenAPI 3.1 document with unique operation IDs', () => {
     expect(spec.openapi).toBe('3.1.0');
-    expect(evidence.contractRevision).toBe('2026-08-12.3');
-    expect(evidence.ownerReviewedBaseline).toBe('2026-08-12.2');
+    expect(evidence.contractRevision).toBe('2026-08-12.4');
+    expect(evidence.ownerReviewedBaseline).toBe('2026-08-12.3');
     expect(spec.info.version).toBe(evidence.contractRevision);
-    expect(evidence.status).toBe('owner-reviewed');
+    expect(evidence.status).toBe('pending-delegated-review');
+    expect(evidence.sources.publicEventWriteMapping20260812)
+      .toBe(`${eventWriteAssetResearchPath}#scope-and-provenance`);
+    expect(citationResolves(evidence.sources.publicEventWriteMapping20260812))
+      .toBe(true);
     expect(evidence.sources.publicEventMapping20260812)
       .toBe(`${eventAssetResearchPath}#scope-and-provenance`);
     expect(citationResolves(evidence.sources.publicEventMapping20260812)).toBe(true);
@@ -528,7 +534,13 @@ describe('remote API contract', () => {
         'firestoreGetGuest',
         'getContacts',
       ]);
-      const protocolStatusOps = new Set(['addGuest', 'markEventInterest']);
+      const protocolStatusOps = new Set([
+        'addGuest',
+        'markEventInterest',
+        'createEvent',
+        'cancelEvent',
+        'firestorePatchEvent',
+      ]);
       const expectedStatus = liveStatusOps.has(operation.operationId)
         ? 'dated-live-observation'
         : protocolStatusOps.has(operation.operationId)
@@ -542,7 +554,7 @@ describe('remote API contract', () => {
       ...materialClaimPointers(spec.paths, '#/paths', 'paths'),
       ...materialClaimPointers(spec.components, '#/components', 'components'),
     ]);
-    expect(pointers).toHaveLength(1316);
+    expect(pointers).toHaveLength(1639);
     for (const pointer of pointers) {
       const claim = evidence.claims[pointer];
       expect(claim, pointer).toBeDefined();
@@ -576,7 +588,7 @@ describe('remote API contract', () => {
     });
   });
 
-  it('separates twelve observed and two protocol-specified 200 responses', () => {
+  it('separates observed and protocol-specified 200 responses', () => {
     const with200 = operations()
       .filter(({ operation }) => operation.responses['200'])
       .map(({ operation }) => operation.operationId)
@@ -585,8 +597,8 @@ describe('remote API contract', () => {
       .filter(({ operation }) => operation.responses['200']?.content)
       .map(({ operation }) => operation.operationId)
       .sort();
-    expect(with200).toHaveLength(14);
-    expect(withTyped200Body).toHaveLength(13);
+    expect(with200).toHaveLength(17);
+    expect(withTyped200Body).toHaveLength(16);
     expect(with200.filter((id) => !withTyped200Body.includes(id)))
       .toEqual(['sendAuthCodeTrusted']);
 
@@ -601,14 +613,17 @@ describe('remote API contract', () => {
       /Eleven of those\s+operations have a typed `200` response body\./,
     );
     expect(ledger).toContain(
-      'Two additional callable operations have protocol-specified HTTP `200` completion responses.',
-    );
-    expect(ledger.match(/The 1316 material claims/g)).toHaveLength(2);
-    expect(ledger).toContain(
-      '**Owner-reviewed contract revision:** `2026-08-12.3`',
+      'Four callable operations have protocol-specified HTTP `200` completion',
     );
     expect(ledger).toContain(
-      '**Status:** Owner-reviewed under the issue #114 delegation',
+      '`firestorePatchEvent` uses the official Firestore PATCH path',
+    );
+    expect(ledger.match(/The 1639 material claims/g)).toHaveLength(2);
+    expect(ledger).toContain(
+      '**Proposed contract revision:** `2026-08-12.4`',
+    );
+    expect(ledger).toContain(
+      '**Status:** Pending one delegated review under issue #167',
     );
     expect(ledger).toContain('Current first-party public-asset research');
   });
@@ -649,6 +664,9 @@ describe('remote API contract', () => {
       'getContacts',
       'addGuest',
       'markEventInterest',
+      'createEvent',
+      'cancelEvent',
+      'firestorePatchEvent',
     ]);
     const observedErrorOps = {
       getLoginToken: ['200', '403', 'default'],
@@ -664,6 +682,9 @@ describe('remote API contract', () => {
       getContacts: ['200', '401', 'default'],
       addGuest: ['200', 'default'],
       markEventInterest: ['200', 'default'],
+      createEvent: ['200', 'default'],
+      cancelEvent: ['200', 'default'],
+      firestorePatchEvent: ['200', 'default'],
     };
     for (const { operation } of operations()) {
       if (observedStatusOps.has(operation.operationId)) {
@@ -708,6 +729,9 @@ describe('remote API contract', () => {
       'getContacts',
       'addGuest',
       'markEventInterest',
+      'createEvent',
+      'cancelEvent',
+      'firestorePatchEvent',
     ]);
     const observedResponseSources = new Map([
       ['getPosterCatalog', evidence.sources.posterCatalogObservation],
@@ -725,6 +749,9 @@ describe('remote API contract', () => {
       ['getContacts', evidence.sources.readContacts20260811],
       ['addGuest', evidence.sources.publicAddGuestCompletion20260812],
       ['markEventInterest', evidence.sources.publicInterestCompletion20260812],
+      ['createEvent', evidence.sources.publicCreateEventCompletion20260812],
+      ['cancelEvent', evidence.sources.publicCancelEvent20260812],
+      ['firestorePatchEvent', evidence.sources.officialFirestoreProtocol],
     ]);
     for (const { path, method, operation } of operations()) {
       const base = `#/paths/${escapePointerSegment(path)}/${method}/responses/default`;
@@ -732,10 +759,12 @@ describe('remote API contract', () => {
       expect(operation.responses.default).not.toHaveProperty('content');
       const operationClaim = evidence.operationClaims[operation.operationId];
       if (observedResponseOps.has(operation.operationId)) {
-        const expectedClassification = ['addGuest', 'markEventInterest']
-          .includes(operation.operationId)
-          ? 'current-first-party-public-asset-research'
-          : 'dated-live-observation';
+        const expectedClassification = operation.operationId === 'firestorePatchEvent'
+          ? 'official-protocol-specification'
+          : ['addGuest', 'markEventInterest', 'createEvent', 'cancelEvent']
+              .includes(operation.operationId)
+            ? 'current-first-party-public-asset-research'
+            : 'dated-live-observation';
         expect(operationClaim.response).toBe(expectedClassification);
         expect(citationResolves(operationClaim.responseCitation), `${operation.operationId} responseCitation`).toBe(true);
         expect(operationClaim.responseCitation)
@@ -802,8 +831,206 @@ describe('remote API contract', () => {
       style: 'form',
       explode: true,
     });
+    expect(patch.parameters.find(({ name }) => name === 'currentDocument.exists'))
+      .toMatchObject({
+        in: 'query',
+        required: false,
+        schema: { type: 'boolean' },
+      });
+    expect(patch.parameters.find(({ name }) => name === 'currentDocument.updateTime'))
+      .toMatchObject({
+        in: 'query',
+        required: false,
+        schema: { type: 'string', format: 'date-time' },
+      });
     expect(spec.components.schemas.FirebaseSignInResponse.properties ?? {})
       .not.toHaveProperty('localId');
+  });
+
+  it('closes current event-write requests and keeps completion submitted-only', () => {
+    const create = spec.paths['/createEvent'].post;
+    const createData = create.requestBody.content['application/json'].schema
+      .properties.data;
+    expect(createData.required).toEqual(['params', 'userId']);
+    expect(createData.required).not.toContain('amplitudeDeviceId');
+    expect(createData.properties).toMatchObject({
+      amplitudeDeviceId: { type: 'string' },
+      amplitudeSessionId: { type: 'integer', format: 'int64' },
+      adminAccessRequested: { type: 'boolean', const: true },
+      userId: { type: ['string', 'null'] },
+    });
+    expect(createData.properties.params.required).toEqual(['event', 'cohostIds']);
+    expect(create.responses['200'].content['application/json'].schema)
+      .toEqual({ $ref: '#/components/schemas/CreateEventCompletionResponse' });
+
+    const draft = spec.components.schemas.EventDraft;
+    expect(draft.additionalProperties).toBe(true);
+    expect(draft.required).toEqual(expect.arrayContaining([
+      'title',
+      'startDate',
+      'timezone',
+      'guestStatusCounts',
+      'displaySettings',
+      'status',
+      'rsvpButtonGlyphType',
+      'image',
+      'visibility',
+      'rsvpsEnabled',
+    ]));
+    expect(draft.properties.status).toEqual({ type: 'string', const: 'UNSAVED' });
+    expect(draft.properties.visibility).toEqual({ type: 'string', const: 'public' });
+    expect(draft.properties.image)
+      .toEqual({ $ref: '#/components/schemas/PartifulPosterImage' });
+    expect(spec.components.schemas.EventDisplaySettings.required)
+      .toEqual(['theme', 'effect', 'titleFont']);
+    expect(spec.components.schemas.PartifulPosterImage.required)
+      .toEqual([
+        'source',
+        'poster',
+        'url',
+        'blurHash',
+        'contentType',
+        'name',
+        'height',
+        'width',
+      ]);
+    expect(spec.components.schemas.PartifulPosterImage.properties).toMatchObject({
+      blurHash: { type: ['string', 'null'] },
+      height: { type: ['number', 'null'] },
+      width: { type: ['number', 'null'] },
+    });
+    for (const completionName of [
+      'CreateEventCompletionResponse',
+      'CancelEventCompletionResponse',
+    ]) {
+      const completion = spec.components.schemas[completionName];
+      expect(completion.anyOf).toHaveLength(2);
+      expect(completion.anyOf.map(({ required }) => required)).toEqual([
+        ['result'],
+        ['data'],
+      ]);
+    }
+
+    const cancel = spec.paths['/cancelEvent'].post;
+    const cancelData = cancel.requestBody.content['application/json'].schema
+      .properties.data;
+    expect(cancelData.required).toEqual(['params', 'userId']);
+    expect(cancelData.properties.params.required)
+      .toEqual(['eventId', 'cancellationMessage', 'shouldSkipNotifyGuests']);
+    expect(cancel.responses['200'].content['application/json'].schema)
+      .toEqual({ $ref: '#/components/schemas/CancelEventCompletionResponse' });
+
+    const patch = spec.paths[
+      '/v1/projects/getpartiful/databases/(default)/documents/events/{eventId}'
+    ].patch;
+    expect(patch.responses['200'].content['application/json'].schema)
+      .toEqual({ $ref: '#/components/schemas/FirestoreDocument' });
+    const firestoreVariants = spec.components.schemas.FirestoreValue.oneOf
+      .map(({ required }) => required[0]);
+    expect(firestoreVariants).toEqual([
+      'nullValue',
+      'booleanValue',
+      'integerValue',
+      'doubleValue',
+      'timestampValue',
+      'stringValue',
+      'bytesValue',
+      'referenceValue',
+      'geoPointValue',
+      'arrayValue',
+      'mapValue',
+    ]);
+    expect(spec.components.schemas.FirestoreValue.oneOf[0].properties.nullValue)
+      .toEqual({ type: 'null' });
+
+    expect(evidence.eventWriteAssetResearch).toMatchObject({
+      sourceCitation: evidence.sources.publicEventWriteMapping20260812,
+      buildId: '2KXQa2wzQWzlyvnJPIrVj',
+      deploymentId: 'dpl_D9bWXWUaTVfWyHiJz1RT7qdjuzUC',
+      liveMutations: false,
+      credentialsUsed: false,
+      uploadRegistered: false,
+      postWriteEventReadEstablished: false,
+      callableUpdateEventFound: false,
+    });
+    expect(evidence.operationClaims.createEvent).toMatchObject({
+      request: 'current-first-party-public-asset-research',
+      response: 'current-first-party-public-asset-research',
+      status: 'official-protocol-specification',
+    });
+    expect(evidence.operationClaims.cancelEvent).toMatchObject({
+      request: 'current-first-party-public-asset-research',
+      response: 'current-first-party-public-asset-research',
+      status: 'official-protocol-specification',
+    });
+    expect(evidence.operationClaims.firestorePatchEvent).toMatchObject({
+      request: 'official-protocol-specification',
+      response: 'official-protocol-specification',
+      status: 'official-protocol-specification',
+    });
+    expect(spec.components.schemas.EventInfo.properties).toMatchObject({
+      ownerIds: { type: 'array', items: { type: 'string' } },
+      guestCount: {},
+      guestStatusCounts: {
+        type: 'object',
+        additionalProperties: { type: 'number' },
+      },
+      hasGuests: { type: 'boolean' },
+      customFields: {
+        type: 'array',
+        items: { $ref: '#/components/schemas/EventCustomField' },
+      },
+    });
+
+    const product = fs.readFileSync(productContractPath, 'utf8');
+    const eventWritesStart = product.indexOf('#### `partiful events create`');
+    const eventWritesEnd = product.indexOf('### Guests');
+    expect(eventWritesStart).toBeGreaterThanOrEqual(0);
+    expect(eventWritesEnd).toBeGreaterThan(eventWritesStart);
+    const eventWrites = product.slice(eventWritesStart, eventWritesEnd);
+    for (const expected of [
+      '`cohostIds: []`',
+      "`Let's Party`",
+      '`displaySettings:',
+      '`locationInfo: {"type":"freeform","value":<location>}`',
+      '`customFields`',
+      'no existing-event read or precondition',
+      '`updatedBy.referenceValue`',
+      '`currentDocument.exists=true`',
+      'sorted, percent-encoded, repeated `updateMask.fieldPaths`',
+      '`ownerIds` must be present',
+      'update status guard was found',
+      'An inverted merged range returns `input.invalid`',
+      '`setEventLocation`',
+      '`updateDisplaySettings`',
+      'no general callable `updateEvent` was found',
+      '`shouldSkipNotifyGuests: !notifyGuests`',
+      '`status` must be exactly `PUBLISHED`',
+      '`--yes` bypass',
+      'performs no post-write read',
+      '"submitted":true',
+    ]) {
+      expect(eventWrites, expected).toContain(expected);
+    }
+    expect(eventWrites).not.toContain('returns the complete updated `Event`');
+    expect(eventWrites).not.toContain('"state":"cancelled"');
+
+    const research = fs.readFileSync(eventWriteAssetResearchPath, 'utf8');
+    for (const expected of [
+      'https://partiful.com/login',
+      '2KXQa2wzQWzlyvnJPIrVj',
+      'dpl_D9bWXWUaTVfWyHiJz1RT7qdjuzUC',
+      'Module `25231`',
+      'Module `52630`',
+      'Module `22248`',
+      'Module `24441`',
+      '9580-feaa5337a786edee.js',
+      'Module `95074`',
+      'No account, credential, event ID, guest',
+      'Document is protocol completion only',
+    ]) {
+      expect(research, expected).toContain(expected);
+    }
   });
 
   it('does not claim client defaults or client-specific behavior as remote facts', () => {
@@ -1108,7 +1335,8 @@ describe('remote API contract', () => {
       .toEqual({ $ref: '#/components/schemas/GuestStatus' });
     expect(spec.components.schemas.EventInfo.properties.status)
       .toEqual({ $ref: '#/components/schemas/EventStatus' });
-    expect(spec.components.schemas.EventInfo.properties).not.toHaveProperty('ownerIds');
+    expect(spec.components.schemas.EventInfo.properties.ownerIds)
+      .toEqual({ type: 'array', items: { type: 'string' } });
     expect(spec.components.schemas.EventInfo.properties).not.toHaveProperty('guest');
 
     const publicAssetClass = 'current-first-party-public-asset-research';
@@ -1340,9 +1568,9 @@ describe('remote API contract', () => {
   it('defines conservative nullable event reads and bounded local snapshots', () => {
     const product = fs.readFileSync(productContractPath, 'utf8');
     for (const expected of [
-      '**Status:** Approved product contract',
-      '**Product contract revision:** `2026-08-12.3`',
-      '**Remote API contract revision:** `2026-08-12.3`',
+      '**Status:** Proposed; pending delegated review',
+      '**Product contract revision:** `2026-08-12.4`',
+      '**Remote API contract revision:** `2026-08-12.4`',
       '**Currently shipped Go revisions:** product and remote `2026-08-12.3`',
       '`PUBLISHED` → `active`',
       '`CANCELED` → `cancelled`',
@@ -1897,7 +2125,7 @@ describe('remote API contract', () => {
       .toBe(rsvpReadEvidencePath);
   });
 
-  it('ships the approved RSVP product and remote revisions together', () => {
+  it('keeps the proposed event-write revision separate from shipped Go', () => {
     const productContract = fs.readFileSync(
       'docs/CLI-PRODUCT-CONTRACT.md',
       'utf8',
@@ -1921,12 +2149,12 @@ describe('remote API contract', () => {
     )].map((match) => match[1]);
 
     expect(shippedRevision).toBe('2026-08-12.3');
-    expect(documentedRevision).toBe('2026-08-12.3');
-    expect(documentedProductRevision).toBe('2026-08-12.3');
+    expect(documentedRevision).toBe('2026-08-12.4');
+    expect(documentedProductRevision).toBe('2026-08-12.4');
     expect(new Set(envelopeRevisions)).toEqual(new Set([documentedRevision]));
     expect(spec.info.version).toBe(documentedRevision);
-    expect(evidence.status).toBe('owner-reviewed');
-    expect(spec.info.version).toBe(shippedRevision);
+    expect(evidence.status).toBe('pending-delegated-review');
+    expect(spec.info.version).not.toBe(shippedRevision);
     expect(appSource).toContain('ProductContractRevision = "2026-08-12.3"');
     expect(productContract)
       .not.toContain('currently leaves every operation response status and body unknown');

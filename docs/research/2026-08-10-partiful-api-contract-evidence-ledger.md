@@ -1,8 +1,8 @@
 # Partiful remote API contract evidence ledger
 
-**Owner-reviewed contract revision:** `2026-08-12.3`
-**Owner-reviewed baseline:** `2026-08-12.2`
-**Status:** Owner-reviewed under the issue #114 delegation
+**Proposed contract revision:** `2026-08-12.4`
+**Owner-reviewed baseline:** `2026-08-12.3`
+**Status:** Pending one delegated review under issue #167
 **Contract:** `spec/partiful.openapi.json`
 **Machine-readable ledger:** `spec/partiful.api-evidence.json`
 **Stable citation sources:** `docs/research/2026-08-10-contract-evidence-sources.md`
@@ -43,23 +43,33 @@ retains an unknown response. The Firestore event read has an observed typed
 
 ### Current public-asset operations
 
-`addGuest` and `markEventInterest` now have current first-party public-asset
-request and completion mappings. Their errors and all non-`200` statuses
-remain unknown.
+`addGuest`, `markEventInterest`, `createEvent`, and `cancelEvent` have current
+first-party public-asset request and completion mappings. Their endpoint
+business meanings, errors, and all non-`200` statuses remain unknown.
 
-Two additional callable operations have protocol-specified HTTP `200` completion responses.
-`addGuest` and `markEventInterest` use the official Firebase callable
-status/result envelope plus current first-party client completion behavior.
-Neither is a live business-success observation.
+Four callable operations have protocol-specified HTTP `200` completion
+responses. `addGuest`, `markEventInterest`, `createEvent`, and `cancelEvent`
+use the official Firebase callable status/result envelope plus current
+first-party client completion behavior. None is a live business-success
+observation.
+
+### Official-protocol operations
+
+`firestorePatchEvent` uses the official Firestore PATCH path, bearer
+authorization, update mask, current-document preconditions, typed Value
+grammar, and HTTP `200` Document completion. Current first-party assets supply
+the event-field mapping, but the remote operation remains broad. The closed
+field projection is product policy. No Partiful authorization or business
+success is inferred.
 
 ### TypeScript-derived operations
 
-The other 11 operations remain TypeScript-derived inferences:
+The other 8 operations remain TypeScript-derived inferences:
 
-- callable: `createEvent`, `cancelEvent`, `addInvitedGuestsAsHost`,
-  `createCohostRequest`, `deleteCohostRequest`, `removeCohost`,
-  `generateEventCohostLink`, and `revokeEventCohostLink`;
-- Firestore: `firestorePatchEvent` and `firestoreListDocuments`;
+- callable: `addInvitedGuestsAsHost`, `createCohostRequest`,
+  `deleteCohostRequest`, `removeCohost`, `generateEventCohostLink`, and
+  `revokeEventCohostLink`;
+- Firestore: `firestoreListDocuments`;
 - Firebase auxiliary: `uploadEventPhoto`.
 
 Every operation's request and response claim is enumerated by JSON Pointer in
@@ -67,11 +77,12 @@ the JSON ledger, including operation, parameter, content-type, security,
 schema, constraint, and response claims. Unless a claim is specifically
 observed, callable result payloads, status codes, error bodies, permission
 rules, and limits are **explicit unknown**. Eleven operations with an observed
-HTTP `200` status and two operations with protocol-specified callable
-completion have typed response bodies. The schema-free send-code `200` and
-OpenAPI `default` responses do not claim a body.
+HTTP `200` status, four operations with protocol-specified callable
+completion, and one official Firestore PATCH completion have typed response
+bodies. The schema-free send-code `200` and OpenAPI `default` responses do not
+claim a body.
 
-The 1316 material claims are audited by
+The 1639 material claims are audited by
 `tests/remote-api-contract.test.js`. Each ledger citation resolves either to a
 JSON Pointer in the committed non-authoritative historical artifact or to a
 heading in the committed stable source index. This keeps the audit independent
@@ -98,6 +109,36 @@ The observed array contained 2,114 entries and one repeated ID. Local
 pagination must preserve response order and duplicates. Exact resumption can
 bind a cursor to the full payload digest, normalized filters, and next offset;
 it cannot rely on `If-Match`, which was not enforced by the observed endpoint.
+
+## Event-write public-asset and protocol evidence
+
+The August 12 event-write note records public build
+`2KXQa2wzQWzlyvnJPIrVj`, deployment
+`dpl_D9bWXWUaTVfWyHiJz1RT7qdjuzUC`, exact URLs, module IDs, and hashes. The
+research used no credential and made no mutation. It establishes current
+client request construction and completion use for `createEvent`,
+Firestore-backed event updates, and `cancelEvent`.
+
+Create always sends `event` and `cohostIds`. The current event state supplies
+status, zero counters, display settings, poster image, and display/RSVP
+defaults. The caller uses decoded callable completion data as an event ID but
+does not validate or re-read a complete Event. Cancel sends event ID, message,
+and skip-notification boolean. Its caller awaits decoded completion but does
+not inspect any business property or perform a post-write read.
+
+The generic current update removes derived fields, adds a private `updatedBy`
+reference, and converts top-level null or undefined to deletion. Location,
+public visibility, and display settings use separate callable operations. No
+general callable `updateEvent` was found. The product therefore owns a closed
+projection while OpenAPI keeps the official Firestore Value and Document
+grammar broad.
+
+Official Firebase protocols supply only generic callable HTTP `200`/result
+completion and Firestore bearer/PATCH/mask/precondition/typed-Document
+completion. They do not supply endpoint business success. Complete
+post-write Event state, Partiful authorization, inaccessible-event behavior,
+unobserved statuses and errors, cancellation or notification delivery, and
+retry safety remain unknown.
 
 ## Authentication evidence
 
@@ -329,7 +370,7 @@ by the Go implementation's Firebase requests:
 Origin is unmodelled and remains unknown because the reviewed evidence
 establishes no Origin request fact.
 
-The 1316 material claims are audited by `tests/remote-api-contract.test.js`.
+The 1639 material claims are audited by `tests/remote-api-contract.test.js`.
 
 ## Resolved conflict
 
@@ -343,6 +384,6 @@ nested `message` object with `text`, `to`, `showOnEventPage`, and optional
 
 Future safe observations must update both ledgers, preserve privacy-safe
 evidence, and receive owner review before changing the revision. The remaining
-11 TypeScript-derived operations have no observed response status or shape.
-The read-specific unknowns above remain explicit and must not become inferred
-implementation behavior.
+8 TypeScript-derived operations have no observed response status or shape.
+The read-specific and event-write business-state unknowns above remain
+explicit and must not become inferred implementation behavior.

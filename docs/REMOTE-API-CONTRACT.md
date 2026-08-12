@@ -1,8 +1,8 @@
 # Remote API contract
 
-`spec/partiful.openapi.json` is owner-reviewed revision `2026-08-12.3` of the
-remote transport snapshot. Its owner-reviewed baseline is
-`2026-08-12.2`, which is based on owner-reviewed revision `2026-08-12.1`. It
+`spec/partiful.openapi.json` is proposed revision `2026-08-12.4` of the remote
+transport snapshot, pending one delegated review. Its owner-reviewed baseline
+is `2026-08-12.3`. It
 describes only network operations and wire shapes. It does not prescribe
 commands, output, credentials, mutation safeguards, or implementation
 architecture.
@@ -195,6 +195,76 @@ unchanged. This read evidence adds no `addGuest` or `markEventInterest`
 business-success claim. Every server rejection, unobserved status or body,
 persisted state, post-write read, delivery, waitlist, ticketing, application,
 and protected-event behavior remains explicit unknown.
+
+## Event-write proposal
+
+Revision `2026-08-12.4` adds unauthenticated current-client evidence from
+`docs/research/2026-08-12-event-write-mapping-public-assets.md` and the
+official Firebase callable and Firestore REST protocols. No live event write
+or credential was used.
+
+The current `/create` client sends callable `params.event` and `cohostIds`.
+Its broad Event draft contains required new-event defaults, optional product
+and unrelated subsystem values, and sanitized nested data. OpenAPI records
+the current required default surface and stays open to unrelated current
+event properties. This broad remote schema is not the product input
+allowlist. The product fixes current display, RSVP, status, counter, and
+cohost defaults, maps only its documented inputs, and uses built-in poster
+records.
+
+The current callable wrapper requires `params`, but it adds analytics and
+device metadata only when available. Its final wrapper always contains
+`userId`, encoded as string or null. `amplitudeDeviceId` is therefore optional
+for `createEvent` and `cancelEvent`. The Firebase callable SDK accepts generic
+completion under top-level `data` or legacy top-level `result`. The create
+caller uses the decoded value as an event ID without validating a nested
+business shape; the cancel caller inspects no business property. Neither flow
+reads a post-write Event. Their HTTP `200` completion alternatives mean
+protocol completion only, not persisted Partiful state.
+
+The current general event update uses the Firestore SDK, deletes top-level
+null or undefined values, adds an `updatedBy` reference, and removes derived
+fields. It routes `locationInfo`, public visibility, and `displaySettings`
+through field-specific callables. No general callable `updateEvent` was
+found. The product's `firestorePatchEvent` projection is therefore narrower
+than the broad official Firestore Document grammar and excludes those three
+areas.
+
+The official Firestore REST contract establishes:
+
+- bearer authorization and the exact
+  `/v1/projects/getpartiful/databases/(default)/documents/events/{eventId}`
+  path;
+- repeated `updateMask.fieldPaths` query values;
+- `currentDocument.exists` and `currentDocument.updateTime`;
+- the complete Firestore typed-value grammar; and
+- HTTP `200` with a Document as PATCH protocol completion.
+
+The product uses `currentDocument.exists=true`, sorted repeated update-mask
+paths, and only `title`, `description`, `startDate`, `endDate`, `timezone`,
+`maxCapacity`, `enableWaitlist`, `customFields`, `image`, and the private
+`updatedBy` reference. A masked field absent from `fields` is a deletion.
+OpenAPI retains the broad official `FirestoreDocument` and `FirestoreValue`
+schemas; product documentation owns this closed projection.
+
+Current editor ownership is membership in `ownerIds`. There is no general
+update status predicate. Date editing has separate current-event guards for
+ticketing and old events with guests. The observed cancel choice uses an
+owned `PUBLISHED` event, a positive guest count, and a future start. These are
+current-client preconditions, not endpoint permission claims. No
+inaccessible-event response was observed.
+
+The supporting conditional EventInfo fields are `ownerIds`,
+`guestCount`, `guestStatusCounts`, `hasGuests`, and `customFields`. Their
+presence remains conditional; product planning rejects a missing or invalid
+field when the selected operation requires it.
+
+`cancelEvent` parameters are `eventId`, `cancellationMessage`, and
+`shouldSkipNotifyGuests`. The current defaults are an empty message and guest
+notification enabled. Every endpoint-specific error, other status or body,
+authorization rule, persisted state, post-write complete Event, delivery,
+and retry meaning remains unknown and fails closed. The proposal does not
+register upload.
 
 ## Historical provenance
 
