@@ -244,6 +244,52 @@
     .closing-actions { display:flex; justify-content:center; flex-wrap:wrap; gap:12px; }
     .disclaimer { max-width:760px; margin:60px auto 0; color:rgba(23,21,26,.64); font-size:12px; line-height:1.55; }
 
+    /* PROTOTYPE — issue #195. Three variants of the CLI/MCP mode selector, switchable via ?variant=. */
+    .prototype-mode-control { z-index:45; color:var(--ink); }
+    .prototype-mode-label { display:block; margin:0 0 7px; color:rgba(23,21,26,.58); font-size:10px; font-weight:850; letter-spacing:.08em; text-transform:uppercase; }
+    .prototype-mode-options { display:flex; align-items:stretch; gap:4px; padding:4px; border:1px solid rgba(23,21,26,.13); border-radius:999px; background:rgba(255,255,255,.88); box-shadow:0 14px 38px rgba(52,36,96,.13); }
+    .prototype-mode-button { min-width:92px; border:0; border-radius:999px; padding:10px 14px; display:flex; align-items:center; justify-content:center; gap:9px; background:transparent; cursor:pointer; transition:background .28s cubic-bezier(.16,1,.3,1), color .28s ease, transform .28s cubic-bezier(.16,1,.3,1); }
+    .prototype-mode-button:hover { background:#eee8ff; }
+    .prototype-mode-button[aria-selected="true"] { background:var(--ink); color:white; }
+    .prototype-mode-button:active { transform:scale(.98); }
+    .prototype-mode-icon { width:18px; height:18px; flex:none; display:grid; place-items:center; }
+    .prototype-mode-icon svg { width:18px; height:18px; fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
+    .prototype-mode-button strong, .prototype-mode-button small { display:block; text-align:left; }
+    .prototype-mode-button strong { font:800 12px/1 var(--display); letter-spacing:-.01em; }
+    .prototype-mode-button small { margin-top:4px; color:inherit; font-size:9px; opacity:.62; }
+    .prototype-mode-note { margin:7px 0 0; color:rgba(23,21,26,.55); font-size:9px; text-align:center; }
+    .prototype-badge { position:fixed; z-index:130; top:14px; right:14px; padding:8px 11px; border-radius:999px; background:var(--yellow); color:var(--ink); font:850 10px/1 var(--body); box-shadow:0 10px 30px rgba(23,21,26,.14); }
+    .prototype-switcher { position:fixed; z-index:140; left:50%; bottom:18px; transform:translateX(-50%); min-width:330px; padding:6px; display:grid; grid-template-columns:42px 1fr 42px; align-items:center; gap:7px; border-radius:999px; background:var(--ink); color:white; box-shadow:0 18px 46px rgba(23,21,26,.3); }
+    .prototype-switcher button { width:42px; height:42px; border:1px solid rgba(255,255,255,.2); border-radius:50%; display:grid; place-items:center; background:transparent; color:white; cursor:pointer; font-size:20px; }
+    .prototype-switcher button:hover { background:rgba(255,255,255,.12); }
+    .prototype-variant-name { text-align:center; font-size:12px; font-weight:750; }
+    .mode-changing .v1-copy > h1, .mode-changing .v1-sub, .mode-changing .truth-intro, .mode-changing .install-grid, .mode-changing .proof-layout, .mode-changing .closing { animation:prototype-mode-swap .42s cubic-bezier(.16,1,.3,1); }
+    @keyframes prototype-mode-swap { from { opacity:.25; transform:translateY(9px); filter:blur(5px); } }
+    body[data-interface-mode="mcp"] .v1-hero::before { background:var(--lime); opacity:.42; }
+    body[data-interface-mode="mcp"] .v1-copy h1 span { color:#315b00; }
+    body[data-interface-mode="mcp"] .prompt-go { background:#315b00; box-shadow:0 8px 18px rgba(49,91,0,.24); }
+
+    body[data-prototype-variant="A"] .prototype-mode-control { flex:none; }
+    body[data-prototype-variant="A"] .prototype-mode-button small { display:none; }
+    body[data-prototype-variant="A"] .prototype-mode-note, body[data-prototype-variant="A"] .prototype-mode-label { display:none; }
+
+    body[data-prototype-variant="B"] .nav { padding-bottom:92px; height:168px; }
+    body[data-prototype-variant="B"] .prototype-mode-control { position:absolute; left:50%; bottom:12px; transform:translateX(-50%); width:min(560px,calc(100vw - 40px)); }
+    body[data-prototype-variant="B"] .prototype-mode-label { text-align:center; }
+    body[data-prototype-variant="B"] .prototype-mode-options { border-radius:22px; padding:7px; gap:7px; }
+    body[data-prototype-variant="B"] .prototype-mode-button { flex:1; min-height:64px; border-radius:16px; justify-content:flex-start; padding:13px 18px; }
+    body[data-prototype-variant="B"] .prototype-mode-icon, body[data-prototype-variant="B"] .prototype-mode-icon svg { width:24px; height:24px; }
+    body[data-prototype-variant="B"] .prototype-mode-button strong { font-size:15px; }
+
+    body[data-prototype-variant="C"] #prompt-party { margin-left:116px; }
+    body[data-prototype-variant="C"] .prototype-mode-control { position:fixed; left:18px; top:50%; transform:translateY(-50%); width:82px; }
+    body[data-prototype-variant="C"] .prototype-mode-label { text-align:center; line-height:1.35; }
+    body[data-prototype-variant="C"] .prototype-mode-options { flex-direction:column; border-radius:22px; padding:6px; }
+    body[data-prototype-variant="C"] .prototype-mode-button { min-width:0; min-height:70px; padding:10px 5px; border-radius:16px; flex-direction:column; gap:7px; }
+    body[data-prototype-variant="C"] .prototype-mode-button strong { text-align:center; }
+    body[data-prototype-variant="C"] .prototype-mode-button small { display:none; }
+    body[data-prototype-variant="C"] .prototype-mode-note { line-height:1.35; }
+
     @media (max-width: 850px) {
       .nav-links a { display:none; }
       .shell { width:min(100% - 28px, 680px); }
@@ -264,6 +310,14 @@
       .boundary-map { grid-template-columns:1fr; }
       .boundary, .boundary + .boundary { padding:28px 0; border-left:0; }
       .install-copy, .proof-copy { position:static; }
+      body[data-prototype-variant="A"] .nav { height:138px; align-items:flex-start; padding-top:20px; }
+      body[data-prototype-variant="A"] .prototype-mode-control { position:absolute; left:0; right:0; bottom:10px; }
+      body[data-prototype-variant="A"] .prototype-mode-options { width:max-content; margin:auto; }
+      body[data-prototype-variant="C"] #prompt-party { margin-left:0; }
+      body[data-prototype-variant="C"] .prototype-mode-control { position:fixed; left:50%; top:auto; bottom:78px; transform:translateX(-50%); width:min(310px,calc(100vw - 28px)); }
+      body[data-prototype-variant="C"] .prototype-mode-label, body[data-prototype-variant="C"] .prototype-mode-note { display:none; }
+      body[data-prototype-variant="C"] .prototype-mode-options { flex-direction:row; border-radius:999px; }
+      body[data-prototype-variant="C"] .prototype-mode-button { min-height:46px; flex:1; flex-direction:row; border-radius:999px; }
 
     }
     @media (max-width: 560px) {
@@ -296,6 +350,12 @@
       .proof-line code { width:max-content; max-width:100%; overflow:auto; }
       .closing-section { padding:90px 0 50px; }
       .closing h2 { font-size:55px; }
+      .prototype-badge { top:8px; right:8px; }
+      .prototype-switcher { min-width:286px; bottom:14px; }
+      .prompt-box textarea { min-height:135px; }
+      body[data-prototype-variant="B"] .nav { height:180px; padding-bottom:106px; }
+      body[data-prototype-variant="B"] .prototype-mode-control { bottom:8px; }
+      body[data-prototype-variant="B"] .prototype-mode-button { min-height:70px; padding:11px 13px; }
     }
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after { scroll-behavior:auto !important; animation-duration:.01ms !important; animation-delay:0ms !important; transition-duration:.01ms !important; }
@@ -303,7 +363,7 @@
     }
   </style>
 </head>
-<body>
+<body data-prototype-variant="A" data-interface-mode="cli">
   <!--
   THESIS: One conversation runs the whole social-production loop while the phone stays a passive artifact, refusing both terminal chrome and app-like manual workflow.
   OWN-WORLD: Partiful-adjacent saturated fields, buoyant circular geometry, compressed display type, and crisp dark controls.
@@ -318,13 +378,27 @@
   <main id="main-content">
     <section id="prompt-party" aria-label="Agentic Partiful experience">
       <header class="shell nav">
-        <a class="brand" href="#" aria-label="Partiful CLI home"><span class="brand-mark"><i></i></span>partiful CLI</a>
-        <nav class="nav-links" aria-label="Primary"><a href="#v1-how">How it works</a><a href="#install">Install</a><a href="https://github.com/KalebCole/partiful-cli">GitHub</a><a class="nav-cta" href="#install">Get the CLI</a></nav>
+        <a class="brand" href="#" aria-label="Partiful home"><span class="brand-mark"><i></i></span><span id="prototype-brand-label">partiful CLI</span></a>
+        <div class="prototype-mode-control" aria-label="Choose product interface">
+          <span class="prototype-mode-label">Choose your interface</span>
+          <div class="prototype-mode-options" role="tablist" aria-label="Partiful interface">
+            <button class="prototype-mode-button" type="button" role="tab" aria-selected="true" data-interface-mode="cli">
+              <span class="prototype-mode-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m8 9-4 3 4 3M12 17h7"/><rect x="2.5" y="4" width="19" height="16" rx="3"/></svg></span>
+              <span><strong>CLI</strong><small>Native binary</small></span>
+            </button>
+            <button class="prototype-mode-button" type="button" role="tab" aria-selected="false" data-interface-mode="mcp">
+              <span class="prototype-mode-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="6" cy="12" r="3"/><circle cx="18" cy="6" r="3"/><circle cx="18" cy="18" r="3"/><path d="m8.7 10.6 6.6-3.2M8.7 13.4l6.6 3.2"/></svg></span>
+              <span><strong>MCP</strong><small>Agent connection</small></span>
+            </button>
+          </div>
+          <p class="prototype-mode-note" id="prototype-mode-note">Header control · fastest comparison</p>
+        </div>
+        <nav class="nav-links" aria-label="Primary"><a href="#v1-how">How it works</a><a href="#install">Install</a><a href="https://github.com/KalebCole/partiful-cli">GitHub</a><a class="nav-cta" id="prototype-nav-cta" href="#install">Get the CLI</a></nav>
       </header>
       <div class="v1-hero">
         <div class="shell v1-copy">
-          <h1>Your agent has the<span>party covered.</span></h1>
-          <p class="v1-sub">You bring the idea. Your agent can use Partiful CLI to create the event, invite guests, watch RSVPs, and send text blasts.</p>
+          <h1 id="prototype-hero-title">Your agent has the<span>party covered.</span></h1>
+          <p class="v1-sub" id="prototype-hero-sub">You bring the idea. Your agent can use Partiful CLI to create the event, invite guests, watch RSVPs, and send text blasts.</p>
           <div class="prompt-box">
             <label class="sr-only" for="party-prompt">Describe your party</label>
             <textarea id="party-prompt">Plan a sunset picnic for 18 next Saturday. Find a spot, make the invite, invite my climbing friends, and remind everyone that afternoon.</textarea>
@@ -429,20 +503,20 @@
         <div class="shell">
           <div class="truth-intro">
             <h2 id="truth-title">One native CLI. One reviewed contract.</h2>
-            <p>The CLI does the deterministic work. The published contracts define the exact user and remote behavior it ships.</p>
+            <p id="prototype-truth-copy">The CLI does the deterministic work. The published contracts define the exact user and remote behavior it ships.</p>
           </div>
           <div class="boundary-map">
             <article class="boundary">
               <span class="boundary-mark" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m7 8-4 4 4 4M17 8l4 4-4 4M14 4l-4 16"/></svg></span>
-              <h3>Partiful CLI</h3>
-              <p>Creates and updates events, resolves contacts, invites guests, reads RSVPs, sends blasts when invoked, and returns structured output.</p>
-              <code>deterministic operations</code>
+              <h3 id="prototype-boundary-one-title">Partiful CLI</h3>
+              <p id="prototype-boundary-one-copy">Creates and updates events, resolves contacts, invites guests, reads RSVPs, sends blasts when invoked, and returns structured output.</p>
+              <code id="prototype-boundary-one-code">deterministic operations</code>
             </article>
             <article class="boundary">
               <span class="boundary-mark" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 3h9l3 3v15H6z"/><path d="M9 9h6M9 13h6M9 17h4"/></svg></span>
-              <h3>Reviewed contracts</h3>
-              <p>Bind the native CLI to approved command behavior, revisioned transport facts, and safe mutation flow.</p>
-              <code>partiful schema events.create</code>
+              <h3 id="prototype-boundary-two-title">Reviewed contracts</h3>
+              <p id="prototype-boundary-two-copy">Bind the native CLI to approved command behavior, revisioned transport facts, and safe mutation flow.</p>
+              <code id="prototype-boundary-two-code">partiful schema events.create</code>
             </article>
 
           </div>
@@ -453,7 +527,7 @@
         <div class="shell install-grid">
           <div class="install-copy">
             <h2 id="install-title">Install the native CLI with Go-only tooling.</h2>
-            <p>Use a native release archive, `go install`, or a local source build. No Node or npm is required.</p>
+            <p id="prototype-install-copy">Use a native release archive, `go install`, or a local source build. No Node or npm is required.</p>
           </div>
           <div class="install-panel">
             <div class="install-tabs" role="tablist" aria-label="Installation options">
@@ -487,7 +561,7 @@
         <div class="shell proof-layout">
           <div class="proof-copy">
             <h2 id="proof-title">Built for tools, not screenshots.</h2>
-            <p>Inspect parameters before acting, preview writes, and keep machine-readable output all the way through.</p>
+            <p id="prototype-proof-copy">Inspect parameters before acting, preview writes, and keep machine-readable output all the way through.</p>
             <div class="proof-actions"><a class="button" href="https://github.com/KalebCole/partiful-cli">View on GitHub</a><a class="button secondary" href="./CLI-PRODUCT-CONTRACT.md">Read the contract</a></div>
           </div>
           <div class="proof-lines">
@@ -502,8 +576,8 @@
 
       <section class="closing-section">
         <div class="shell closing">
-          <h2>Your turn to bring the idea.</h2>
-          <p>Partiful CLI gives capable agents a deterministic path from event setup to guest operations, with approval gates where people are affected.</p>
+          <h2 id="prototype-closing-title">Your turn to bring the idea.</h2>
+          <p id="prototype-closing-copy">Partiful CLI gives capable agents a deterministic path from event setup to guest operations, with approval gates where people are affected.</p>
           <div class="closing-actions"><a class="button" href="#install">Install Partiful CLI</a><a class="button secondary" href="https://github.com/KalebCole/partiful-cli#quick-start">Read the quick start</a></div>
           <p class="disclaimer">Partiful CLI is independent, open-source software and is not affiliated with or endorsed by Partiful. The interactive event above uses synthetic data. Photo by <a href="https://unsplash.com/@simisola">Simi Iluyomade</a> on <a href="https://unsplash.com/photos/friends-laughing-together-on-picnic-blanket-tvbxqXI5mmo">Unsplash</a>.</p>
         </div>
@@ -515,9 +589,144 @@
 
   <div class="confetti-layer" id="confetti-layer" aria-hidden="true"></div>
 
+  <span class="prototype-badge">PROTOTYPE · #195</span>
+  <div class="prototype-switcher" aria-label="Prototype variant switcher">
+    <button type="button" id="prototype-previous" aria-label="Previous prototype variant">←</button>
+    <span class="prototype-variant-name" id="prototype-variant-name">A — Header pill</span>
+    <button type="button" id="prototype-next" aria-label="Next prototype variant">→</button>
+  </div>
+
   <div class="toast" id="toast" role="status">Prototype only · no command was run</div>
 
   <script>
+
+    const prototypeVariants = [
+      { key: 'A', name: 'Header pill', note: 'Header control · fastest comparison' },
+      { key: 'B', name: 'Hero chooser', note: 'Hero chooser · onboarding first' },
+      { key: 'C', name: 'Edge rail', note: 'Edge rail · persistent product lens' },
+    ];
+    const prototypeModeCopy = {
+      cli: {
+        brand: 'partiful CLI',
+        hero: 'Your agent has the<span>party covered.</span>',
+        sub: 'You bring the idea. Your agent can use Partiful CLI to create the event, invite guests, watch RSVPs, and send text blasts.',
+        prompt: 'Plan a sunset picnic for 18 next Saturday. Find a spot, make the invite, invite my climbing friends, and remind everyone that afternoon.',
+        run: 'Build the plan',
+        cta: 'Get the CLI',
+        truthTitle: 'One native CLI. One reviewed contract.',
+        truthCopy: 'The CLI does the deterministic work. The published contracts define the exact user and remote behavior it ships.',
+        boundaryOneTitle: 'Partiful CLI',
+        boundaryOneCopy: 'Creates and updates events, resolves contacts, invites guests, reads RSVPs, sends blasts when invoked, and returns structured output.',
+        boundaryOneCode: 'deterministic operations',
+        boundaryTwoTitle: 'Reviewed contracts',
+        boundaryTwoCopy: 'Bind the native CLI to approved command behavior, revisioned transport facts, and safe mutation flow.',
+        boundaryTwoCode: 'partiful schema events.create',
+        installTitle: 'Install the native CLI with Go-only tooling.',
+        installCopy: 'Use a native release archive, go install, or a local source build. No Node or npm is required.',
+        proofTitle: 'Built for tools, not screenshots.',
+        proofCopy: 'Inspect parameters before acting, preview writes, and keep machine-readable output all the way through.',
+        closingTitle: 'Your turn to bring the idea.',
+        closingCopy: 'Partiful CLI gives capable agents a deterministic path from event setup to guest operations, with approval gates where people are affected.',
+      },
+      mcp: {
+        brand: 'partiful MCP',
+        hero: 'One connection.<span>Every party tool.</span>',
+        sub: 'Connect your agent once, discover the reviewed Partiful tools, and keep every plan and approval in the conversation.',
+        prompt: 'Plan a sunset picnic for 18 next Saturday. Use the Partiful tools, show every approval, and keep private details out of the transcript.',
+        run: 'Preview the tool flow',
+        cta: 'Explore MCP',
+        truthTitle: 'One MCP server. Same reviewed contract.',
+        truthCopy: 'MCP changes how agents discover and call Partiful. It does not weaken the CLI contract, privacy rules, or approval gates underneath.',
+        boundaryOneTitle: 'Partiful MCP',
+        boundaryOneCopy: 'Presents reviewed Partiful capabilities as discoverable agent tools with structured inputs and results.',
+        boundaryOneCode: 'tools/list → tools/call',
+        boundaryTwoTitle: 'Safety stays native',
+        boundaryTwoCopy: 'Plans, exact confirmations, account binding, redaction, and protocol-drift handling remain authoritative.',
+        boundaryTwoCode: 'plan → review → confirm',
+        installTitle: 'Connect Partiful to your MCP client.',
+        installCopy: 'Prototype only. Exact transport, client support, and configuration will come from the reviewed MCP contract.',
+        proofTitle: 'Discoverable by agents. Reviewable by people.',
+        proofCopy: 'Inspect tool schemas, preview every write, and preserve human approval before consequential actions.',
+        closingTitle: 'Connect once. Bring the idea.',
+        closingCopy: 'Partiful MCP will give capable agents a discoverable path to the same deterministic operations and human approval gates.',
+      },
+    };
+    const prototypeParams = new URLSearchParams(window.location.search);
+    let prototypeVariantIndex = Math.max(0, prototypeVariants.findIndex(item => item.key === (prototypeParams.get('variant') || 'A').toUpperCase()));
+    let prototypeInterfaceMode = prototypeParams.get('mode') === 'mcp' ? 'mcp' : 'cli';
+    const prototypeElements = {
+      brand: document.getElementById('prototype-brand-label'),
+      hero: document.getElementById('prototype-hero-title'),
+      sub: document.getElementById('prototype-hero-sub'),
+      prompt: document.getElementById('party-prompt'),
+      run: document.getElementById('run-agent'),
+      cta: document.getElementById('prototype-nav-cta'),
+      truthTitle: document.getElementById('truth-title'),
+      truthCopy: document.getElementById('prototype-truth-copy'),
+      boundaryOneTitle: document.getElementById('prototype-boundary-one-title'),
+      boundaryOneCopy: document.getElementById('prototype-boundary-one-copy'),
+      boundaryOneCode: document.getElementById('prototype-boundary-one-code'),
+      boundaryTwoTitle: document.getElementById('prototype-boundary-two-title'),
+      boundaryTwoCopy: document.getElementById('prototype-boundary-two-copy'),
+      boundaryTwoCode: document.getElementById('prototype-boundary-two-code'),
+      installTitle: document.getElementById('install-title'),
+      installCopy: document.getElementById('prototype-install-copy'),
+      proofTitle: document.getElementById('proof-title'),
+      proofCopy: document.getElementById('prototype-proof-copy'),
+      closingTitle: document.getElementById('prototype-closing-title'),
+      closingCopy: document.getElementById('prototype-closing-copy'),
+    };
+    const prototypeModeButtons = [...document.querySelectorAll('.prototype-mode-button')];
+    const prototypeVariantName = document.getElementById('prototype-variant-name');
+    const prototypeModeNote = document.getElementById('prototype-mode-note');
+    const writePrototypeURL = () => {
+      const next = new URL(window.location.href);
+      next.searchParams.set('variant', prototypeVariants[prototypeVariantIndex].key);
+      next.searchParams.set('mode', prototypeInterfaceMode);
+      history.replaceState({}, '', next);
+    };
+    const renderPrototypeVariant = () => {
+      const variant = prototypeVariants[prototypeVariantIndex];
+      document.body.dataset.prototypeVariant = variant.key;
+      prototypeVariantName.textContent = `${variant.key} — ${variant.name}`;
+      prototypeModeNote.textContent = variant.note;
+      writePrototypeURL();
+    };
+    const renderPrototypeMode = mode => {
+      prototypeInterfaceMode = mode;
+      document.body.dataset.interfaceMode = mode;
+      document.body.classList.remove('mode-changing');
+      void document.body.offsetWidth;
+      document.body.classList.add('mode-changing');
+      const copy = prototypeModeCopy[mode];
+      Object.entries(prototypeElements).forEach(([key, element]) => {
+        if (!element) return;
+        if (key === 'hero') element.innerHTML = copy[key];
+        else if (key === 'prompt') element.value = copy[key];
+        else element.textContent = copy[key];
+      });
+      prototypeModeButtons.forEach(button => {
+        const selected = button.dataset.interfaceMode === mode;
+        button.setAttribute('aria-selected', String(selected));
+        button.tabIndex = selected ? 0 : -1;
+      });
+      writePrototypeURL();
+      window.setTimeout(() => document.body.classList.remove('mode-changing'), 450);
+    };
+    const cyclePrototypeVariant = direction => {
+      prototypeVariantIndex = (prototypeVariantIndex + direction + prototypeVariants.length) % prototypeVariants.length;
+      renderPrototypeVariant();
+    };
+    document.getElementById('prototype-previous').addEventListener('click', () => cyclePrototypeVariant(-1));
+    document.getElementById('prototype-next').addEventListener('click', () => cyclePrototypeVariant(1));
+    prototypeModeButtons.forEach(button => button.addEventListener('click', () => renderPrototypeMode(button.dataset.interfaceMode)));
+    document.addEventListener('keydown', event => {
+      if (!['ArrowLeft', 'ArrowRight'].includes(event.key)) return;
+      if (event.target.matches('input, textarea, select, button, [contenteditable]')) return;
+      cyclePrototypeVariant(event.key === 'ArrowRight' ? 1 : -1);
+    });
+    renderPrototypeVariant();
+    renderPrototypeMode(prototypeInterfaceMode);
 
     const runButton = document.getElementById('run-agent');
     const promptBox = document.querySelector('.prompt-box');
