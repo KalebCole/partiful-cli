@@ -23,9 +23,9 @@ credential format, helpers, and quirks are not compatibility requirements.
 1. Commands represent Partiful tasks, not remote endpoints.
 2. Command results are JSON. Diagnostics go to stderr.
 3. Failures have stable types and exit codes.
-4. Remote mutations produce a plan before they can execute.
-5. Actions that contact people, remove access, expose access, or cancel an
-   event require confirmation of the exact plan.
+4. Remote mutations support a redacted `--dry-run` preview and otherwise
+   execute in one invocation.
+5. Destructive actions require a TTY confirmation unless `--force` is set.
 6. Authentication secrets, phone numbers, email addresses, and Partiful user
    IDs never appear in command output.
 7. Raw Firebase, Firestore, upload, and callable operations are not public.
@@ -127,13 +127,13 @@ Command examples below show the value inside `data`. The complete
 
 | Exit | Failure types | Meaning |
 | --- | --- | --- |
-| `0` | None | Success. A mutation plan is also a success because no execution was attempted. |
+| `0` | None | Success. A dry-run preview is also a success because no mutation was attempted. |
 | `2` | `usage.invalid`, `input.invalid`, `match.ambiguous` | The invocation must change. |
 | `3` | `auth.required`, `auth.expired`, `auth.human_required` | A human must establish or repair authentication. |
 | `4` | `permission.denied` | The signed-in account lacks the required role. |
 | `5` | `resource.not_found` | The selected domain resource does not exist. |
 | `6` | `state.conflict` | Remote state changed or violates a command precondition. |
-| `7` | `safety.confirmation_required`, `safety.plan_stale` | The caller must plan again or confirm the exact live plan. |
+| `7` | `safety.confirmation_required` | A destructive command requires an allowed confirmation path. |
 | `8` | `remote.unavailable`, `remote.rate_limited` | Partiful could not complete a known request. `retryable` and retry details are explicit. |
 | `9` | `contract.protocol_changed` | Partiful no longer matches a reviewed remote mapping. The CLI stops and tells the user to update it. |
 | `10` | `internal.failure` | An unexpected local failure occurred. |
@@ -204,96 +204,55 @@ ordering key, snapshot, or future completeness.
 
 ## Mutation safety
 
-### Plan
+### Common mutation flags
 
-Running a remote mutation without `--apply` returns a plan and performs no
-remote mutation:
+Every remote mutation accepts these flags, regardless of where they appear in
+the argument list:
 
-```json
-{
-  "ok": true,
-  "data": {
-    "kind": "mutation-plan",
-    "operation": "events.update",
-    "summary": "Update the title and start time of the event.",
-    "effects": [
-      "Changes remote event data"
-    ],
-    "executes": false,
-    "applyRequired": true,
-    "planToken": "plan_example",
-    "confirmationRequired": false,
-    "expiresAt": "2026-08-10T23:30:00Z"
-  },
-  "meta": {
-    "command": "events.update",
-    "cliVersion": "3.0.0",
-    "productContractRevision": "2026-08-12.7",
-    "remoteContractRevision": "2026-08-12.7",
-    "warnings": []
-  }
-}
-```
+| Flag | Meaning |
+| --- | --- |
+| `--dry-run` | Validate input, perform required read-only resolution and precondition checks, and return a stable redacted preview without dispatching a mutation. |
+| `--force` | Skip only the TTY prompt for a destructive command. Validation, authorization, precondition checks, and fail-closed handling still run. |
+| `--no-input` | Never prompt. A destructive command fails with `safety.confirmation_required` unless `--force` is also present. |
 
-The plan contains normalized inputs, current preconditions, an effect summary,
-and an opaque short-lived `planToken`. The mutation authority binds it to an
-opaque, private stable account fingerprint supplied by the authentication
-seam. The fingerprint is stable across token refresh for one account and
-changes when the signed-in account changes. The raw account identifier and
-fingerprint do not appear in the token, plan, output, diagnostics, or an
-error.
+Without `--dry-run`, one invocation validates its normalized input, performs
+the required read-before-write checks, and dispatches exactly once. There is
+no persisted mutation state, confirmation token, expiry window, or automatic
+retry.
 
-The plan token is also bound to the command, normalized input, exact remote
-request projection, and a digest of every pre-read fact used by the plan.
-Secrets, account identifiers, private remote identifiers, and the account
-fingerprint are redacted from public plan JSON. A command-specific contract
-can show caller-supplied personal input for exact review, but that input is
-not copied to diagnostics or errors. There is no separate `--dry-run` flag:
-omitting `--apply` is the only dry-run behavior.
+A dry-run success contains the operation, normalized public input, redacted
+public request, and public precondition markers appropriate to the command.
+It can read remote state needed to resolve names, permissions, or request
+shape, but it makes zero mutation calls and does not persist refreshed
+credentials. Authentication secrets, account identifiers, guest IDs, contact
+IDs, message bodies, and other private remote identifiers never appear in the
+preview.
 
-### Standard mutation
+### Destructive confirmation
 
-Event creation, event update, and RSVP changes are standard mutations. The
-caller first reviews the plan, then repeats the same command input with:
+These commands are destructive:
 
-```text
---apply --plan <plan-token>
-```
+- `events cancel`;
+- `cohosts remove`;
+- `cohosts revoke-invite`; and
+- `cohosts link revoke`.
 
-The command cannot execute without a live token from the matching plan.
-Standard-mutation plan tokens are single-use and expire after five minutes.
-Apply reacquires the private account fingerprint and every bound remote
-precondition before it consumes the token. Changed input, account, or
-precondition, expiry, or reuse returns `safety.plan_stale` before a mutation
-request. After successful precondition checks, apply atomically consumes the
-token immediately before dispatch and makes exactly one transport attempt.
-The consumed token cannot be reused after a response, timeout, connection
-loss, or ambiguous completion. The CLI does not automatically retry; an
-uncertain transport outcome requires a new plan.
+After validation and required read-before-write checks, a destructive command
+prompts only when standard input is a terminal. A positive answer dispatches
+the mutation once. Declining, an input error, `--no-input`,
+`--non-interactive`, or a non-TTY invocation returns
+`safety.confirmation_required` and makes no mutation call. `--force` bypasses
+only this prompt.
 
-### Consequential action
+All other mutations execute without a CLI prompt. Callers can use `--dry-run`
+for review before a separate normal invocation.
 
-These actions require a short-lived confirmation token:
+### Completion uncertainty
 
-- cancel an event;
-- invite a guest or cohost;
-- revoke a cohost invitation;
-- remove a cohost;
-- create or revoke a cohost access link;
-- send a text blast.
-
-The no-apply invocation returns a plan token bound to the normalized input and
-observed preconditions. Execution repeats the same input with:
-
-```text
---apply --confirm <token>
-```
-
-Consequential tokens have the same five-minute, single-use, account, input,
-request, and precondition binding. A changed binding, expired token, or reused
-token returns `safety.plan_stale`. `--apply` without `--confirm` on a
-consequential action returns `safety.confirmation_required`. There is no
-`--yes` bypass, automatic mutation retry, or interactive mutation prompt.
+The CLI never automatically retries a mutation. A timeout, connection loss,
+or other uncertain completion returns a non-retryable
+`remote.unavailable` result that tells the caller to inspect remote state
+before another attempt.
 
 ## Authentication
 
@@ -556,10 +515,9 @@ The narrow current-client projection is exact:
 | `posterId` | `image` built from the one exact catalog entry |
 
 An omitted `posterId` selects the exact current first-party fallback ID
-`Let's Party`. Planning resolves the ID against one bounded catalog
+`Let's Party`. Each invocation resolves the ID against one bounded catalog
 representation. Zero matches return `resource.not_found`; more than one exact
-ID match returns `contract.protocol_changed`. The private plan binds the
-catalog digest and complete selected record. The image request is
+ID match returns `contract.protocol_changed`. The image request is
 `{"source":"partiful_posters","poster":<record>,...}` with the record's
 `url`, `blurHash`, `contentType`, `name`, `height`, and `width` copied to the
 outer object. Upload remains unregistered.
@@ -577,11 +535,10 @@ booleans to `true`: `showHostList`, `showGuestCount`, `showGuestList`,
 Absent optional event properties stay absent; the product never constructs a
 nested `undefined` value that the callable encoder would turn into null.
 
-Create is a standard mutation. Its private five-minute, single-use plan binds
-the stable account fingerprint, normalized input, exact callable request, and
-poster representation. It has no existing-event read or precondition. Apply
-reacquires the same account and poster representation, consumes the plan
-immediately before one `createEvent` attempt, and never retries.
+Create has no existing-event read or precondition. `--dry-run` resolves the
+poster and returns the normalized public input and exact request without
+authenticating or calling `createEvent`. Normal execution authenticates,
+resolves the poster, and makes exactly one `createEvent` attempt.
 
 The client requires only generic callable completion data and uses that data
 as an event ID. It does not validate or read a complete Event. The product
@@ -625,27 +582,24 @@ every mapped path and `updatedBy`, and sends
 `currentDocument.exists=true`. A delete path remains in the update mask and
 is absent from `fields`.
 
-Planning calls `getEventInfo` once. `ownerIds` must be present and contain the
+Each invocation calls `getEventInfo` once. `ownerIds` must be present and contain the
 private current account ID; otherwise the command returns
 `permission.denied` / `HOST_PERMISSION_REQUIRED`. No general first-party
-update status guard was found. The plan nevertheless binds raw status,
-owner-list presence and digest, and the absent/null/value state and value of
-every target field. For a date or timezone change it also binds current
-`startDate`, `endDate`, `hasGuests`, and `ticketing`. Date changes are rejected
-when ticketing is present, or when `hasGuests` is exactly true and the current
-event is past its end plus two hours (start plus eight hours when end is
-absent).
+update status guard was found. For a date or timezone change, the command
+checks current `startDate`, `endDate`, `hasGuests`, and `ticketing`. Date
+changes are rejected when ticketing is present, or when `hasGuests` is exactly
+true and the current event is past its end plus two hours (start plus eight
+hours when end is absent).
 
-Planning merges proposed `start` and `end` values with the bound current
+The command merges proposed `start` and `end` values with the current
 values. When both resulting values are present, `end` must be at or after
-`start`. An inverted merged range returns `input.invalid` before a plan is
-issued.
+`start`. An inverted merged range returns `input.invalid`.
 
-Apply reacquires the account and calls `getEventInfo` once. Any bound change
-returns `safety.plan_stale`. It then consumes the standard plan immediately
-before exactly one `firestorePatchEvent` attempt. HTTP `200` with a Firestore
-Document is protocol completion, not a complete product Event or proven
-Partiful business state. There is no post-write read. Success is:
+`--dry-run` returns the normalized input and redacted Firestore request after
+these checks without sending a PATCH. Normal execution makes exactly one
+`firestorePatchEvent` attempt. HTTP `200` with a Firestore Document is protocol
+completion, not a complete product Event or proven Partiful business state.
+There is no post-write read. Success is:
 
 ```json
 {"eventId":"evt_example","fields":["start","title"],"submitted":true}
@@ -660,7 +614,7 @@ Accepts optional `message` and `notifyGuests`; the matching flags are
 and `notifyGuests: true`. The exact callable parameters are `eventId`,
 `cancellationMessage`, and `shouldSkipNotifyGuests: !notifyGuests`.
 
-Planning calls `getEventInfo` once. `ownerIds` must be present and contain the
+Each invocation calls `getEventInfo` once. `ownerIds` must be present and contain the
 current private account ID, `status` must be exactly `PUBLISHED`, the observed
 guest count must be a positive integer, and the current `startDate` must be in
 the future. Missing, null, or differently typed precondition facts return
@@ -671,15 +625,12 @@ and is not inferred. The positive-guest gate deliberately preserves the
 reviewed current-client exposure as a conservative product limitation; it is
 not a claim about endpoint authorization.
 
-The public consequential plan states the exact event ID, message,
-`notifyGuests`, and effects. Its private record binds the stable account
-fingerprint, normalized input, exact `cancelEvent` request, raw status, start,
-guest-count facts, and owner-list presence and digest. Apply must repeat the
-same input and provide that exact plan's `--confirm <token>`; `--apply`
-without it returns `safety.confirmation_required`. Apply reacquires the
-account, calls `getEventInfo` once, and compares every bound fact. It consumes
-the plan immediately before one attempt and never retries. There is no
-`--yes` bypass.
+`--dry-run` returns the exact event ID, normalized input, request, effects, and
+public precondition markers without prompting or calling `cancelEvent`.
+Normal execution prompts on a TTY after the checks above and makes one
+`cancelEvent` attempt after confirmation. `--force` skips only the prompt.
+`--no-input`, `--non-interactive`, or non-TTY execution without `--force`
+returns `safety.confirmation_required`.
 
 The current client inspects no endpoint business field and performs no
 post-write read. Generic callable completion returns only:
@@ -691,8 +642,9 @@ post-write read. Generic callable completion returns only:
 It does not claim cancellation, notification delivery, or persisted state.
 Any unrecognized status, endpoint error/body, missing generic completion
 envelope, or malformed completion body is `contract.protocol_changed`. A
-no-response transport failure is `remote.unavailable`; because the consumed
-write may have reached the remote, a new plan is required.
+no-response transport failure is `remote.unavailable`; because the write may
+have reached the remote, the caller must inspect remote state before another
+attempt.
 
 ### Guests
 
@@ -723,16 +675,13 @@ No match returns `resource.not_found`. More than one safe match returns
 `match.ambiguous` and performs no action. If display information cannot safely
 disambiguate the contacts, the CLI refuses the invitation.
 
-The mutation plan binds the resolved private contact identity, not only the
-name supplied through `--contact`. Applying the plan cannot resolve the name
-again or select a different person. The bound identity does not appear in
-output.
+Each invocation resolves the contact against current contact data before any
+write. `--dry-run` returns the selected contact's display name and a redacted
+request preview without sending an invitation. It never exposes a Partiful
+user ID, guest ID, phone number, email address, account fingerprint, or private
+contact identity. Normal execution dispatches once without prompting.
 
-The public plan can show the selected contact's display name and a redacted
-request preview. It never exposes a Partiful user ID, guest ID, phone number,
-email address, account fingerprint, or private contact identity.
-
-Applied success returns submitted-only state:
+Success returns submitted-only state:
 
 ```json
 {
@@ -843,13 +792,13 @@ The current-guest selection is:
   count selects update and includes the private `guestId`.
 
 Every other current-guest variant returns `contract.protocol_changed` and
-does not produce a plan.
+does not produce a dry-run preview or dispatch a mutation.
 
 ##### Compatible-event safeguards
 
-The plan-only invocation acquires the authenticated session and private stable
-account fingerprint, then calls `getEventInfo` once and `getCurrentGuest` once.
-It performs no mutation.
+A dry-run acquires the authenticated session without persisting a refreshed
+credential, then calls `getEventInfo` once and `getCurrentGuest` once. It
+performs no mutation.
 
 The compatible event class is deliberately narrow:
 
@@ -906,19 +855,14 @@ capacity event returns `state.conflict` without a mutation. These are product
 compatibility decisions, not server error mappings. Any received server
 rejection remains `contract.protocol_changed` under the current evidence.
 
-##### Plan binding and apply
+##### Dry-run and execution
 
-The private five-minute, single-use record binds the operation, exact
-normalized product input, exact private callable request, private account
-fingerprint, and current-guest marker, ID, status, and count. It also binds the
-normalized event safeguard snapshot. The event snapshot includes raw presence
-and normalized values for every compatible-event field listed above. It binds
-questionnaire version-array length rather than questionnaire contents.
-
-The public plan can show caller-supplied `displayName`, plus-one names,
-message, and questionnaire answers for exact review. It never exposes the
-account fingerprint, guest ID, account ID, or user ID. The exact private
-request stays in the mutation record. Public RSVP plan example:
+Each invocation reads `getEventInfo` and `getCurrentGuest` once, then validates
+the normalized event safeguards and current guest before any write.
+`--dry-run` returns the normalized public input and request. It can show
+caller-supplied `displayName`, plus-one names, message, and questionnaire
+answers for review. It never exposes an account fingerprint, guest ID, account
+ID, or user ID. A public RSVP preview example is:
 
 ```json
 {
@@ -948,23 +892,14 @@ request stays in the mutation record. Public RSVP plan example:
   "preconditions": {
     "currentGuest": "present",
     "eventSafeguards": "bound"
-  },
-  "expiresInSeconds": 300,
-  "planToken": "<opaque>"
+  }
 }
 ```
 
-Apply reacquires the private account fingerprint.
-Apply re-reads `getEventInfo` once and `getCurrentGuest` once, normalizes the
-same facts, and compares every binding. Changed input, operation, account,
-request, current-guest marker, ID, status, count, event safeguard value, field
-presence, null distinction, questionnaire version length, expiry, or reuse
-returns `safety.plan_stale` before dispatch.
-
-After those checks, apply consumes the token immediately before dispatch and
-makes exactly one transport attempt. It never retries automatically. A
-timeout, connection loss, or other uncertain outcome consumes the token and
-requires a new plan.
+Without `--dry-run`, the same invocation dispatches the normalized request
+exactly once after the checks. It never retries automatically. A timeout,
+connection loss, or other uncertain outcome requires inspection of remote
+state before another attempt.
 
 ##### Submitted-request result
 
@@ -982,7 +917,7 @@ predicate, unrecognized status, or unsupported envelope returns
 `contract.protocol_changed`.
 
 The CLI does not perform a post-write read. It does not echo `displayName`,
-message, questionnaire answers, plus-one names, or private IDs in the applied
+message, questionnaire answers, plus-one names, or private IDs in the
 result. `submitted: true` means only that the exact submitted request met the
 reviewed callable and client completion condition. It does not prove
 persisted RSVP state, delivery, notification, or another business side
@@ -1032,15 +967,16 @@ partiful cohosts link revoke <event-id>
 ```
 
 All are host-only consequential actions. Contact commands use the same
-privacy-safe match rules and resolved-identity plan binding as guest
-invitations. The machine-readable schema paths for the subresource commands
-are `cohosts.link.create` and `cohosts.link.revoke`.
+privacy-safe match rules as guest invitations. The machine-readable schema
+paths for the subresource commands are `cohosts.link.create` and
+`cohosts.link.revoke`.
 
-Each no-apply invocation returns a five-minute single-use consequential plan.
-Execution must repeat the exact same input with `--apply --confirm <token>`.
-Apply re-reads the bound event, contact, request-state, or link-state facts
-once, compares them to the stored plan, consumes the token immediately before
-one dispatch attempt, and never retries.
+Each invocation reads the required event, contact, request-state, or link-state
+facts once. `--dry-run` returns a redacted preview after those checks and makes
+no mutation call. Normal execution dispatches once and never retries.
+`cohosts invite` and `cohosts link create` do not prompt.
+`cohosts revoke-invite`, `cohosts remove`, and `cohosts link revoke` prompt on
+a TTY after the checks unless `--force` is set.
 
 The contact commands use the same privacy-safe resolution rules as guest
 invitations:
@@ -1050,8 +986,8 @@ invitations:
 - no safe match returns `resource.not_found`; and
 - multiple safe matches return `match.ambiguous`.
 
-The resolved private contact identity is bound into the private plan record.
-Apply does not resolve by name again and does not emit a user ID.
+The resolved private contact identity is used only within the current
+invocation and is never emitted as a user ID.
 
 The observable preconditions are:
 
@@ -1065,9 +1001,8 @@ The observable preconditions are:
 - `link create`: the current `cohostSecret` document must be absent; and
 - `link revoke`: the current `cohostSecret` document must be present.
 
-A changed role, changed contact binding, changed cohost request state, changed
-link state, changed account, expired token, or replayed token returns
-`safety.plan_stale` before a mutation request.
+A non-matching role, contact, cohost request state, or link state fails before
+a mutation request.
 
 The three contact actions return:
 
@@ -1125,13 +1060,13 @@ This host-only consequential action accepts:
 
 The message is not accepted as a command-line value because shell history is
 not a private input channel. `--message-file -` reads plain UTF-8 text from
-stdin. The public plan and the persisted mutation record never contain the
-message text. They contain only a private digest and length. The text never
-appears in stdout, stderr, diagnostics, the confirmation token, or persisted
-metadata available to another local user. Images are not supported in v1.
+stdin. The public dry-run preview contains only a message digest and length,
+not the message text. The text never appears in stdout, stderr, or diagnostics.
+Images are not supported in v1.
 
-Planning reads `getEventInfo` once, the reviewed Firestore guest collection
-once, and the reviewed Firestore host-message collection once. `ownerIds` must
+Each invocation reads `getEventInfo` once, the reviewed Firestore guest
+collection once, and the reviewed Firestore host-message collection once.
+`ownerIds` must
 contain the current private account ID. The event must not be older than
 `endDate + 67 days`, or `startDate + 6 hours + 67 days` when `endDate` is
 absent. The current text-blast count must be at most `10`, and the derived
@@ -1158,22 +1093,12 @@ private owner-ID exception is not promoted here. The CLI therefore fails
 closed or conservatively excludes `invited` when it cannot verify an
 exemption.
 
-The public consequential plan states the exact event ID, audience,
+The public dry-run preview states the exact event ID, audience,
 `showOnEventPage`, exact derived `message.to`, and only the message digest and
-length. Its private record binds the stable account fingerprint, the same
-normalized private-input summary, the exact reviewed request summary, and the
-current event, guest, and blast-count preconditions. Apply repeats the same
-message input with:
+length. It makes no `createTextBlast` call. Normal execution dispatches once
+without prompting and never retries automatically.
 
-```text
---apply --confirm <token>
-```
-
-`--apply` without `--confirm` returns `safety.confirmation_required`. Apply
-reacquires the account, re-reads the same facts once, consumes the token
-immediately before one dispatch attempt, and never retries automatically.
-
-Applied success returns:
+Success returns:
 
 ```json
 {
@@ -1239,8 +1164,7 @@ Without a path, returns every public command path. With a path such as
   "failureTypes": ["usage.invalid", "input.invalid"],
   "safety": {
     "kind": "standard-mutation",
-    "planRequired": true,
-    "confirmationRequired": false
+    "destructive": false
   }
 }
 ```

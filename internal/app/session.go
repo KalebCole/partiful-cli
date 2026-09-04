@@ -15,6 +15,26 @@ func acquireProtectedSession(
 	dependencies Dependencies,
 	pretty bool,
 ) (auth.Session, *Result) {
+	return acquireProtectedSessionWithPersistence(ctx, command, dependencies, pretty, true)
+}
+
+func acquireProtectedMutationSession(
+	ctx context.Context,
+	command string,
+	dependencies Dependencies,
+	execution mutationExecution,
+	pretty bool,
+) (auth.Session, *Result) {
+	return acquireProtectedSessionWithPersistence(ctx, command, dependencies, pretty, !execution.DryRun)
+}
+
+func acquireProtectedSessionWithPersistence(
+	ctx context.Context,
+	command string,
+	dependencies Dependencies,
+	pretty bool,
+	persistRefresh bool,
+) (auth.Session, *Result) {
 	if dependencies.CredentialsPathError != nil {
 		result := configurationDirectoryFailure(command, pretty)
 		return auth.Session{}, &result
@@ -23,7 +43,11 @@ func acquireProtectedSession(
 	if dependencies.Now != nil {
 		clock = dependencies.Now
 	}
-	session, err := auth.AcquireSession(
+	acquire := auth.AcquireSession
+	if !persistRefresh {
+		acquire = auth.AcquireSessionWithoutPersistence
+	}
+	session, err := acquire(
 		ctx,
 		dependencies.Files,
 		dependencies.CredentialsPath,

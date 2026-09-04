@@ -18,8 +18,8 @@ write.
 partiful events create   --title "Party"   --start 2026-08-01T19:00:00-07:00   --timezone America/Los_Angeles   --poster-id <poster-id>
 ```
 
-`events create` and `events update` return a plan until you add
-`--apply --plan <token>`.
+Add `--dry-run` to `events create` or `events update` to preview the resolved
+poster request without sending a write.
 
 ## Limits
 

@@ -17,7 +17,6 @@ import (
 
 const (
 	eventWriteCredentialsPath = "/config/partiful/credentials.json"
-	eventWriteMutationPath    = "/config/partiful/mutation-plans.json"
 	eventWriteCredentials     = `{"accessToken":"private-access-token","userId":"private-account","expiresAt":"2026-08-12T02:00:00Z"}`
 )
 
@@ -25,7 +24,6 @@ func eventWriteDependencies(files *memoryFilesystem) app.Dependencies {
 	return app.Dependencies{
 		Files:           files,
 		CredentialsPath: eventWriteCredentialsPath,
-		MutationPath:    eventWriteMutationPath,
 		Now: func() time.Time {
 			return time.Date(2026, time.August, 12, 0, 0, 0, 0, time.UTC)
 		},
@@ -88,12 +86,11 @@ func assertEventCallableRequest(t *testing.T, request *http.Request, operation, 
 	}
 }
 
-func TestExecuteEventCreatePlansExactNormalizedRequestAndDefaultPoster(t *testing.T) {
+func TestExecuteEventCreateDryRunReturnsExactNormalizedRequestAndDefaultPoster(t *testing.T) {
 	files := &memoryFilesystem{files: map[string][]byte{
 		eventWriteCredentialsPath: []byte(eventWriteCredentials),
 	}}
 	dependencies := eventWriteDependencies(files)
-	dependencies.MutationRandom = strings.NewReader(strings.Repeat("c", 32))
 	requestCount := 0
 	dependencies.HTTP = scriptedHTTP{do: func(request *http.Request) (*http.Response, error) {
 		requestCount++
@@ -114,11 +111,12 @@ func TestExecuteEventCreatePlansExactNormalizedRequestAndDefaultPoster(t *testin
 			"--location", "  Sunset roof  ",
 			"--guest-limit", "75",
 			"--link", "Tickets=https://example.test/tickets",
+			"--dry-run",
 		},
 	}, dependencies)
 
 	if result.ExitCode != 0 || result.Stderr != "" {
-		t.Fatalf("result = %#v, want create plan", result)
+		t.Fatalf("result = %#v, want create preview", result)
 	}
 	var envelope struct {
 		Data struct {
@@ -145,8 +143,6 @@ func TestExecuteEventCreatePlansExactNormalizedRequestAndDefaultPoster(t *testin
 			Preconditions struct {
 				Poster string `json:"poster"`
 			} `json:"preconditions"`
-			ExpiresInSeconds int    `json:"expiresInSeconds"`
-			PlanToken        string `json:"planToken"`
 		} `json:"data"`
 	}
 	if json.Unmarshal([]byte(result.Stdout), &envelope) != nil {
@@ -166,10 +162,8 @@ func TestExecuteEventCreatePlansExactNormalizedRequestAndDefaultPoster(t *testin
 			Label string `json:"label"`
 			URL   string `json:"url"`
 		}{{Label: "Tickets", URL: "https://example.test/tickets"}}) ||
-		envelope.Data.Preconditions.Poster != "bound" ||
-		envelope.Data.ExpiresInSeconds != 300 ||
-		envelope.Data.PlanToken == "" {
-		t.Fatalf("plan = %#v, want normalized create plan", envelope.Data)
+		envelope.Data.Preconditions.Poster != "bound" {
+		t.Fatalf("preview = %#v, want normalized create preview", envelope.Data)
 	}
 	if !reflect.DeepEqual(envelope.Data.Request.CohostIDs, []string{}) {
 		t.Fatalf("cohost ids = %#v, want empty list", envelope.Data.Request.CohostIDs)
@@ -182,17 +176,16 @@ func TestExecuteEventCreatePlansExactNormalizedRequestAndDefaultPoster(t *testin
 			t.Fatalf("output exposed private value %q", privateValue)
 		}
 	}
-	if requestCount != 1 || files.atomicWrites != 1 {
-		t.Fatalf("request count = %d atomic writes = %d, want one catalog read and one plan write", requestCount, files.atomicWrites)
+	if requestCount != 1 || files.atomicWrites != 0 {
+		t.Fatalf("request count = %d atomic writes = %d, want one catalog read and no writes", requestCount, files.atomicWrites)
 	}
 }
 
-func TestExecuteEventCreateConsumesPlanBeforeOneAttemptAndReturnsSubmittedOnly(t *testing.T) {
+func TestExecuteEventCreateDispatchesOneAttemptAndReturnsSubmittedOnly(t *testing.T) {
 	files := &memoryFilesystem{files: map[string][]byte{
 		eventWriteCredentialsPath: []byte(eventWriteCredentials),
 	}}
 	dependencies := eventWriteDependencies(files)
-	dependencies.MutationRandom = strings.NewReader(strings.Repeat("a", 32))
 	call := 0
 	catalogBody := `[{
 		"id":"birthdaycake.png",
@@ -208,12 +201,12 @@ func TestExecuteEventCreateConsumesPlanBeforeOneAttemptAndReturnsSubmittedOnly(t
 	dependencies.HTTP = scriptedHTTP{do: func(request *http.Request) (*http.Response, error) {
 		call++
 		switch call {
-		case 1, 2:
+		case 1:
 			if request.Method != http.MethodGet || request.URL.String() != "https://assets.getpartiful.com/posters.json" {
 				t.Fatalf("request = %s %s, want poster catalog", request.Method, request.URL)
 			}
 			return jsonResponse(http.StatusOK, catalogBody), nil
-		case 3:
+		case 2:
 			assertEventCallableRequest(t, request, "createEvent", `{"data":{"params":{"event":{"title":"Example event","startDate":"2026-09-13T02:00:00Z","timezone":"America/Los_Angeles","guestStatusCounts":{"APPROVED":0,"DECLINED":0,"DELIVERY_ERROR":0,"GOING":0,"INTERESTED":0,"MAYBE":0,"PENDING_APPROVAL":0,"READY_TO_SEND":0,"REJECTED":0,"RESPONDED_TO_FIND_A_TIME":0,"SENDING":0,"SEND_ERROR":0,"SENT":0,"WAITLIST":0,"WAITLISTED_FOR_APPROVAL":0,"WITHDRAWN":0},"displaySettings":{"theme":"cloudflow","effect":"fireflies","titleFont":"display"},"status":"UNSAVED","rsvpButtonGlyphType":"emojis","image":{"source":"partiful_posters","poster":{"id":"birthdaycake.png","name":"Birthday Cake","url":"https://assets.getpartiful.com/posters/birthdaycake.png","blurHash":"LKO2?U%2Tw=w]~RBVZRi};RPxuwH","contentType":"image/png","height":1200,"width":800,"tags":["birthday"],"categories":["birthday"]},"url":"https://assets.getpartiful.com/posters/birthdaycake.png","blurHash":"LKO2?U%2Tw=w]~RBVZRi};RPxuwH","contentType":"image/png","name":"Birthday Cake","height":1200,"width":800},"showHostList":true,"showGuestCount":true,"showGuestList":true,"showActivityTimestamps":true,"displayInviteButton":true,"visibility":"public","allowGuestPhotoUpload":true,"enableGuestReminders":true,"rsvpsEnabled":true,"allowGuestsToInviteMutuals":true},"cohostIds":[]},"userId":"private-account"}}`)
 			return jsonResponse(http.StatusOK, `{"data":"private-event-id"}`), nil
 		default:
@@ -228,40 +221,33 @@ func TestExecuteEventCreateConsumesPlanBeforeOneAttemptAndReturnsSubmittedOnly(t
 		"--timezone", "America/Los_Angeles",
 		"--poster-id", "birthdaycake.png",
 	}
-	plan := app.Execute(context.Background(), app.Request{Argv: argv}, dependencies)
-	if plan.ExitCode != 0 {
-		t.Fatalf("plan = %#v", plan)
-	}
-	token := rsvpPlanToken(t, plan)
-	applied := app.Execute(context.Background(), app.Request{Argv: append(append([]string{}, argv...), "--apply", "--plan", token)}, dependencies)
+	applied := app.Execute(context.Background(), app.Request{Argv: argv}, dependencies)
 	if applied.ExitCode != 0 ||
 		!strings.Contains(applied.Stdout, `"data":{"submitted":true}`) ||
 		strings.Contains(applied.Stdout, "private-event-id") ||
 		applied.Stderr != "" {
 		t.Fatalf("applied = %#v, want submitted-only create result", applied)
 	}
-	reused := app.Execute(context.Background(), app.Request{Argv: append(append([]string{}, argv...), "--apply", "--plan", token)}, dependencies)
-	if reused.ExitCode != 7 || !strings.Contains(reused.Stdout, `"type":"safety.plan_stale"`) {
-		t.Fatalf("reused = %#v, want stale plan after one attempt", reused)
+	if call != 2 {
+		t.Fatalf("request count = %d, want one catalog read and one submission attempt", call)
 	}
 }
 
-func TestExecuteEventCreateFailsClosedOnMalformedCompletionAndExpiredPlan(t *testing.T) {
+func TestExecuteEventCreateFailsClosedOnMalformedCompletion(t *testing.T) {
 	files := &memoryFilesystem{files: map[string][]byte{
 		eventWriteCredentialsPath: []byte(eventWriteCredentials),
 	}}
 	dependencies := eventWriteDependencies(files)
-	dependencies.MutationRandom = strings.NewReader(strings.Repeat("e", 32))
 	call := 0
 	dependencies.HTTP = scriptedHTTP{do: func(request *http.Request) (*http.Response, error) {
 		call++
 		switch call {
-		case 1, 2:
+		case 1:
 			if request.Method != http.MethodGet || request.URL.String() != "https://assets.getpartiful.com/posters.json" {
 				t.Fatalf("request = %s %s, want poster catalog", request.Method, request.URL)
 			}
 			return jsonResponse(http.StatusOK, `[{"id":"birthdaycake.png","url":"https://assets.getpartiful.com/posters/birthdaycake.png","name":"Birthday Cake","tags":["birthday"],"categories":["birthday"],"contentType":"image/png","height":1200,"width":800}]`), nil
-		case 3:
+		case 2:
 			assertEventCallableRequest(t, request, "createEvent", `{"data":{"params":{"event":{"title":"Example event","startDate":"2026-09-13T02:00:00Z","timezone":"America/Los_Angeles","guestStatusCounts":{"APPROVED":0,"DECLINED":0,"DELIVERY_ERROR":0,"GOING":0,"INTERESTED":0,"MAYBE":0,"PENDING_APPROVAL":0,"READY_TO_SEND":0,"REJECTED":0,"RESPONDED_TO_FIND_A_TIME":0,"SENDING":0,"SEND_ERROR":0,"SENT":0,"WAITLIST":0,"WAITLISTED_FOR_APPROVAL":0,"WITHDRAWN":0},"displaySettings":{"theme":"cloudflow","effect":"fireflies","titleFont":"display"},"status":"UNSAVED","rsvpButtonGlyphType":"emojis","image":{"source":"partiful_posters","poster":{"id":"birthdaycake.png","name":"Birthday Cake","url":"https://assets.getpartiful.com/posters/birthdaycake.png","contentType":"image/png","height":1200,"width":800,"tags":["birthday"],"categories":["birthday"]},"url":"https://assets.getpartiful.com/posters/birthdaycake.png","blurHash":null,"contentType":"image/png","name":"Birthday Cake","height":1200,"width":800},"showHostList":true,"showGuestCount":true,"showGuestList":true,"showActivityTimestamps":true,"displayInviteButton":true,"visibility":"public","allowGuestPhotoUpload":true,"enableGuestReminders":true,"rsvpsEnabled":true,"allowGuestsToInviteMutuals":true},"cohostIds":[]},"userId":"private-account"}}`)
 			return jsonResponse(http.StatusOK, `{"unexpected":true}`), nil
 		default:
@@ -270,44 +256,28 @@ func TestExecuteEventCreateFailsClosedOnMalformedCompletionAndExpiredPlan(t *tes
 		}
 	}}
 	argv := []string{"events", "create", "--title", "Example event", "--start", "2026-09-12T19:00:00-07:00", "--timezone", "America/Los_Angeles", "--poster-id", "birthdaycake.png"}
-	plan := app.Execute(context.Background(), app.Request{Argv: argv}, dependencies)
-	if plan.ExitCode != 0 {
-		t.Fatalf("plan = %#v", plan)
-	}
-	token := rsvpPlanToken(t, plan)
-	applied := app.Execute(context.Background(), app.Request{Argv: append(append([]string{}, argv...), "--apply", "--plan", token)}, dependencies)
+	applied := app.Execute(context.Background(), app.Request{Argv: argv}, dependencies)
 	if applied.ExitCode != 9 || !strings.Contains(applied.Stdout, `"type":"contract.protocol_changed"`) {
 		t.Fatalf("applied = %#v, want protocol-changed failure", applied)
 	}
-
-	dependencies.Now = func() time.Time {
-		return time.Date(2026, time.August, 12, 0, 6, 0, 0, time.UTC)
-	}
-	expired := app.Execute(context.Background(), app.Request{Argv: append(append([]string{}, argv...), "--apply", "--plan", token)}, dependencies)
-	if expired.ExitCode != 7 || !strings.Contains(expired.Stdout, `"type":"safety.plan_stale"`) {
-		t.Fatalf("expired = %#v, want stale expired plan", expired)
+	if call != 2 {
+		t.Fatalf("request count = %d, want one submission attempt", call)
 	}
 }
 
-func TestExecuteEventUpdatePlansSortedFirestorePatchAndStalesOnChangedPreconditions(t *testing.T) {
+func TestExecuteEventUpdateDryRunReturnsSortedFirestorePatch(t *testing.T) {
 	files := &memoryFilesystem{files: map[string][]byte{
 		eventWriteCredentialsPath: []byte(eventWriteCredentials),
 	}}
 	dependencies := eventWriteDependencies(files)
-	dependencies.MutationRandom = strings.NewReader(strings.Repeat("u", 32))
 	call := 0
 	first := compatibleUpdateEvent()
-	second := compatibleUpdateEvent()
-	second["title"] = "Changed elsewhere"
 	dependencies.HTTP = scriptedHTTP{do: func(request *http.Request) (*http.Response, error) {
 		call++
 		switch call {
 		case 1:
 			assertEventCallableRequest(t, request, "getEventInfo", `{"data":{"params":{"eventId":"event-example"},"amplitudeDeviceId":"MDEyMzQ1Njc4OWFiY2RlZg"}}`)
 			return jsonResponse(http.StatusOK, eventResponse(t, first)), nil
-		case 2:
-			assertEventCallableRequest(t, request, "getEventInfo", `{"data":{"params":{"eventId":"event-example"},"amplitudeDeviceId":"MDEyMzQ1Njc4OWFiY2RlZg"}}`)
-			return jsonResponse(http.StatusOK, eventResponse(t, second)), nil
 		default:
 			t.Fatalf("unexpected request %d: %s", call, request.URL)
 			return nil, nil
@@ -319,17 +289,12 @@ func TestExecuteEventUpdatePlansSortedFirestorePatchAndStalesOnChangedPreconditi
 		"--start", "2026-09-12T20:00:00Z",
 		"--timezone", "America/Los_Angeles",
 	}
-	plan := app.Execute(context.Background(), app.Request{Argv: argv}, dependencies)
-	if plan.ExitCode != 0 || !strings.Contains(plan.Stdout, `"fields":["start","timezone","title"]`) {
-		t.Fatalf("plan = %#v, want sorted update fields", plan)
+	preview := app.Execute(context.Background(), app.Request{Argv: append(argv, "--dry-run")}, dependencies)
+	if preview.ExitCode != 0 || !strings.Contains(preview.Stdout, `"fields":["start","timezone","title"]`) {
+		t.Fatalf("preview = %#v, want sorted update fields", preview)
 	}
-	token := rsvpPlanToken(t, plan)
-	applied := app.Execute(context.Background(), app.Request{Argv: append(append([]string{}, argv...), "--apply", "--plan", token)}, dependencies)
-	if applied.ExitCode != 7 || !strings.Contains(applied.Stdout, `"type":"safety.plan_stale"`) {
-		t.Fatalf("applied = %#v, want stale update plan", applied)
-	}
-	if call != 2 {
-		t.Fatalf("request count = %d, want one plan read and one apply read", call)
+	if call != 1 {
+		t.Fatalf("request count = %d, want one read and no mutation", call)
 	}
 }
 
@@ -338,7 +303,6 @@ func TestExecuteEventUpdateAppliesExactFirestorePatchAndReturnsSubmittedFields(t
 		eventWriteCredentialsPath: []byte(eventWriteCredentials),
 	}}
 	dependencies := eventWriteDependencies(files)
-	dependencies.MutationRandom = strings.NewReader(strings.Repeat("p", 32))
 	call := 0
 	dependencies.HTTP = scriptedHTTP{do: func(request *http.Request) (*http.Response, error) {
 		call++
@@ -365,12 +329,11 @@ func TestExecuteEventUpdateAppliesExactFirestorePatchAndReturnsSubmittedFields(t
 		}
 	}}
 	argv := []string{"events", "update", "event-example", "--title", "Updated title", "--description", "Updated description"}
-	plan := app.Execute(context.Background(), app.Request{Argv: argv}, dependencies)
-	if plan.ExitCode != 0 || strings.Contains(plan.Stdout, "private-account") {
-		t.Fatalf("plan = %#v, want redacted update plan", plan)
+	preview := app.Execute(context.Background(), app.Request{Argv: append(append([]string{}, argv...), "--dry-run")}, dependencies)
+	if preview.ExitCode != 0 || strings.Contains(preview.Stdout, "private-account") {
+		t.Fatalf("preview = %#v, want redacted update preview", preview)
 	}
-	token := rsvpPlanToken(t, plan)
-	applied := app.Execute(context.Background(), app.Request{Argv: append(append([]string{}, argv...), "--apply", "--plan", token)}, dependencies)
+	applied := app.Execute(context.Background(), app.Request{Argv: argv}, dependencies)
 	if applied.ExitCode != 0 ||
 		!strings.Contains(applied.Stdout, `"data":{"eventId":"event-example","fields":["description","title"],"submitted":true}`) ||
 		applied.Stderr != "" {
@@ -383,15 +346,14 @@ func TestExecuteEventUpdateFailsClosedOnMalformedPatchCompletion(t *testing.T) {
 		eventWriteCredentialsPath: []byte(eventWriteCredentials),
 	}}
 	dependencies := eventWriteDependencies(files)
-	dependencies.MutationRandom = strings.NewReader(strings.Repeat("q", 32))
 	call := 0
 	dependencies.HTTP = scriptedHTTP{do: func(request *http.Request) (*http.Response, error) {
 		call++
 		switch call {
-		case 1, 2:
+		case 1:
 			assertEventCallableRequest(t, request, "getEventInfo", `{"data":{"params":{"eventId":"event-example"},"amplitudeDeviceId":"MDEyMzQ1Njc4OWFiY2RlZg"}}`)
 			return jsonResponse(http.StatusOK, eventResponse(t, compatibleUpdateEvent())), nil
-		case 3:
+		case 2:
 			return jsonResponse(http.StatusOK, `{"unexpected":true}`), nil
 		default:
 			t.Fatalf("unexpected request %d", call)
@@ -399,14 +361,12 @@ func TestExecuteEventUpdateFailsClosedOnMalformedPatchCompletion(t *testing.T) {
 		}
 	}}
 	argv := []string{"events", "update", "event-example", "--title", "Updated title"}
-	plan := app.Execute(context.Background(), app.Request{Argv: argv}, dependencies)
-	if plan.ExitCode != 0 {
-		t.Fatalf("plan = %#v", plan)
-	}
-	token := rsvpPlanToken(t, plan)
-	applied := app.Execute(context.Background(), app.Request{Argv: append(append([]string{}, argv...), "--apply", "--plan", token)}, dependencies)
+	applied := app.Execute(context.Background(), app.Request{Argv: argv}, dependencies)
 	if applied.ExitCode != 9 || !strings.Contains(applied.Stdout, `"type":"contract.protocol_changed"`) {
 		t.Fatalf("applied = %#v, want protocol-changed failure", applied)
+	}
+	if call != 2 {
+		t.Fatalf("request count = %d, want one read and one submission attempt", call)
 	}
 }
 
@@ -468,34 +428,26 @@ func TestExecuteEventUpdateFailsClosedWhenMergedRangeNeedsMissingStart(t *testin
 	}
 }
 
-func TestExecuteEventUpdateBindsAbsentCustomFields(t *testing.T) {
+func TestExecuteEventUpdateDryRunAcceptsAbsentCustomFields(t *testing.T) {
 	files := &memoryFilesystem{files: map[string][]byte{
 		eventWriteCredentialsPath: []byte(eventWriteCredentials),
 	}}
 	dependencies := eventWriteDependencies(files)
-	dependencies.MutationRandom = strings.NewReader(strings.Repeat("l", 32))
 	call := 0
 	dependencies.HTTP = scriptedHTTP{do: func(request *http.Request) (*http.Response, error) {
 		call++
 		event := compatibleUpdateEvent()
-		if call == 2 {
-			event["customFields"] = []any{}
-		}
 		assertEventCallableRequest(t, request, "getEventInfo", `{"data":{"params":{"eventId":"event-example"},"amplitudeDeviceId":"MDEyMzQ1Njc4OWFiY2RlZg"}}`)
 		return jsonResponse(http.StatusOK, eventResponse(t, event)), nil
 	}}
 	argv := []string{"events", "update", "event-example", "--link", "Tickets=https://example.test/tickets"}
 
-	plan := app.Execute(context.Background(), app.Request{Argv: argv}, dependencies)
-	if plan.ExitCode != 0 {
-		t.Fatalf("plan = %#v, want absent target field bound", plan)
+	preview := app.Execute(context.Background(), app.Request{Argv: append(argv, "--dry-run")}, dependencies)
+	if preview.ExitCode != 0 {
+		t.Fatalf("preview = %#v, want absent target field accepted", preview)
 	}
-	token := rsvpPlanToken(t, plan)
-	applied := app.Execute(context.Background(), app.Request{
-		Argv: append(append([]string{}, argv...), "--apply", "--plan", token),
-	}, dependencies)
-	if applied.ExitCode != 7 || !strings.Contains(applied.Stdout, `"type":"safety.plan_stale"`) {
-		t.Fatalf("applied = %#v, want changed target state stale failure", applied)
+	if call != 1 {
+		t.Fatalf("request count = %d, want one read and no mutation", call)
 	}
 }
 
@@ -504,7 +456,6 @@ func TestExecuteEventUpdateAllowsIrrelevantNullGuestCount(t *testing.T) {
 		eventWriteCredentialsPath: []byte(eventWriteCredentials),
 	}}
 	dependencies := eventWriteDependencies(files)
-	dependencies.MutationRandom = strings.NewReader(strings.Repeat("n", 32))
 	event := compatibleUpdateEvent()
 	event["guestCount"] = nil
 	dependencies.HTTP = scriptedHTTP{do: func(request *http.Request) (*http.Response, error) {
@@ -513,27 +464,26 @@ func TestExecuteEventUpdateAllowsIrrelevantNullGuestCount(t *testing.T) {
 	}}
 
 	result := app.Execute(context.Background(), app.Request{
-		Argv: []string{"events", "update", "event-example", "--title", "Updated title"},
+		Argv: []string{"events", "update", "event-example", "--title", "Updated title", "--dry-run"},
 	}, dependencies)
 	if result.ExitCode != 0 {
 		t.Fatalf("result = %#v, want irrelevant null guest count accepted", result)
 	}
 }
 
-func TestExecuteEventCancelRequiresConfirmAndAppliesConsequentialPlan(t *testing.T) {
+func TestExecuteEventCancelDryRunsAndForceDispatches(t *testing.T) {
 	files := &memoryFilesystem{files: map[string][]byte{
 		eventWriteCredentialsPath: []byte(eventWriteCredentials),
 	}}
 	dependencies := eventWriteDependencies(files)
-	dependencies.MutationRandom = strings.NewReader(strings.Repeat("k", 32))
 	call := 0
 	dependencies.HTTP = scriptedHTTP{do: func(request *http.Request) (*http.Response, error) {
 		call++
 		switch call {
-		case 1, 2:
+		case 1, 2, 3:
 			assertEventCallableRequest(t, request, "getEventInfo", `{"data":{"params":{"eventId":"event-example"},"amplitudeDeviceId":"MDEyMzQ1Njc4OWFiY2RlZg"}}`)
 			return jsonResponse(http.StatusOK, eventResponse(t, compatibleCancelEvent())), nil
-		case 3:
+		case 4:
 			assertEventCallableRequest(t, request, "cancelEvent", `{"data":{"params":{"eventId":"event-example","cancellationMessage":"See you next time","shouldSkipNotifyGuests":true},"userId":"private-account"}}`)
 			return jsonResponse(http.StatusOK, `{"result":true}`), nil
 		default:
@@ -542,23 +492,26 @@ func TestExecuteEventCancelRequiresConfirmAndAppliesConsequentialPlan(t *testing
 		}
 	}}
 	argv := []string{"events", "cancel", "event-example", "--message", "See you next time", "--notify-guests", "false"}
-	plan := app.Execute(context.Background(), app.Request{Argv: argv}, dependencies)
-	if plan.ExitCode != 0 ||
-		!strings.Contains(plan.Stdout, `"eventId":"event-example"`) ||
-		!strings.Contains(plan.Stdout, `"notifyGuests":false`) ||
-		!strings.Contains(plan.Stdout, `"effects"`) {
-		t.Fatalf("plan = %#v, want consequential cancel plan", plan)
+	preview := app.Execute(context.Background(), app.Request{Argv: append(append([]string{}, argv...), "--dry-run")}, dependencies)
+	if preview.ExitCode != 0 ||
+		!strings.Contains(preview.Stdout, `"eventId":"event-example"`) ||
+		!strings.Contains(preview.Stdout, `"notifyGuests":false`) ||
+		!strings.Contains(preview.Stdout, `"effects"`) ||
+		strings.Contains(preview.Stdout, "See you next time") {
+		t.Fatalf("preview = %#v, want consequential cancel preview", preview)
 	}
-	missingConfirm := app.Execute(context.Background(), app.Request{Argv: append(append([]string{}, argv...), "--apply")}, dependencies)
+	missingConfirm := app.Execute(context.Background(), app.Request{Argv: argv}, dependencies)
 	if missingConfirm.ExitCode != 7 || !strings.Contains(missingConfirm.Stdout, `"type":"safety.confirmation_required"`) {
 		t.Fatalf("missing confirm = %#v, want confirmation-required failure", missingConfirm)
 	}
-	token := rsvpPlanToken(t, plan)
-	applied := app.Execute(context.Background(), app.Request{Argv: append(append([]string{}, argv...), "--apply", "--confirm", token)}, dependencies)
+	applied := app.Execute(context.Background(), app.Request{Argv: append(append([]string{}, argv...), "--force")}, dependencies)
 	if applied.ExitCode != 0 ||
 		!strings.Contains(applied.Stdout, `"data":{"eventId":"event-example","notifyGuests":false,"submitted":true}`) ||
 		applied.Stderr != "" {
 		t.Fatalf("applied = %#v, want submitted-only cancel result", applied)
+	}
+	if call != 4 {
+		t.Fatalf("request count = %d, want two previews/checks and one single-attempt execution", call)
 	}
 }
 
@@ -567,7 +520,6 @@ func TestExecuteEventCancelFailsClosedOnMalformedFactsAndSubmissionUncertainty(t
 		eventWriteCredentialsPath: []byte(eventWriteCredentials),
 	}}
 	dependencies := eventWriteDependencies(files)
-	dependencies.MutationRandom = strings.NewReader(strings.Repeat("m", 32))
 
 	cases := []struct {
 		name     string
@@ -593,9 +545,6 @@ func TestExecuteEventCancelFailsClosedOnMalformedFactsAndSubmissionUncertainty(t
 					}
 					return jsonResponse(http.StatusOK, eventResponse(t, testCase.event)), nil
 				case 2:
-					assertEventCallableRequest(t, request, "getEventInfo", `{"data":{"params":{"eventId":"event-example"},"amplitudeDeviceId":"MDEyMzQ1Njc4OWFiY2RlZg"}}`)
-					return jsonResponse(http.StatusOK, eventResponse(t, compatibleCancelEvent())), nil
-				case 3:
 					if testCase.httpErr != nil {
 						return nil, testCase.httpErr
 					}
@@ -605,25 +554,13 @@ func TestExecuteEventCancelFailsClosedOnMalformedFactsAndSubmissionUncertainty(t
 					return nil, nil
 				}
 			}}
-			argv := []string{"events", "cancel", "event-example"}
-			if testCase.httpErr == nil {
-				result := app.Execute(context.Background(), app.Request{Argv: argv}, dependencies)
-				if result.ExitCode != testCase.exitCode || !strings.Contains(result.Stdout, testCase.contains) {
-					t.Fatalf("result = %#v, want exit %d containing %q", result, testCase.exitCode, testCase.contains)
-				}
-				return
+			argv := []string{"events", "cancel", "event-example", "--force"}
+			result := app.Execute(context.Background(), app.Request{Argv: argv}, dependencies)
+			if result.ExitCode != testCase.exitCode || !strings.Contains(result.Stdout, testCase.contains) {
+				t.Fatalf("result = %#v, want exit %d containing %q", result, testCase.exitCode, testCase.contains)
 			}
-			plan := app.Execute(context.Background(), app.Request{Argv: argv}, dependencies)
-			if plan.ExitCode != 0 {
-				t.Fatalf("plan = %#v", plan)
-			}
-			token := rsvpPlanToken(t, plan)
-			applied := app.Execute(context.Background(), app.Request{Argv: append(append([]string{}, argv...), "--apply", "--confirm", token)}, dependencies)
-			if applied.ExitCode != testCase.exitCode || !strings.Contains(applied.Stdout, testCase.contains) {
-				t.Fatalf("applied = %#v, want exit %d containing %q", applied, testCase.exitCode, testCase.contains)
-			}
-			if reused := app.Execute(context.Background(), app.Request{Argv: append(append([]string{}, argv...), "--apply", "--confirm", token)}, dependencies); reused.ExitCode != 7 {
-				t.Fatalf("reused = %#v, want stale consumed plan", reused)
+			if testCase.httpErr != nil && call != 2 {
+				t.Fatalf("request count = %d, want one read and one submission attempt", call)
 			}
 		})
 	}
@@ -642,7 +579,7 @@ func TestExecuteEventCancelPreservesPrettyFailureMetadata(t *testing.T) {
 	}}
 
 	result := app.Execute(context.Background(), app.Request{
-		Argv: []string{"--pretty", "events", "cancel", "event-example"},
+		Argv: []string{"--pretty", "events", "cancel", "event-example", "--force"},
 	}, dependencies)
 	if result.ExitCode != 9 ||
 		!strings.Contains(result.Stdout, `"code": "EVENT_CANCEL_PROTOCOL_CHANGED"`) ||

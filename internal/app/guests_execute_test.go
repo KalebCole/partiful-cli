@@ -231,12 +231,11 @@ func TestExecuteGuestsListReturnsEmptyCollectionForHost(t *testing.T) {
 	}
 }
 
-func TestExecuteGuestsInviteBindsResolvedContactAndAppliesWithoutReResolvingName(t *testing.T) {
+func TestExecuteGuestsInviteDryRunsAndDispatchesResolvedContact(t *testing.T) {
 	files := &memoryFilesystem{files: map[string][]byte{
 		eventWriteCredentialsPath: []byte(`{"accessToken":"private-access-token","userId":"private-host","expiresAt":"2026-08-12T02:00:00Z"}`),
 	}}
 	dependencies := eventWriteDependencies(files)
-	dependencies.MutationRandom = strings.NewReader(strings.Repeat("v", 32))
 	call := 0
 	dependencies.HTTP = scriptedHTTP{do: func(request *http.Request) (*http.Response, error) {
 		call++
@@ -250,7 +249,7 @@ func TestExecuteGuestsInviteBindsResolvedContactAndAppliesWithoutReResolvingName
 		case 3:
 			return jsonResponse(http.StatusOK, `{"result":{"data":[],"paging":{}}}`), nil
 		case 5:
-			return jsonResponse(http.StatusOK, `{"result":{"data":[{"id":"private-contact-1","name":"Alex Example","sharedEventCount":2},{"id":"private-contact-2","name":"Alex Example","sharedEventCount":5}],"paging":{"nextCursor":"private-contacts-cursor"}}}`), nil
+			return jsonResponse(http.StatusOK, `{"result":{"data":[{"id":"private-contact-1","name":"Alex Example","sharedEventCount":3}],"paging":{"nextCursor":"private-contacts-cursor"}}}`), nil
 		case 6:
 			return jsonResponse(http.StatusOK, `{"result":{"data":[],"paging":{}}}`), nil
 		case 7:
@@ -262,35 +261,34 @@ func TestExecuteGuestsInviteBindsResolvedContactAndAppliesWithoutReResolvingName
 	}}
 
 	argv := []string{"guests", "invite", "event-example", "--contact", "Alex Example"}
-	plan := app.Execute(context.Background(), app.Request{Argv: argv}, dependencies)
-	if plan.ExitCode != 0 || strings.Contains(plan.Stdout, "private-contact-1") {
-		t.Fatalf("plan = %#v, want redacted guest invite plan", plan)
+	preview := app.Execute(context.Background(), app.Request{Argv: append(append([]string{}, argv...), "--dry-run")}, dependencies)
+	if preview.ExitCode != 0 || strings.Contains(preview.Stdout, "private-contact-1") {
+		t.Fatalf("preview = %#v, want redacted guest invite preview", preview)
 	}
-	if !strings.Contains(plan.Stdout, `"operation":"addInvitedGuestsAsHost"`) ||
-		!strings.Contains(plan.Stdout, `\u003credacted\u003e`) ||
-		!strings.Contains(plan.Stdout, `"contact":"Alex Example"`) {
-		t.Fatalf("plan = %s, want reviewed guest invite plan", plan.Stdout)
+	if !strings.Contains(preview.Stdout, `"operation":"addInvitedGuestsAsHost"`) ||
+		!strings.Contains(preview.Stdout, `\u003credacted\u003e`) ||
+		!strings.Contains(preview.Stdout, `"contact":"Alex Example"`) {
+		t.Fatalf("preview = %s, want reviewed guest invite preview", preview.Stdout)
 	}
-	token := rsvpPlanToken(t, plan)
 
 	applied := app.Execute(context.Background(), app.Request{
-		Argv: append(append([]string{}, argv...), "--apply", "--confirm", token),
+		Argv: argv,
 	}, dependencies)
 	const want = `{"ok":true,"data":{"eventId":"event-example","submitted":true},"meta":{"command":"guests.invite","cliVersion":"3.0.0","productContractRevision":"2026-08-12.7","remoteContractRevision":"2026-08-12.7","warnings":[]}}` + "\n"
 	if applied.ExitCode != 0 || applied.Stdout != want || applied.Stderr != "" {
 		t.Fatalf("applied = %#v, want submitted-only guest invite result", applied)
 	}
 	if call != 7 {
-		t.Fatalf("request count = %d, want plan reads, apply reads, and one mutation", call)
+		t.Fatalf("request count = %d, want preview reads, execution reads, and one mutation", call)
 	}
 	for _, privateValue := range []string{"private-contact-1", "private-contact-2", "private-contacts-cursor"} {
-		if strings.Contains(plan.Stdout+plan.Stderr+applied.Stdout+applied.Stderr, privateValue) {
+		if strings.Contains(preview.Stdout+preview.Stderr+applied.Stdout+applied.Stderr, privateValue) {
 			t.Fatalf("guest invite flow exposed private value %q", privateValue)
 		}
 	}
 }
 
-func TestExecuteGuestsInviteReturnsPublicAmbiguityAndStalesChangedContact(t *testing.T) {
+func TestExecuteGuestsInviteReturnsPublicAmbiguity(t *testing.T) {
 	t.Run("ambiguous planning", func(t *testing.T) {
 		dependencies := eventWriteDependencies(&memoryFilesystem{files: map[string][]byte{
 			eventWriteCredentialsPath: []byte(`{"accessToken":"private-access-token","userId":"private-host","expiresAt":"2026-08-12T02:00:00Z"}`),
@@ -327,47 +325,6 @@ func TestExecuteGuestsInviteReturnsPublicAmbiguityAndStalesChangedContact(t *tes
 		}
 	})
 
-	t.Run("stale contact", func(t *testing.T) {
-		files := &memoryFilesystem{files: map[string][]byte{
-			eventWriteCredentialsPath: []byte(`{"accessToken":"private-access-token","userId":"private-host","expiresAt":"2026-08-12T02:00:00Z"}`),
-		}}
-		dependencies := eventWriteDependencies(files)
-		dependencies.MutationRandom = strings.NewReader(strings.Repeat("w", 32))
-		call := 0
-		dependencies.HTTP = scriptedHTTP{do: func(request *http.Request) (*http.Response, error) {
-			call++
-			switch call {
-			case 1, 4:
-				return jsonResponse(http.StatusOK, `{"result":{"data":{"event":{"id":"event-example","ownerIds":["private-host"],"rsvpsEnabled":true,"atCapacity":false,"plusOneNamesRequired":false,"questionnaireVersions":null,"hasGuests":true}}}}`), nil
-			case 2:
-				return jsonResponse(http.StatusOK, `{"result":{"data":[{"id":"private-contact-1","name":"Alex Example","sharedEventCount":2}],"paging":{"nextCursor":"private-cursor"}}}`), nil
-			case 3:
-				return jsonResponse(http.StatusOK, `{"result":{"data":[],"paging":{}}}`), nil
-			case 5:
-				return jsonResponse(http.StatusOK, `{"result":{"data":[{"id":"private-contact-1","name":"Alex Example","sharedEventCount":3}],"paging":{"nextCursor":"private-cursor"}}}`), nil
-			case 6:
-				return jsonResponse(http.StatusOK, `{"result":{"data":[],"paging":{}}}`), nil
-			default:
-				return nil, errors.New("unexpected request")
-			}
-		}}
-
-		argv := []string{"guests", "invite", "event-example", "--contact", "Alex Example"}
-		plan := app.Execute(context.Background(), app.Request{Argv: argv}, dependencies)
-		if plan.ExitCode != 0 {
-			t.Fatalf("plan = %#v", plan)
-		}
-		token := rsvpPlanToken(t, plan)
-		applied := app.Execute(context.Background(), app.Request{
-			Argv: append(append([]string{}, argv...), "--apply", "--confirm", token),
-		}, dependencies)
-		if applied.ExitCode != 7 || !strings.Contains(applied.Stdout, `"type":"safety.plan_stale"`) {
-			t.Fatalf("applied = %#v, want stale changed-contact plan", applied)
-		}
-		if call != 6 {
-			t.Fatalf("request count = %d, want no mutation on stale contact", call)
-		}
-	})
 }
 
 type guestOutput struct {
@@ -395,8 +352,9 @@ func TestExecuteSchemaProjectsGuestCommands(t *testing.T) {
 	if invite.ExitCode != 0 ||
 		!strings.Contains(invite.Stdout, `"command":"guests.invite"`) ||
 		!strings.Contains(invite.Stdout, `"--contact"`) ||
+		!strings.Contains(invite.Stdout, `"--dry-run"`) ||
 		!strings.Contains(invite.Stdout, `"kind":"consequential-action"`) ||
-		!strings.Contains(invite.Stdout, `"confirmationRequired":true`) {
+		!strings.Contains(invite.Stdout, `"destructive":false`) {
 		t.Fatalf("invite schema = %#v, want guests.invite projection", invite)
 	}
 }

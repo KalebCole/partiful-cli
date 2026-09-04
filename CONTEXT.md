@@ -33,17 +33,13 @@ A difference between current Partiful behavior and the remote API contract
 that a released command was built against.
 _Avoid_: Remote unknown, API issue
 
-**Mutation plan**:  
-A no-effect description of one exact proposed remote change, including its
-inputs, preconditions, and expected effects.
-
-**Plan token**:  
-An opaque, short-lived value that binds execution or confirmation to one exact
-mutation plan and signed-in account without exposing the account identifier.
+**Dry-run preview**:
+A no-effect description of one proposed remote change, including its normalized
+request and any relevant preconditions. It does not authorize a later command.
 
 **Consequential action**:  
 A mutation that contacts a person, removes access, exposes access, or cancels
-an event. It requires confirmation of its exact mutation plan.
+an event. Destructive actions require an interactive confirmation or `--force`.
 
 **Implementation**:  
 The Go code that is subordinate to the CLI product contract and remote API

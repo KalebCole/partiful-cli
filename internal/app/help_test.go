@@ -40,15 +40,15 @@ func TestExecuteConventionalHelp(t *testing.T) {
 			name: "leaf long help",
 			argv: []string{"events", "create", "--help"},
 			want: []string{
-				"Usage: partiful events create", "Purpose:", "Flags:", "--plan <value>", "--apply",
+				"Usage: partiful events create", "Purpose:", "Flags:", "--dry-run", "--force", "--no-input",
 				"Required fields:", "title", "start", "timezone", "Examples:", "Exit behavior:",
-				"Mutation safety:", "repeat the original payload", "partiful events create --title <value>",
+				"Mutation safety:", "one validated invocation", "partiful events create --title <value>",
 			},
 		},
 		{
 			name: "help command leaf path",
 			argv: []string{"help", "events", "create"},
-			want: []string{"Usage: partiful events create", "--plan <value>", "Mutation safety:"},
+			want: []string{"Usage: partiful events create", "--dry-run", "Mutation safety:"},
 		},
 		{
 			name: "help command version path",

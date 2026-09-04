@@ -77,6 +77,17 @@ partiful cohosts link revoke <event-id>
 All command results are JSON. Use `partiful schema <command.path>` for the
 exact input, success, failure, and safety contract for any approved command.
 
+## Mutation safety
+
+Mutation commands execute once after validation and required read-before-write
+checks. Add `--dry-run` to return a redacted request preview without sending a
+write.
+
+`events cancel`, `cohosts remove`, `cohosts revoke-invite`, and
+`cohosts link revoke` require an interactive terminal confirmation.
+`--force` skips only that prompt. `--no-input` or `--non-interactive` disables
+prompting and fails safely unless `--force` is also present.
+
 ## Release notes
 
 - GoReleaser injects the tagged release version with ldflags.
