@@ -1614,6 +1614,9 @@ func helpTarget(argv []string) ([]string, bool) {
 }
 
 func normalizeHelpPath(path []string) []string {
+	if len(path) == 1 && path[0] == "version" {
+		return []string{"--version"}
+	}
 	if len(path) == 1 && strings.Contains(path[0], ".") {
 		return strings.Split(path[0], ".")
 	}

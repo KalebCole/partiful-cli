@@ -50,6 +50,11 @@ func TestExecuteConventionalHelp(t *testing.T) {
 			argv: []string{"help", "events", "create"},
 			want: []string{"Usage: partiful events create", "--plan <value>", "Mutation safety:"},
 		},
+		{
+			name: "help command version path",
+			argv: []string{"help", "version"},
+			want: []string{"Usage: partiful --version", "Purpose:"},
+		},
 	}
 
 	for _, test := range tests {
