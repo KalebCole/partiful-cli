@@ -63,4 +63,8 @@ check for authentication state.
 
 - Never expose phone numbers, email addresses, access tokens, or Partiful user IDs.
 - Never use live credentials or mutate real events in automated validation.
-- Consequential commands require reviewed plans and confirmation tokens.
+- Use `--dry-run` for a redacted mutation preview.
+- `events.cancel`, `cohosts.remove`, `cohosts.revoke-invite`, and
+  `cohosts.link.revoke` require a TTY confirmation unless `--force` is set.
+- Use `--no-input` or `--non-interactive` when prompting is not allowed.
+- Mutation commands dispatch at most once and never retry automatically.

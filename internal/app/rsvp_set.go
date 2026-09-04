@@ -1,26 +1,20 @@
 package app
 
 import (
-	"bytes"
 	"context"
-	"encoding/json"
 	"errors"
 	"math"
 	"strings"
-	"time"
 
-	"github.com/KalebCole/partiful-cli/internal/mutation"
 	"github.com/KalebCole/partiful-cli/internal/remote"
 )
 
-type rsvpPlan struct {
-	Operation        string                  `json:"operation"`
-	Mode             string                  `json:"mode"`
-	Input            any                     `json:"input"`
-	Request          any                     `json:"request"`
-	Preconditions    rsvpPublicPreconditions `json:"preconditions"`
-	ExpiresInSeconds int                     `json:"expiresInSeconds"`
-	PlanToken        string                  `json:"planToken"`
+type rsvpPreview struct {
+	Operation     string                  `json:"operation"`
+	Mode          string                  `json:"mode"`
+	Input         any                     `json:"input"`
+	Request       any                     `json:"request"`
+	Preconditions rsvpPublicPreconditions `json:"preconditions"`
 }
 
 type rsvpPublicPreconditions struct {
@@ -28,15 +22,27 @@ type rsvpPublicPreconditions struct {
 	EventSafeguards string `json:"eventSafeguards"`
 }
 
+type rsvpPreviewAddGuestRequest struct {
+	EventID string                `json:"eventId"`
+	RSVP    rsvpPreviewGuestDraft `json:"rsvp"`
+}
+
+type rsvpPreviewGuestDraft struct {
+	Name                  string                        `json:"name"`
+	Count                 int                           `json:"count"`
+	PlusOnes              []remote.NamedPlusOne         `json:"plusOnes"`
+	MessageProvided       bool                          `json:"messageProvided"`
+	Status                string                        `json:"status"`
+	GuestID               *string                       `json:"guestId,omitempty"`
+	Timezone              string                        `json:"timezone"`
+	QuestionnaireResponse *remote.QuestionnaireResponse `json:"questionnaireResponse,omitempty"`
+	ShouldFollowOrgs      bool                          `json:"shouldFollowOrgs"`
+}
+
 type rsvpSubmitted struct {
 	EventID   string `json:"eventId"`
 	Intent    string `json:"intent"`
 	Submitted bool   `json:"submitted"`
-}
-
-type rsvpPrivatePreconditions struct {
-	CurrentGuest rsvpPrivateCurrentGuest `json:"currentGuest"`
-	Event        remote.EventSafeguards  `json:"event"`
 }
 
 type rsvpPrivateCurrentGuest struct {
@@ -47,11 +53,11 @@ type rsvpPrivateCurrentGuest struct {
 }
 
 type rsvpPreparedRequest struct {
-	Operation     string
-	Mode          string
-	Private       any
-	Public        any
-	Preconditions rsvpPrivatePreconditions
+	Operation    string
+	Mode         string
+	Private      any
+	Public       any
+	CurrentGuest string
 }
 
 type rsvpCompatibilityError uint8
@@ -68,6 +74,7 @@ func executeRSVPSet(
 	definition commandDefinition,
 	argv []string,
 	dependencies Dependencies,
+	execution mutationExecution,
 	pretty bool,
 ) Result {
 	options, inputError := parseRSVPSetOptions(
@@ -79,45 +86,15 @@ func executeRSVPSet(
 	if inputError != nil {
 		return failure(definition.path, 2, *inputError, pretty)
 	}
-	session, sessionFailure := acquireProtectedSession(
+	session, sessionFailure := acquireProtectedMutationSession(
 		ctx,
 		definition.path,
 		dependencies,
+		execution,
 		pretty,
 	)
 	if sessionFailure != nil {
 		return *sessionFailure
-	}
-	if session.AccountFingerprint == "" {
-		return internalFailure(definition.path, pretty)
-	}
-	clock := time.Now
-	if dependencies.Now != nil {
-		clock = dependencies.Now
-	}
-	authority := mutation.Authority{
-		Files:  dependencies.Files,
-		Path:   mutationPath(dependencies),
-		Now:    clock,
-		Random: dependencies.MutationRandom,
-	}
-	inputDocument := options.Input.document()
-	var inspected mutation.Record
-	if options.Apply {
-		var err error
-		inspected, err = authority.Inspect(
-			options.PlanToken,
-			definition.path,
-			rsvpOperation(options.Input),
-			session.AccountFingerprint,
-			inputDocument,
-		)
-		if err != nil {
-			if errors.Is(err, mutation.ErrStale) {
-				return rsvpPlanStaleFailure(definition.path, pretty)
-			}
-			return internalFailure(definition.path, pretty)
-		}
 	}
 	deviceID, err := randomDeviceID(dependencies.AuthRandom)
 	if err != nil {
@@ -133,9 +110,6 @@ func executeRSVPSet(
 	if err != nil {
 		switch {
 		case errors.Is(err, remote.ErrEventNotFound):
-			if options.Apply {
-				return rsvpPlanStaleFailure(definition.path, pretty)
-			}
 			return eventNotFoundFailure(definition.path, pretty)
 		case errors.Is(err, remote.ErrUnavailable):
 			return rsvpUnavailableFailure(definition.path, pretty)
@@ -156,15 +130,6 @@ func executeRSVPSet(
 		return rsvpProtocolChangedFailure(definition.path, pretty)
 	}
 	privateCurrentGuest, currentGuestError := normalizeRSVPCurrentGuest(currentGuest)
-	preconditions := rsvpPrivatePreconditions{
-		CurrentGuest: privateCurrentGuest,
-		Event:        event.Safeguards,
-	}
-	preconditionDocument, _ := json.Marshal(preconditions)
-	if options.Apply &&
-		!bytes.Equal(inspected.Binding.Preconditions, preconditionDocument) {
-		return rsvpPlanStaleFailure(definition.path, pretty)
-	}
 	if currentGuestError != 0 {
 		return rsvpCompatibilityFailure(
 			definition.path,
@@ -185,79 +150,68 @@ func executeRSVPSet(
 			pretty,
 		)
 	}
-	requestDocument, _ := json.Marshal(prepared.Private)
-	binding := mutation.Binding{
-		Command:            definition.path,
-		Operation:          prepared.Operation,
-		AccountFingerprint: session.AccountFingerprint,
-		Input:              inputDocument,
-		Request:            requestDocument,
-		Preconditions:      preconditionDocument,
-	}
-	if options.Apply {
-		if !bytes.Equal(inspected.Binding.Request, requestDocument) {
-			return rsvpPlanStaleFailure(definition.path, pretty)
-		}
-		if err := authority.Consume(options.PlanToken, binding); err != nil {
-			if errors.Is(err, mutation.ErrStale) {
-				return rsvpPlanStaleFailure(definition.path, pretty)
-			}
-			return internalFailure(definition.path, pretty)
-		}
-		switch params := prepared.Private.(type) {
-		case remote.AddGuestParams:
-			err = client.AddGuest(
-				ctx,
-				session.AccessToken,
-				deviceID,
-				params,
-			)
-		case remote.MarkEventInterestParams:
-			err = client.MarkEventInterest(
-				ctx,
-				session.AccessToken,
-				deviceID,
-				params,
-			)
-		default:
-			return internalFailure(definition.path, pretty)
-		}
-		if err != nil {
-			if errors.Is(err, remote.ErrUnavailable) {
-				return rsvpSubmitUnavailableFailure(definition.path, pretty)
-			}
-			return rsvpProtocolChangedFailure(definition.path, pretty)
-		}
-		return success(definition.path, rsvpSubmitted{
-			EventID:   options.EventID,
-			Intent:    options.Input.Intent,
-			Submitted: true,
+	if execution.DryRun {
+		return success(definition.path, rsvpPreview{
+			Operation: prepared.Operation,
+			Mode:      prepared.Mode,
+			Input:     options.Input.public(),
+			Request:   publicRSVPPreviewRequest(prepared.Public),
+			Preconditions: rsvpPublicPreconditions{
+				CurrentGuest:    prepared.CurrentGuest,
+				EventSafeguards: "bound",
+			},
 		}, pretty)
 	}
-
-	token, err := authority.Create(binding)
-	if err != nil {
+	switch params := prepared.Private.(type) {
+	case remote.AddGuestParams:
+		err = client.AddGuest(
+			ctx,
+			session.AccessToken,
+			deviceID,
+			params,
+		)
+	case remote.MarkEventInterestParams:
+		err = client.MarkEventInterest(
+			ctx,
+			session.AccessToken,
+			deviceID,
+			params,
+		)
+	default:
 		return internalFailure(definition.path, pretty)
 	}
-	return success(definition.path, rsvpPlan{
-		Operation: prepared.Operation,
-		Mode:      prepared.Mode,
-		Input:     options.Input.public(),
-		Request:   prepared.Public,
-		Preconditions: rsvpPublicPreconditions{
-			CurrentGuest:    prepared.Preconditions.CurrentGuest.Marker,
-			EventSafeguards: "bound",
-		},
-		ExpiresInSeconds: 300,
-		PlanToken:        token,
+	if err != nil {
+		if errors.Is(err, remote.ErrUnavailable) {
+			return rsvpSubmitUnavailableFailure(definition.path, pretty)
+		}
+		return rsvpProtocolChangedFailure(definition.path, pretty)
+	}
+	return success(definition.path, rsvpSubmitted{
+		EventID:   options.EventID,
+		Intent:    options.Input.Intent,
+		Submitted: true,
 	}, pretty)
 }
 
-func rsvpOperation(input normalizedRSVPInput) string {
-	if input.Intent == "interested" {
-		return "markEventInterest"
+func publicRSVPPreviewRequest(request any) any {
+	params, ok := request.(remote.AddGuestParams)
+	if !ok {
+		return request
 	}
-	return "addGuest"
+	return rsvpPreviewAddGuestRequest{
+		EventID: params.EventID,
+		RSVP: rsvpPreviewGuestDraft{
+			Name:                  params.RSVP.Name,
+			Count:                 params.RSVP.Count,
+			PlusOnes:              params.RSVP.PlusOnes,
+			MessageProvided:       params.RSVP.Message != nil,
+			Status:                params.RSVP.Status,
+			GuestID:               params.RSVP.GuestID,
+			Timezone:              params.RSVP.Timezone,
+			QuestionnaireResponse: params.RSVP.QuestionnaireResponse,
+			ShouldFollowOrgs:      params.RSVP.ShouldFollowOrgs,
+		},
+	}
 }
 
 func prepareRSVPRequest(
@@ -273,21 +227,17 @@ func prepareRSVPRequest(
 	if currentGuest.Marker == "present" {
 		mode = "update"
 	}
-	preconditions := rsvpPrivatePreconditions{
-		CurrentGuest: currentGuest,
-		Event:        event,
-	}
 	if input.Intent == "interested" {
 		params := remote.MarkEventInterestParams{
 			EventID:    eventID,
 			Interested: true,
 		}
 		return rsvpPreparedRequest{
-			Operation:     "markEventInterest",
-			Mode:          mode,
-			Private:       params,
-			Public:        params,
-			Preconditions: preconditions,
+			Operation:    "markEventInterest",
+			Mode:         mode,
+			Private:      params,
+			Public:       params,
+			CurrentGuest: currentGuest.Marker,
 		}, 0
 	}
 	product := input.AddGuest
@@ -330,11 +280,11 @@ func prepareRSVPRequest(
 		publicParams.RSVP.GuestID = &redacted
 	}
 	return rsvpPreparedRequest{
-		Operation:     "addGuest",
-		Mode:          mode,
-		Private:       privateParams,
-		Public:        publicParams,
-		Preconditions: preconditions,
+		Operation:    "addGuest",
+		Mode:         mode,
+		Private:      privateParams,
+		Public:       publicParams,
+		CurrentGuest: currentGuest.Marker,
 	}, 0
 }
 
@@ -454,16 +404,6 @@ func cloneRSVPAnswers(source map[string]string) map[string]string {
 	return result
 }
 
-func mutationPath(dependencies Dependencies) string {
-	if dependencies.MutationPath != "" {
-		return dependencies.MutationPath
-	}
-	if dependencies.CredentialsPath == "" {
-		return ""
-	}
-	return dependencies.CredentialsPath + ".mutation-plans"
-}
-
 func rsvpCompatibilityFailure(
 	command string,
 	kind rsvpCompatibilityError,
@@ -493,23 +433,11 @@ func rsvpCompatibilityFailure(
 	}
 }
 
-func rsvpPlanStaleFailure(command string, pretty bool) Result {
-	result := failure(command, 7, errorBody{
-		Type:      "safety.plan_stale",
-		Code:      "PLAN_STALE",
-		Message:   "The mutation plan is expired, used, or no longer matches.",
-		Retryable: false,
-		Details:   map[string]any{},
-	}, pretty)
-	result.Stderr = "partiful: mutation plan stale\n"
-	return result
-}
-
 func rsvpSubmitUnavailableFailure(command string, pretty bool) Result {
 	result := failure(command, 8, errorBody{
 		Type:      "remote.unavailable",
 		Code:      "RSVP_SUBMISSION_UNCERTAIN",
-		Message:   "RSVP submission could not be confirmed. Create a new plan before another attempt.",
+		Message:   "RSVP submission could not be confirmed. Inspect remote state before another attempt.",
 		Retryable: false,
 		Details:   map[string]any{},
 	}, pretty)

@@ -32,21 +32,37 @@ type interestProductInput struct {
 	Status string `json:"status"`
 }
 
+type addGuestPreviewInput struct {
+	Status                string              `json:"status"`
+	DisplayName           string              `json:"displayName"`
+	PartySize             int                 `json:"partySize"`
+	PlusOnes              []string            `json:"plusOnes"`
+	MessageProvided       bool                `json:"messageProvided"`
+	Timezone              string              `json:"timezone"`
+	QuestionnaireResponse *questionnaireInput `json:"questionnaireResponse"`
+}
+
 type normalizedRSVPInput struct {
 	Intent   string
 	AddGuest *addGuestProductInput
 }
 
 type rsvpSetOptions struct {
-	EventID   string
-	Input     normalizedRSVPInput
-	Apply     bool
-	PlanToken string
+	EventID string
+	Input   normalizedRSVPInput
 }
 
 func (input normalizedRSVPInput) public() any {
 	if input.AddGuest != nil {
-		return *input.AddGuest
+		return addGuestPreviewInput{
+			Status:                input.AddGuest.Status,
+			DisplayName:           input.AddGuest.DisplayName,
+			PartySize:             input.AddGuest.PartySize,
+			PlusOnes:              input.AddGuest.PlusOnes,
+			MessageProvided:       input.AddGuest.Message != nil,
+			Timezone:              input.AddGuest.Timezone,
+			QuestionnaireResponse: input.AddGuest.QuestionnaireResponse,
+		}
 	}
 	return interestProductInput{Status: input.Intent}
 }
@@ -75,11 +91,6 @@ func parseRSVPSetOptions(
 	for index := len(definition.invocation) + 1; index < len(argv); index++ {
 		name := argv[index]
 		switch name {
-		case "--apply":
-			if _, repeated := scalars[name]; repeated {
-				return rsvpSetOptions{}, repeatedRSVPFlag(name)
-			}
-			scalars[name] = "true"
 		case "--input",
 			"--status",
 			"--display-name",
@@ -87,8 +98,7 @@ func parseRSVPSetOptions(
 			"--plus-one",
 			"--message",
 			"--timezone",
-			"--questionnaire-response",
-			"--plan":
+			"--questionnaire-response":
 			if name != "--plus-one" {
 				if _, repeated := scalars[name]; repeated {
 					return rsvpSetOptions{}, repeatedRSVPFlag(name)
@@ -114,20 +124,6 @@ func parseRSVPSetOptions(
 				"The command contains an unknown flag.",
 			)
 		}
-	}
-	_, options.Apply = scalars["--apply"]
-	options.PlanToken = scalars["--plan"]
-	if options.Apply && options.PlanToken == "" {
-		return rsvpSetOptions{}, rsvpInputFailure(
-			"PLAN_REQUIRED",
-			"--apply requires --plan.",
-		)
-	}
-	if !options.Apply && options.PlanToken != "" {
-		return rsvpSetOptions{}, rsvpInputFailure(
-			"APPLY_REQUIRED",
-			"--plan requires --apply.",
-		)
 	}
 
 	var document map[string]json.RawMessage
@@ -511,8 +507,6 @@ func rsvpSetInputSchema() jsonSchema {
 		return map[string]jsonSchema{
 			"eventId": {Type: "string", MinLength: &one},
 			"status":  {Type: "string", Enum: []string{status}},
-			"apply":   {Type: "boolean"},
-			"plan":    {Type: "string", MinLength: &one},
 		}
 	}
 	addGuestVariant := func(status string) jsonSchema {
@@ -540,20 +534,13 @@ func rsvpSetInputSchema() jsonSchema {
 			[]string{"eventId", "status", "displayName", "partySize", "timezone"},
 			properties,
 		)
-		schema.DependentRequired = map[string][]string{
-			"apply": {"plan"},
-			"plan":  {"apply"},
-		}
 		return schema
 	}
 	interest := objectSchema(
 		[]string{"eventId", "status"},
 		commonProperties("interested"),
 	)
-	interest.DependentRequired = map[string][]string{
-		"apply": {"plan"},
-		"plan":  {"apply"},
-	}
+
 	return jsonSchema{Type: "object", OneOf: []jsonSchema{
 		addGuestVariant("going"),
 		addGuestVariant("not-going"),
@@ -565,8 +552,6 @@ func rsvpSetSuccessSchema() jsonSchema {
 	zero := 0
 	one := 1
 	fifty := 50
-	fourHundred := 400
-	threeHundred := 300
 	stringItem := jsonSchema{Type: "string", MinLength: &one, Pattern: `\S`}
 	answers := jsonSchema{
 		Type:                 "object",
@@ -593,7 +578,7 @@ func rsvpSetSuccessSchema() jsonSchema {
 			"displayName":           {Type: "string", MinLength: &one, MaxLength: &fifty, Pattern: `\S`},
 			"partySize":             {Type: "integer", Minimum: &one},
 			"plusOnes":              {Type: "array", Items: &stringItem},
-			"message":               {Type: []string{"string", "null"}, MaxLength: &fourHundred},
+			"messageProvided":       {Type: "boolean"},
 			"timezone":              {Type: "string", MinLength: &one},
 			"questionnaireResponse": {Type: "null"},
 		}
@@ -608,7 +593,7 @@ func rsvpSetSuccessSchema() jsonSchema {
 				"displayName",
 				"partySize",
 				"plusOnes",
-				"message",
+				"messageProvided",
 				"timezone",
 				"questionnaireResponse",
 			},
@@ -630,12 +615,12 @@ func rsvpSetSuccessSchema() jsonSchema {
 		},
 	)
 	draft := objectSchema(
-		[]string{"name", "count", "plusOnes", "status", "timezone", "shouldFollowOrgs"},
+		[]string{"name", "count", "plusOnes", "messageProvided", "status", "timezone", "shouldFollowOrgs"},
 		map[string]jsonSchema{
 			"name":                  {Type: "string", MinLength: &one, MaxLength: &fifty},
 			"count":                 {Type: "integer", Minimum: &one},
 			"plusOnes":              {Type: "array", Items: &plusOne},
-			"message":               {Type: "string", MaxLength: &fourHundred},
+			"messageProvided":       {Type: "boolean"},
 			"status":                {Type: "string", Enum: []string{"GOING", "DECLINED"}},
 			"guestId":               {Type: "string", Enum: []string{"<redacted>"}},
 			"timezone":              {Type: "string", MinLength: &one},
@@ -664,15 +649,13 @@ func rsvpSetSuccessSchema() jsonSchema {
 			"eventSafeguards": {Type: "string", Enum: []string{"bound"}},
 		},
 	)
-	plan := objectSchema(
+	preview := objectSchema(
 		[]string{
 			"operation",
 			"mode",
 			"input",
 			"request",
 			"preconditions",
-			"expiresInSeconds",
-			"planToken",
 		},
 		map[string]jsonSchema{
 			"operation": {Type: "string", Enum: []string{"addGuest", "markEventInterest"}},
@@ -687,18 +670,15 @@ func rsvpSetSuccessSchema() jsonSchema {
 			"request": {
 				OneOf: []jsonSchema{addGuestRequest, interestRequest},
 			},
-			"preconditions":    preconditions,
-			"expiresInSeconds": {Type: "integer", Minimum: &threeHundred, Maximum: &threeHundred},
-			"planToken":        {Type: "string", MinLength: &one},
+			"preconditions": preconditions,
 		},
 	)
-	return jsonSchema{Type: "object", OneOf: []jsonSchema{plan, submitted}}
+	return jsonSchema{Type: "object", OneOf: []jsonSchema{preview, submitted}}
 }
 
 func standardMutationSafety() safetyDefinition {
 	return safetyDefinition{
-		Kind:                 "standard-mutation",
-		PlanRequired:         true,
-		ConfirmationRequired: false,
+		Kind:        "standard-mutation",
+		Destructive: false,
 	}
 }

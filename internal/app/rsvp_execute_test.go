@@ -132,12 +132,11 @@ func TestExecuteRSVPCommandsRequireAuthenticationBeforeRemoteAccess(t *testing.T
 	}
 }
 
-func TestExecuteRSVPSetPlansNormalizedGoingCreateWithoutMutation(t *testing.T) {
+func TestExecuteRSVPSetDryRunsNormalizedGoingCreateWithoutMutation(t *testing.T) {
 	files := &memoryFilesystem{files: map[string][]byte{
 		rsvpCredentialsPath: []byte(rsvpCredentials),
 	}}
 	dependencies := rsvpTestDependencies(files)
-	dependencies.MutationRandom = strings.NewReader(strings.Repeat("p", 32))
 	call := 0
 	dependencies.HTTP = scriptedHTTP{do: func(request *http.Request) (*http.Response, error) {
 		call++
@@ -188,11 +187,12 @@ func TestExecuteRSVPSetPlansNormalizedGoingCreateWithoutMutation(t *testing.T) {
 			"--plus-one", "  Guest One  ",
 			"--message", "  See you there  ",
 			"--timezone", "America/Los_Angeles",
+			"--dry-run",
 		},
 	}, dependencies)
 
 	if result.ExitCode != 0 || result.Stderr != "" {
-		t.Fatalf("result = %#v, want plan success", result)
+		t.Fatalf("result = %#v, want preview success", result)
 	}
 	var envelope struct {
 		Data struct {
@@ -203,7 +203,7 @@ func TestExecuteRSVPSetPlansNormalizedGoingCreateWithoutMutation(t *testing.T) {
 				DisplayName           string   `json:"displayName"`
 				PartySize             int      `json:"partySize"`
 				PlusOnes              []string `json:"plusOnes"`
-				Message               *string  `json:"message"`
+				MessageProvided       bool     `json:"messageProvided"`
 				Timezone              string   `json:"timezone"`
 				QuestionnaireResponse any      `json:"questionnaireResponse"`
 			} `json:"input"`
@@ -213,7 +213,7 @@ func TestExecuteRSVPSetPlansNormalizedGoingCreateWithoutMutation(t *testing.T) {
 					Name             string           `json:"name"`
 					Count            int              `json:"count"`
 					PlusOnes         []map[string]any `json:"plusOnes"`
-					Message          string           `json:"message"`
+					MessageProvided  bool             `json:"messageProvided"`
 					Status           string           `json:"status"`
 					Timezone         string           `json:"timezone"`
 					ShouldFollowOrgs bool             `json:"shouldFollowOrgs"`
@@ -224,8 +224,6 @@ func TestExecuteRSVPSetPlansNormalizedGoingCreateWithoutMutation(t *testing.T) {
 				CurrentGuest    string `json:"currentGuest"`
 				EventSafeguards string `json:"eventSafeguards"`
 			} `json:"preconditions"`
-			ExpiresInSeconds int    `json:"expiresInSeconds"`
-			PlanToken        string `json:"planToken"`
 		} `json:"data"`
 	}
 	if json.Unmarshal([]byte(result.Stdout), &envelope) != nil {
@@ -237,11 +235,10 @@ func TestExecuteRSVPSetPlansNormalizedGoingCreateWithoutMutation(t *testing.T) {
 		envelope.Data.Input.DisplayName != "Example Attendee" ||
 		envelope.Data.Input.PartySize != 2 ||
 		!reflect.DeepEqual(envelope.Data.Input.PlusOnes, []string{"Guest One"}) ||
-		envelope.Data.Input.Message == nil ||
-		*envelope.Data.Input.Message != "See you there" ||
+		!envelope.Data.Input.MessageProvided ||
 		envelope.Data.Input.Timezone != "America/Los_Angeles" ||
 		envelope.Data.Input.QuestionnaireResponse != nil {
-		t.Fatalf("plan input = %#v, want normalized exact input", envelope.Data.Input)
+		t.Fatalf("preview input = %#v, want normalized exact input", envelope.Data.Input)
 	}
 	if envelope.Data.Request.EventID != "event-example" ||
 		envelope.Data.Request.RSVP.Name != "Example Attendee" ||
@@ -250,30 +247,68 @@ func TestExecuteRSVPSetPlansNormalizedGoingCreateWithoutMutation(t *testing.T) {
 			envelope.Data.Request.RSVP.PlusOnes,
 			[]map[string]any{{"name": "Guest One"}},
 		) ||
-		envelope.Data.Request.RSVP.Message != "See you there" ||
+		!envelope.Data.Request.RSVP.MessageProvided ||
 		envelope.Data.Request.RSVP.Status != "GOING" ||
 		envelope.Data.Request.RSVP.Timezone != "America/Los_Angeles" ||
 		envelope.Data.Request.RSVP.ShouldFollowOrgs ||
 		envelope.Data.Request.RSVP.GuestID != nil {
-		t.Fatalf("plan request = %#v, want exact redacted create request", envelope.Data.Request)
+		t.Fatalf("preview request = %#v, want exact redacted create request", envelope.Data.Request)
 	}
 	if envelope.Data.Preconditions.CurrentGuest != "absent" ||
-		envelope.Data.Preconditions.EventSafeguards != "bound" ||
-		envelope.Data.ExpiresInSeconds != 300 ||
-		envelope.Data.PlanToken == "" {
-		t.Fatalf("plan authority = %#v, want bound five-minute plan", envelope.Data)
+		envelope.Data.Preconditions.EventSafeguards != "bound" {
+		t.Fatalf("preview preconditions = %#v, want bound public preconditions", envelope.Data)
 	}
 	if call != 2 {
 		t.Fatalf("request count = %d, want only two pre-reads", call)
 	}
-	if files.atomicWrites != 1 {
-		t.Fatalf("atomic writes = %d, want one persistent plan write", files.atomicWrites)
+	if files.atomicWrites != 0 {
+		t.Fatalf("atomic writes = %d, want no writes", files.atomicWrites)
 	}
 	for _, privateValue := range []string{
 		"private-account",
 		"private-access-token",
 		"private-guest-id",
 	} {
+		if strings.Contains(result.Stdout+result.Stderr, privateValue) {
+			t.Fatalf("output exposed private value %q", privateValue)
+		}
+	}
+	if strings.Contains(result.Stdout+result.Stderr, "See you there") {
+		t.Fatal("preview exposed private RSVP message")
+	}
+}
+
+func TestExecuteRSVPSetDryRunRefreshesInMemoryWithoutPersistingCredentials(t *testing.T) {
+	files := &memoryFilesystem{files: map[string][]byte{
+		rsvpCredentialsPath: []byte(`{"accessToken":"private-expired-access","refreshToken":"private-refresh-token","expiresAt":"2026-08-11T23:59:00Z"}`),
+	}}
+	dependencies := rsvpTestDependencies(files)
+	call := 0
+	dependencies.HTTP = scriptedHTTP{do: func(request *http.Request) (*http.Response, error) {
+		call++
+		switch call {
+		case 1:
+			return jsonResponse(http.StatusOK, `{"access_token":"private-access-alias","id_token":"private-new-access","refresh_token":"private-new-refresh","expires_in":"3600","token_type":"Bearer"}`), nil
+		case 2:
+			return jsonResponse(http.StatusOK, compatibleRSVPEventResponse), nil
+		case 3:
+			return jsonResponse(http.StatusOK, `{"result":{"data":{"currentGuest":null}}}`), nil
+		default:
+			t.Fatalf("unexpected request %d: %s", call, request.URL)
+			return nil, nil
+		}
+	}}
+
+	result := app.Execute(context.Background(), app.Request{Argv: []string{
+		"rsvp", "set", "event-example", "--status", "interested", "--dry-run",
+	}}, dependencies)
+	if result.ExitCode != 0 || call != 3 {
+		t.Fatalf("result = %#v, calls = %d, want refreshed dry-run preview", result, call)
+	}
+	if files.atomicWrites != 0 {
+		t.Fatalf("credential writes = %d, want zero during dry-run", files.atomicWrites)
+	}
+	for _, privateValue := range []string{"private-refresh-token", "private-new-refresh", "private-new-access"} {
 		if strings.Contains(result.Stdout+result.Stderr, privateValue) {
 			t.Fatalf("output exposed private value %q", privateValue)
 		}
@@ -286,7 +321,6 @@ func TestExecuteRSVPSetUpdatesReviewedGuestOnceAndReturnsOnlySubmittedIntent(t *
 		rsvpCredentialsPath: []byte(rsvpCredentials),
 	}}
 	dependencies := rsvpTestDependencies(files)
-	dependencies.MutationRandom = strings.NewReader(strings.Repeat("u", 32))
 	call := 0
 	dependencies.HTTP = scriptedHTTP{do: func(request *http.Request) (*http.Response, error) {
 		call++
@@ -348,24 +382,22 @@ func TestExecuteRSVPSetUpdatesReviewedGuestOnceAndReturnsOnlySubmittedIntent(t *
 		`{"questionnaireVersion":1,"answers":{"question-example":"Answer"}}`,
 	}
 
-	plan := app.Execute(
+	preview := app.Execute(
 		context.Background(),
-		app.Request{Argv: argv},
+		app.Request{Argv: append(append([]string{}, argv...), "--dry-run")},
 		dependencies,
 	)
-	if plan.ExitCode != 0 ||
-		!strings.Contains(plan.Stdout, `"mode":"update"`) ||
-		!strings.Contains(plan.Stdout, `"guestId":"\u003credacted\u003e"`) {
-		t.Fatalf("plan = %#v, want redacted update plan", plan)
+	if preview.ExitCode != 0 ||
+		!strings.Contains(preview.Stdout, `"mode":"update"`) ||
+		!strings.Contains(preview.Stdout, `"guestId":"\u003credacted\u003e"`) {
+		t.Fatalf("preview = %#v, want redacted update preview", preview)
 	}
-	if strings.Contains(plan.Stdout+plan.Stderr, privateGuestID) {
-		t.Fatal("public plan exposed the private guest ID")
+	if strings.Contains(preview.Stdout+preview.Stderr, privateGuestID) {
+		t.Fatal("public preview exposed the private guest ID")
 	}
-	token := rsvpPlanToken(t, plan)
-	applyArgv := append(append([]string{}, argv...), "--apply", "--plan", token)
 	applied := app.Execute(
 		context.Background(),
-		app.Request{Argv: applyArgv},
+		app.Request{Argv: argv},
 		dependencies,
 	)
 
@@ -380,8 +412,8 @@ func TestExecuteRSVPSetUpdatesReviewedGuestOnceAndReturnsOnlySubmittedIntent(t *
 	if call != 5 {
 		t.Fatalf("request count = %d, want four pre-reads and one mutation", call)
 	}
-	if files.atomicWrites != 2 {
-		t.Fatalf("atomic writes = %d, want plan save and pre-dispatch consume", files.atomicWrites)
+	if files.atomicWrites != 0 {
+		t.Fatalf("atomic writes = %d, want no local mutation state", files.atomicWrites)
 	}
 	for _, privateValue := range []string{
 		privateGuestID,
@@ -404,7 +436,6 @@ func TestExecuteRSVPSetSubmitsInterestWithoutDisplayNameOrSource(t *testing.T) {
 		rsvpCredentialsPath: []byte(rsvpCredentials),
 	}}
 	dependencies := rsvpTestDependencies(files)
-	dependencies.MutationRandom = strings.NewReader(strings.Repeat("i", 32))
 	call := 0
 	dependencies.HTTP = scriptedHTTP{do: func(request *http.Request) (*http.Response, error) {
 		call++
@@ -437,17 +468,16 @@ func TestExecuteRSVPSetSubmitsInterestWithoutDisplayNameOrSource(t *testing.T) {
 		"--status", "interested",
 	}
 
-	plan := app.Execute(context.Background(), app.Request{Argv: argv}, dependencies)
-	if plan.ExitCode != 0 ||
-		!strings.Contains(plan.Stdout, `"operation":"markEventInterest"`) ||
-		!strings.Contains(plan.Stdout, `"input":{"status":"interested"}`) ||
-		strings.Contains(plan.Stdout, "displayName") ||
-		strings.Contains(plan.Stdout, "source") {
-		t.Fatalf("plan = %#v, want narrow direct-interest request", plan)
+	preview := app.Execute(context.Background(), app.Request{Argv: append(append([]string{}, argv...), "--dry-run")}, dependencies)
+	if preview.ExitCode != 0 ||
+		!strings.Contains(preview.Stdout, `"operation":"markEventInterest"`) ||
+		!strings.Contains(preview.Stdout, `"input":{"status":"interested"}`) ||
+		strings.Contains(preview.Stdout, "displayName") ||
+		strings.Contains(preview.Stdout, "source") {
+		t.Fatalf("preview = %#v, want narrow direct-interest request", preview)
 	}
-	token := rsvpPlanToken(t, plan)
 	applied := app.Execute(context.Background(), app.Request{
-		Argv: append(append([]string{}, argv...), "--apply", "--plan", token),
+		Argv: argv,
 	}, dependencies)
 	if applied.ExitCode != 0 ||
 		!strings.Contains(
@@ -473,7 +503,6 @@ func TestExecuteRSVPSetAcceptsStructuredDeclineAndRequiresNoCompletionFields(t *
 		rsvpCredentialsPath: []byte(rsvpCredentials),
 	}}
 	dependencies := rsvpTestDependencies(files)
-	dependencies.MutationRandom = strings.NewReader(strings.Repeat("d", 32))
 	call := 0
 	dependencies.HTTP = scriptedHTTP{do: func(request *http.Request) (*http.Response, error) {
 		call++
@@ -500,23 +529,19 @@ func TestExecuteRSVPSetAcceptsStructuredDeclineAndRequiresNoCompletionFields(t *
 	}}
 	argv := []string{"rsvp", "set", "event-example", "--input", "-"}
 
-	plan := app.Execute(context.Background(), app.Request{
-		Argv:  argv,
+	preview := app.Execute(context.Background(), app.Request{
+		Argv:  append(append([]string{}, argv...), "--dry-run"),
 		Stdin: strings.NewReader(input),
 	}, dependencies)
-	if plan.ExitCode != 0 ||
-		!strings.Contains(plan.Stdout, `"status":"not-going"`) ||
-		!strings.Contains(plan.Stdout, `"message":null`) ||
-		strings.Contains(plan.Stdout, "questionnaireVersion") {
-		t.Fatalf("plan = %#v, want normalized decline", plan)
+	if preview.ExitCode != 0 ||
+		!strings.Contains(preview.Stdout, `"status":"not-going"`) ||
+		!strings.Contains(preview.Stdout, `"messageProvided":false`) ||
+		strings.Contains(preview.Stdout, `"message":`) ||
+		strings.Contains(preview.Stdout, "questionnaireVersion") {
+		t.Fatalf("preview = %#v, want normalized decline", preview)
 	}
 	applied := app.Execute(context.Background(), app.Request{
-		Argv: append(
-			append([]string{}, argv...),
-			"--apply",
-			"--plan",
-			rsvpPlanToken(t, plan),
-		),
+		Argv:  argv,
 		Stdin: strings.NewReader(input),
 	}, dependencies)
 	if applied.ExitCode != 0 ||
@@ -654,14 +679,14 @@ func TestExecuteRSVPSetRejectsInvalidNormalizedInputBeforeAuthenticationOrReads(
 			code: "QUESTIONNAIRE_RESPONSE_INVALID",
 		},
 		{
-			name: "apply requires plan",
+			name: "apply flag removed",
 			argv: append(append([]string{}, valid...), "--apply"),
-			code: "PLAN_REQUIRED",
+			code: "FLAG_UNKNOWN",
 		},
 		{
-			name: "plan requires apply",
+			name: "plan flag removed",
 			argv: append(append([]string{}, valid...), "--plan", "opaque"),
-			code: "APPLY_REQUIRED",
+			code: "FLAG_UNKNOWN",
 		},
 		{
 			name: "repeated scalar",
@@ -888,7 +913,6 @@ func TestExecuteRSVPSetEnforcesReviewedEventAndGuestCompatibility(t *testing.T) 
 				rsvpCredentialsPath: []byte(rsvpCredentials),
 			}}
 			dependencies := rsvpTestDependencies(files)
-			dependencies.MutationRandom = strings.NewReader(strings.Repeat("c", 32))
 			call := 0
 			dependencies.HTTP = scriptedHTTP{do: func(request *http.Request) (*http.Response, error) {
 				call++
@@ -927,289 +951,13 @@ func TestExecuteRSVPSetEnforcesReviewedEventAndGuestCompatibility(t *testing.T) 
 				)
 			}
 			if files.atomicWrites != 0 {
-				t.Fatalf("atomic writes = %d, want no plan for incompatible event", files.atomicWrites)
+				t.Fatalf("atomic writes = %d, want no writes for incompatible event", files.atomicWrites)
 			}
 		})
 	}
 }
 
-func TestExecuteRSVPSetRejectsAnyChangedReviewedPreconditionAsStale(t *testing.T) {
-	cases := []struct {
-		name       string
-		planEvent  map[string]any
-		applyEvent map[string]any
-		planGuest  string
-		applyGuest string
-	}{
-		{
-			name:       "absent to explicit null event field",
-			planEvent:  compatibleRSVPEvent(),
-			applyEvent: rsvpEventWith("ticketing", nil),
-			planGuest:  `{"result":{"data":{"currentGuest":null}}}`,
-			applyGuest: `{"result":{"data":{"currentGuest":null}}}`,
-		},
-		{
-			name:       "no guest to existing guest",
-			planEvent:  compatibleRSVPEvent(),
-			applyEvent: compatibleRSVPEvent(),
-			planGuest:  `{"result":{"data":{"currentGuest":null}}}`,
-			applyGuest: `{"result":{"data":{"currentGuest":{"id":"private-new-guest","status":"GOING","count":1}}}}`,
-		},
-		{
-			name:       "existing guest count",
-			planEvent:  compatibleRSVPEvent(),
-			applyEvent: compatibleRSVPEvent(),
-			planGuest:  `{"result":{"data":{"currentGuest":{"id":"private-guest","status":"GOING","count":1}}}}`,
-			applyGuest: `{"result":{"data":{"currentGuest":{"id":"private-guest","status":"GOING","count":2}}}}`,
-		},
-		{
-			name:       "existing guest count becomes absent",
-			planEvent:  compatibleRSVPEvent(),
-			applyEvent: compatibleRSVPEvent(),
-			planGuest:  `{"result":{"data":{"currentGuest":{"id":"private-guest","status":"GOING","count":1}}}}`,
-			applyGuest: `{"result":{"data":{"currentGuest":{"id":"private-guest","status":"GOING"}}}}`,
-		},
-	}
-	argv := []string{
-		"rsvp", "set", "event-example",
-		"--status", "going",
-		"--display-name", "Example",
-		"--party-size", "1",
-		"--timezone", "America/Los_Angeles",
-	}
-	for _, testCase := range cases {
-		t.Run(testCase.name, func(t *testing.T) {
-			files := &memoryFilesystem{files: map[string][]byte{
-				rsvpCredentialsPath: []byte(rsvpCredentials),
-			}}
-			dependencies := rsvpTestDependencies(files)
-			dependencies.MutationRandom = strings.NewReader(strings.Repeat("s", 32))
-			call := 0
-			dependencies.HTTP = scriptedHTTP{do: func(request *http.Request) (*http.Response, error) {
-				call++
-				switch call {
-				case 1:
-					return jsonResponse(
-						http.StatusOK,
-						rsvpEventResponse(t, testCase.planEvent),
-					), nil
-				case 2:
-					return jsonResponse(http.StatusOK, testCase.planGuest), nil
-				case 3:
-					return jsonResponse(
-						http.StatusOK,
-						rsvpEventResponse(t, testCase.applyEvent),
-					), nil
-				case 4:
-					return jsonResponse(http.StatusOK, testCase.applyGuest), nil
-				default:
-					t.Fatalf("stale plan dispatched request %d to %s", call, request.URL)
-					return nil, nil
-				}
-			}}
-			plan := app.Execute(
-				context.Background(),
-				app.Request{Argv: argv},
-				dependencies,
-			)
-			if plan.ExitCode != 0 {
-				t.Fatalf("plan = %#v, want success", plan)
-			}
-
-			applied := app.Execute(context.Background(), app.Request{
-				Argv: append(
-					append([]string{}, argv...),
-					"--apply",
-					"--plan",
-					rsvpPlanToken(t, plan),
-				),
-			}, dependencies)
-
-			if applied.ExitCode != 7 ||
-				!strings.Contains(applied.Stdout, `"type":"safety.plan_stale"`) ||
-				call != 4 {
-				t.Fatalf("applied = %#v, calls = %d, want stale before dispatch", applied, call)
-			}
-			if strings.Contains(applied.Stdout+applied.Stderr, "private-guest") ||
-				strings.Contains(applied.Stdout+applied.Stderr, "private-new-guest") {
-				t.Fatal("stale-plan failure exposed a private guest ID")
-			}
-		})
-	}
-}
-
-func TestExecuteRSVPSetTreatsRemovedEventAsStaleBeforeDispatch(t *testing.T) {
-	files := &memoryFilesystem{files: map[string][]byte{
-		rsvpCredentialsPath: []byte(rsvpCredentials),
-	}}
-	dependencies := rsvpTestDependencies(files)
-	dependencies.MutationRandom = strings.NewReader(strings.Repeat("d", 32))
-	call := 0
-	dependencies.HTTP = scriptedHTTP{do: func(*http.Request) (*http.Response, error) {
-		call++
-		switch call {
-		case 1:
-			return jsonResponse(http.StatusOK, compatibleRSVPEventResponse), nil
-		case 2:
-			return jsonResponse(
-				http.StatusOK,
-				`{"result":{"data":{"currentGuest":null}}}`,
-			), nil
-		case 3:
-			return jsonResponse(
-				http.StatusNotFound,
-				`{"error":{"message":"private detail","status":"NOT_FOUND"}}`,
-			), nil
-		default:
-			t.Fatalf("removed event dispatched request %d", call)
-			return nil, nil
-		}
-	}}
-	argv := []string{
-		"rsvp", "set", "event-example",
-		"--status", "interested",
-	}
-	plan := app.Execute(
-		context.Background(),
-		app.Request{Argv: argv},
-		dependencies,
-	)
-	applied := app.Execute(context.Background(), app.Request{
-		Argv: append(
-			append([]string{}, argv...),
-			"--apply",
-			"--plan",
-			rsvpPlanToken(t, plan),
-		),
-	}, dependencies)
-
-	if applied.ExitCode != 7 ||
-		!strings.Contains(applied.Stdout, `"type":"safety.plan_stale"`) ||
-		call != 3 {
-		t.Fatalf("applied = %#v, calls = %d, want stale before dispatch", applied, call)
-	}
-	if strings.Contains(applied.Stdout+applied.Stderr, "private detail") {
-		t.Fatal("stale-plan failure exposed remote detail")
-	}
-}
-
-func TestExecuteRSVPSetBindsPlanToInputAccountAndFiveMinuteLifetime(t *testing.T) {
-	argv := []string{
-		"rsvp", "set", "event-example",
-		"--status", "going",
-		"--display-name", "Example",
-		"--party-size", "1",
-		"--timezone", "America/Los_Angeles",
-	}
-	cases := []struct {
-		name   string
-		before func(*memoryFilesystem)
-		change func(*memoryFilesystem, *time.Time) []string
-	}{
-		{
-			name: "normalized input",
-			change: func(_ *memoryFilesystem, _ *time.Time) []string {
-				changed := append([]string{}, argv...)
-				changed[6] = "Different Example"
-				return changed
-			},
-		},
-		{
-			name: "authenticated account",
-			change: func(files *memoryFilesystem, _ *time.Time) []string {
-				files.files[rsvpCredentialsPath] = []byte(
-					`{"accessToken":"private-access-token","userId":"different-private-account","expiresAt":"2026-08-12T02:00:00Z"}`,
-				)
-				return argv
-			},
-		},
-		{
-			name: "token account overrides stale stored identity",
-			before: func(files *memoryFilesystem) {
-				files.files[rsvpCredentialsPath] = []byte(
-					`{"accessToken":"header.eyJzdWIiOiJwcml2YXRlLWFjY291bnQtYSJ9.signature","userId":"stale-private-account","expiresAt":"2026-08-12T02:00:00Z"}`,
-				)
-			},
-			change: func(files *memoryFilesystem, _ *time.Time) []string {
-				files.files[rsvpCredentialsPath] = []byte(
-					`{"accessToken":"header.eyJzdWIiOiJwcml2YXRlLWFjY291bnQtYiJ9.signature","userId":"stale-private-account","expiresAt":"2026-08-12T02:00:00Z"}`,
-				)
-				return argv
-			},
-		},
-		{
-			name: "five minute expiry",
-			change: func(_ *memoryFilesystem, now *time.Time) []string {
-				*now = now.Add(5 * time.Minute)
-				return argv
-			},
-		},
-	}
-	for _, testCase := range cases {
-		t.Run(testCase.name, func(t *testing.T) {
-			files := &memoryFilesystem{files: map[string][]byte{
-				rsvpCredentialsPath: []byte(rsvpCredentials),
-			}}
-			if testCase.before != nil {
-				testCase.before(files)
-			}
-			now := time.Date(2026, time.August, 12, 0, 0, 0, 0, time.UTC)
-			dependencies := rsvpTestDependencies(files)
-			dependencies.Now = func() time.Time { return now }
-			dependencies.MutationRandom = strings.NewReader(strings.Repeat("b", 32))
-			call := 0
-			dependencies.HTTP = scriptedHTTP{do: func(request *http.Request) (*http.Response, error) {
-				call++
-				switch call {
-				case 1:
-					return jsonResponse(http.StatusOK, compatibleRSVPEventResponse), nil
-				case 2:
-					return jsonResponse(
-						http.StatusOK,
-						`{"result":{"data":{"currentGuest":null}}}`,
-					), nil
-				default:
-					t.Fatalf("invalid binding caused remote request %d to %s", call, request.URL)
-					return nil, nil
-				}
-			}}
-			plan := app.Execute(
-				context.Background(),
-				app.Request{Argv: argv},
-				dependencies,
-			)
-			if plan.ExitCode != 0 {
-				t.Fatalf("plan = %#v, want success", plan)
-			}
-			applyInput := testCase.change(files, &now)
-
-			applied := app.Execute(context.Background(), app.Request{
-				Argv: append(
-					append([]string{}, applyInput...),
-					"--apply",
-					"--plan",
-					rsvpPlanToken(t, plan),
-				),
-			}, dependencies)
-
-			if applied.ExitCode != 7 ||
-				!strings.Contains(applied.Stdout, `"type":"safety.plan_stale"`) ||
-				call != 2 {
-				t.Fatalf("applied = %#v, calls = %d, want stale before reads", applied, call)
-			}
-			for _, privateValue := range []string{
-				"private-account",
-				"different-private-account",
-			} {
-				if strings.Contains(applied.Stdout+applied.Stderr, privateValue) {
-					t.Fatalf("stale plan exposed private account value %q", privateValue)
-				}
-			}
-		})
-	}
-}
-
-func TestExecuteRSVPSetConsumesPlanBeforeOneUncertainAttempt(t *testing.T) {
+func TestExecuteRSVPSetMakesOneAttemptOnUncertainOrMalformedCompletion(t *testing.T) {
 	cases := []struct {
 		name        string
 		response    string
@@ -1246,27 +994,20 @@ func TestExecuteRSVPSetConsumesPlanBeforeOneUncertainAttempt(t *testing.T) {
 				rsvpCredentialsPath: []byte(rsvpCredentials),
 			}}
 			dependencies := rsvpTestDependencies(files)
-			dependencies.MutationRandom = strings.NewReader(strings.Repeat("x", 32))
 			call := 0
 			mutationAttempts := 0
 			dependencies.HTTP = scriptedHTTP{do: func(request *http.Request) (*http.Response, error) {
 				call++
 				switch call {
-				case 1, 3:
+				case 1:
 					return jsonResponse(http.StatusOK, compatibleRSVPEventResponse), nil
-				case 2, 4:
+				case 2:
 					return jsonResponse(
 						http.StatusOK,
 						`{"result":{"data":{"currentGuest":null}}}`,
 					), nil
-				case 5:
+				case 3:
 					mutationAttempts++
-					if files.atomicWrites != 2 {
-						t.Fatalf(
-							"atomic writes before dispatch = %d, want plan consumed",
-							files.atomicWrites,
-						)
-					}
 					if testCase.remoteError != nil {
 						return nil, testCase.remoteError
 					}
@@ -1276,22 +1017,9 @@ func TestExecuteRSVPSetConsumesPlanBeforeOneUncertainAttempt(t *testing.T) {
 					return nil, nil
 				}
 			}}
-			plan := app.Execute(
-				context.Background(),
-				app.Request{Argv: argv},
-				dependencies,
-			)
-			token := rsvpPlanToken(t, plan)
-			applyArgv := append(
-				append([]string{}, argv...),
-				"--apply",
-				"--plan",
-				token,
-			)
-
 			applied := app.Execute(
 				context.Background(),
-				app.Request{Argv: applyArgv},
+				app.Request{Argv: argv},
 				dependencies,
 			)
 
@@ -1299,24 +1027,13 @@ func TestExecuteRSVPSetConsumesPlanBeforeOneUncertainAttempt(t *testing.T) {
 				!strings.Contains(applied.Stdout, `"type":"`+testCase.failureType+`"`) ||
 				!strings.Contains(applied.Stdout, `"code":"`+testCase.code+`"`) ||
 				mutationAttempts != 1 ||
-				call != 5 {
+				call != 3 {
 				t.Fatalf(
 					"applied = %#v, attempts = %d, calls = %d",
 					applied,
 					mutationAttempts,
 					call,
 				)
-			}
-			reused := app.Execute(
-				context.Background(),
-				app.Request{Argv: applyArgv},
-				dependencies,
-			)
-			if reused.ExitCode != 7 ||
-				!strings.Contains(reused.Stdout, `"type":"safety.plan_stale"`) ||
-				call != 5 ||
-				mutationAttempts != 1 {
-				t.Fatalf("reused = %#v, want consumed token without retry", reused)
 			}
 			if strings.Contains(applied.Stdout+applied.Stderr, "private connection lost") {
 				t.Fatal("uncertain result exposed private transport details")
@@ -1350,9 +1067,8 @@ func TestExecuteSchemaPublishesCompleteRSVPSurfaceAndSafety(t *testing.T) {
 			} `json:"successSchema"`
 			FailureTypes []string `json:"failureTypes"`
 			Safety       struct {
-				Kind                 string `json:"kind"`
-				PlanRequired         bool   `json:"planRequired"`
-				ConfirmationRequired bool   `json:"confirmationRequired"`
+				Kind        string `json:"kind"`
+				Destructive bool   `json:"destructive"`
 			} `json:"safety"`
 		} `json:"data"`
 	}
@@ -1394,8 +1110,9 @@ func TestExecuteSchemaPublishesCompleteRSVPSurfaceAndSafety(t *testing.T) {
 		"--message",
 		"--timezone",
 		"--questionnaire-response",
-		"--apply",
-		"--plan",
+		"--dry-run",
+		"--force",
+		"--no-input",
 	}) {
 		t.Fatalf("set flags = %v, want complete RSVP invocation", flags)
 	}
@@ -1418,15 +1135,13 @@ func TestExecuteSchemaPublishesCompleteRSVPSurfaceAndSafety(t *testing.T) {
 	}
 	if len(set.Data.SuccessSchema.OneOf) != 2 ||
 		set.Data.Safety.Kind != "standard-mutation" ||
-		!set.Data.Safety.PlanRequired ||
-		set.Data.Safety.ConfirmationRequired {
-		t.Fatalf("set success/safety = %#v, want plan-or-submitted standard mutation", set.Data)
+		set.Data.Safety.Destructive {
+		t.Fatalf("set success/safety = %#v, want preview-or-submitted standard mutation", set.Data)
 	}
 	for _, failureType := range []string{
 		"input.invalid",
 		"auth.required",
 		"state.conflict",
-		"safety.plan_stale",
 		"remote.unavailable",
 		"contract.protocol_changed",
 	} {
@@ -1438,7 +1153,6 @@ func TestExecuteSchemaPublishesCompleteRSVPSurfaceAndSafety(t *testing.T) {
 
 const (
 	rsvpCredentialsPath         = "/config/partiful/credentials.json"
-	rsvpMutationPath            = "/config/partiful/mutation-plans.json"
 	rsvpCredentials             = `{"accessToken":"private-access-token","userId":"private-account","expiresAt":"2026-08-12T02:00:00Z"}`
 	compatibleRSVPEventResponse = `{"result":{"data":{"event":{
 		"rsvpsEnabled":true,
@@ -1482,7 +1196,6 @@ func rsvpTestDependencies(files *memoryFilesystem) app.Dependencies {
 	return app.Dependencies{
 		Files:           files,
 		CredentialsPath: rsvpCredentialsPath,
-		MutationPath:    rsvpMutationPath,
 		Now: func() time.Time {
 			return time.Date(2026, time.August, 12, 0, 0, 0, 0, time.UTC)
 		},
@@ -1503,18 +1216,4 @@ func assertRSVPRequest(t *testing.T, request *http.Request, operation, body stri
 	if string(document) != body {
 		t.Fatalf("request body = %s, want %s", document, body)
 	}
-}
-
-func rsvpPlanToken(t *testing.T, result app.Result) string {
-	t.Helper()
-	var envelope struct {
-		Data struct {
-			PlanToken string `json:"planToken"`
-		} `json:"data"`
-	}
-	if json.Unmarshal([]byte(result.Stdout), &envelope) != nil ||
-		envelope.Data.PlanToken == "" {
-		t.Fatalf("result has no plan token: %#v", result)
-	}
-	return envelope.Data.PlanToken
 }

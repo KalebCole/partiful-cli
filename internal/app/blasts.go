@@ -13,7 +13,6 @@ import (
 	"time"
 	"unicode/utf8"
 
-	"github.com/KalebCole/partiful-cli/internal/mutation"
 	"github.com/KalebCole/partiful-cli/internal/remote"
 )
 
@@ -49,15 +48,13 @@ type blastSendPublicRequestMessage struct {
 	ShowOnEventPage bool     `json:"showOnEventPage"`
 }
 
-type blastSendPlan struct {
-	Operation        string                 `json:"operation"`
-	EventID          string                 `json:"eventId"`
-	Input            blastSendPublicInput   `json:"input"`
-	Request          blastSendPublicRequest `json:"request"`
-	Effects          []string               `json:"effects"`
-	Preconditions    map[string]string      `json:"preconditions"`
-	ExpiresInSeconds int                    `json:"expiresInSeconds"`
-	PlanToken        string                 `json:"planToken"`
+type blastSendPreview struct {
+	Operation     string                 `json:"operation"`
+	EventID       string                 `json:"eventId"`
+	Input         blastSendPublicInput   `json:"input"`
+	Request       blastSendPublicRequest `json:"request"`
+	Effects       []string               `json:"effects"`
+	Preconditions map[string]string      `json:"preconditions"`
 }
 
 type blastSendSubmitted struct {
@@ -73,25 +70,12 @@ type blastSendOptions struct {
 	Audience        string
 	MessageFile     string
 	ShowOnEventPage bool
-	Apply           bool
-	ConfirmToken    string
 }
 
 type blastGuestSnapshot struct {
 	Total          int            `json:"total"`
 	CheckedInCount int            `json:"checkedInCount"`
 	StatusCounts   map[string]int `json:"statusCounts"`
-}
-
-type blastPrivatePreconditions struct {
-	OwnerIDs       eventFieldSnapshot `json:"ownerIds"`
-	StartDate      eventFieldSnapshot `json:"startDate"`
-	EndDate        eventFieldSnapshot `json:"endDate"`
-	FindATime      eventFieldSnapshot `json:"findATime"`
-	GuestAction    eventFieldSnapshot `json:"guestAction"`
-	EnableWaitlist eventFieldSnapshot `json:"enableWaitlist"`
-	Guests         blastGuestSnapshot `json:"guests"`
-	TextBlastCount int                `json:"textBlastCount"`
 }
 
 type blastPreparedMessage struct {
@@ -105,9 +89,10 @@ func executeBlastSend(
 	definition commandDefinition,
 	argv []string,
 	dependencies Dependencies,
+	execution mutationExecution,
 	pretty bool,
 ) Result {
-	options, inputError := parseBlastSendOptions(request, definition, argv, dependencies)
+	options, inputError := parseBlastSendOptions(definition, argv)
 	if inputError != nil {
 		return failure(definition.path, exitCodeForType(inputError.Type), *inputError, pretty)
 	}
@@ -120,30 +105,17 @@ func executeBlastSend(
 		ShowOnEventPage: options.ShowOnEventPage,
 		Message:         message.Digest,
 	}
-	inputDocument, _ := json.Marshal(publicInput)
 
-	session, sessionFailure := acquireProtectedSession(ctx, definition.path, dependencies, pretty)
+	session, sessionFailure := acquireProtectedMutationSession(ctx, definition.path, dependencies, execution, pretty)
 	if sessionFailure != nil {
 		return *sessionFailure
 	}
-	if session.AccountFingerprint == "" || session.UserID == "" {
+	if session.UserID == "" {
 		return internalFailure(definition.path, pretty)
 	}
 	clock := time.Now
 	if dependencies.Now != nil {
 		clock = dependencies.Now
-	}
-	authority := mutation.Authority{Files: dependencies.Files, Path: eventMutationPath(dependencies), Now: clock, Random: dependencies.MutationRandom}
-	var inspected mutation.Record
-	if options.Apply {
-		var err error
-		inspected, err = authority.Inspect(options.ConfirmToken, definition.path, blastOperation, session.AccountFingerprint, inputDocument)
-		if err != nil {
-			if errors.Is(err, mutation.ErrStale) {
-				return eventPlanStaleFailure(definition.path, pretty)
-			}
-			return internalFailure(definition.path, pretty)
-		}
 	}
 	deviceID, err := randomDeviceID(dependencies.AuthRandom)
 	if err != nil {
@@ -154,9 +126,6 @@ func executeBlastSend(
 	if err != nil {
 		switch {
 		case errors.Is(err, remote.ErrEventNotFound):
-			if options.Apply {
-				return eventPlanStaleFailure(definition.path, pretty)
-			}
 			return eventNotFoundFailure(definition.path, pretty)
 		case errors.Is(err, remote.ErrUnavailable):
 			return blastRemoteUnavailableFailure(definition.path, "The text blast could not read current event data.", "partiful: text blast unavailable\n", pretty)
@@ -181,7 +150,7 @@ func executeBlastSend(
 		}
 		return blastProtocolChangedFailure(definition.path, "TEXT_BLAST_PROTOCOL_CHANGED", "The text blast flow no longer matches the reviewed remote contract.", "partiful: text blast protocol changed\n", pretty)
 	}
-	toGroups, preconditions, conditionFailure := buildBlastPreconditions(
+	toGroups, conditionFailure := validateBlastPreconditions(
 		definition.path,
 		event,
 		guests,
@@ -201,72 +170,49 @@ func executeBlastSend(
 			ShowOnEventPage: options.ShowOnEventPage,
 		},
 	}
-	requestDocument, _ := json.Marshal(publicRequest)
-	preconditionDocument, _ := json.Marshal(preconditions)
-	binding := mutation.Binding{Command: definition.path, Operation: blastOperation, AccountFingerprint: session.AccountFingerprint, Input: inputDocument, Request: requestDocument, Preconditions: preconditionDocument}
-	if options.Apply {
-		if !bytes.Equal(inspected.Binding.Request, requestDocument) || !bytes.Equal(inspected.Binding.Preconditions, preconditionDocument) {
-			return eventPlanStaleFailure(definition.path, pretty)
-		}
-		if err := authority.Consume(options.ConfirmToken, binding); err != nil {
-			if errors.Is(err, mutation.ErrStale) {
-				return eventPlanStaleFailure(definition.path, pretty)
-			}
-			return internalFailure(definition.path, pretty)
-		}
-		if err := client.CreateTextBlast(ctx, session.AccessToken, deviceID, session.UserID, remote.CreateTextBlastParams{
-			EventID: options.EventID,
-			Message: remote.TextBlastMessage{
-				Text:            message.Text,
-				To:              append([]string(nil), toGroups...),
-				ShowOnEventPage: options.ShowOnEventPage,
-			},
-		}); err != nil {
-			if errors.Is(err, remote.ErrUnavailable) {
-				return blastSubmissionUnavailableFailure(definition.path, pretty)
-			}
-			return blastProtocolChangedFailure(definition.path, "TEXT_BLAST_PROTOCOL_CHANGED", "The text blast response no longer matches the reviewed remote contract.", "partiful: text blast protocol changed\n", pretty)
-		}
-		return success(definition.path, blastSendSubmitted{
-			EventID:         options.EventID,
-			Submitted:       true,
-			Audience:        options.Audience,
-			ShowOnEventPage: options.ShowOnEventPage,
-			RecipientStatus: "not-reported",
-		}, pretty)
-	}
-	token, err := authority.Create(binding)
-	if err != nil {
-		return internalFailure(definition.path, pretty)
-	}
 	effects := []string{"Contacts event guests with a text blast."}
 	if options.ShowOnEventPage {
 		effects = append(effects, "Shows the blast in the event activity feed.")
 	}
-	return success(definition.path, blastSendPlan{
-		Operation: blastOperation,
-		EventID:   options.EventID,
-		Input:     publicInput,
-		Request:   publicRequest,
-		Effects:   effects,
-		Preconditions: map[string]string{
-			"ownership":      "bound",
-			"eventTiming":    "bound",
-			"audience":       "bound",
-			"guestSnapshot":  "bound",
-			"existingBlasts": "bound",
+	if execution.DryRun {
+		return success(definition.path, blastSendPreview{
+			Operation: blastOperation,
+			EventID:   options.EventID,
+			Input:     publicInput,
+			Request:   publicRequest,
+			Effects:   effects,
+			Preconditions: map[string]string{
+				"ownership":      "bound",
+				"eventTiming":    "bound",
+				"audience":       "bound",
+				"guestSnapshot":  "bound",
+				"existingBlasts": "bound",
+			},
+		}, pretty)
+	}
+	if err := client.CreateTextBlast(ctx, session.AccessToken, deviceID, session.UserID, remote.CreateTextBlastParams{
+		EventID: options.EventID,
+		Message: remote.TextBlastMessage{
+			Text:            message.Text,
+			To:              append([]string(nil), toGroups...),
+			ShowOnEventPage: options.ShowOnEventPage,
 		},
-		ExpiresInSeconds: 300,
-		PlanToken:        token,
+	}); err != nil {
+		if errors.Is(err, remote.ErrUnavailable) {
+			return blastSubmissionUnavailableFailure(definition.path, pretty)
+		}
+		return blastProtocolChangedFailure(definition.path, "TEXT_BLAST_PROTOCOL_CHANGED", "The text blast response no longer matches the reviewed remote contract.", "partiful: text blast protocol changed\n", pretty)
+	}
+	return success(definition.path, blastSendSubmitted{
+		EventID:         options.EventID,
+		Submitted:       true,
+		Audience:        options.Audience,
+		ShowOnEventPage: options.ShowOnEventPage,
+		RecipientStatus: "not-reported",
 	}, pretty)
 }
 
-func parseBlastSendOptions(
-	request Request,
-	definition commandDefinition,
-	argv []string,
-	dependencies Dependencies,
-) (blastSendOptions, *errorBody) {
+func parseBlastSendOptions(definition commandDefinition, argv []string) (blastSendOptions, *errorBody) {
 	eventID, inputError := parseEventID(definition, argv[:len(definition.invocation)+1])
 	if inputError != nil {
 		return blastSendOptions{}, inputError
@@ -308,16 +254,6 @@ func parseBlastSendOptions(
 		return blastSendOptions{}, eventWriteInputFailure("MESSAGE_FILE_REQUIRED", "--message-file is required.")
 	}
 	_, options.ShowOnEventPage = scalars["--show-on-event-page"]
-	_, options.Apply = scalars["--apply"]
-	options.ConfirmToken = scalars["--confirm"]
-	if options.Apply && options.ConfirmToken == "" {
-		return blastSendOptions{}, confirmationRequiredErrorBody()
-	}
-	if !options.Apply && options.ConfirmToken != "" {
-		return blastSendOptions{}, eventWriteInputFailure("APPLY_REQUIRED", "--confirm requires --apply.")
-	}
-	_ = request
-	_ = dependencies
 	return options, nil
 }
 
@@ -367,43 +303,34 @@ func readBlastMessage(
 	}, nil
 }
 
-func buildBlastPreconditions(
+func validateBlastPreconditions(
 	command string,
 	event remote.Event,
 	guests []remote.EventGuest,
 	textBlastCount int,
 	now time.Time,
 	pretty bool,
-) ([]string, blastPrivatePreconditions, *Result) {
+) ([]string, *Result) {
 	expired, err := blastEventExpired(event, now)
 	if err != nil {
 		result := blastProtocolChangedFailure(command, "TEXT_BLAST_PROTOCOL_CHANGED", "The text blast flow no longer matches the reviewed remote contract.", "partiful: text blast protocol changed\n", pretty)
-		return nil, blastPrivatePreconditions{}, &result
+		return nil, &result
 	}
 	if expired {
 		result := eventPreconditionFailure(command, pretty)
-		return nil, blastPrivatePreconditions{}, &result
+		return nil, &result
 	}
 	snapshot := buildBlastGuestSnapshot(guests)
 	toGroups, err := deriveBlastAudience(event, snapshot)
 	if err != nil {
 		result := blastProtocolChangedFailure(command, "TEXT_BLAST_PROTOCOL_CHANGED", "The text blast flow no longer matches the reviewed remote contract.", "partiful: text blast protocol changed\n", pretty)
-		return nil, blastPrivatePreconditions{}, &result
+		return nil, &result
 	}
 	if len(toGroups) == 0 || snapshot.Total == 0 || textBlastCount >= 10 {
 		result := eventPreconditionFailure(command, pretty)
-		return nil, blastPrivatePreconditions{}, &result
+		return nil, &result
 	}
-	return toGroups, blastPrivatePreconditions{
-		OwnerIDs:       rawEventField(event, "ownerIds"),
-		StartDate:      rawEventField(event, "startDate"),
-		EndDate:        rawEventField(event, "endDate"),
-		FindATime:      rawEventField(event, "findATime"),
-		GuestAction:    rawEventField(event, "guestAction"),
-		EnableWaitlist: rawEventField(event, "enableWaitlist"),
-		Guests:         snapshot,
-		TextBlastCount: textBlastCount,
-	}, nil
+	return toGroups, nil
 }
 
 func buildBlastGuestSnapshot(guests []remote.EventGuest) blastGuestSnapshot {
@@ -555,9 +482,8 @@ func blastSendInputSchema() jsonSchema {
 
 func blastSendSuccessSchema() jsonSchema {
 	one := 1
-	threeHundred := 300
-	plan := objectSchema(
-		[]string{"operation", "eventId", "input", "request", "effects", "preconditions", "expiresInSeconds", "planToken"},
+	preview := objectSchema(
+		[]string{"operation", "eventId", "input", "request", "effects", "preconditions"},
 		map[string]jsonSchema{
 			"operation": {Type: "string", Enum: []string{blastOperation}},
 			"eventId":   {Type: "string", MinLength: &one},
@@ -584,10 +510,8 @@ func blastSendSuccessSchema() jsonSchema {
 					}),
 				},
 			),
-			"effects":          {Type: "array", Items: pointerSchema(jsonSchema{Type: "string"})},
-			"preconditions":    {Type: "object"},
-			"expiresInSeconds": {Type: "integer", Minimum: &threeHundred, Maximum: &threeHundred},
-			"planToken":        {Type: "string", MinLength: &one},
+			"effects":       {Type: "array", Items: pointerSchema(jsonSchema{Type: "string"})},
+			"preconditions": {Type: "object"},
 		},
 	)
 	submitted := objectSchema(
@@ -600,7 +524,7 @@ func blastSendSuccessSchema() jsonSchema {
 			"recipientStatus": {Type: "string", Enum: []string{"not-reported"}},
 		},
 	)
-	return jsonSchema{Type: "object", OneOf: []jsonSchema{plan, submitted}}
+	return jsonSchema{Type: "object", OneOf: []jsonSchema{preview, submitted}}
 }
 
 func blastRemoteUnavailableFailure(command, message, stderr string, pretty bool) Result {
@@ -616,7 +540,7 @@ func blastProtocolChangedFailure(command, code, message, stderr string, pretty b
 }
 
 func blastSubmissionUnavailableFailure(command string, pretty bool) Result {
-	result := failure(command, 8, errorBody{Type: "remote.unavailable", Code: "TEXT_BLAST_SUBMISSION_UNCERTAIN", Message: "Text blast submission could not be confirmed. Create a new plan before another attempt.", Retryable: false, Details: map[string]any{}}, pretty)
+	result := failure(command, 8, errorBody{Type: "remote.unavailable", Code: "TEXT_BLAST_SUBMISSION_UNCERTAIN", Message: "Text blast submission could not be confirmed. Inspect remote state before another attempt.", Retryable: false, Details: map[string]any{}}, pretty)
 	result.Stderr = "partiful: text blast submission uncertain\n"
 	return result
 }

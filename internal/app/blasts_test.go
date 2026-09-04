@@ -62,7 +62,7 @@ func compatibleBlastEvent() map[string]any {
 	return event
 }
 
-func TestExecuteBlastSendPlansAndAppliesPrivacySafeAllGuests(t *testing.T) {
+func TestExecuteBlastSendDryRunsAndDispatchesPrivacySafeAllGuests(t *testing.T) {
 	const messageText = "Keep this private"
 	messageDigest := sha256.Sum256([]byte(messageText))
 	files := &memoryFilesystem{files: map[string][]byte{
@@ -70,7 +70,6 @@ func TestExecuteBlastSendPlansAndAppliesPrivacySafeAllGuests(t *testing.T) {
 		"message.txt":             []byte(messageText),
 	}}
 	dependencies := eventWriteDependencies(files)
-	dependencies.MutationRandom = strings.NewReader(strings.Repeat("b", 32))
 	call := 0
 	dependencies.HTTP = scriptedHTTP{do: func(request *http.Request) (*http.Response, error) {
 		call++
@@ -102,9 +101,9 @@ func TestExecuteBlastSendPlansAndAppliesPrivacySafeAllGuests(t *testing.T) {
 	}}
 
 	argv := []string{"blasts", "send", "event-example", "--audience", "all-guests", "--message-file", "message.txt", "--show-on-event-page"}
-	plan := app.Execute(context.Background(), app.Request{Argv: argv}, dependencies)
-	if plan.ExitCode != 0 || plan.Stderr != "" {
-		t.Fatalf("plan = %#v, want success", plan)
+	preview := app.Execute(context.Background(), app.Request{Argv: append(append([]string{}, argv...), "--dry-run")}, dependencies)
+	if preview.ExitCode != 0 || preview.Stderr != "" {
+		t.Fatalf("preview = %#v, want success", preview)
 	}
 	var envelope struct {
 		Data struct {
@@ -126,41 +125,36 @@ func TestExecuteBlastSendPlansAndAppliesPrivacySafeAllGuests(t *testing.T) {
 					ShowOnEventPage bool     `json:"showOnEventPage"`
 				} `json:"message"`
 			} `json:"request"`
-			PlanToken string `json:"planToken"`
 		} `json:"data"`
 	}
-	if err := json.Unmarshal([]byte(plan.Stdout), &envelope); err != nil {
-		t.Fatalf("decode plan: %v\n%s", err, plan.Stdout)
+	if err := json.Unmarshal([]byte(preview.Stdout), &envelope); err != nil {
+		t.Fatalf("decode preview: %v\n%s", err, preview.Stdout)
 	}
 	if envelope.Data.Operation != "createTextBlast" || envelope.Data.EventID != "event-example" || envelope.Data.Input.Audience != "all-guests" || !envelope.Data.Input.ShowOnEventPage || envelope.Data.Input.Message.SHA256 != hex.EncodeToString(messageDigest[:]) || envelope.Data.Input.Message.Length != len([]rune(messageText)) {
-		t.Fatalf("plan input = %#v, want blast plan summary", envelope.Data)
+		t.Fatalf("preview input = %#v, want blast summary", envelope.Data)
 	}
 	if got := envelope.Data.Request.Message.To; fmt.Sprint(got) != fmt.Sprint([]string{"invited", "checkedIn", "GOING", "MAYBE"}) || !envelope.Data.Request.Message.ShowOnEventPage || envelope.Data.Request.Message.TextSHA256 != hex.EncodeToString(messageDigest[:]) || envelope.Data.Request.Message.TextLength != len([]rune(messageText)) {
-		t.Fatalf("plan request = %#v, want exact reviewed audience mapping", envelope.Data.Request.Message)
+		t.Fatalf("preview request = %#v, want exact reviewed audience mapping", envelope.Data.Request.Message)
 	}
-	if strings.Contains(plan.Stdout+plan.Stderr, messageText) {
-		t.Fatal("plan output exposed private message text")
-	}
-	if strings.Contains(string(files.files[eventWriteMutationPath]), messageText) {
-		t.Fatal("stored mutation plan exposed private message text")
+	if strings.Contains(preview.Stdout+preview.Stderr, messageText) {
+		t.Fatal("preview output exposed private message text")
 	}
 
-	applied := app.Execute(context.Background(), app.Request{Argv: append(append([]string{}, argv...), "--apply", "--confirm", envelope.Data.PlanToken)}, dependencies)
+	applied := app.Execute(context.Background(), app.Request{Argv: argv}, dependencies)
 	if applied.ExitCode != 0 || applied.Stderr != "" || strings.Contains(applied.Stdout, messageText) {
 		t.Fatalf("applied = %#v, want private submitted result", applied)
 	}
 	if !strings.Contains(applied.Stdout, `"recipientStatus":"not-reported"`) || !strings.Contains(applied.Stdout, `"audience":"all-guests"`) || !strings.Contains(applied.Stdout, `"showOnEventPage":true`) {
 		t.Fatalf("applied stdout = %s, want submitted blast result", applied.Stdout)
 	}
-	if reused := app.Execute(context.Background(), app.Request{Argv: append(append([]string{}, argv...), "--apply", "--confirm", envelope.Data.PlanToken)}, dependencies); reused.ExitCode != 7 {
-		t.Fatalf("reused = %#v, want stale consumed plan", reused)
+	if call != 7 {
+		t.Fatalf("request count = %d, want three preview reads and one three-read/one-write execution", call)
 	}
 }
 
 func TestExecuteBlastSendSupportsStdinAndRejectsArgvMessage(t *testing.T) {
 	files := &memoryFilesystem{files: map[string][]byte{eventWriteCredentialsPath: []byte(eventWriteCredentials)}}
 	dependencies := eventWriteDependencies(files)
-	dependencies.MutationRandom = strings.NewReader(strings.Repeat("c", 32))
 	call := 0
 	dependencies.HTTP = scriptedHTTP{do: func(request *http.Request) (*http.Response, error) {
 		call++
@@ -190,9 +184,9 @@ func TestExecuteBlastSendSupportsStdinAndRejectsArgvMessage(t *testing.T) {
 		t.Fatalf("argv message result = %#v, want unknown flag", result)
 	}
 
-	stdinPlan := app.Execute(context.Background(), app.Request{Argv: []string{"blasts", "send", "event-example", "--audience", "all-guests", "--message-file", "-"}, Stdin: strings.NewReader("stdin secret")}, dependencies)
-	if stdinPlan.ExitCode != 0 || strings.Contains(stdinPlan.Stdout, "stdin secret") || !strings.Contains(stdinPlan.Stdout, `"to":["invited","APPROVED"]`) {
-		t.Fatalf("stdin plan = %#v, want stdin-based blast plan", stdinPlan)
+	stdinPreview := app.Execute(context.Background(), app.Request{Argv: []string{"blasts", "send", "event-example", "--audience", "all-guests", "--message-file", "-", "--dry-run"}, Stdin: strings.NewReader("stdin secret")}, dependencies)
+	if stdinPreview.ExitCode != 0 || strings.Contains(stdinPreview.Stdout, "stdin secret") || !strings.Contains(stdinPreview.Stdout, `"to":["invited","APPROVED"]`) {
+		t.Fatalf("stdin preview = %#v, want stdin-based blast preview", stdinPreview)
 	}
 }
 
@@ -246,7 +240,6 @@ func TestExecuteBlastSendFailsClosedOnProtocolAndSubmissionUncertainty(t *testin
 		"message.txt":             []byte("Private body"),
 	}}
 	dependencies := eventWriteDependencies(files)
-	dependencies.MutationRandom = strings.NewReader(strings.Repeat("d", 32))
 
 	cases := []struct {
 		name     string
@@ -265,7 +258,6 @@ func TestExecuteBlastSendFailsClosedOnProtocolAndSubmissionUncertainty(t *testin
 	for _, testCase := range cases {
 		t.Run(testCase.name, func(t *testing.T) {
 			deps := dependencies
-			deps.MutationRandom = strings.NewReader(strings.Repeat("d", 32))
 			call := 0
 			deps.HTTP = scriptedHTTP{do: func(request *http.Request) (*http.Response, error) {
 				call++
@@ -280,15 +272,6 @@ func TestExecuteBlastSendFailsClosedOnProtocolAndSubmissionUncertainty(t *testin
 					assertFirestoreListRequest(t, request, "events/event-example/hostMessages")
 					return jsonResponse(http.StatusOK, firestoreListResponse(t)), nil
 				case 4:
-					assertEventCallableRequest(t, request, "getEventInfo", `{"data":{"params":{"eventId":"event-example"},"amplitudeDeviceId":"MDEyMzQ1Njc4OWFiY2RlZg"}}`)
-					return jsonResponse(http.StatusOK, eventResponse(t, compatibleBlastEvent())), nil
-				case 5:
-					assertFirestoreListRequest(t, request, "events/event-example/guests")
-					return jsonResponse(http.StatusOK, firestoreListResponse(t, firestoreDocument("projects/getpartiful/databases/(default)/documents/events/event-example/guests/g1", map[string]any{"status": firestoreString("GOING")}))), nil
-				case 6:
-					assertFirestoreListRequest(t, request, "events/event-example/hostMessages")
-					return jsonResponse(http.StatusOK, testCase.hostBody), nil
-				case 7:
 					if testCase.postErr != nil {
 						return nil, testCase.postErr
 					}
@@ -299,24 +282,12 @@ func TestExecuteBlastSendFailsClosedOnProtocolAndSubmissionUncertainty(t *testin
 				}
 			}}
 			argv := []string{"blasts", "send", "event-example", "--audience", "all-guests", "--message-file", "message.txt"}
-			if testCase.postBody == "" && testCase.postErr == nil {
-				result := app.Execute(context.Background(), app.Request{Argv: argv}, deps)
-				if result.ExitCode != testCase.exitCode || !strings.Contains(result.Stdout, testCase.contains) {
-					t.Fatalf("result = %#v, want exit %d containing %q", result, testCase.exitCode, testCase.contains)
-				}
-				return
+			result := app.Execute(context.Background(), app.Request{Argv: argv}, deps)
+			if result.ExitCode != testCase.exitCode || !strings.Contains(result.Stdout, testCase.contains) {
+				t.Fatalf("result = %#v, want exit %d containing %q", result, testCase.exitCode, testCase.contains)
 			}
-			plan := app.Execute(context.Background(), app.Request{Argv: argv}, deps)
-			if plan.ExitCode != 0 {
-				t.Fatalf("plan = %#v", plan)
-			}
-			token := rsvpPlanToken(t, plan)
-			applied := app.Execute(context.Background(), app.Request{Argv: append(append([]string{}, argv...), "--apply", "--confirm", token)}, deps)
-			if applied.ExitCode != testCase.exitCode || !strings.Contains(applied.Stdout, testCase.contains) {
-				t.Fatalf("applied = %#v, want exit %d containing %q", applied, testCase.exitCode, testCase.contains)
-			}
-			if reused := app.Execute(context.Background(), app.Request{Argv: append(append([]string{}, argv...), "--apply", "--confirm", token)}, deps); reused.ExitCode != 7 {
-				t.Fatalf("reused = %#v, want stale consumed plan", reused)
+			if (testCase.postBody != "" || testCase.postErr != nil) && call != 4 {
+				t.Fatalf("request count = %d, want one preflight sequence and one submission attempt", call)
 			}
 		})
 	}

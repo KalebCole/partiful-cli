@@ -977,9 +977,8 @@ func TestExecuteSchemaProjectsCompleteEventReadDefinitions(t *testing.T) {
 			} `json:"successSchema"`
 			FailureTypes []string `json:"failureTypes"`
 			Safety       struct {
-				Kind                 string `json:"kind"`
-				PlanRequired         bool   `json:"planRequired"`
-				ConfirmationRequired bool   `json:"confirmationRequired"`
+				Kind        string `json:"kind"`
+				Destructive bool   `json:"destructive"`
 			} `json:"safety"`
 		} `json:"data"`
 	}
@@ -1061,8 +1060,7 @@ func TestExecuteSchemaProjectsCompleteEventReadDefinitions(t *testing.T) {
 	}
 	for _, definition := range []schemaEnvelope{list, get} {
 		if definition.Data.Safety.Kind != "read-only" ||
-			definition.Data.Safety.PlanRequired ||
-			definition.Data.Safety.ConfirmationRequired {
+			definition.Data.Safety.Destructive {
 			t.Fatalf("safety = %#v, want read-only event command", definition.Data.Safety)
 		}
 		wantFailures := []string{
@@ -1573,9 +1571,8 @@ func TestExecuteSchemaProjectsPosterSearchDefinition(t *testing.T) {
 			} `json:"successSchema"`
 			FailureTypes []string `json:"failureTypes"`
 			Safety       struct {
-				Kind                 string `json:"kind"`
-				PlanRequired         bool   `json:"planRequired"`
-				ConfirmationRequired bool   `json:"confirmationRequired"`
+				Kind        string `json:"kind"`
+				Destructive bool   `json:"destructive"`
 			} `json:"safety"`
 		} `json:"data"`
 	}
@@ -1645,8 +1642,7 @@ func TestExecuteSchemaProjectsPosterSearchDefinition(t *testing.T) {
 		t.Fatalf("failure types = %v, want %v", envelope.Data.FailureTypes, wantFailures)
 	}
 	if envelope.Data.Safety.Kind != "read-only" ||
-		envelope.Data.Safety.PlanRequired ||
-		envelope.Data.Safety.ConfirmationRequired {
+		envelope.Data.Safety.Destructive {
 		t.Fatalf("safety = %#v, want read-only", envelope.Data.Safety)
 	}
 }
@@ -2172,7 +2168,7 @@ func TestExecuteSchemaProjectsExecutableDefinition(t *testing.T) {
 		Stdin: strings.NewReader(""),
 	}, app.Dependencies{})
 
-	const want = `{"ok":true,"data":{"command":"auth.status","positionals":[],"flags":[],"inputSchema":{"type":"object","additionalProperties":false},"successSchema":{"type":"object","additionalProperties":false,"required":["authenticated","tokenState","expiresAt"],"properties":{"authenticated":{"type":"boolean"},"expiresAt":{"type":["string","null"],"format":"date-time"},"tokenState":{"type":"string","enum":["healthy","expiring","expired","missing"]}}},"failureTypes":["usage.invalid","input.invalid","auth.expired","remote.unavailable","contract.protocol_changed","internal.failure"],"safety":{"kind":"local-mutation","planRequired":false,"confirmationRequired":false}},"meta":{"command":"schema","cliVersion":"3.0.0","productContractRevision":"2026-08-12.7","remoteContractRevision":"2026-08-12.7","warnings":[]}}` + "\n"
+	const want = `{"ok":true,"data":{"command":"auth.status","positionals":[],"flags":[],"inputSchema":{"type":"object","additionalProperties":false},"successSchema":{"type":"object","additionalProperties":false,"required":["authenticated","tokenState","expiresAt"],"properties":{"authenticated":{"type":"boolean"},"expiresAt":{"type":["string","null"],"format":"date-time"},"tokenState":{"type":"string","enum":["healthy","expiring","expired","missing"]}}},"failureTypes":["usage.invalid","input.invalid","auth.expired","remote.unavailable","contract.protocol_changed","internal.failure"],"safety":{"kind":"local-mutation","destructive":false}},"meta":{"command":"schema","cliVersion":"3.0.0","productContractRevision":"2026-08-12.7","remoteContractRevision":"2026-08-12.7","warnings":[]}}` + "\n"
 	if result.ExitCode != 0 {
 		t.Fatalf("exit code = %d, want 0", result.ExitCode)
 	}
@@ -2194,9 +2190,8 @@ func TestExecuteSchemaProjectsCompleteAuthLoginDefinition(t *testing.T) {
 			Command      string   `json:"command"`
 			FailureTypes []string `json:"failureTypes"`
 			Safety       struct {
-				Kind                 string `json:"kind"`
-				PlanRequired         bool   `json:"planRequired"`
-				ConfirmationRequired bool   `json:"confirmationRequired"`
+				Kind        string `json:"kind"`
+				Destructive bool   `json:"destructive"`
 			} `json:"safety"`
 		} `json:"data"`
 	}
@@ -2218,8 +2213,7 @@ func TestExecuteSchemaProjectsCompleteAuthLoginDefinition(t *testing.T) {
 		t.Fatalf("schema = %#v, want complete auth login definition", envelope.Data)
 	}
 	if envelope.Data.Safety.Kind != "local-mutation" ||
-		envelope.Data.Safety.PlanRequired ||
-		envelope.Data.Safety.ConfirmationRequired {
+		envelope.Data.Safety.Destructive {
 		t.Fatalf("safety = %#v, want local credential mutation", envelope.Data.Safety)
 	}
 }
@@ -3835,9 +3829,8 @@ func TestExecuteSchemaProjectsCompleteContactsListDefinition(t *testing.T) {
 			} `json:"successSchema"`
 			FailureTypes []string `json:"failureTypes"`
 			Safety       struct {
-				Kind                 string `json:"kind"`
-				PlanRequired         bool   `json:"planRequired"`
-				ConfirmationRequired bool   `json:"confirmationRequired"`
+				Kind        string `json:"kind"`
+				Destructive bool   `json:"destructive"`
 			} `json:"safety"`
 		} `json:"data"`
 	}
@@ -3893,8 +3886,7 @@ func TestExecuteSchemaProjectsCompleteContactsListDefinition(t *testing.T) {
 		t.Fatalf("failure types = %v, want %v", envelope.Data.FailureTypes, wantFailures)
 	}
 	if envelope.Data.Safety.Kind != "read-only" ||
-		envelope.Data.Safety.PlanRequired ||
-		envelope.Data.Safety.ConfirmationRequired {
+		envelope.Data.Safety.Destructive {
 		t.Fatalf("safety = %#v, want read-only", envelope.Data.Safety)
 	}
 	if strings.Contains(result.Stdout, `"id"`) ||
@@ -4995,11 +4987,10 @@ func TestExecuteSchemaDescribesBothDiscoveryResultShapes(t *testing.T) {
 					"safety": {
 						"type": "object",
 						"additionalProperties": false,
-						"required": ["kind", "planRequired", "confirmationRequired"],
+						"required": ["kind", "destructive"],
 						"properties": {
 							"kind": {"type": "string", "enum": ["read-only", "local-mutation", "standard-mutation", "consequential-action"]},
-							"planRequired": {"type": "boolean"},
-							"confirmationRequired": {"type": "boolean"}
+							"destructive": {"type": "boolean"}
 						}
 					}
 				}

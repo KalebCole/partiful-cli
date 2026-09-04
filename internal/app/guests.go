@@ -1,15 +1,11 @@
 package app
 
 import (
-	"bytes"
 	"context"
-	"encoding/json"
 	"errors"
 	"slices"
 	"strings"
-	"time"
 
-	"github.com/KalebCole/partiful-cli/internal/mutation"
 	"github.com/KalebCole/partiful-cli/internal/remote"
 )
 
@@ -27,23 +23,19 @@ type guest struct {
 type guestInviteOptions struct {
 	EventID      string
 	ContactQuery string
-	Apply        bool
-	ConfirmToken string
 }
 
 type guestInvitePublicInput struct {
 	Contact string `json:"contact"`
 }
 
-type guestInvitePlan struct {
-	Operation        string                 `json:"operation"`
-	EventID          string                 `json:"eventId"`
-	Input            guestInvitePublicInput `json:"input"`
-	Request          any                    `json:"request"`
-	Effects          []string               `json:"effects"`
-	Preconditions    map[string]string      `json:"preconditions"`
-	ExpiresInSeconds int                    `json:"expiresInSeconds"`
-	PlanToken        string                 `json:"planToken"`
+type guestInvitePreview struct {
+	Operation     string                 `json:"operation"`
+	EventID       string                 `json:"eventId"`
+	Input         guestInvitePublicInput `json:"input"`
+	Request       any                    `json:"request"`
+	Effects       []string               `json:"effects"`
+	Preconditions map[string]string      `json:"preconditions"`
 }
 
 type guestInviteSubmitted struct {
@@ -58,17 +50,6 @@ type guestInviteRequestPreview struct {
 	OtherMutualsCount     int              `json:"otherMutualsCount"`
 	PhoneContactsToInvite []map[string]any `json:"phoneContactsToInvite"`
 	EmailsToInvite        []map[string]any `json:"emailsToInvite"`
-}
-
-type guestInvitePrivateContact struct {
-	ID               string `json:"id"`
-	Name             string `json:"name"`
-	SharedEventCount int    `json:"sharedEventCount"`
-}
-
-type guestInvitePrivatePreconditions struct {
-	OwnerIDs eventFieldSnapshot        `json:"ownerIds"`
-	Contact  guestInvitePrivateContact `json:"contact"`
 }
 
 func executeGuestsList(
@@ -191,46 +172,19 @@ func executeGuestsInvite(
 	definition commandDefinition,
 	argv []string,
 	dependencies Dependencies,
+	execution mutationExecution,
 	pretty bool,
 ) Result {
 	options, inputError := parseGuestInviteOptions(definition, argv)
 	if inputError != nil {
 		return failure(definition.path, exitCodeForType(inputError.Type), *inputError, pretty)
 	}
-	session, sessionFailure := acquireProtectedSession(ctx, definition.path, dependencies, pretty)
+	session, sessionFailure := acquireProtectedMutationSession(ctx, definition.path, dependencies, execution, pretty)
 	if sessionFailure != nil {
 		return *sessionFailure
 	}
-	if session.AccountFingerprint == "" || session.UserID == "" {
+	if session.UserID == "" {
 		return internalFailure(definition.path, pretty)
-	}
-	clock := time.Now
-	if dependencies.Now != nil {
-		clock = dependencies.Now
-	}
-	authority := mutation.Authority{
-		Files:  dependencies.Files,
-		Path:   eventMutationPath(dependencies),
-		Now:    clock,
-		Random: dependencies.MutationRandom,
-	}
-	inputDocument, _ := json.Marshal(guestInvitePublicInput{Contact: options.ContactQuery})
-	var inspected mutation.Record
-	if options.Apply {
-		var err error
-		inspected, err = authority.Inspect(
-			options.ConfirmToken,
-			definition.path,
-			"addInvitedGuestsAsHost",
-			session.AccountFingerprint,
-			inputDocument,
-		)
-		if err != nil {
-			if errors.Is(err, mutation.ErrStale) {
-				return eventPlanStaleFailure(definition.path, pretty)
-			}
-			return internalFailure(definition.path, pretty)
-		}
 	}
 	deviceID, err := randomDeviceID(dependencies.AuthRandom)
 	if err != nil {
@@ -241,9 +195,6 @@ func executeGuestsInvite(
 	if err != nil {
 		switch {
 		case errors.Is(err, remote.ErrEventNotFound):
-			if options.Apply {
-				return eventPlanStaleFailure(definition.path, pretty)
-			}
 			return eventNotFoundFailure(definition.path, pretty)
 		case errors.Is(err, remote.ErrUnavailable):
 			return guestsUnavailableFailure(definition.path, "The guest invite could not read current event data.", "partiful: guest invite unavailable\n", true, pretty)
@@ -254,10 +205,7 @@ func executeGuestsInvite(
 	if !event.OwnerIDsPresent {
 		return guestsProtocolChangedFailure(definition.path, "GUESTS_INVITE_PROTOCOL_CHANGED", "The guest invite no longer matches the reviewed remote contract.", pretty)
 	}
-	if options.Apply && !slices.Contains(event.OwnerIDs, session.UserID) {
-		return eventPlanStaleFailure(definition.path, pretty)
-	}
-	if !options.Apply && !slices.Contains(event.OwnerIDs, session.UserID) {
+	if !slices.Contains(event.OwnerIDs, session.UserID) {
 		return hostPermissionFailure(definition.path, pretty)
 	}
 	contacts, err := client.GetContacts(ctx, session.AccessToken, deviceID)
@@ -275,28 +223,10 @@ func executeGuestsInvite(
 		}
 		return guestsProtocolChangedFailure(definition.path, "GUESTS_INVITE_PROTOCOL_CHANGED", "The guest invite no longer matches the reviewed remote contract.", pretty)
 	}
-	var contact remote.Contact
-	if options.Apply {
-		contact, err = resolveBoundInviteContact(inspected, contacts.Contacts)
-		if err != nil {
-			return eventPlanStaleFailure(definition.path, pretty)
-		}
-	} else {
-		resolved, failureBody := resolveInviteContact(contacts.Contacts, options.ContactQuery)
-		if failureBody != nil {
-			return failure(definition.path, exitCodeForType(failureBody.Type), *failureBody, pretty)
-		}
-		contact = resolved
+	contact, failureBody := resolveInviteContact(contacts.Contacts, options.ContactQuery)
+	if failureBody != nil {
+		return failure(definition.path, exitCodeForType(failureBody.Type), *failureBody, pretty)
 	}
-	preconditions := guestInvitePrivatePreconditions{
-		OwnerIDs: rawEventField(event, "ownerIds"),
-		Contact: guestInvitePrivateContact{
-			ID:               contact.ID,
-			Name:             contact.Name,
-			SharedEventCount: contact.SharedEventCount,
-		},
-	}
-	preconditionDocument, _ := json.Marshal(preconditions)
 	privateRequest := remote.InviteGuestsAsHostParams{
 		EventID:               options.EventID,
 		UserIDsToInvite:       []string{contact.ID},
@@ -305,63 +235,38 @@ func executeGuestsInvite(
 		PhoneContactsToInvite: []map[string]any{},
 		EmailsToInvite:        []map[string]any{},
 	}
-	requestDocument, _ := json.Marshal(privateRequest)
-	binding := mutation.Binding{
-		Command:            definition.path,
-		Operation:          "addInvitedGuestsAsHost",
-		AccountFingerprint: session.AccountFingerprint,
-		Input:              inputDocument,
-		Request:            requestDocument,
-		Preconditions:      preconditionDocument,
-	}
-	if options.Apply {
-		if !bytes.Equal(inspected.Binding.Request, requestDocument) ||
-			!bytes.Equal(inspected.Binding.Preconditions, preconditionDocument) {
-			return eventPlanStaleFailure(definition.path, pretty)
-		}
-		if err := authority.Consume(options.ConfirmToken, binding); err != nil {
-			if errors.Is(err, mutation.ErrStale) {
-				return eventPlanStaleFailure(definition.path, pretty)
-			}
-			return internalFailure(definition.path, pretty)
-		}
-		if err := client.InviteGuestsAsHost(
-			ctx,
-			session.AccessToken,
-			session.UserID,
-			deviceID,
-			privateRequest,
-		); err != nil {
-			if errors.Is(err, remote.ErrUnavailable) {
-				return guestsUnavailableFailure(definition.path, "Guest invite submission could not be confirmed. Create a new plan before another attempt.", "partiful: guest invite submission uncertain\n", false, pretty)
-			}
-			return guestsProtocolChangedFailure(definition.path, "GUESTS_INVITE_PROTOCOL_CHANGED", "The guest invite response no longer matches the reviewed remote contract.", pretty)
-		}
-		return success(definition.path, guestInviteSubmitted{
+	if execution.DryRun {
+		return success(definition.path, guestInvitePreview{
+			Operation: "addInvitedGuestsAsHost",
 			EventID:   options.EventID,
-			Submitted: true,
+			Input: guestInvitePublicInput{
+				Contact: contact.Name,
+			},
+			Request: guestInvitePublicRequest(privateRequest),
+			Effects: []string{
+				"Submits one host invite request for the selected contact",
+			},
+			Preconditions: map[string]string{
+				"ownership": "bound",
+				"contact":   "bound",
+			},
 		}, pretty)
 	}
-	token, err := authority.Create(binding)
-	if err != nil {
-		return internalFailure(definition.path, pretty)
+	if err := client.InviteGuestsAsHost(
+		ctx,
+		session.AccessToken,
+		session.UserID,
+		deviceID,
+		privateRequest,
+	); err != nil {
+		if errors.Is(err, remote.ErrUnavailable) {
+			return guestsUnavailableFailure(definition.path, "Guest invite submission could not be confirmed. Inspect remote state before another attempt.", "partiful: guest invite submission uncertain\n", false, pretty)
+		}
+		return guestsProtocolChangedFailure(definition.path, "GUESTS_INVITE_PROTOCOL_CHANGED", "The guest invite response no longer matches the reviewed remote contract.", pretty)
 	}
-	return success(definition.path, guestInvitePlan{
-		Operation: "addInvitedGuestsAsHost",
+	return success(definition.path, guestInviteSubmitted{
 		EventID:   options.EventID,
-		Input: guestInvitePublicInput{
-			Contact: contact.Name,
-		},
-		Request: guestInvitePublicRequest(privateRequest),
-		Effects: []string{
-			"Submits one host invite request for the selected contact",
-		},
-		Preconditions: map[string]string{
-			"ownership": "bound",
-			"contact":   "bound",
-		},
-		ExpiresInSeconds: 300,
-		PlanToken:        token,
+		Submitted: true,
 	}, pretty)
 }
 
@@ -457,8 +362,6 @@ func parseGuestInviteOptions(
 		values[name] = argv[index]
 	}
 	options := guestInviteOptions{EventID: eventID}
-	_, options.Apply = values["--apply"]
-	options.ConfirmToken = values["--confirm"]
 	contactQuery := strings.TrimSpace(values["--contact"])
 	if contactQuery == "" {
 		return guestInviteOptions{}, &errorBody{
@@ -470,12 +373,6 @@ func parseGuestInviteOptions(
 		}
 	}
 	options.ContactQuery = contactQuery
-	if options.Apply && options.ConfirmToken == "" {
-		return guestInviteOptions{}, confirmationRequiredErrorBody()
-	}
-	if !options.Apply && options.ConfirmToken != "" {
-		return guestInviteOptions{}, eventWriteInputFailure("APPLY_REQUIRED", "--confirm requires --apply.")
-	}
 	return options, nil
 }
 
@@ -560,28 +457,6 @@ func resolveInviteContact(
 	}
 }
 
-func resolveBoundInviteContact(
-	inspected mutation.Record,
-	contacts []remote.Contact,
-) (remote.Contact, error) {
-	var bound guestInvitePrivatePreconditions
-	if err := json.Unmarshal(inspected.Binding.Preconditions, &bound); err != nil {
-		return remote.Contact{}, err
-	}
-	filtered := filterContacts(contacts, "")
-	for _, contact := range filtered {
-		if contact.ID != bound.Contact.ID {
-			continue
-		}
-		if contact.Name != bound.Contact.Name ||
-			contact.SharedEventCount != bound.Contact.SharedEventCount {
-			return remote.Contact{}, errors.New("bound contact changed")
-		}
-		return contact, nil
-	}
-	return remote.Contact{}, errors.New("bound contact missing")
-}
-
 func guestInvitePublicRequest(
 	request remote.InviteGuestsAsHostParams,
 ) guestInviteRequestPreview {
@@ -632,8 +507,7 @@ func guestInviteInputSchema() jsonSchema {
 
 func guestInviteSuccessSchema() jsonSchema {
 	one := 1
-	threeHundred := 300
-	plan := objectSchema(
+	preview := objectSchema(
 		[]string{
 			"operation",
 			"eventId",
@@ -641,18 +515,14 @@ func guestInviteSuccessSchema() jsonSchema {
 			"request",
 			"effects",
 			"preconditions",
-			"expiresInSeconds",
-			"planToken",
 		},
 		map[string]jsonSchema{
-			"operation":        {Type: "string", Enum: []string{"addInvitedGuestsAsHost"}},
-			"eventId":          {Type: "string", MinLength: &one},
-			"input":            objectSchema([]string{"contact"}, map[string]jsonSchema{"contact": {Type: "string", MinLength: &one, Pattern: `\S`}}),
-			"request":          {Type: "object"},
-			"effects":          {Type: "array", Items: pointerSchema(jsonSchema{Type: "string"})},
-			"preconditions":    objectSchema([]string{"ownership", "contact"}, map[string]jsonSchema{"ownership": {Type: "string", Enum: []string{"bound"}}, "contact": {Type: "string", Enum: []string{"bound"}}}),
-			"expiresInSeconds": {Type: "integer", Minimum: &threeHundred, Maximum: &threeHundred},
-			"planToken":        {Type: "string", MinLength: &one},
+			"operation":     {Type: "string", Enum: []string{"addInvitedGuestsAsHost"}},
+			"eventId":       {Type: "string", MinLength: &one},
+			"input":         objectSchema([]string{"contact"}, map[string]jsonSchema{"contact": {Type: "string", MinLength: &one, Pattern: `\S`}}),
+			"request":       {Type: "object"},
+			"effects":       {Type: "array", Items: pointerSchema(jsonSchema{Type: "string"})},
+			"preconditions": objectSchema([]string{"ownership", "contact"}, map[string]jsonSchema{"ownership": {Type: "string", Enum: []string{"bound"}}, "contact": {Type: "string", Enum: []string{"bound"}}}),
 		},
 	)
 	submitted := objectSchema(
@@ -662,7 +532,7 @@ func guestInviteSuccessSchema() jsonSchema {
 			"submitted": {Type: "boolean", Const: true},
 		},
 	)
-	return jsonSchema{Type: "object", OneOf: []jsonSchema{plan, submitted}}
+	return jsonSchema{Type: "object", OneOf: []jsonSchema{preview, submitted}}
 }
 
 func guestsUnavailableFailure(

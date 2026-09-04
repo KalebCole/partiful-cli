@@ -17,8 +17,8 @@ reviewed remote data supports them.
 partiful events create   --title "Game Night"   --start 2026-08-01T19:00:00-07:00   --timezone America/Los_Angeles
 ```
 
-By default this returns a reviewed plan token. Repeat the same normalized input
-with `--apply --plan <token>` to execute it.
+Add `--dry-run` to validate and preview the normalized create request without
+creating the event. Without `--dry-run`, the command dispatches once.
 
 Approved create fields are `--title`, `--start`, `--end`, `--timezone`,
 `--description`, `--location`, `--visibility`, `--guest-limit`, repeatable
@@ -31,9 +31,10 @@ JSON instead of field flags.
 partiful events update <event-id>   --title "New Title"   --start 2026-08-08T19:00:00-07:00   --timezone America/Los_Angeles
 ```
 
-`events update` uses the same plan flow as `events create`. Approved update
-fields are `--title`, `--description`, `--start`, `--end`, `--timezone`,
-`--guest-limit`, repeatable `--link label=url`, and `--poster-id`.
+Add `--dry-run` to preview an update after current event checks. Approved
+update fields are `--title`, `--description`, `--start`, `--end`,
+`--timezone`, `--guest-limit`, repeatable `--link label=url`, and
+`--poster-id`.
 
 ## Cancel
 
@@ -41,12 +42,13 @@ fields are `--title`, `--description`, `--start`, `--end`, `--timezone`,
 partiful events cancel <event-id> --message "Event cancelled" --notify-guests true
 ```
 
-Cancellation is a consequential action. Review the plan, get approval, then
-repeat the same command with `--apply --confirm <token>`.
+Cancellation is destructive. Add `--dry-run` to preview it. Normal execution
+prompts only on a TTY after validation and current event checks. Use `--force`
+only after approval, or `--no-input` to fail rather than prompt.
 
 ## Verify
 
-After any applied write, inspect returned JSON and, when useful, run:
+After any write, inspect returned JSON and, when useful, run:
 
 ```bash
 partiful events get <event-id>

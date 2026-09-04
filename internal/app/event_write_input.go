@@ -57,23 +57,17 @@ type normalizedEventCancelInput struct {
 }
 
 type eventCreateOptions struct {
-	Input     normalizedEventCreateInput
-	Apply     bool
-	PlanToken string
+	Input normalizedEventCreateInput
 }
 
 type eventUpdateOptions struct {
-	EventID   string
-	Input     normalizedEventUpdateInput
-	Apply     bool
-	PlanToken string
+	EventID string
+	Input   normalizedEventUpdateInput
 }
 
 type eventCancelOptions struct {
-	EventID      string
-	Input        normalizedEventCancelInput
-	Apply        bool
-	ConfirmToken string
+	EventID string
+	Input   normalizedEventCancelInput
 }
 
 type eventCreatePublicInput struct {
@@ -192,14 +186,6 @@ func parseEventCreateOptions(
 		return eventCreateOptions{}, inputError
 	}
 	options := eventCreateOptions{}
-	_, options.Apply = scalars["--apply"]
-	options.PlanToken = scalars["--plan"]
-	if options.Apply && options.PlanToken == "" {
-		return eventCreateOptions{}, eventWriteInputFailure("PLAN_REQUIRED", "--apply requires --plan.")
-	}
-	if !options.Apply && options.PlanToken != "" {
-		return eventCreateOptions{}, eventWriteInputFailure("APPLY_REQUIRED", "--plan requires --apply.")
-	}
 	document, readError := eventInputDocument(request, dependencies, scalars, links)
 	if readError != nil {
 		return eventCreateOptions{}, readError
@@ -227,14 +213,6 @@ func parseEventUpdateOptions(
 		return eventUpdateOptions{}, parseError
 	}
 	options := eventUpdateOptions{EventID: eventID}
-	_, options.Apply = scalars["--apply"]
-	options.PlanToken = scalars["--plan"]
-	if options.Apply && options.PlanToken == "" {
-		return eventUpdateOptions{}, eventWriteInputFailure("PLAN_REQUIRED", "--apply requires --plan.")
-	}
-	if !options.Apply && options.PlanToken != "" {
-		return eventUpdateOptions{}, eventWriteInputFailure("APPLY_REQUIRED", "--plan requires --apply.")
-	}
 	document, readError := eventInputDocument(request, dependencies, scalars, links)
 	if readError != nil {
 		return eventUpdateOptions{}, readError
@@ -265,14 +243,6 @@ func parseEventCancelOptions(
 		return eventCancelOptions{}, parseError
 	}
 	options := eventCancelOptions{EventID: eventID}
-	_, options.Apply = scalars["--apply"]
-	options.ConfirmToken = scalars["--confirm"]
-	if options.Apply && options.ConfirmToken == "" {
-		return eventCancelOptions{}, confirmationRequiredErrorBody()
-	}
-	if !options.Apply && options.ConfirmToken != "" {
-		return eventCancelOptions{}, eventWriteInputFailure("APPLY_REQUIRED", "--confirm requires --apply.")
-	}
 	document, readError := eventInputDocument(request, dependencies, scalars, nil)
 	if readError != nil {
 		return eventCancelOptions{}, readError
@@ -337,7 +307,7 @@ func eventInputDocument(
 	hasFieldFlags := len(links) != 0
 	for name := range scalars {
 		switch name {
-		case "--apply", "--plan", "--confirm", "--input":
+		case "--input":
 		default:
 			hasFieldFlags = true
 		}
@@ -804,10 +774,6 @@ func eventWriteInputFailureWithDetail(code, message, key string, value any) *err
 	return &errorBody{Type: "input.invalid", Code: code, Message: message, Retryable: false, Details: map[string]any{key: value}}
 }
 
-func confirmationRequiredErrorBody() *errorBody {
-	return &errorBody{Type: "safety.confirmation_required", Code: "CONFIRMATION_REQUIRED", Message: "--apply requires --confirm.", Retryable: false, Details: map[string]any{}}
-}
-
 func eventLinkSchema() jsonSchema {
 	one := 1
 	return objectSchema(
@@ -865,37 +831,30 @@ func eventCancelInputSchema() jsonSchema {
 }
 
 func eventCreateSuccessSchema() jsonSchema {
-	one := 1
-	threeHundred := 300
-	plan := objectSchema(
-		[]string{"operation", "input", "request", "preconditions", "expiresInSeconds", "planToken"},
+	preview := objectSchema(
+		[]string{"operation", "input", "request", "preconditions"},
 		map[string]jsonSchema{
-			"operation":        {Type: "string", Enum: []string{"createEvent"}},
-			"input":            eventCreateInputSchema(),
-			"request":          objectSchema([]string{"event", "cohostIds"}, map[string]jsonSchema{"event": {Type: "object"}, "cohostIds": {Type: "array", Items: pointerSchema(jsonSchema{Type: "string"})}}),
-			"preconditions":    objectSchema([]string{"poster"}, map[string]jsonSchema{"poster": {Type: "string", Enum: []string{"bound"}}}),
-			"expiresInSeconds": {Type: "integer", Minimum: &threeHundred, Maximum: &threeHundred},
-			"planToken":        {Type: "string", MinLength: &one},
+			"operation":     {Type: "string", Enum: []string{"createEvent"}},
+			"input":         eventCreateInputSchema(),
+			"request":       objectSchema([]string{"event", "cohostIds"}, map[string]jsonSchema{"event": {Type: "object"}, "cohostIds": {Type: "array", Items: pointerSchema(jsonSchema{Type: "string"})}}),
+			"preconditions": objectSchema([]string{"poster"}, map[string]jsonSchema{"poster": {Type: "string", Enum: []string{"bound"}}}),
 		},
 	)
 	submitted := objectSchema([]string{"submitted"}, map[string]jsonSchema{"submitted": {Type: "boolean", Const: true}})
-	return jsonSchema{Type: "object", OneOf: []jsonSchema{plan, submitted}}
+	return jsonSchema{Type: "object", OneOf: []jsonSchema{preview, submitted}}
 }
 
 func eventUpdateSuccessSchema() jsonSchema {
 	one := 1
-	threeHundred := 300
-	plan := objectSchema(
-		[]string{"operation", "eventId", "fields", "input", "request", "preconditions", "expiresInSeconds", "planToken"},
+	preview := objectSchema(
+		[]string{"operation", "eventId", "fields", "input", "request", "preconditions"},
 		map[string]jsonSchema{
-			"operation":        {Type: "string", Enum: []string{"firestorePatchEvent"}},
-			"eventId":          {Type: "string", MinLength: &one},
-			"fields":           {Type: "array", Items: pointerSchema(jsonSchema{Type: "string"})},
-			"input":            eventUpdateInputSchema(),
-			"request":          {Type: "object"},
-			"preconditions":    {Type: "object"},
-			"expiresInSeconds": {Type: "integer", Minimum: &threeHundred, Maximum: &threeHundred},
-			"planToken":        {Type: "string", MinLength: &one},
+			"operation":     {Type: "string", Enum: []string{"firestorePatchEvent"}},
+			"eventId":       {Type: "string", MinLength: &one},
+			"fields":        {Type: "array", Items: pointerSchema(jsonSchema{Type: "string"})},
+			"input":         eventUpdateInputSchema(),
+			"request":       {Type: "object"},
+			"preconditions": {Type: "object"},
 		},
 	)
 	submitted := objectSchema(
@@ -906,23 +865,35 @@ func eventUpdateSuccessSchema() jsonSchema {
 			"submitted": {Type: "boolean", Const: true},
 		},
 	)
-	return jsonSchema{Type: "object", OneOf: []jsonSchema{plan, submitted}}
+	return jsonSchema{Type: "object", OneOf: []jsonSchema{preview, submitted}}
 }
 
 func eventCancelSuccessSchema() jsonSchema {
 	one := 1
-	threeHundred := 300
-	plan := objectSchema(
-		[]string{"operation", "eventId", "input", "request", "effects", "preconditions", "expiresInSeconds", "planToken"},
+	previewInput := objectSchema(
+		[]string{"messageProvided", "notifyGuests"},
 		map[string]jsonSchema{
-			"operation":        {Type: "string", Enum: []string{"cancelEvent"}},
-			"eventId":          {Type: "string", MinLength: &one},
-			"input":            eventCancelInputSchema(),
-			"request":          {Type: "object"},
-			"effects":          {Type: "array", Items: pointerSchema(jsonSchema{Type: "string"})},
-			"preconditions":    {Type: "object"},
-			"expiresInSeconds": {Type: "integer", Minimum: &threeHundred, Maximum: &threeHundred},
-			"planToken":        {Type: "string", MinLength: &one},
+			"messageProvided": {Type: "boolean"},
+			"notifyGuests":    {Type: "boolean"},
+		},
+	)
+	previewRequest := objectSchema(
+		[]string{"eventId", "cancellationMessageProvided", "shouldSkipNotifyGuests"},
+		map[string]jsonSchema{
+			"eventId":                     {Type: "string", MinLength: &one},
+			"cancellationMessageProvided": {Type: "boolean"},
+			"shouldSkipNotifyGuests":      {Type: "boolean"},
+		},
+	)
+	preview := objectSchema(
+		[]string{"operation", "eventId", "input", "request", "effects", "preconditions"},
+		map[string]jsonSchema{
+			"operation":     {Type: "string", Enum: []string{"cancelEvent"}},
+			"eventId":       {Type: "string", MinLength: &one},
+			"input":         previewInput,
+			"request":       previewRequest,
+			"effects":       {Type: "array", Items: pointerSchema(jsonSchema{Type: "string"})},
+			"preconditions": {Type: "object"},
 		},
 	)
 	submitted := objectSchema(
@@ -933,11 +904,15 @@ func eventCancelSuccessSchema() jsonSchema {
 			"submitted":    {Type: "boolean", Const: true},
 		},
 	)
-	return jsonSchema{Type: "object", OneOf: []jsonSchema{plan, submitted}}
+	return jsonSchema{Type: "object", OneOf: []jsonSchema{preview, submitted}}
 }
 
 func consequentialActionSafety() safetyDefinition {
-	return safetyDefinition{Kind: "consequential-action", PlanRequired: true, ConfirmationRequired: true}
+	return safetyDefinition{Kind: "consequential-action", Destructive: false}
+}
+
+func destructiveActionSafety() safetyDefinition {
+	return safetyDefinition{Kind: "consequential-action", Destructive: true}
 }
 
 func pointerSchema(schema jsonSchema) *jsonSchema {

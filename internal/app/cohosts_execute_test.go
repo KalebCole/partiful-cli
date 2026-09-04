@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"strings"
 	"testing"
-	"time"
 
 	"github.com/KalebCole/partiful-cli/internal/app"
 )
@@ -50,12 +49,11 @@ func assertContactsPageRequest(t *testing.T, request *http.Request, cursor *stri
 	assertEventCallableRequest(t, request, "getContacts", want)
 }
 
-func TestExecuteCohostInvitePlansAndAppliesConfirmedAction(t *testing.T) {
+func TestExecuteCohostInviteDryRunsAndDispatchesOnce(t *testing.T) {
 	files := &memoryFilesystem{files: map[string][]byte{
 		eventWriteCredentialsPath: []byte(eventWriteCredentials),
 	}}
 	dependencies := eventWriteDependencies(files)
-	dependencies.MutationRandom = strings.NewReader(strings.Repeat("h", 32))
 	cursor := "cursor-1"
 	call := 0
 	dependencies.HTTP = scriptedHTTP{do: func(request *http.Request) (*http.Response, error) {
@@ -101,18 +99,17 @@ func TestExecuteCohostInvitePlansAndAppliesConfirmedAction(t *testing.T) {
 	}}
 
 	argv := []string{"cohosts", "invite", "event-example", "--contact", "  Example Contact  "}
-	plan := app.Execute(context.Background(), app.Request{Argv: argv}, dependencies)
-	if plan.ExitCode != 0 || plan.Stderr != "" {
-		t.Fatalf("plan = %#v, want cohost invite plan", plan)
+	preview := app.Execute(context.Background(), app.Request{Argv: append(append([]string{}, argv...), "--dry-run")}, dependencies)
+	if preview.ExitCode != 0 || preview.Stderr != "" {
+		t.Fatalf("preview = %#v, want cohost invite preview", preview)
 	}
-	if !strings.Contains(plan.Stdout, `"operation":"createCohostRequest"`) ||
-		!strings.Contains(plan.Stdout, `"displayName":"Example Contact"`) ||
-		!strings.Contains(plan.Stdout, `"cohostState":"bound"`) {
-		t.Fatalf("plan stdout = %s, want redacted cohost invite plan", plan.Stdout)
+	if !strings.Contains(preview.Stdout, `"operation":"createCohostRequest"`) ||
+		!strings.Contains(preview.Stdout, `"displayName":"Example Contact"`) ||
+		!strings.Contains(preview.Stdout, `"cohostState":"bound"`) {
+		t.Fatalf("preview stdout = %s, want redacted cohost invite preview", preview.Stdout)
 	}
-	token := rsvpPlanToken(t, plan)
 	applied := app.Execute(context.Background(), app.Request{
-		Argv: append(append([]string{}, argv...), "--apply", "--confirm", token),
+		Argv: argv,
 	}, dependencies)
 	if applied.ExitCode != 0 ||
 		!strings.Contains(applied.Stdout, `"status":"invited"`) ||
@@ -120,19 +117,16 @@ func TestExecuteCohostInvitePlansAndAppliesConfirmedAction(t *testing.T) {
 		t.Fatalf("applied = %#v, want invite success", applied)
 	}
 	for _, privateValue := range []string{"private-contact-id", "private-account", "private-access-token"} {
-		if strings.Contains(plan.Stdout+applied.Stdout+plan.Stderr+applied.Stderr, privateValue) {
+		if strings.Contains(preview.Stdout+applied.Stdout+preview.Stderr+applied.Stderr, privateValue) {
 			t.Fatalf("output exposed private value %q", privateValue)
 		}
 	}
-	reused := app.Execute(context.Background(), app.Request{
-		Argv: append(append([]string{}, argv...), "--apply", "--confirm", token),
-	}, dependencies)
-	if reused.ExitCode != 7 || !strings.Contains(reused.Stdout, `"type":"safety.plan_stale"`) {
-		t.Fatalf("reused = %#v, want stale consumed plan", reused)
+	if call != 9 {
+		t.Fatalf("request count = %d, want four preview reads and one four-read/one-write execution", call)
 	}
 }
 
-func TestExecuteCohostRevokeInviteAndRemoveApplyExactReviewedOperations(t *testing.T) {
+func TestExecuteCohostRevokeInviteAndRemoveDryRunThenForce(t *testing.T) {
 	tests := []struct {
 		name           string
 		argv           []string
@@ -167,7 +161,6 @@ func TestExecuteCohostRevokeInviteAndRemoveApplyExactReviewedOperations(t *testi
 				eventWriteCredentialsPath: []byte(eventWriteCredentials),
 			}}
 			dependencies := eventWriteDependencies(files)
-			dependencies.MutationRandom = strings.NewReader(strings.Repeat("r", 32))
 			cursor := "cursor-1"
 			call := 0
 			dependencies.HTTP = scriptedHTTP{do: func(request *http.Request) (*http.Response, error) {
@@ -207,16 +200,18 @@ func TestExecuteCohostRevokeInviteAndRemoveApplyExactReviewedOperations(t *testi
 				}
 			}}
 
-			plan := app.Execute(context.Background(), app.Request{Argv: testCase.argv}, dependencies)
-			if plan.ExitCode != 0 || !strings.Contains(plan.Stdout, `"operation":"`+testCase.operation+`"`) {
-				t.Fatalf("plan = %#v, want %s plan", plan, testCase.operation)
+			preview := app.Execute(context.Background(), app.Request{Argv: append(append([]string{}, testCase.argv...), "--dry-run")}, dependencies)
+			if preview.ExitCode != 0 || !strings.Contains(preview.Stdout, `"operation":"`+testCase.operation+`"`) {
+				t.Fatalf("preview = %#v, want %s preview", preview, testCase.operation)
 			}
-			token := rsvpPlanToken(t, plan)
 			applied := app.Execute(context.Background(), app.Request{
-				Argv: append(append([]string{}, testCase.argv...), "--apply", "--confirm", token),
+				Argv: append(append([]string{}, testCase.argv...), "--force"),
 			}, dependencies)
 			if applied.ExitCode != 0 || !strings.Contains(applied.Stdout, `"status":"`+testCase.successStatus+`"`) {
 				t.Fatalf("applied = %#v, want %s success", applied, testCase.successStatus)
+			}
+			if call != 9 {
+				t.Fatalf("request count = %d, want one dry-run and one single-attempt execution", call)
 			}
 		})
 	}
@@ -260,7 +255,6 @@ func TestExecuteCohostLinkCreateAndRevokeReturnDocumentedState(t *testing.T) {
 				eventWriteCredentialsPath: []byte(eventWriteCredentials),
 			}}
 			dependencies := eventWriteDependencies(files)
-			dependencies.MutationRandom = strings.NewReader(strings.Repeat("l", 32))
 			call := 0
 			dependencies.HTTP = scriptedHTTP{do: func(request *http.Request) (*http.Response, error) {
 				call++
@@ -292,16 +286,22 @@ func TestExecuteCohostLinkCreateAndRevokeReturnDocumentedState(t *testing.T) {
 				}
 			}}
 
-			plan := app.Execute(context.Background(), app.Request{Argv: testCase.argv}, dependencies)
-			if plan.ExitCode != 0 || !strings.Contains(plan.Stdout, `"operation":"`+testCase.operation+`"`) {
-				t.Fatalf("plan = %#v, want %s plan", plan, testCase.operation)
+			preview := app.Execute(context.Background(), app.Request{Argv: append(append([]string{}, testCase.argv...), "--dry-run")}, dependencies)
+			if preview.ExitCode != 0 || !strings.Contains(preview.Stdout, `"operation":"`+testCase.operation+`"`) {
+				t.Fatalf("preview = %#v, want %s preview", preview, testCase.operation)
 			}
-			token := rsvpPlanToken(t, plan)
+			executionArgv := append([]string{}, testCase.argv...)
+			if testCase.operation == "revokeEventCohostLink" {
+				executionArgv = append(executionArgv, "--force")
+			}
 			applied := app.Execute(context.Background(), app.Request{
-				Argv: append(append([]string{}, testCase.argv...), "--apply", "--confirm", token),
+				Argv: executionArgv,
 			}, dependencies)
 			if applied.ExitCode != 0 || !strings.Contains(applied.Stdout, testCase.successContains) {
 				t.Fatalf("applied = %#v, want %s", applied, testCase.successContains)
+			}
+			if call != 5 {
+				t.Fatalf("request count = %d, want one dry-run and one single-attempt execution", call)
 			}
 		})
 	}
@@ -342,25 +342,24 @@ func TestExecuteCohostInviteAcceptsNullCompletion(t *testing.T) {
 		eventWriteCredentialsPath: []byte(eventWriteCredentials),
 	}}
 	dependencies := eventWriteDependencies(files)
-	dependencies.MutationRandom = strings.NewReader(strings.Repeat("i", 32))
 	cursor := "cursor-1"
 	call := 0
 	dependencies.HTTP = scriptedHTTP{do: func(request *http.Request) (*http.Response, error) {
 		call++
 		switch call {
-		case 1, 5:
+		case 1:
 			event := compatibleUpdateEvent()
 			event["ownerIds"] = []string{"private-account"}
 			return jsonResponse(http.StatusOK, eventResponse(t, event)), nil
-		case 2, 6:
+		case 2:
 			return jsonResponse(http.StatusOK, contactPageResponse([]map[string]any{{
 				"id": "private-contact-id", "name": "Alex Example", "sharedEventCount": 2,
 			}}, &cursor)), nil
-		case 3, 7:
+		case 3:
 			return jsonResponse(http.StatusOK, contactPageResponse([]map[string]any{}, nil)), nil
-		case 4, 8:
+		case 4:
 			return jsonResponse(http.StatusOK, `{}`), nil
-		case 9:
+		case 5:
 			return jsonResponse(http.StatusOK, `{"result":null}`), nil
 		default:
 			return nil, errors.New("unexpected request")
@@ -368,16 +367,14 @@ func TestExecuteCohostInviteAcceptsNullCompletion(t *testing.T) {
 	}}
 	argv := []string{"cohosts", "invite", "event-example", "--contact", "Alex Example"}
 
-	plan := app.Execute(context.Background(), app.Request{Argv: argv}, dependencies)
-	if plan.ExitCode != 0 {
-		t.Fatalf("plan = %#v", plan)
-	}
-	token := rsvpPlanToken(t, plan)
 	applied := app.Execute(context.Background(), app.Request{
-		Argv: append(append([]string{}, argv...), "--apply", "--confirm", token),
+		Argv: argv,
 	}, dependencies)
 	if applied.ExitCode != 0 || !strings.Contains(applied.Stdout, `"status":"invited"`) {
 		t.Fatalf("applied = %#v, want submitted invite", applied)
+	}
+	if call != 5 {
+		t.Fatalf("request count = %d, want one mutation attempt", call)
 	}
 }
 
@@ -408,223 +405,4 @@ func TestExecuteCohostActionsFailClosedWhenOwnerIDsAreMissing(t *testing.T) {
 			}
 		})
 	}
-}
-
-func TestExecuteCohostPlansStaleOnChangedRoleContactLinkAccountAndExpiry(t *testing.T) {
-	t.Run("changed role", func(t *testing.T) {
-		files := &memoryFilesystem{files: map[string][]byte{
-			eventWriteCredentialsPath: []byte(eventWriteCredentials),
-		}}
-		dependencies := eventWriteDependencies(files)
-		dependencies.MutationRandom = strings.NewReader(strings.Repeat("s", 32))
-		cursor := "cursor-1"
-		call := 0
-		dependencies.HTTP = scriptedHTTP{do: func(request *http.Request) (*http.Response, error) {
-			call++
-			switch call {
-			case 1:
-				event := compatibleUpdateEvent()
-				event["ownerIds"] = []string{"private-account"}
-				return jsonResponse(http.StatusOK, eventResponse(t, event)), nil
-			case 2:
-				return jsonResponse(http.StatusOK, contactPageResponse([]map[string]any{{
-					"id":               "private-contact-id",
-					"name":             "Example Contact",
-					"sharedEventCount": 3,
-				}}, &cursor)), nil
-			case 3:
-				return jsonResponse(http.StatusOK, contactPageResponse([]map[string]any{}, nil)), nil
-			case 4:
-				return jsonResponse(http.StatusOK, `{}`), nil
-			case 5:
-				event := compatibleUpdateEvent()
-				event["ownerIds"] = []string{"different-host"}
-				return jsonResponse(http.StatusOK, eventResponse(t, event)), nil
-			case 6:
-				return jsonResponse(http.StatusOK, contactPageResponse([]map[string]any{{
-					"id":               "private-contact-id",
-					"name":             "Example Contact",
-					"sharedEventCount": 3,
-				}}, &cursor)), nil
-			case 7:
-				return jsonResponse(http.StatusOK, contactPageResponse([]map[string]any{}, nil)), nil
-			case 8:
-				return jsonResponse(http.StatusOK, `{}`), nil
-			default:
-				t.Fatalf("unexpected request %d", call)
-				return nil, nil
-			}
-		}}
-		argv := []string{"cohosts", "invite", "event-example", "--contact", "Example Contact"}
-		plan := app.Execute(context.Background(), app.Request{Argv: argv}, dependencies)
-		token := rsvpPlanToken(t, plan)
-		applied := app.Execute(context.Background(), app.Request{Argv: append(append([]string{}, argv...), "--apply", "--confirm", token)}, dependencies)
-		if applied.ExitCode != 7 || !strings.Contains(applied.Stdout, `"type":"safety.plan_stale"`) {
-			t.Fatalf("applied = %#v, want stale plan on role change", applied)
-		}
-	})
-
-	t.Run("changed contact", func(t *testing.T) {
-		files := &memoryFilesystem{files: map[string][]byte{
-			eventWriteCredentialsPath: []byte(eventWriteCredentials),
-		}}
-		dependencies := eventWriteDependencies(files)
-		dependencies.MutationRandom = strings.NewReader(strings.Repeat("c", 32))
-		cursor := "cursor-1"
-		call := 0
-		dependencies.HTTP = scriptedHTTP{do: func(request *http.Request) (*http.Response, error) {
-			call++
-			switch call {
-			case 1, 5:
-				event := compatibleUpdateEvent()
-				event["ownerIds"] = []string{"private-account"}
-				return jsonResponse(http.StatusOK, eventResponse(t, event)), nil
-			case 2:
-				return jsonResponse(http.StatusOK, contactPageResponse([]map[string]any{{
-					"id":               "private-contact-id",
-					"name":             "Example Contact",
-					"sharedEventCount": 3,
-				}}, &cursor)), nil
-			case 3:
-				return jsonResponse(http.StatusOK, contactPageResponse([]map[string]any{}, nil)), nil
-			case 4, 8:
-				return jsonResponse(http.StatusOK, `{}`), nil
-			case 6:
-				return jsonResponse(http.StatusOK, contactPageResponse([]map[string]any{{
-					"id":               "other-contact-id",
-					"name":             "Example Contact",
-					"sharedEventCount": 3,
-				}}, &cursor)), nil
-			case 7:
-				return jsonResponse(http.StatusOK, contactPageResponse([]map[string]any{}, nil)), nil
-			default:
-				t.Fatalf("unexpected request %d", call)
-				return nil, nil
-			}
-		}}
-		argv := []string{"cohosts", "invite", "event-example", "--contact", "Example Contact"}
-		plan := app.Execute(context.Background(), app.Request{Argv: argv}, dependencies)
-		token := rsvpPlanToken(t, plan)
-		applied := app.Execute(context.Background(), app.Request{Argv: append(append([]string{}, argv...), "--apply", "--confirm", token)}, dependencies)
-		if applied.ExitCode != 7 || !strings.Contains(applied.Stdout, `"type":"safety.plan_stale"`) {
-			t.Fatalf("applied = %#v, want stale plan on contact change", applied)
-		}
-	})
-
-	t.Run("changed link state", func(t *testing.T) {
-		files := &memoryFilesystem{files: map[string][]byte{
-			eventWriteCredentialsPath: []byte(eventWriteCredentials),
-		}}
-		dependencies := eventWriteDependencies(files)
-		dependencies.MutationRandom = strings.NewReader(strings.Repeat("k", 32))
-		call := 0
-		dependencies.HTTP = scriptedHTTP{do: func(request *http.Request) (*http.Response, error) {
-			call++
-			switch call {
-			case 1, 3:
-				event := compatibleUpdateEvent()
-				event["ownerIds"] = []string{"private-account"}
-				return jsonResponse(http.StatusOK, eventResponse(t, event)), nil
-			case 2:
-				return jsonResponse(http.StatusNotFound, firestoreNotFound()), nil
-			case 4:
-				return jsonResponse(http.StatusOK, cohostLinkDocument(`/e/event-example?accept-cohost=unexpected`)), nil
-			default:
-				t.Fatalf("unexpected request %d", call)
-				return nil, nil
-			}
-		}}
-		argv := []string{"cohosts", "link", "create", "event-example"}
-		plan := app.Execute(context.Background(), app.Request{Argv: argv}, dependencies)
-		token := rsvpPlanToken(t, plan)
-		applied := app.Execute(context.Background(), app.Request{Argv: append(append([]string{}, argv...), "--apply", "--confirm", token)}, dependencies)
-		if applied.ExitCode != 7 || !strings.Contains(applied.Stdout, `"type":"safety.plan_stale"`) {
-			t.Fatalf("applied = %#v, want stale plan on link change", applied)
-		}
-	})
-
-	t.Run("changed account", func(t *testing.T) {
-		files := &memoryFilesystem{files: map[string][]byte{
-			eventWriteCredentialsPath: []byte(eventWriteCredentials),
-		}}
-		dependencies := eventWriteDependencies(files)
-		dependencies.MutationRandom = strings.NewReader(strings.Repeat("a", 32))
-		cursor := "cursor-1"
-		call := 0
-		dependencies.HTTP = scriptedHTTP{do: func(request *http.Request) (*http.Response, error) {
-			call++
-			switch call {
-			case 1:
-				event := compatibleUpdateEvent()
-				event["ownerIds"] = []string{"private-account"}
-				return jsonResponse(http.StatusOK, eventResponse(t, event)), nil
-			case 2:
-				return jsonResponse(http.StatusOK, contactPageResponse([]map[string]any{{
-					"id":               "private-contact-id",
-					"name":             "Example Contact",
-					"sharedEventCount": 3,
-				}}, &cursor)), nil
-			case 3:
-				return jsonResponse(http.StatusOK, contactPageResponse([]map[string]any{}, nil)), nil
-			case 4:
-				return jsonResponse(http.StatusOK, `{}`), nil
-			default:
-				t.Fatalf("unexpected request %d", call)
-				return nil, nil
-			}
-		}}
-		argv := []string{"cohosts", "invite", "event-example", "--contact", "Example Contact"}
-		plan := app.Execute(context.Background(), app.Request{Argv: argv}, dependencies)
-		files.files[eventWriteCredentialsPath] = []byte(`{"accessToken":"private-access-token","userId":"other-account","expiresAt":"2026-08-12T02:00:00Z"}`)
-		token := rsvpPlanToken(t, plan)
-		applied := app.Execute(context.Background(), app.Request{Argv: append(append([]string{}, argv...), "--apply", "--confirm", token)}, dependencies)
-		if applied.ExitCode != 7 || !strings.Contains(applied.Stdout, `"type":"safety.plan_stale"`) {
-			t.Fatalf("applied = %#v, want stale plan on account change", applied)
-		}
-		if call != 4 {
-			t.Fatalf("HTTP calls = %d, want no apply reads after account mismatch", call)
-		}
-	})
-
-	t.Run("expired plan", func(t *testing.T) {
-		files := &memoryFilesystem{files: map[string][]byte{
-			eventWriteCredentialsPath: []byte(eventWriteCredentials),
-		}}
-		dependencies := eventWriteDependencies(files)
-		dependencies.MutationRandom = strings.NewReader(strings.Repeat("e", 32))
-		cursor := "cursor-1"
-		call := 0
-		dependencies.HTTP = scriptedHTTP{do: func(request *http.Request) (*http.Response, error) {
-			call++
-			switch call {
-			case 1:
-				event := compatibleUpdateEvent()
-				event["ownerIds"] = []string{"private-account"}
-				return jsonResponse(http.StatusOK, eventResponse(t, event)), nil
-			case 2:
-				return jsonResponse(http.StatusOK, contactPageResponse([]map[string]any{{
-					"id":               "private-contact-id",
-					"name":             "Example Contact",
-					"sharedEventCount": 3,
-				}}, &cursor)), nil
-			case 3:
-				return jsonResponse(http.StatusOK, contactPageResponse([]map[string]any{}, nil)), nil
-			case 4:
-				return jsonResponse(http.StatusOK, `{}`), nil
-			default:
-				t.Fatalf("unexpected request %d", call)
-				return nil, nil
-			}
-		}}
-		argv := []string{"cohosts", "invite", "event-example", "--contact", "Example Contact"}
-		plan := app.Execute(context.Background(), app.Request{Argv: argv}, dependencies)
-		dependencies.Now = func() time.Time {
-			return time.Date(2026, time.August, 12, 0, 6, 0, 0, time.UTC)
-		}
-		token := rsvpPlanToken(t, plan)
-		applied := app.Execute(context.Background(), app.Request{Argv: append(append([]string{}, argv...), "--apply", "--confirm", token)}, dependencies)
-		if applied.ExitCode != 7 || !strings.Contains(applied.Stdout, `"type":"safety.plan_stale"`) {
-			t.Fatalf("applied = %#v, want stale expired plan", applied)
-		}
-	})
 }

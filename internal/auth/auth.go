@@ -2,7 +2,6 @@ package auth
 
 import (
 	"context"
-	"crypto/sha256"
 	"encoding/base64"
 	"encoding/json"
 	"errors"
@@ -45,9 +44,8 @@ type State struct {
 }
 
 type Session struct {
-	AccessToken        string
-	UserID             string
-	AccountFingerprint string
+	AccessToken string
+	UserID      string
 }
 
 type credentialRecord struct {
@@ -177,6 +175,27 @@ func AcquireSession(
 	now func() time.Time,
 	client RemoteAuth,
 ) (Session, error) {
+	return acquireSession(ctx, files, path, now, client, true)
+}
+
+func AcquireSessionWithoutPersistence(
+	ctx context.Context,
+	files FileSystem,
+	path string,
+	now func() time.Time,
+	client RemoteAuth,
+) (Session, error) {
+	return acquireSession(ctx, files, path, now, client, false)
+}
+
+func acquireSession(
+	ctx context.Context,
+	files FileSystem,
+	path string,
+	now func() time.Time,
+	client RemoteAuth,
+	persistRefresh bool,
+) (Session, error) {
 	if files == nil || path == "" || now == nil {
 		return Session{}, ErrNotConfigured
 	}
@@ -201,9 +220,8 @@ func AcquireSession(
 		}
 		if state.TokenState == "healthy" {
 			session = Session{
-				AccessToken:        credentials.AccessToken,
-				UserID:             userID,
-				AccountFingerprint: accountFingerprint(userID),
+				AccessToken: credentials.AccessToken,
+				UserID:      userID,
 			}
 			return
 		}
@@ -213,9 +231,8 @@ func AcquireSession(
 				return
 			}
 			session = Session{
-				AccessToken:        credentials.AccessToken,
-				UserID:             userID,
-				AccountFingerprint: accountFingerprint(userID),
+				AccessToken: credentials.AccessToken,
+				UserID:      userID,
 			}
 			return
 		}
@@ -234,14 +251,15 @@ func AcquireSession(
 			UserID:       refreshedUserID,
 			ExpiresAt:    now().Add(refreshed.ExpiresIn).UTC(),
 		}
-		if err := saveCredentialsUnlocked(files, path, credentials); err != nil {
-			operationErr = ErrPersistence
-			return
+		if persistRefresh {
+			if err := saveCredentialsUnlocked(files, path, credentials); err != nil {
+				operationErr = ErrPersistence
+				return
+			}
 		}
 		session = Session{
-			AccessToken:        credentials.AccessToken,
-			UserID:             credentials.UserID,
-			AccountFingerprint: accountFingerprint(credentials.UserID),
+			AccessToken: credentials.AccessToken,
+			UserID:      credentials.UserID,
 		}
 	}); err != nil {
 		return Session{}, ErrUnavailable
@@ -376,14 +394,6 @@ func tokenUserID(token string) string {
 		return ""
 	}
 	return claims.Subject
-}
-
-func accountFingerprint(userID string) string {
-	if userID == "" {
-		return ""
-	}
-	digest := sha256.Sum256([]byte("partiful-account-v1\x00" + userID))
-	return base64.RawURLEncoding.EncodeToString(digest[:])
 }
 
 func missingState() State {

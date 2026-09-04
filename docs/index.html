@@ -493,9 +493,9 @@
           <div class="proof-lines">
             <article class="proof-line"><div><h3>Discover the contract</h3><p>Inspect command parameters without scraping help text.</p></div><code>partiful schema events.create</code></article>
             <article class="proof-line"><div><h3>Check the setup</h3><p>Verify authentication, configuration, and API connectivity.</p></div><code>partiful doctor</code></article>
-            <article class="proof-line"><div><h3>Plan event writes</h3><p>Standard mutations return a reviewed plan until you add <code>--apply --plan</code>.</p></div><code>partiful events create --title … --start … --timezone …</code></article>
+            <article class="proof-line"><div><h3>Preview event writes</h3><p>Add <code>--dry-run</code> for a redacted no-write preview, or omit it to dispatch once.</p></div><code>partiful events create --title … --start … --timezone … --dry-run</code></article>
             <article class="proof-line"><div><h3>Inspect host-visible guests</h3><p>Host-only guest access fails closed instead of guessing beyond the reviewed contract.</p></div><code>partiful guests list &lt;eventId&gt;</code></article>
-            <article class="proof-line"><div><h3>Send approved text blasts</h3><p>Consequential actions require review, approval, and an exact confirmation token.</p></div><code>partiful blasts send &lt;eventId&gt; --audience all-guests --message-file note.txt</code></article>
+            <article class="proof-line"><div><h3>Send approved text blasts</h3><p>Preview the redacted request, then use one non-dry-run invocation after approval.</p></div><code>partiful blasts send &lt;eventId&gt; --audience all-guests --message-file note.txt --dry-run</code></article>
           </div>
         </div>
       </section>
