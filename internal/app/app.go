@@ -4,8 +4,10 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"slices"
+	"strings"
 	"time"
 
 	"github.com/KalebCole/partiful-cli/internal/auth"
@@ -1084,6 +1086,10 @@ type versionData struct {
 }
 
 func Execute(ctx context.Context, request Request, dependencies Dependencies) Result {
+	if target, requested := helpTarget(request.Argv); requested {
+		return renderHelp(target)
+	}
+
 	argv := make([]string, 0, len(request.Argv))
 	pretty := slices.Contains(request.Argv, "--pretty")
 	seenGlobalFlags := make(map[string]bool)
@@ -1585,6 +1591,181 @@ func (definition commandDefinition) matches(argv []string) bool {
 		return slices.Equal(argv[:len(definition.invocation)], definition.invocation)
 	}
 	return slices.Equal(argv, definition.invocation)
+}
+
+func helpTarget(argv []string) ([]string, bool) {
+	if len(argv) > 0 && argv[0] == "help" {
+		return normalizeHelpPath(argv[1:]), true
+	}
+
+	target := make([]string, 0, len(argv))
+	requested := false
+	for _, argument := range argv {
+		switch argument {
+		case "-h", "--help":
+			requested = true
+		case "--pretty", "--non-interactive":
+			// Global presentation and interaction flags do not affect help.
+		default:
+			target = append(target, argument)
+		}
+	}
+	return normalizeHelpPath(target), requested
+}
+
+func normalizeHelpPath(path []string) []string {
+	if len(path) == 1 && path[0] == "version" {
+		return []string{"--version"}
+	}
+	if len(path) == 1 && strings.Contains(path[0], ".") {
+		return strings.Split(path[0], ".")
+	}
+	return path
+}
+
+func renderHelp(target []string) Result {
+	if len(target) == 0 {
+		return Result{Stdout: rootHelp()}
+	}
+	if definition, ok := findDefinitionByInvocation(target); ok {
+		return Result{Stdout: leafHelp(definition)}
+	}
+	if hasCommandPrefix(target) {
+		return Result{Stdout: groupHelp(target)}
+	}
+	return Result{Stdout: fmt.Sprintf("Unknown command path: %s\nRun 'partiful help' for available commands.\n", strings.Join(target, " ")), ExitCode: 2}
+}
+
+func findDefinitionByInvocation(invocation []string) (commandDefinition, bool) {
+	for _, definition := range commandCatalog {
+		if slices.Equal(definition.invocation, invocation) {
+			return definition, true
+		}
+	}
+	return commandDefinition{}, false
+}
+
+func hasCommandPrefix(prefix []string) bool {
+	for _, definition := range commandCatalog {
+		if len(definition.invocation) > len(prefix) && slices.Equal(definition.invocation[:len(prefix)], prefix) {
+			return true
+		}
+	}
+	return false
+}
+
+func rootHelp() string {
+	groups := map[string]bool{}
+	for _, definition := range commandCatalog {
+		if len(definition.invocation) > 0 && !strings.HasPrefix(definition.invocation[0], "-") {
+			groups[definition.invocation[0]] = true
+		}
+	}
+	names := make([]string, 0, len(groups))
+	for group := range groups {
+		names = append(names, group)
+	}
+	slices.Sort(names)
+	return "Usage: partiful <command>\n\nCommands:\n" + formatHelpList(names) + "\nRun 'partiful help <command path>' for command-group or leaf-command help.\n"
+}
+
+func groupHelp(prefix []string) string {
+	commands := make([]string, 0)
+	for _, definition := range commandCatalog {
+		if len(definition.invocation) > len(prefix) && slices.Equal(definition.invocation[:len(prefix)], prefix) {
+			commands = append(commands, strings.Join(definition.invocation[len(prefix):], " "))
+		}
+	}
+	slices.Sort(commands)
+	return fmt.Sprintf("Usage: partiful %s <command>\n\nCommands:\n%s\nRun 'partiful help %s <command>' for leaf-command help.\n", strings.Join(prefix, " "), formatHelpList(commands), strings.Join(prefix, " "))
+}
+
+func formatHelpList(items []string) string {
+	var builder strings.Builder
+	for _, item := range items {
+		fmt.Fprintf(&builder, "  %s\n", item)
+	}
+	return builder.String()
+}
+
+func leafHelp(definition commandDefinition) string {
+	usage := "partiful " + strings.Join(definition.invocation, " ")
+	for _, positional := range definition.positionals {
+		if positional.Required {
+			usage += " <" + positional.Name + ">"
+		} else {
+			usage += " [" + positional.Name + "]"
+		}
+	}
+	if len(definition.flags) > 0 {
+		usage += " [flags]"
+	}
+
+	var builder strings.Builder
+	fmt.Fprintf(&builder, "Usage: %s\n\nPurpose:\n  %s\n", usage, commandPurpose(definition))
+	if len(definition.flags) > 0 {
+		builder.WriteString("\nFlags:\n")
+		for _, flag := range definition.flags {
+			name := flag.Name
+			if flag.TakesValue {
+				name += " <value>"
+			}
+			fmt.Fprintf(&builder, "  %-24s %s\n", name, flag.Description)
+		}
+	}
+	if required := requiredFields(definition); len(required) > 0 {
+		builder.WriteString("\nRequired fields:\n")
+		for _, field := range required {
+			fmt.Fprintf(&builder, "  %s\n", field)
+		}
+	}
+	fmt.Fprintf(&builder, "\nExamples:\n  %s\n", helpExample(definition))
+	builder.WriteString("\nExit behavior:\n  Help is local-only and exits 0. Command execution reports documented JSON success or failure envelopes.\n")
+	builder.WriteString("\nMutation safety:\n  ")
+	builder.WriteString(helpSafety(definition))
+	builder.WriteByte('\n')
+	return builder.String()
+}
+
+func commandPurpose(definition commandDefinition) string {
+	return "Shows the reviewed interface for " + strings.ReplaceAll(definition.path, ".", " ") + "."
+}
+
+func requiredFields(definition commandDefinition) []string {
+	required := make([]string, 0, len(definition.positionals)+len(definition.inputSchema.Required))
+	for _, positional := range definition.positionals {
+		if positional.Required {
+			required = append(required, positional.Name)
+		}
+	}
+	required = append(required, definition.inputSchema.Required...)
+	return required
+}
+
+func helpExample(definition commandDefinition) string {
+	example := "partiful " + strings.Join(definition.invocation, " ")
+	for _, positional := range definition.positionals {
+		if positional.Required {
+			example += " <" + positional.Name + ">"
+		}
+	}
+	for _, field := range definition.inputSchema.Required {
+		if slices.ContainsFunc(definition.flags, func(flag flagDefinition) bool { return flag.Name == "--"+field && flag.TakesValue }) {
+			example += " --" + field + " <value>"
+		}
+	}
+	return example
+}
+
+func helpSafety(definition commandDefinition) string {
+	if !definition.safety.PlanRequired {
+		return "This command is " + definition.safety.Kind + "; review its schema before execution."
+	}
+	text := "Generate a plan by running the command with the original payload. Apply it with the same original payload plus --apply --plan <token>; you must repeat the original payload because the plan is bound to it."
+	if definition.safety.ConfirmationRequired {
+		text += " Consequential actions also require the exact --confirm token from the plan."
+	}
+	return text
 }
 
 type schemaCatalog struct {
