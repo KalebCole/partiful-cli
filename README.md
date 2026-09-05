@@ -77,6 +77,34 @@ partiful cohosts link revoke <event-id>
 All command results are JSON. Use `partiful schema <command.path>` for the
 exact input, success, failure, and safety contract for any approved command.
 
+## MCP stdio server
+
+Start the API-derived MCP server from the same installed binary:
+
+```bash
+partiful mcp
+```
+
+It exposes all implemented event, guest, RSVP, contact, cohost, blast, and
+poster tools by default, including writes. Tool calls use the CLI's validation,
+authentication, transport, privacy projection, dry-run, and single-attempt
+mutation behavior. Interactive authentication remains CLI-only: run
+`partiful auth login` before protected MCP calls.
+
+Narrow the startup surface only when desired:
+
+```bash
+partiful mcp --read-only
+partiful mcp --allow-tool 'events_*,posters_list'
+partiful mcp --list-tools --read-only
+```
+
+`--allow-tool` accepts exact names or a trailing `*`, may be repeated or
+comma-separated, and rejects empty or unknown selections. MCP tool inputs never
+include CLI-only `force` or `no-input`; destructive tool calls do not wait for a
+TTY confirmation. Mutation tools accept `dryRun` for redacted, no-write previews.
+Protocol mode reserves stdout for MCP messages.
+
 ## Mutation safety
 
 Mutation commands execute once after validation and required read-before-write
