@@ -24,9 +24,8 @@ import (
 
 func TestMCPStdioWithOfficialSDK(t *testing.T) {
 	binary := buildPartiful(t)
-	home := t.TempDir()
 	command := exec.Command(binary, "mcp", "--request-interval", "1ms")
-	command.Env = append(os.Environ(), "HOME="+home)
+	command.Env = hermeticMCPSubprocessEnv(t, os.Environ())
 	client := mcp.NewClient(&mcp.Implementation{Name: "partiful-test", Version: "1"}, nil)
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
@@ -134,7 +133,7 @@ Flags:
 		t.Run(test.name, func(t *testing.T) {
 			var stdout, stderr bytes.Buffer
 			command := exec.Command(binary, append([]string{"mcp"}, test.argv...)...)
-			command.Env = append(os.Environ(), "HOME="+t.TempDir())
+			command.Env = hermeticMCPSubprocessEnv(t, os.Environ())
 			command.Stdin = strings.NewReader(initialize)
 			command.Stdout = &stdout
 			command.Stderr = &stderr
@@ -226,7 +225,7 @@ func TestMCPStdioKeepsProtocolOnStdoutAndDiagnosticsOnStderr(t *testing.T) {
 	t.Run("startup diagnostic", func(t *testing.T) {
 		var stdout, stderr bytes.Buffer
 		command := exec.Command(binary, "mcp", "--invalid-option")
-		command.Env = append(os.Environ(), "HOME="+t.TempDir())
+		command.Env = hermeticMCPSubprocessEnv(t, os.Environ())
 		command.Stdout = &stdout
 		command.Stderr = &stderr
 		err := command.Run()
@@ -241,6 +240,64 @@ func TestMCPStdioKeepsProtocolOnStdoutAndDiagnosticsOnStderr(t *testing.T) {
 			t.Fatalf("stderr = %q, want startup diagnostic", stderr.String())
 		}
 	})
+}
+
+func TestHermeticMCPSubprocessEnvReplacesIsolationKeysCaseInsensitively(t *testing.T) {
+	inherited := []string{
+		"PaTh=/test/bin",
+		"Home=/real/home",
+		"HOME=/another/home",
+		"xdg_config_home=/real/xdg",
+		"XDG_CONFIG_HOME=/another/xdg",
+		"AppData=/real/roaming",
+		"APPDATA=/another/roaming",
+		"localappdata=/real/local",
+		"LOCALAPPDATA=/another/local",
+		"UNRELATED=value",
+	}
+
+	environment := hermeticMCPSubprocessEnv(t, inherited)
+	variables := []struct {
+		key       string
+		directory string
+	}{
+		{key: "HOME", directory: "home"},
+		{key: "XDG_CONFIG_HOME", directory: "xdg-config"},
+		{key: "APPDATA", directory: "appdata"},
+		{key: "LOCALAPPDATA", directory: "local-appdata"},
+	}
+	valuesByKey := make(map[string][]string, len(variables))
+	for _, entry := range environment {
+		key, value, ok := strings.Cut(entry, "=")
+		if !ok {
+			continue
+		}
+		for _, variable := range variables {
+			if strings.EqualFold(key, variable.key) {
+				valuesByKey[variable.key] = append(valuesByKey[variable.key], value)
+				break
+			}
+		}
+	}
+
+	var root string
+	for _, variable := range variables {
+		values := valuesByKey[variable.key]
+		if len(values) != 1 {
+			t.Fatalf("%s values = %v, want exactly one", variable.key, values)
+		}
+		if root == "" {
+			root = filepath.Dir(values[0])
+		}
+		if want := filepath.Join(root, variable.directory); values[0] != want {
+			t.Fatalf("%s = %q, want %q", variable.key, values[0], want)
+		}
+	}
+	for _, preserved := range []string{"PaTh=/test/bin", "UNRELATED=value"} {
+		if !slices.Contains(environment, preserved) {
+			t.Errorf("environment does not preserve %q", preserved)
+		}
+	}
 }
 
 type rawMCPProcess struct {
@@ -265,10 +322,47 @@ func buildPartiful(t *testing.T) string {
 	return binary
 }
 
+func hermeticMCPSubprocessEnv(t *testing.T, inherited []string) []string {
+	t.Helper()
+	root := t.TempDir()
+	variables := []struct {
+		key       string
+		directory string
+	}{
+		{key: "HOME", directory: "home"},
+		{key: "XDG_CONFIG_HOME", directory: "xdg-config"},
+		{key: "APPDATA", directory: "appdata"},
+		{key: "LOCALAPPDATA", directory: "local-appdata"},
+	}
+
+	environment := make([]string, 0, len(inherited)+len(variables))
+	for _, entry := range inherited {
+		key, _, ok := strings.Cut(entry, "=")
+		if !ok {
+			environment = append(environment, entry)
+			continue
+		}
+		isolationVariable := false
+		for _, variable := range variables {
+			if strings.EqualFold(key, variable.key) {
+				isolationVariable = true
+				break
+			}
+		}
+		if !isolationVariable {
+			environment = append(environment, entry)
+		}
+	}
+	for _, variable := range variables {
+		environment = append(environment, variable.key+"="+filepath.Join(root, variable.directory))
+	}
+	return environment
+}
+
 func startRawMCP(t *testing.T, binary string) *rawMCPProcess {
 	t.Helper()
 	command := exec.Command(binary, "mcp", "--request-interval", "1ms")
-	command.Env = append(os.Environ(), "HOME="+t.TempDir())
+	command.Env = hermeticMCPSubprocessEnv(t, os.Environ())
 	stdin, err := command.StdinPipe()
 	if err != nil {
 		t.Fatalf("stdin pipe: %v", err)
