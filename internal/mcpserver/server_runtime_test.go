@@ -21,7 +21,7 @@ import (
 
 func TestServerRejectsSchemaInvalidSuccessfulOutput(t *testing.T) {
 	privateOutput := "private-output-marker"
-	server, err := newServer(app.Dependencies{}, Options{MaxBytes: 256}, func(
+	server, err := newServer(app.Dependencies{}, Options{MaxBytes: 512}, func(
 		context.Context,
 		string,
 		map[string]any,
@@ -42,8 +42,7 @@ func TestServerRejectsSchemaInvalidSuccessfulOutput(t *testing.T) {
 	if callErr != nil {
 		t.Fatalf("schema-invalid output returned protocol error: %v", callErr)
 	}
-	assertToolErrorCode(t, result, "MCP_OUTPUT_INVALID")
-	assertToolTextWithinLimit(t, result, 256)
+	assertMCPGeneratedError(t, result, "MCP_OUTPUT_INVALID", "posters.list", 512)
 	visible, err := json.Marshal(result)
 	if err != nil {
 		t.Fatalf("marshal result: %v", err)
@@ -55,7 +54,7 @@ func TestServerRejectsSchemaInvalidSuccessfulOutput(t *testing.T) {
 
 func TestServerValidatesInputBeforeInvocation(t *testing.T) {
 	calls := 0
-	server, err := newServer(app.Dependencies{}, Options{MaxBytes: 256}, func(
+	server, err := newServer(app.Dependencies{}, Options{MaxBytes: 512}, func(
 		context.Context,
 		string,
 		map[string]any,
@@ -80,8 +79,7 @@ func TestServerValidatesInputBeforeInvocation(t *testing.T) {
 	if calls != 0 {
 		t.Fatalf("invocation calls = %d, want zero; call error = %v", calls, callErr)
 	}
-	assertToolErrorCode(t, result, "MCP_ARGUMENTS_INVALID")
-	assertToolTextWithinLimit(t, result, 256)
+	assertMCPGeneratedError(t, result, "MCP_ARGUMENTS_INVALID", "posters.list", 512)
 }
 
 func TestServerPreservesLargeIntegerInputBeforeInvocation(t *testing.T) {
@@ -192,7 +190,7 @@ func TestServerRejectsLargeFractionBeforeInvocation(t *testing.T) {
 func TestServerReturnsStructuredRedactedInputValidationErrors(t *testing.T) {
 	calls := 0
 	var diagnostics bytes.Buffer
-	server, err := newServerWithSDKOptions(app.Dependencies{}, Options{MaxBytes: 256}, func(
+	server, err := newServerWithSDKOptions(app.Dependencies{}, Options{MaxBytes: 512}, func(
 		context.Context,
 		string,
 		map[string]any,
@@ -240,8 +238,7 @@ func TestServerReturnsStructuredRedactedInputValidationErrors(t *testing.T) {
 			t.Fatalf("schema validation error disclosed the private blast message in %s", surface)
 		}
 	}
-	assertToolErrorCode(t, result, "MCP_ARGUMENTS_INVALID")
-	assertToolTextWithinLimit(t, result, 256)
+	assertMCPGeneratedError(t, result, "MCP_ARGUMENTS_INVALID", "blasts.send", 512)
 }
 
 func TestServerPublishesExactInputAndOutputSchemas(t *testing.T) {
@@ -377,7 +374,7 @@ func TestServerPacesOutboundRequests(t *testing.T) {
 
 func TestServerReturnsBoundedErrorInsteadOfOversizedOutput(t *testing.T) {
 	server, err := newServer(app.Dependencies{}, Options{
-		MaxBytes:        256,
+		MaxBytes:        512,
 		RequestInterval: time.Nanosecond,
 	}, func(
 		context.Context,
@@ -386,7 +383,7 @@ func TestServerReturnsBoundedErrorInsteadOfOversizedOutput(t *testing.T) {
 		app.Dependencies,
 		...app.MCPExecutionOptions,
 	) app.Result {
-		return app.Result{Stdout: `{"ok":true,"data":{"items":[]},"meta":{"command":"posters.list","cliVersion":"test","productContractRevision":"test","remoteContractRevision":"test","warnings":["` + strings.Repeat("x", 300) + `"]}}`}
+		return app.Result{Stdout: `{"ok":true,"data":{"items":[]},"meta":{"command":"posters.list","cliVersion":"test","productContractRevision":"test","remoteContractRevision":"test","warnings":["` + strings.Repeat("x", 700) + `"]}}`}
 	})
 	if err != nil {
 		t.Fatalf("new server: %v", err)
@@ -400,16 +397,12 @@ func TestServerReturnsBoundedErrorInsteadOfOversizedOutput(t *testing.T) {
 	if err != nil {
 		t.Fatalf("call tool: %v", err)
 	}
-	assertToolErrorCode(t, result, "MCP_OUTPUT_LIMIT")
-	text := result.Content[0].(*mcp.TextContent).Text
-	if len(text) > 256 {
-		t.Fatalf("bounded error length = %d, want at most 256", len(text))
-	}
+	assertMCPGeneratedError(t, result, "MCP_OUTPUT_LIMIT", "posters.list", 512)
 }
 
 func TestServerBoundsMutationOutputWithoutInvitingRetry(t *testing.T) {
 	server, err := newServer(app.Dependencies{}, Options{
-		MaxBytes:        256,
+		MaxBytes:        512,
 		RequestInterval: time.Nanosecond,
 	}, func(
 		context.Context,
@@ -420,7 +413,7 @@ func TestServerBoundsMutationOutputWithoutInvitingRetry(t *testing.T) {
 	) app.Result {
 		return app.Result{
 			Stdout: `{"ok":false,"error":{"type":"remote.unavailable","code":"EVENT_SUBMISSION_UNCERTAIN","message":"` +
-				strings.Repeat("x", 300) +
+				strings.Repeat("x", 700) +
 				`","retryable":false,"details":{}}}`,
 			ExitCode: 8,
 		}
@@ -439,11 +432,8 @@ func TestServerBoundsMutationOutputWithoutInvitingRetry(t *testing.T) {
 	if err != nil {
 		t.Fatalf("call tool: %v", err)
 	}
-	assertToolErrorCode(t, result, "MCP_MUTATION_OUTCOME_UNCERTAIN")
+	assertMCPGeneratedError(t, result, "MCP_MUTATION_OUTCOME_UNCERTAIN", "events.cancel", 512)
 	text := result.Content[0].(*mcp.TextContent).Text
-	if len(text) > 256 {
-		t.Fatalf("bounded mutation error length = %d, want at most 256", len(text))
-	}
 	var envelope struct {
 		Error struct {
 			Retryable bool `json:"retryable"`
@@ -459,12 +449,13 @@ func TestServerBoundsMutationOutputWithoutInvitingRetry(t *testing.T) {
 
 func TestServerMeasuresTransmittedOutputWithoutTrailingNewline(t *testing.T) {
 	const (
+		limit  = 512
 		prefix = `{"ok":true,"data":{"items":[]},"meta":{"command":"posters.list","cliVersion":"test","productContractRevision":"test","remoteContractRevision":"test","warnings":["`
 		suffix = `"]}}`
 	)
-	body := prefix + strings.Repeat("x", 256-len(prefix)-len(suffix)) + suffix
-	if len(body) != 256 {
-		t.Fatalf("fixture length = %d, want 256", len(body))
+	body := prefix + strings.Repeat("x", limit-len(prefix)-len(suffix)) + suffix
+	if len(body) != limit {
+		t.Fatalf("fixture length = %d, want %d", len(body), limit)
 	}
 	server, err := newServer(app.Dependencies{}, Options{
 		MaxBytes:        len(body),
@@ -552,7 +543,7 @@ func TestServerRejectsNearIntegerFractionalOutput(t *testing.T) {
 	if callErr != nil {
 		t.Fatalf("schema-invalid output returned protocol error: %v", callErr)
 	}
-	assertToolErrorCode(t, result, "MCP_OUTPUT_INVALID")
+	assertMCPGeneratedError(t, result, "MCP_OUTPUT_INVALID", "contacts.list", defaultMaxBytes)
 }
 
 func TestServerRejectsLargeFractionalOutput(t *testing.T) {
@@ -580,12 +571,13 @@ func TestServerRejectsLargeFractionalOutput(t *testing.T) {
 	if callErr != nil {
 		t.Fatalf("schema-invalid output returned protocol error: %v", callErr)
 	}
-	assertToolErrorCode(t, result, "MCP_OUTPUT_INVALID")
+	assertMCPGeneratedError(t, result, "MCP_OUTPUT_INVALID", "contacts.list", defaultMaxBytes)
 }
 
 func TestServerEnforcesCallTimeout(t *testing.T) {
 	server, err := newServer(app.Dependencies{}, Options{
 		CallTimeout:     25 * time.Millisecond,
+		MaxBytes:        512,
 		RequestInterval: time.Nanosecond,
 	}, func(
 		ctx context.Context,
@@ -609,7 +601,42 @@ func TestServerEnforcesCallTimeout(t *testing.T) {
 	if err != nil {
 		t.Fatalf("call tool: %v", err)
 	}
-	assertToolErrorCode(t, result, "MCP_CALL_TIMEOUT")
+	assertMCPGeneratedError(t, result, "MCP_CALL_TIMEOUT", "posters.list", 512)
+}
+
+func TestCallContextCancellationErrorIncludesStandardMetadata(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+
+	result := toolError(callContextError(ctx, "posters.list"))
+	assertMCPGeneratedError(t, result, "MCP_CALL_CANCELLED", "posters.list", 512)
+}
+
+func TestMCPErrorEnvelopeSafelyEncodesFields(t *testing.T) {
+	definition := mcpErrorDefinition{
+		Type:      "input.invalid",
+		Code:      "MCP_TEST_\"CODE",
+		Message:   "line one\n\"line two\"",
+		Retryable: false,
+	}
+	text := mcpErrorEnvelope("events.\"quoted", definition)
+	var envelope struct {
+		Error struct {
+			Code    string `json:"code"`
+			Message string `json:"message"`
+		} `json:"error"`
+		Meta struct {
+			Command string `json:"command"`
+		} `json:"meta"`
+	}
+	if err := json.Unmarshal([]byte(text), &envelope); err != nil {
+		t.Fatalf("decode generated error: %v", err)
+	}
+	if envelope.Error.Code != definition.Code ||
+		envelope.Error.Message != definition.Message ||
+		envelope.Meta.Command != "events.\"quoted" {
+		t.Fatalf("envelope = %#v, want safely encoded fields", envelope)
+	}
 }
 
 func TestServerPreservesMutationOutcomeAfterDeadline(t *testing.T) {
@@ -973,6 +1000,36 @@ func assertToolErrorCode(t *testing.T, result *mcp.CallToolResult, code string) 
 	}
 	if !reflect.DeepEqual(textEnvelope, structuredEnvelope) {
 		t.Fatalf("text = %s, structured = %s", text.Text, structured)
+	}
+}
+
+func assertMCPGeneratedError(
+	t *testing.T,
+	result *mcp.CallToolResult,
+	code string,
+	command string,
+	maxBytes int,
+) {
+	t.Helper()
+	assertToolErrorCode(t, result, code)
+	assertToolTextWithinLimit(t, result, maxBytes)
+	text := result.Content[0].(*mcp.TextContent).Text
+	var envelope struct {
+		Meta struct {
+			Command                 string `json:"command"`
+			CLIVersion              string `json:"cliVersion"`
+			ProductContractRevision string `json:"productContractRevision"`
+			RemoteContractRevision  string `json:"remoteContractRevision"`
+		} `json:"meta"`
+	}
+	if err := json.Unmarshal([]byte(text), &envelope); err != nil {
+		t.Fatalf("decode generated error: %v", err)
+	}
+	if envelope.Meta.Command != command ||
+		envelope.Meta.CLIVersion != app.Version ||
+		envelope.Meta.ProductContractRevision != app.ProductContractRevision ||
+		envelope.Meta.RemoteContractRevision != app.RemoteContractRevision {
+		t.Fatalf("meta = %#v, want command %q and current build revisions", envelope.Meta, command)
 	}
 }
 

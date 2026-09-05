@@ -101,6 +101,47 @@ func TestMCPStdioWithOfficialSDK(t *testing.T) {
 	}
 }
 
+func TestMCPHelpIsLocalAndDocumentsEveryOption(t *testing.T) {
+	binary := buildPartiful(t)
+	const want = `Usage: partiful mcp [flags]
+
+Runs the Partiful MCP server over stdio.
+
+Flags:
+  -h, --help                     Show help and exit (default false).
+  --read-only                    Expose only read-only tools (default false).
+  --allow-tool <selector>        Expose matching tools; repeat or comma-separate selectors (default all enabled tools).
+  --list-tools                   Print enabled tool definitions and exit (default false).
+  --timeout <duration>           Set each tool call timeout (default 30s).
+  --max-concurrency <n>          Set concurrent tool call limit (default 4).
+  --max-output-bytes <n>         Set encoded tool output byte limit (default 262144).
+  --max-items <n>                Set per-call collection item limit (default 100).
+  --request-interval <duration>  Set minimum outbound request interval (default 100ms).
+`
+	initialize := `{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-11-25","capabilities":{},"clientInfo":{"name":"help-test","version":"1"}}}` + "\n"
+
+	for _, helpFlag := range []string{"-h", "--help"} {
+		t.Run(helpFlag, func(t *testing.T) {
+			var stdout, stderr bytes.Buffer
+			command := exec.Command(binary, "mcp", helpFlag)
+			command.Env = append(os.Environ(), "HOME="+t.TempDir())
+			command.Stdin = strings.NewReader(initialize)
+			command.Stdout = &stdout
+			command.Stderr = &stderr
+
+			if err := command.Run(); err != nil {
+				t.Fatalf("run help: %v\nstderr: %s", err, &stderr)
+			}
+			if stdout.String() != want {
+				t.Fatalf("stdout = %q, want %q", stdout.String(), want)
+			}
+			if stderr.Len() != 0 {
+				t.Fatalf("stderr = %q, want none", &stderr)
+			}
+		})
+	}
+}
+
 func TestMCPStdioExitsCleanlyOnEOF(t *testing.T) {
 	process := startRawMCP(t, buildPartiful(t))
 	stdoutDone := readAllMCPOutput(process.stdout)
