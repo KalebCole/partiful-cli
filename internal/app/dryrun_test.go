@@ -106,14 +106,16 @@ type recordingConfirmer struct {
 	answer   bool
 	err      error
 	calls    int
+	prompts  []string
 }
 
 func (confirmer *recordingConfirmer) IsTerminal() bool {
 	return confirmer.terminal
 }
 
-func (confirmer *recordingConfirmer) Confirm(string) (bool, error) {
+func (confirmer *recordingConfirmer) Confirm(prompt string) (bool, error) {
 	confirmer.calls++
+	confirmer.prompts = append(confirmer.prompts, prompt)
 	return confirmer.answer, confirmer.err
 }
 
@@ -217,4 +219,89 @@ func TestDestructiveMutationConfirmationSafety(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestDestructiveCommandsPromptWithCurrentRemoteTitleAndRefuseWithoutMutation(t *testing.T) {
+	const title = `Remote "title" \ name`
+	tests := []struct {
+		name   string
+		argv   []string
+		action string
+	}{
+		{"cancel", []string{"events", "cancel", "event-example"}, "Cancel event"},
+		{"remove cohost", []string{"cohosts", "remove", "event-example", "--contact", "Example Contact"}, "Remove a cohost from"},
+		{"revoke cohost invite", []string{"cohosts", "revoke-invite", "event-example", "--contact", "Example Contact"}, "Revoke a cohost invite for"},
+		{"revoke cohost link", []string{"cohosts", "link", "revoke", "event-example"}, "Revoke the cohost invite link for"},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			writes := 0
+			dependencies := destructiveCommandDependencies(t, test.argv, title, &writes)
+			declining := &recordingConfirmer{terminal: true}
+			dependencies.Confirmer = declining
+
+			result := app.Execute(context.Background(), app.Request{Argv: test.argv}, dependencies)
+			if result.ExitCode != 7 || declining.calls != 1 {
+				t.Fatalf("declined result = %#v, confirmations = %d", result, declining.calls)
+			}
+			wantPrompt := test.action + ` "Remote \"title\" \\ name"? [y/N] `
+			if len(declining.prompts) != 1 || declining.prompts[0] != wantPrompt {
+				t.Fatalf("confirmation prompts = %#v, want %q", declining.prompts, wantPrompt)
+			}
+			if writes != 0 {
+				t.Fatalf("declined command made %d mutation requests", writes)
+			}
+
+			nonTerminalDependencies := destructiveCommandDependencies(t, test.argv, title, &writes)
+			nonTerminal := &recordingConfirmer{}
+			nonTerminalDependencies.Confirmer = nonTerminal
+			result = app.Execute(context.Background(), app.Request{Argv: test.argv}, nonTerminalDependencies)
+			if result.ExitCode != 7 || nonTerminal.calls != 0 || writes != 0 {
+				t.Fatalf("non-terminal result = %#v, confirmations = %d, mutations = %d", result, nonTerminal.calls, writes)
+			}
+		})
+	}
+}
+
+func destructiveCommandDependencies(t *testing.T, argv []string, title string, writes *int) app.Dependencies {
+	t.Helper()
+	files := &memoryFilesystem{files: map[string][]byte{
+		eventWriteCredentialsPath: []byte(eventWriteCredentials),
+	}}
+	dependencies := eventWriteDependencies(files)
+	contactCalls := 0
+	dependencies.HTTP = scriptedHTTP{do: func(request *http.Request) (*http.Response, error) {
+		switch request.URL.String() {
+		case "https://api.partiful.com/getEventInfo":
+			event := compatibleUpdateEvent()
+			event["title"] = title
+			if strings.Join(argv[:2], " ") == "events cancel" {
+				event["guestCount"] = 1
+			}
+			return jsonResponse(http.StatusOK, eventResponse(t, event)), nil
+		case "https://api.partiful.com/getContacts":
+			contactCalls++
+			if contactCalls%2 == 1 {
+				cursor := "cursor-1"
+				return jsonResponse(http.StatusOK, contactPageResponse([]map[string]any{{"id": "private-contact-id", "name": "Example Contact", "sharedEventCount": 1}}, &cursor)), nil
+			}
+			return jsonResponse(http.StatusOK, contactPageResponse([]map[string]any{}, nil)), nil
+		case "https://firestore.googleapis.com/v1/projects/getpartiful/databases/(default)/documents/events/event-example/cohostRequests?pageSize=100":
+			status := "ACCEPTED"
+			if strings.Join(argv[:2], " ") == "cohosts revoke-invite" {
+				status = "DECLINED"
+			}
+			return jsonResponse(http.StatusOK, `{"documents":[`+cohostRequestDocument("private-contact-id", status)+`]}`), nil
+		case "https://firestore.googleapis.com/v1/projects/getpartiful/databases/(default)/documents/events/event-example/private/cohostSecret":
+			return jsonResponse(http.StatusOK, cohostLinkDocument("/e/event-example?accept-cohost=existing-token")), nil
+		case "https://api.partiful.com/cancelEvent", "https://api.partiful.com/removeCohost", "https://api.partiful.com/deleteCohostRequest", "https://api.partiful.com/revokeEventCohostLink":
+			*writes++
+			return jsonResponse(http.StatusOK, `{"result":true}`), nil
+		default:
+			t.Fatalf("unexpected request: %s", request.URL)
+			return nil, nil
+		}
+	}}
+	return dependencies
 }
