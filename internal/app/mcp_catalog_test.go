@@ -1,32 +1,63 @@
 package app_test
 
 import (
+	"bytes"
+	"reflect"
+	"slices"
 	"testing"
 
 	"github.com/KalebCole/partiful-cli/internal/app"
 )
 
 func TestMCPDefinitionsExposeOnlyProductOperations(t *testing.T) {
-	definitions := app.MCPDefinitions()
-	if len(definitions) != 18 {
-		t.Fatalf("definition count = %d, want 18", len(definitions))
+	wantNames := []string{
+		"blasts_send",
+		"cohosts_invite",
+		"cohosts_link_create",
+		"cohosts_link_revoke",
+		"cohosts_remove",
+		"cohosts_revoke_invite",
+		"contacts_list",
+		"events_cancel",
+		"events_create",
+		"events_get",
+		"events_list",
+		"events_update",
+		"guests_invite",
+		"guests_list",
+		"posters_list",
+		"posters_search",
+		"rsvp_get",
+		"rsvp_set",
 	}
-	seen := map[string]bool{}
+	definitions := app.MCPDefinitions()
+	names := make([]string, 0, len(definitions))
 	for _, definition := range definitions {
-		if seen[definition.Name] {
-			t.Fatalf("duplicate MCP tool %q", definition.Name)
-		}
-		seen[definition.Name] = true
-		if definition.Command == "auth.login" || definition.Command == "auth.logout" || definition.Command == "schema" || definition.Command == "doctor" || definition.Command == "version" {
-			t.Fatalf("excluded command exposed: %q", definition.Command)
-		}
+		names = append(names, definition.Name)
 		if len(definition.InputSchema) == 0 || len(definition.OutputSchema) == 0 {
 			t.Fatalf("tool %q has empty schemas", definition.Name)
 		}
+		for _, forbidden := range [][]byte{[]byte(`"force"`), []byte(`"noInput"`), []byte(`"no-input"`)} {
+			if bytes.Contains(definition.InputSchema, forbidden) {
+				t.Fatalf("tool %q exposes CLI-only field %s", definition.Name, forbidden)
+			}
+		}
 	}
-	for _, name := range []string{"events_create", "events_cancel", "blasts_send", "posters_list", "rsvp_set"} {
-		if !seen[name] {
-			t.Fatalf("missing MCP tool %q", name)
+	if !reflect.DeepEqual(names, wantNames) {
+		t.Fatalf("tool names = %v, want exact curated set %v", names, wantNames)
+	}
+	for _, excluded := range []string{
+		"auth_login",
+		"auth_logout",
+		"auth_status",
+		"doctor",
+		"schema",
+		"version",
+		"help",
+		"mcp",
+	} {
+		if slices.Contains(names, excluded) {
+			t.Fatalf("excluded tool exposed: %q", excluded)
 		}
 	}
 }

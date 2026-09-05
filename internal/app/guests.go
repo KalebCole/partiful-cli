@@ -55,14 +55,12 @@ type guestInviteRequestPreview struct {
 func executeGuestsList(
 	ctx context.Context,
 	definition commandDefinition,
-	argv []string,
+	input guestListOperationInput,
 	dependencies Dependencies,
 	pretty bool,
 ) Result {
-	eventID, options, inputError := parseGuestListOptions(definition, argv)
-	if inputError != nil {
-		return failure(definition.path, 2, *inputError, pretty)
-	}
+	eventID := input.EventID
+	options := input.Collection
 	filterHash := normalizedFilterHash(definition.path, eventID)
 	var decodedCursor cursorPayload
 	var cursorKey []byte
@@ -161,24 +159,22 @@ func executeGuestsList(
 		cursor = &value
 	}
 	return collectionSuccess(definition.path, guestData{Items: pageItems}, pageMeta{
-		Limit:      options.limit,
-		NextCursor: cursor,
-		HasMore:    hasMore,
+		Limit:            options.limit,
+		NextCursor:       cursor,
+		HasMore:          hasMore,
+		Truncated:        options.serverLimited && hasMore,
+		TruncationReason: collectionTruncationReason(options, hasMore),
 	}, pretty)
 }
 
 func executeGuestsInvite(
 	ctx context.Context,
 	definition commandDefinition,
-	argv []string,
+	options guestInviteOptions,
 	dependencies Dependencies,
 	execution mutationExecution,
 	pretty bool,
 ) Result {
-	options, inputError := parseGuestInviteOptions(definition, argv)
-	if inputError != nil {
-		return failure(definition.path, exitCodeForType(inputError.Type), *inputError, pretty)
-	}
 	session, sessionFailure := acquireProtectedMutationSession(ctx, definition.path, dependencies, execution, pretty)
 	if sessionFailure != nil {
 		return *sessionFailure

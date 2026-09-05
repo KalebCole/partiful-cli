@@ -11,22 +11,33 @@ type Confirmer interface {
 }
 
 type mutationExecution struct {
-	DryRun  bool
-	Force   bool
-	NoInput bool
+	DryRun       bool
+	confirmation func(commandDefinition, *string, bool) *Result
 }
 
-func requireDestructiveConfirmation(
+func (execution mutationExecution) confirmDestructive(
 	definition commandDefinition,
 	eventTitle *string,
-	execution mutationExecution,
+	pretty bool,
+) *Result {
+	if !definition.safety.Destructive || execution.DryRun || execution.confirmation == nil {
+		return nil
+	}
+	return execution.confirmation(definition, eventTitle, pretty)
+}
+
+func requireCLIConfirmation(
+	definition commandDefinition,
+	eventTitle *string,
+	force bool,
+	noInput bool,
 	dependencies Dependencies,
 	pretty bool,
 ) *Result {
-	if !definition.safety.Destructive || execution.DryRun || execution.Force {
+	if force {
 		return nil
 	}
-	if execution.NoInput ||
+	if noInput ||
 		dependencies.Confirmer == nil ||
 		!dependencies.Confirmer.IsTerminal() {
 		result := confirmationRequiredFailure(definition.path, pretty)

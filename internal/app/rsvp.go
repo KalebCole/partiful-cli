@@ -15,14 +15,10 @@ type rsvpRead struct {
 func executeRSVPGet(
 	ctx context.Context,
 	definition commandDefinition,
-	argv []string,
+	eventID string,
 	dependencies Dependencies,
 	pretty bool,
 ) Result {
-	eventID, inputError := parseEventID(definition, argv)
-	if inputError != nil {
-		return failure(definition.path, 2, *inputError, pretty)
-	}
 	session, sessionFailure := acquireProtectedSession(
 		ctx,
 		definition.path,

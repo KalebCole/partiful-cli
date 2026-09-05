@@ -41,8 +41,12 @@ Run the full native release rehearsal, including GoReleaser snapshot archives,
 checksum verification, and local `version/schema/doctor` smoke tests:
 
 ```bash
-GOTOOLCHAIN=go1.25.0 go install github.com/goreleaser/goreleaser/v2@v2.2.0
-./scripts/verify-native-release.sh
+(
+  export GOBIN="$(mktemp -d)"
+  trap 'rm -rf "${GOBIN}"' EXIT
+  GOTOOLCHAIN=go1.25.5 go install github.com/goreleaser/goreleaser/v2@v2.13.3
+  PATH="${GOBIN}:${PATH}" ./scripts/verify-native-release.sh
+)
 ```
 
 ## Approved command catalog
@@ -104,6 +108,24 @@ comma-separated, and rejects empty or unknown selections. MCP tool inputs never
 include CLI-only `force` or `no-input`; destructive tool calls do not wait for a
 TTY confirmation. Mutation tools accept `dryRun` for redacted, no-write previews.
 Protocol mode reserves stdout for MCP messages.
+
+Runtime safeguards are configurable:
+
+```bash
+partiful mcp \
+  --timeout 30s \
+  --max-concurrency 4 \
+  --max-output-bytes 262144 \
+  --max-items 100 \
+  --request-interval 100ms
+```
+
+Those values are the defaults. The server starts at most one outbound HTTP
+request per request interval and runs at most the configured number of tool
+calls concurrently. Safe collection limits return `meta.page.truncated`,
+`meta.page.truncationReason`, and a continuation cursor when more data remains.
+Responses that cannot fit the byte limit fail with `MCP_OUTPUT_LIMIT` instead
+of returning incomplete JSON.
 
 ## Mutation safety
 

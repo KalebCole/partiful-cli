@@ -85,24 +85,16 @@ type blastPreparedMessage struct {
 
 func executeBlastSend(
 	ctx context.Context,
-	request Request,
 	definition commandDefinition,
-	argv []string,
+	input blastSendOperationInput,
 	dependencies Dependencies,
 	execution mutationExecution,
 	pretty bool,
 ) Result {
-	options, inputError := parseBlastSendOptions(definition, argv)
-	if inputError != nil {
-		return failure(definition.path, exitCodeForType(inputError.Type), *inputError, pretty)
-	}
-	message, inputError := readBlastMessage(request, dependencies, options.MessageFile)
-	if inputError != nil {
-		return failure(definition.path, exitCodeForType(inputError.Type), *inputError, pretty)
-	}
+	message := input.Message
 	publicInput := blastSendPublicInput{
-		Audience:        options.Audience,
-		ShowOnEventPage: options.ShowOnEventPage,
+		Audience:        input.Audience,
+		ShowOnEventPage: input.ShowOnEventPage,
 		Message:         message.Digest,
 	}
 
@@ -122,7 +114,7 @@ func executeBlastSend(
 		return internalFailure(definition.path, pretty)
 	}
 	client := remote.Client{HTTP: dependencies.HTTP}
-	event, err := client.GetEventInfo(ctx, session.AccessToken, deviceID, options.EventID)
+	event, err := client.GetEventInfo(ctx, session.AccessToken, deviceID, input.EventID)
 	if err != nil {
 		switch {
 		case errors.Is(err, remote.ErrEventNotFound):
@@ -136,14 +128,14 @@ func executeBlastSend(
 	if !event.OwnerIDsPresent || !slices.Contains(event.OwnerIDs, session.UserID) {
 		return hostPermissionFailure(definition.path, pretty)
 	}
-	guests, err := client.ListEventGuests(ctx, session.AccessToken, options.EventID)
+	guests, err := client.ListEventGuests(ctx, session.AccessToken, input.EventID)
 	if err != nil {
 		if errors.Is(err, remote.ErrUnavailable) {
 			return blastRemoteUnavailableFailure(definition.path, "The text blast could not read current guest data.", "partiful: text blast unavailable\n", pretty)
 		}
 		return blastProtocolChangedFailure(definition.path, "TEXT_BLAST_PROTOCOL_CHANGED", "The text blast flow no longer matches the reviewed remote contract.", "partiful: text blast protocol changed\n", pretty)
 	}
-	textBlastCount, err := client.CountTextBlasts(ctx, session.AccessToken, options.EventID)
+	textBlastCount, err := client.CountTextBlasts(ctx, session.AccessToken, input.EventID)
 	if err != nil {
 		if errors.Is(err, remote.ErrUnavailable) {
 			return blastRemoteUnavailableFailure(definition.path, "The text blast could not read current blast data.", "partiful: text blast unavailable\n", pretty)
@@ -162,22 +154,22 @@ func executeBlastSend(
 		return *conditionFailure
 	}
 	publicRequest := blastSendPublicRequest{
-		EventID: options.EventID,
+		EventID: input.EventID,
 		Message: blastSendPublicRequestMessage{
 			TextSHA256:      message.Digest.SHA256,
 			TextLength:      message.Digest.Length,
 			To:              append([]string(nil), toGroups...),
-			ShowOnEventPage: options.ShowOnEventPage,
+			ShowOnEventPage: input.ShowOnEventPage,
 		},
 	}
 	effects := []string{"Contacts event guests with a text blast."}
-	if options.ShowOnEventPage {
+	if input.ShowOnEventPage {
 		effects = append(effects, "Shows the blast in the event activity feed.")
 	}
 	if execution.DryRun {
 		return success(definition.path, blastSendPreview{
 			Operation: blastOperation,
-			EventID:   options.EventID,
+			EventID:   input.EventID,
 			Input:     publicInput,
 			Request:   publicRequest,
 			Effects:   effects,
@@ -191,11 +183,11 @@ func executeBlastSend(
 		}, pretty)
 	}
 	if err := client.CreateTextBlast(ctx, session.AccessToken, deviceID, session.UserID, remote.CreateTextBlastParams{
-		EventID: options.EventID,
+		EventID: input.EventID,
 		Message: remote.TextBlastMessage{
 			Text:            message.Text,
 			To:              append([]string(nil), toGroups...),
-			ShowOnEventPage: options.ShowOnEventPage,
+			ShowOnEventPage: input.ShowOnEventPage,
 		},
 	}); err != nil {
 		if errors.Is(err, remote.ErrUnavailable) {
@@ -204,10 +196,10 @@ func executeBlastSend(
 		return blastProtocolChangedFailure(definition.path, "TEXT_BLAST_PROTOCOL_CHANGED", "The text blast response no longer matches the reviewed remote contract.", "partiful: text blast protocol changed\n", pretty)
 	}
 	return success(definition.path, blastSendSubmitted{
-		EventID:         options.EventID,
+		EventID:         input.EventID,
 		Submitted:       true,
-		Audience:        options.Audience,
-		ShowOnEventPage: options.ShowOnEventPage,
+		Audience:        input.Audience,
+		ShowOnEventPage: input.ShowOnEventPage,
 		RecipientStatus: "not-reported",
 	}, pretty)
 }
@@ -282,6 +274,10 @@ func readBlastMessage(
 	if err != nil {
 		return blastPreparedMessage{}, eventWriteInputFailure("MESSAGE_FILE_UNREADABLE", "The message file could not be read.")
 	}
+	return prepareBlastMessage(document)
+}
+
+func prepareBlastMessage(document []byte) (blastPreparedMessage, *errorBody) {
 	if !utf8.Valid(document) {
 		return blastPreparedMessage{}, eventWriteInputFailure("MESSAGE_INVALID_UTF8", "The message must be valid UTF-8 text.")
 	}

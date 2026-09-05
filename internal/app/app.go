@@ -1012,9 +1012,11 @@ type successMeta struct {
 }
 
 type pageMeta struct {
-	Limit      int     `json:"limit"`
-	NextCursor *string `json:"nextCursor"`
-	HasMore    bool    `json:"hasMore"`
+	Limit            int     `json:"limit"`
+	NextCursor       *string `json:"nextCursor"`
+	HasMore          bool    `json:"hasMore"`
+	Truncated        bool    `json:"truncated,omitempty"`
+	TruncationReason string  `json:"truncationReason,omitempty"`
 }
 
 type posterData struct {
@@ -1055,6 +1057,8 @@ func Execute(ctx context.Context, request Request, dependencies Dependencies) Re
 	argv := make([]string, 0, len(request.Argv))
 	pretty := slices.Contains(request.Argv, "--pretty")
 	execution := mutationExecution{}
+	force := false
+	noInput := false
 	seenGlobalFlags := make(map[string]bool)
 	for _, argument := range request.Argv {
 		switch argument {
@@ -1069,7 +1073,7 @@ func Execute(ctx context.Context, request Request, dependencies Dependencies) Re
 				return repeatedFlagFailure(commandName(request.Argv), argument, pretty)
 			}
 			seenGlobalFlags[argument] = true
-			execution.NoInput = true
+			noInput = true
 			continue
 		case "--dry-run":
 			if seenGlobalFlags[argument] {
@@ -1083,17 +1087,31 @@ func Execute(ctx context.Context, request Request, dependencies Dependencies) Re
 				return repeatedFlagFailure(commandName(request.Argv), argument, pretty)
 			}
 			seenGlobalFlags[argument] = true
-			execution.Force = true
+			force = true
 			continue
 		case "--no-input":
 			if seenGlobalFlags[argument] {
 				return repeatedFlagFailure(commandName(request.Argv), argument, pretty)
 			}
 			seenGlobalFlags[argument] = true
-			execution.NoInput = true
+			noInput = true
 			continue
 		}
 		argv = append(argv, argument)
+	}
+	execution.confirmation = func(
+		definition commandDefinition,
+		eventTitle *string,
+		pretty bool,
+	) *Result {
+		return requireCLIConfirmation(
+			definition,
+			eventTitle,
+			force,
+			noInput,
+			dependencies,
+			pretty,
+		)
 	}
 	for _, definition := range commandCatalog {
 		if definition.matches(argv) {
@@ -1313,220 +1331,35 @@ func Execute(ctx context.Context, request Request, dependencies Dependencies) Re
 					nil,
 					pretty,
 				)
-			case postersListCommand, postersSearchCommand:
-				options, inputError := parseCollectionOptions(definition, argv)
-				if inputError != nil {
-					return failure(definition.path, 2, *inputError, pretty)
-				}
-				filterHash := normalizedFilterHash(definition.path, options.query)
-				var decodedCursor cursorPayload
-				var cursorKey []byte
-				var err error
-				if options.cursorProvided {
-					cursorKey, err = loadCursorKey(dependencies)
-					if err != nil {
-						return internalFailure(definition.path, pretty)
-					}
-					var cursorFailure *cursorValidationFailure
-					decodedCursor, cursorFailure = decodeCursor(options.cursor, filterHash, cursorKey)
-					if cursorFailure != nil {
-						return failure(definition.path, cursorFailure.exitCode, cursorFailure.body, pretty)
-					}
-				}
-				catalog, err := (remote.Client{HTTP: dependencies.HTTP}).GetPosterCatalog(ctx)
-				if err != nil {
-					if errors.Is(err, remote.ErrUnavailable) {
-						return remoteUnavailableFailure(definition.path, pretty)
-					}
-					return protocolChangedFailure(definition.path, pretty)
-				}
-				filteredPosters := catalog.Posters
-				if definition.kind == postersSearchCommand {
-					filteredPosters = filterPosters(catalog.Posters, options.query)
-				}
-				offset := 0
-				if options.cursorProvided {
-					var cursorFailure *cursorValidationFailure
-					offset, cursorFailure = cursorSnapshotOffset(
-						decodedCursor,
-						catalog.PayloadSHA256,
-						len(filteredPosters),
-						"The poster catalog changed after this cursor was issued.",
-					)
-					if cursorFailure != nil {
-						return failure(definition.path, cursorFailure.exitCode, cursorFailure.body, pretty)
-					}
-				}
-				end := min(offset+options.limit, len(filteredPosters))
-				items := make([]poster, 0, end-offset)
-				for _, remotePoster := range filteredPosters[offset:end] {
-					items = append(items, poster{
-						PosterID:    remotePoster.ID,
-						Name:        remotePoster.Name,
-						URL:         remotePoster.URL,
-						ContentType: remotePoster.ContentType,
-						Width:       remotePoster.Width,
-						Height:      remotePoster.Height,
-						Tags:        remotePoster.Tags,
-						Categories:  remotePoster.Categories,
-					})
-				}
-				var cursor *string
-				hasMore := end < len(filteredPosters)
-				if hasMore {
-					if cursorKey == nil {
-						cursorKey, err = loadCursorKey(dependencies)
-						if err != nil {
-							return internalFailure(definition.path, pretty)
-						}
-					}
-					value, err := nextCursor(
-						catalog.PayloadSHA256,
-						filterHash,
-						end,
-						cursorKey,
-						dependencies.CursorRandom,
-					)
-					if err != nil {
-						return internalFailure(definition.path, pretty)
-					}
-					cursor = &value
-				}
-				return collectionSuccess(definition.path, posterData{Items: items}, pageMeta{
-					Limit:      options.limit,
-					NextCursor: cursor,
-					HasMore:    hasMore,
-				}, pretty)
-			case contactsListCommand:
-				options, inputError := parseCollectionOptions(definition, argv)
-				if inputError != nil {
-					return failure(definition.path, 2, *inputError, pretty)
-				}
-				filterHash := normalizedFilterHash(definition.path, options.query)
-				var decodedCursor cursorPayload
-				var cursorKey []byte
-				var err error
-				if options.cursorProvided {
-					cursorKey, err = loadCursorKey(dependencies)
-					if err != nil {
-						return internalFailure(definition.path, pretty)
-					}
-					var cursorFailure *cursorValidationFailure
-					decodedCursor, cursorFailure = decodeCursor(options.cursor, filterHash, cursorKey)
-					if cursorFailure != nil {
-						return failure(definition.path, cursorFailure.exitCode, cursorFailure.body, pretty)
-					}
-				}
-				session, sessionFailure := acquireProtectedSession(
-					ctx,
-					definition.path,
+			case postersListCommand,
+				postersSearchCommand,
+				contactsListCommand,
+				guestsListCommand,
+				guestsInviteCommand,
+				eventsListCommand,
+				eventsGetCommand,
+				eventsCreateCommand,
+				eventsUpdateCommand,
+				eventsCancelCommand,
+				blastsSendCommand,
+				rsvpGetCommand,
+				rsvpSetCommand,
+				cohostsInviteCommand,
+				cohostsRevokeInviteCommand,
+				cohostsRemoveCommand,
+				cohostsLinkCreateCommand,
+				cohostsLinkRevokeCommand:
+				invocation, inputError := parseCLIProductInvocation(
+					request,
+					definition,
+					argv,
 					dependencies,
-					pretty,
+					execution,
 				)
-				if sessionFailure != nil {
-					return *sessionFailure
+				if inputError != nil {
+					return failure(definition.path, exitCodeForType(inputError.Type), *inputError, pretty)
 				}
-				deviceID, err := randomDeviceID(dependencies.AuthRandom)
-				if err != nil {
-					return internalFailure(definition.path, pretty)
-				}
-				catalog, err := (remote.Client{HTTP: dependencies.HTTP}).GetContacts(
-					ctx,
-					session.AccessToken,
-					deviceID,
-				)
-				if err != nil {
-					if errors.Is(err, remote.ErrUnavailable) {
-						return contactsUnavailableFailure(definition.path, pretty)
-					}
-					if errors.Is(err, remote.ErrUnauthenticated) {
-						return authenticationExpiredFailure(
-							definition.path,
-							"REMOTE_SESSION_UNAUTHENTICATED",
-							"Stored authentication is no longer accepted. Log in again.",
-							pretty,
-						)
-					}
-					return contactsProtocolChangedFailure(definition.path, pretty)
-				}
-				filteredContacts := filterContacts(catalog.Contacts, options.query)
-				offset := 0
-				if options.cursorProvided {
-					var cursorFailure *cursorValidationFailure
-					offset, cursorFailure = cursorSnapshotOffset(
-						decodedCursor,
-						catalog.PayloadSHA256,
-						len(filteredContacts),
-						"The contact catalog changed after this cursor was issued.",
-					)
-					if cursorFailure != nil {
-						return failure(definition.path, cursorFailure.exitCode, cursorFailure.body, pretty)
-					}
-				}
-				end := min(offset+options.limit, len(filteredContacts))
-				items := make([]contact, 0, end-offset)
-				for _, remoteContact := range filteredContacts[offset:end] {
-					items = append(items, contact{
-						DisplayName:      remoteContact.Name,
-						SharedEventCount: remoteContact.SharedEventCount,
-					})
-				}
-				var cursor *string
-				hasMore := end < len(filteredContacts)
-				if hasMore {
-					if cursorKey == nil {
-						cursorKey, err = loadCursorKey(dependencies)
-						if err != nil {
-							return internalFailure(definition.path, pretty)
-						}
-					}
-					value, err := nextCursor(
-						catalog.PayloadSHA256,
-						filterHash,
-						end,
-						cursorKey,
-						dependencies.CursorRandom,
-					)
-					if err != nil {
-						return internalFailure(definition.path, pretty)
-					}
-					cursor = &value
-				}
-				return collectionSuccess(definition.path, contactData{Items: items}, pageMeta{
-					Limit:      options.limit,
-					NextCursor: cursor,
-					HasMore:    hasMore,
-				}, pretty)
-			case guestsListCommand:
-				return executeGuestsList(ctx, definition, argv, dependencies, pretty)
-			case guestsInviteCommand:
-				return executeGuestsInvite(ctx, definition, argv, dependencies, execution, pretty)
-			case eventsListCommand:
-				return executeEventsList(ctx, definition, argv, dependencies, pretty)
-			case eventsGetCommand:
-				return executeEventGet(ctx, definition, argv, dependencies, pretty)
-			case eventsCreateCommand:
-				return executeEventCreate(ctx, request, definition, argv, dependencies, execution, pretty)
-			case eventsUpdateCommand:
-				return executeEventUpdate(ctx, request, definition, argv, dependencies, execution, pretty)
-			case eventsCancelCommand:
-				return executeEventCancel(ctx, request, definition, argv, dependencies, execution, pretty)
-			case blastsSendCommand:
-				return executeBlastSend(ctx, request, definition, argv, dependencies, execution, pretty)
-			case rsvpGetCommand:
-				return executeRSVPGet(ctx, definition, argv, dependencies, pretty)
-			case rsvpSetCommand:
-				return executeRSVPSet(ctx, request, definition, argv, dependencies, execution, pretty)
-			case cohostsInviteCommand:
-				return executeCohostInvite(ctx, definition, argv, dependencies, execution, pretty)
-			case cohostsRevokeInviteCommand:
-				return executeCohostRevokeInvite(ctx, definition, argv, dependencies, execution, pretty)
-			case cohostsRemoveCommand:
-				return executeCohostRemove(ctx, definition, argv, dependencies, execution, pretty)
-			case cohostsLinkCreateCommand:
-				return executeCohostLinkCreate(ctx, definition, argv, dependencies, execution, pretty)
-			case cohostsLinkRevokeCommand:
-				return executeCohostLinkRevoke(ctx, definition, argv, dependencies, execution, pretty)
+				return invokeProductOperation(ctx, invocation, dependencies, pretty)
 			}
 		}
 	}

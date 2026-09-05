@@ -4,10 +4,13 @@ import (
 	"context"
 	"crypto/rand"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"os"
+	"os/signal"
 	"slices"
+	"syscall"
 	"time"
 
 	"github.com/KalebCole/partiful-cli/internal/app"
@@ -19,7 +22,9 @@ import (
 func main() {
 	dependencies := productionDependencies()
 	if len(os.Args) > 1 && os.Args[1] == "mcp" {
-		if err := runMCP(context.Background(), os.Args[2:], dependencies); err != nil {
+		ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+		defer stop()
+		if err := runMCP(ctx, os.Args[2:], dependencies); err != nil && !errors.Is(err, context.Canceled) {
 			_, _ = fmt.Fprintf(os.Stderr, "partiful mcp: %v\n", err)
 			os.Exit(2)
 		}
