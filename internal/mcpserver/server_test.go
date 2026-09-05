@@ -1,6 +1,7 @@
 package mcpserver
 
 import (
+	"context"
 	"reflect"
 	"testing"
 	"time"
@@ -39,13 +40,27 @@ func TestParseOptionsRejectsUnsafeLimits(t *testing.T) {
 	for _, argv := range [][]string{
 		{"--timeout", "0s"},
 		{"--max-concurrency", "0"},
-		{"--max-output-bytes", "255"},
+		{"--max-output-bytes", "511"},
 		{"--max-items", "0"},
 		{"--request-interval", "-1ms"},
 	} {
 		if _, err := ParseOptions(argv); err == nil {
 			t.Fatalf("options %v accepted", argv)
 		}
+	}
+}
+
+func TestServerRejectsOutputLimitTooSmallForStandardErrors(t *testing.T) {
+	if _, err := newServer(app.Dependencies{}, Options{MaxBytes: 511}, func(
+		context.Context,
+		string,
+		map[string]any,
+		app.Dependencies,
+		...app.MCPExecutionOptions,
+	) app.Result {
+		return validPosterResult()
+	}); err == nil {
+		t.Fatal("server accepted an output limit too small for standard MCP errors")
 	}
 }
 

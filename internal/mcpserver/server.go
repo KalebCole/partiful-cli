@@ -29,6 +29,34 @@ type Options struct {
 	RequestInterval time.Duration
 }
 
+const (
+	defaultCallTimeout     = 30 * time.Second
+	defaultConcurrency     = 4
+	defaultMaxBytes        = 256 << 10
+	defaultMaxItems        = 100
+	defaultRequestInterval = 100 * time.Millisecond
+	minimumMaxBytes        = 512
+)
+
+// HelpText returns the local usage text for the MCP stdio entrypoint.
+func HelpText() string {
+	return fmt.Sprintf(`Usage: partiful mcp [flags]
+
+Runs the Partiful MCP server over stdio.
+
+Flags:
+  -h, --help                     Show help and exit (default false).
+  --read-only                    Expose only read-only tools (default false).
+  --allow-tool <selector>        Expose matching tools; repeat or comma-separate selectors (default all enabled tools).
+  --list-tools                   Print enabled tool definitions and exit (default false).
+  --timeout <duration>           Set each tool call timeout (default %s).
+  --max-concurrency <n>          Set concurrent tool call limit (default %d).
+  --max-output-bytes <n>         Set encoded tool output byte limit (default %d).
+  --max-items <n>                Set per-call collection item limit (default %d).
+  --request-interval <duration>  Set minimum outbound request interval (default %s).
+`, defaultCallTimeout, defaultConcurrency, defaultMaxBytes, defaultMaxItems, defaultRequestInterval)
+}
+
 type toolInvoker func(
 	context.Context,
 	string,
@@ -37,9 +65,71 @@ type toolInvoker func(
 	...app.MCPExecutionOptions,
 ) app.Result
 
-const (
-	mcpArgumentsInvalidEnvelope = `{"ok":false,"error":{"type":"input.invalid","code":"MCP_ARGUMENTS_INVALID","message":"Tool arguments do not match the published input schema.","retryable":false,"details":{}}}`
-	mcpOutputInvalidEnvelope    = `{"ok":false,"error":{"type":"internal.failure","code":"MCP_OUTPUT_INVALID","message":"Tool output did not match the published output schema.","retryable":false,"details":{}}}`
+type mcpErrorDefinition struct {
+	Type      string
+	Code      string
+	Message   string
+	Retryable bool
+}
+
+type mcpFailureEnvelope struct {
+	OK    bool           `json:"ok"`
+	Error mcpFailureBody `json:"error"`
+	Meta  mcpFailureMeta `json:"meta"`
+}
+
+type mcpFailureBody struct {
+	Type      string   `json:"type"`
+	Code      string   `json:"code"`
+	Message   string   `json:"message"`
+	Retryable bool     `json:"retryable"`
+	Details   struct{} `json:"details"`
+}
+
+type mcpFailureMeta struct {
+	Command                 string `json:"command"`
+	CLIVersion              string `json:"cliVersion"`
+	ProductContractRevision string `json:"productContractRevision"`
+	RemoteContractRevision  string `json:"remoteContractRevision"`
+}
+
+var (
+	mcpArgumentsInvalidError = mcpErrorDefinition{
+		Type:      "input.invalid",
+		Code:      "MCP_ARGUMENTS_INVALID",
+		Message:   "Tool arguments do not match the published input schema.",
+		Retryable: false,
+	}
+	mcpOutputInvalidError = mcpErrorDefinition{
+		Type:      "internal.failure",
+		Code:      "MCP_OUTPUT_INVALID",
+		Message:   "Tool output did not match the published output schema.",
+		Retryable: false,
+	}
+	mcpCallTimeoutError = mcpErrorDefinition{
+		Type:      "remote.unavailable",
+		Code:      "MCP_CALL_TIMEOUT",
+		Message:   "The MCP call exceeded the configured timeout.",
+		Retryable: true,
+	}
+	mcpCallCancelledError = mcpErrorDefinition{
+		Type:      "remote.unavailable",
+		Code:      "MCP_CALL_CANCELLED",
+		Message:   "The MCP call was cancelled.",
+		Retryable: true,
+	}
+	mcpOutputLimitError = mcpErrorDefinition{
+		Type:      "input.invalid",
+		Code:      "MCP_OUTPUT_LIMIT",
+		Message:   "Tool output exceeds the configured limit; reduce page size.",
+		Retryable: false,
+	}
+	mcpMutationOutcomeUncertainError = mcpErrorDefinition{
+		Type:      "remote.unavailable",
+		Code:      "MCP_MUTATION_OUTCOME_UNCERTAIN",
+		Message:   "Mutation result exceeded the output limit; inspect remote state before another attempt.",
+		Retryable: false,
+	}
 )
 
 func ParseOptions(argv []string) (Options, error) {
@@ -81,8 +171,9 @@ func ParseOptions(argv []string) (Options, error) {
 			if valueError != nil {
 				return Options{}, valueError
 			}
-			if value < 256 {
-				return Options{}, fmt.Errorf("--max-output-bytes must be at least 256")
+			minimum := minimumMCPOutputBytes()
+			if value < minimum {
+				return Options{}, fmt.Errorf("--max-output-bytes must be at least %d", minimum)
 			}
 			options.MaxBytes = value
 		case "--max-items":
@@ -205,22 +296,25 @@ func newServerWithSDKOptions(
 		return nil, err
 	}
 	if options.CallTimeout <= 0 {
-		options.CallTimeout = 30 * time.Second
+		options.CallTimeout = defaultCallTimeout
 	}
 	if options.Concurrency <= 0 {
-		options.Concurrency = 4
+		options.Concurrency = defaultConcurrency
 	}
 	if options.MaxBytes <= 0 {
-		options.MaxBytes = 256 << 10
+		options.MaxBytes = defaultMaxBytes
+	}
+	if minimum := minimumMCPOutputBytes(); options.MaxBytes < minimum {
+		return nil, fmt.Errorf("max output bytes must be at least %d", minimum)
 	}
 	if options.MaxItems <= 0 {
-		options.MaxItems = 100
+		options.MaxItems = defaultMaxItems
 	}
 	if options.RequestInterval < 0 {
 		return nil, fmt.Errorf("request interval must not be negative")
 	}
 	if options.RequestInterval == 0 {
-		options.RequestInterval = 100 * time.Millisecond
+		options.RequestInterval = defaultRequestInterval
 	}
 	server := mcp.NewServer(
 		&mcp.Implementation{Name: "partiful-cli", Title: "Partiful CLI", Version: app.Version},
@@ -252,7 +346,7 @@ func newServerWithSDKOptions(
 			}
 			arguments, valid := validateToolArguments(rawArguments, inputSchema)
 			if !valid {
-				return toolError(mcpArgumentsInvalidEnvelope), nil
+				return toolError(mcpErrorEnvelope(definition.Command, mcpArgumentsInvalidError)), nil
 			}
 			callContext, cancel := context.WithTimeout(ctx, options.CallTimeout)
 			defer cancel()
@@ -260,7 +354,7 @@ func newServerWithSDKOptions(
 			case semaphore <- struct{}{}:
 				defer func() { <-semaphore }()
 			case <-callContext.Done():
-				return toolError(callContextError(callContext)), nil
+				return toolError(callContextError(callContext, definition.Command)), nil
 			}
 			result := invoke(
 				callContext,
@@ -271,25 +365,25 @@ func newServerWithSDKOptions(
 			)
 			mutationMayHaveDispatched := !definition.ReadOnly && !dryRun(arguments)
 			if callContext.Err() != nil && !mutationMayHaveDispatched {
-				return toolError(callContextError(callContext)), nil
+				return toolError(callContextError(callContext, definition.Command)), nil
 			}
 			body := strings.TrimSpace(result.Stdout)
 			outputLimited := len(body) > options.MaxBytes
 			if outputLimited {
 				if mutationMayHaveDispatched {
-					body = `{"ok":false,"error":{"type":"remote.unavailable","code":"MCP_MUTATION_OUTCOME_UNCERTAIN","message":"Mutation result exceeded the output limit; inspect remote state before another attempt.","retryable":false,"details":{}}}`
+					body = mcpErrorEnvelope(definition.Command, mcpMutationOutcomeUncertainError)
 				} else {
-					body = `{"ok":false,"error":{"type":"input.invalid","code":"MCP_OUTPUT_LIMIT","message":"Tool output exceeds the configured limit; reduce page size.","retryable":false,"details":{}}}`
+					body = mcpErrorEnvelope(definition.Command, mcpOutputLimitError)
 				}
 			}
 			if !json.Valid([]byte(body)) {
-				return toolError(mcpOutputInvalidEnvelope), nil
+				return toolError(mcpErrorEnvelope(definition.Command, mcpOutputInvalidError)), nil
 			}
 			if result.ExitCode != 0 || outputLimited {
 				return toolError(body), nil
 			}
 			if !validateToolOutput(json.RawMessage(body), outputSchema) {
-				return toolError(mcpOutputInvalidEnvelope), nil
+				return toolError(mcpErrorEnvelope(definition.Command, mcpOutputInvalidError)), nil
 			}
 			return &mcp.CallToolResult{
 				Content:           []mcp.Content{&mcp.TextContent{Text: body}},
@@ -463,11 +557,53 @@ func (pacer *requestPacer) Wait(ctx context.Context) error {
 	}
 }
 
-func callContextError(ctx context.Context) string {
+func callContextError(ctx context.Context, command string) string {
 	if ctx.Err() == context.DeadlineExceeded {
-		return `{"ok":false,"error":{"type":"remote.unavailable","code":"MCP_CALL_TIMEOUT","message":"The MCP call exceeded the configured timeout.","retryable":true,"details":{}}}`
+		return mcpErrorEnvelope(command, mcpCallTimeoutError)
 	}
-	return `{"ok":false,"error":{"type":"remote.unavailable","code":"MCP_CALL_CANCELLED","message":"The MCP call was cancelled.","retryable":true,"details":{}}}`
+	return mcpErrorEnvelope(command, mcpCallCancelledError)
+}
+
+func mcpErrorEnvelope(command string, definition mcpErrorDefinition) string {
+	document, err := json.Marshal(mcpFailureEnvelope{
+		OK: false,
+		Error: mcpFailureBody{
+			Type:      definition.Type,
+			Code:      definition.Code,
+			Message:   definition.Message,
+			Retryable: definition.Retryable,
+		},
+		Meta: mcpFailureMeta{
+			Command:                 command,
+			CLIVersion:              app.Version,
+			ProductContractRevision: app.ProductContractRevision,
+			RemoteContractRevision:  app.RemoteContractRevision,
+		},
+	})
+	if err != nil {
+		panic(fmt.Sprintf("marshal MCP error envelope: %v", err))
+	}
+	return string(document)
+}
+
+func minimumMCPOutputBytes() int {
+	minimum := minimumMaxBytes
+	errors := [...]mcpErrorDefinition{
+		mcpArgumentsInvalidError,
+		mcpOutputInvalidError,
+		mcpCallTimeoutError,
+		mcpCallCancelledError,
+		mcpOutputLimitError,
+		mcpMutationOutcomeUncertainError,
+	}
+	for _, definition := range app.MCPDefinitions() {
+		for _, mcpError := range errors {
+			if size := len(mcpErrorEnvelope(definition.Command, mcpError)); size > minimum {
+				minimum = size
+			}
+		}
+	}
+	return minimum
 }
 
 func dryRun(arguments map[string]any) bool {
