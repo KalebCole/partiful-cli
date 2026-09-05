@@ -307,6 +307,7 @@ func executeEventCancel(
 	}
 	if confirmationFailure := requireDestructiveConfirmation(
 		definition,
+		event.Title,
 		execution,
 		dependencies,
 		pretty,
