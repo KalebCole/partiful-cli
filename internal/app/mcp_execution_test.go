@@ -845,6 +845,145 @@ func TestExecuteMCPDestructiveMutationNeverPromptsAndDispatchesOnce(t *testing.T
 	}
 }
 
+func TestRealMCPServerCredentialRefreshPersistencePolicy(t *testing.T) {
+	const (
+		currentAccount = "private-current-account"
+		newAccessToken = "e30." +
+			"eyJzdWIiOiJwcml2YXRlLWN1cnJlbnQtYWNjb3VudCJ9." +
+			"private-signature"
+		expiredCredentials = `{"accessToken":"private-expired-access","refreshToken":"private-refresh-token","expiresAt":"2026-08-11T23:59:00Z"}`
+	)
+	tests := []struct {
+		name       string
+		options    mcpserver.Options
+		wantWrites int
+	}{
+		{
+			name:       "read-only server refreshes in memory",
+			options:    mcpserver.Options{ReadOnly: true},
+			wantWrites: 0,
+		},
+		{
+			name:       "default server persists refresh",
+			options:    mcpserver.Options{},
+			wantWrites: 1,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			files := &memoryFilesystem{files: map[string][]byte{
+				eventWriteCredentialsPath: []byte(expiredCredentials),
+			}}
+			dependencies := eventWriteDependencies(files)
+			requests := 0
+			dependencies.HTTP = scriptedHTTP{do: func(request *http.Request) (*http.Response, error) {
+				requests++
+				switch requests {
+				case 1:
+					if request.URL.Host != "securetoken.googleapis.com" {
+						t.Fatalf("first request host = %q, want refresh", request.URL.Host)
+					}
+					return jsonResponse(
+						http.StatusOK,
+						`{"access_token":"private-access-alias","id_token":"`+newAccessToken+`","refresh_token":"private-new-refresh","expires_in":"3600","token_type":"Bearer"}`,
+					), nil
+				case 2:
+					if request.URL.String() != "https://api.partiful.com/getMyUpcomingEventsForHomePage" {
+						t.Fatalf("second request = %s, want upcoming events", request.URL)
+					}
+					if got := request.Header.Get("Authorization"); got != "Bearer "+newAccessToken {
+						t.Fatalf("authorization = %q, want refreshed bearer", got)
+					}
+					return jsonResponse(
+						http.StatusOK,
+						`{"result":{"data":{"upcomingEvents":[{"id":"event-example","ownerIds":["`+currentAccount+`"]}]}}}`,
+					), nil
+				default:
+					t.Fatalf("unexpected request %d: %s", requests, request.URL)
+					return nil, nil
+				}
+			}}
+			test.options.RequestInterval = time.Nanosecond
+			server, err := mcpserver.New(dependencies, test.options)
+			if err != nil {
+				t.Fatalf("new MCP server: %v", err)
+			}
+			clientTransport, serverTransport := mcp.NewInMemoryTransports()
+			if _, err := server.Connect(context.Background(), serverTransport, nil); err != nil {
+				t.Fatalf("connect MCP server: %v", err)
+			}
+			client := mcp.NewClient(&mcp.Implementation{Name: "credential-policy-test", Version: "1"}, nil)
+			session, err := client.Connect(context.Background(), clientTransport, nil)
+			if err != nil {
+				t.Fatalf("connect MCP client: %v", err)
+			}
+			t.Cleanup(func() { _ = session.Close() })
+
+			result, err := session.CallTool(context.Background(), &mcp.CallToolParams{
+				Name:      "events_list",
+				Arguments: map[string]any{"when": "upcoming"},
+			})
+			if err != nil || result == nil || result.IsError {
+				t.Fatalf("result = %#v, error = %v; want refreshed protected read", result, err)
+			}
+			if requests != 2 || files.atomicWrites != test.wantWrites {
+				t.Fatalf(
+					"requests = %d, credential writes = %d; want two requests and %d writes",
+					requests,
+					files.atomicWrites,
+					test.wantWrites,
+				)
+			}
+		})
+	}
+}
+
+func TestExecuteMCPMutationHonorsCredentialPersistencePolicy(t *testing.T) {
+	const newAccessToken = "e30." +
+		"eyJzdWIiOiJwcml2YXRlLWFjY291bnQifQ." +
+		"private-signature"
+	files := &memoryFilesystem{files: map[string][]byte{
+		eventWriteCredentialsPath: []byte(`{"accessToken":"private-expired-access","refreshToken":"private-refresh-token","expiresAt":"2026-08-11T23:59:00Z"}`),
+	}}
+	dependencies := eventWriteDependencies(files)
+	requests := 0
+	dependencies.HTTP = scriptedHTTP{do: func(request *http.Request) (*http.Response, error) {
+		requests++
+		switch requests {
+		case 1:
+			return jsonResponse(
+				http.StatusOK,
+				`{"access_token":"private-access-alias","id_token":"`+newAccessToken+`","refresh_token":"private-new-refresh","expires_in":"3600","token_type":"Bearer"}`,
+			), nil
+		case 2:
+			return jsonResponse(http.StatusOK, eventResponse(t, compatibleCancelEvent())), nil
+		case 3:
+			return jsonResponse(http.StatusOK, `{"result":true}`), nil
+		default:
+			t.Fatalf("unexpected request %d: %s", requests, request.URL)
+			return nil, nil
+		}
+	}}
+
+	result := app.ExecuteMCP(
+		context.Background(),
+		"events_cancel",
+		map[string]any{
+			"eventId": "event-example", "message": "Cancelled", "notifyGuests": false,
+		},
+		dependencies,
+		app.MCPExecutionOptions{DisableCredentialPersistence: true},
+	)
+
+	if result.ExitCode != 0 || requests != 3 {
+		t.Fatalf("result = %#v, requests = %d; want refreshed single-attempt mutation", result, requests)
+	}
+	if files.atomicWrites != 0 {
+		t.Fatalf("credential writes = %d, want zero", files.atomicWrites)
+	}
+}
+
 func TestExecuteMCPDryRunRefreshesWithoutPersistingOrMutating(t *testing.T) {
 	files := &memoryFilesystem{files: map[string][]byte{
 		rsvpCredentialsPath: []byte(`{"accessToken":"private-expired-access","refreshToken":"private-refresh-token","expiresAt":"2026-08-11T23:59:00Z"}`),

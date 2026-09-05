@@ -25,6 +25,10 @@ type Result struct {
 	ExitCode int
 }
 
+type ExecutionPolicy struct {
+	DisableCredentialPersistence bool
+}
+
 type Dependencies struct {
 	Files                auth.FileSystem
 	CredentialsPath      string
@@ -36,6 +40,7 @@ type Dependencies struct {
 	AuthRandom           io.Reader
 	Terminal             auth.PrivateTerminal
 	Confirmer            Confirmer
+	ExecutionPolicy      ExecutionPolicy
 }
 
 type commandKind uint8
