@@ -1,5 +1,10 @@
 package app
 
+import (
+	"strings"
+	"unicode"
+)
+
 type Confirmer interface {
 	IsTerminal() bool
 	Confirm(string) (bool, error)
@@ -13,6 +18,7 @@ type mutationExecution struct {
 
 func requireDestructiveConfirmation(
 	definition commandDefinition,
+	eventTitle *string,
 	execution mutationExecution,
 	dependencies Dependencies,
 	pretty bool,
@@ -27,13 +33,47 @@ func requireDestructiveConfirmation(
 		return &result
 	}
 	confirmed, err := dependencies.Confirmer.Confirm(
-		"Proceed with this destructive action? [y/N] ",
+		destructiveConfirmationPrompt(definition.path, eventTitle),
 	)
 	if err != nil || !confirmed {
 		result := confirmationRequiredFailure(definition.path, pretty)
 		return &result
 	}
 	return nil
+}
+
+func destructiveConfirmationPrompt(command string, eventTitle *string) string {
+	action := map[string]string{
+		"events.cancel":         "Cancel event",
+		"cohosts.remove":        "Remove a cohost from",
+		"cohosts.revoke-invite": "Revoke a cohost invite for",
+		"cohosts.link.revoke":   "Revoke the cohost invite link for",
+	}[command]
+	title := ""
+	if eventTitle != nil {
+		var builder strings.Builder
+		hasDisplayText := false
+		previousWasControl := false
+		for _, r := range *eventTitle {
+			if unicode.IsControl(r) {
+				if !previousWasControl {
+					builder.WriteRune('�')
+				}
+				previousWasControl = true
+				continue
+			}
+			builder.WriteRune(r)
+			hasDisplayText = true
+			previousWasControl = false
+		}
+		if hasDisplayText {
+			title = strings.TrimSpace(builder.String())
+		}
+	}
+	if title == "" {
+		title = "Untitled event"
+	}
+	return action + " \"" + title + "\"? [y/N] "
 }
 
 func confirmationRequiredFailure(command string, pretty bool) Result {

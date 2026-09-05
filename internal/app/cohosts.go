@@ -244,6 +244,7 @@ func executeCohostContactAction(
 	}
 	if confirmationFailure := requireDestructiveConfirmation(
 		definition,
+		event.Title,
 		execution,
 		dependencies,
 		pretty,
@@ -403,6 +404,7 @@ func executeCohostLinkAction(
 	}
 	if confirmationFailure := requireDestructiveConfirmation(
 		definition,
+		event.Title,
 		execution,
 		dependencies,
 		pretty,
