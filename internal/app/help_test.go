@@ -55,6 +55,11 @@ func TestExecuteConventionalHelp(t *testing.T) {
 			argv: []string{"help", "version"},
 			want: []string{"Usage: partiful --version", "Purpose:"},
 		},
+		{
+			name: "auth login no-input aliases",
+			argv: []string{"auth", "login", "--help"},
+			want: []string{"Usage: partiful auth login", "Flags:", "--non-interactive", "--no-input"},
+		},
 	}
 
 	for _, test := range tests {

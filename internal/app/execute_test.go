@@ -39,6 +39,15 @@ func (reader *synchronizedReader) Read(buffer []byte) (int, error) {
 	return len(buffer), nil
 }
 
+type countingReader struct {
+	reads int
+}
+
+func (reader *countingReader) Read([]byte) (int, error) {
+	reader.reads++
+	return 0, errors.New("unexpected read")
+}
+
 type failingReadCloser struct {
 	err error
 }
@@ -2187,7 +2196,10 @@ func TestExecuteSchemaProjectsCompleteAuthLoginDefinition(t *testing.T) {
 
 	var envelope struct {
 		Data struct {
-			Command      string   `json:"command"`
+			Command string `json:"command"`
+			Flags   []struct {
+				Name string `json:"name"`
+			} `json:"flags"`
 			FailureTypes []string `json:"failureTypes"`
 			Safety       struct {
 				Kind        string `json:"kind"`
@@ -2211,6 +2223,13 @@ func TestExecuteSchemaProjectsCompleteAuthLoginDefinition(t *testing.T) {
 		envelope.Data.Command != "auth.login" ||
 		!reflect.DeepEqual(envelope.Data.FailureTypes, wantFailures) {
 		t.Fatalf("schema = %#v, want complete auth login definition", envelope.Data)
+	}
+	flagNames := make([]string, 0, len(envelope.Data.Flags))
+	for _, flag := range envelope.Data.Flags {
+		flagNames = append(flagNames, flag.Name)
+	}
+	if !reflect.DeepEqual(flagNames, []string{"--non-interactive", "--no-input"}) {
+		t.Fatalf("flags = %v, want both no-input aliases", flagNames)
 	}
 	if envelope.Data.Safety.Kind != "local-mutation" ||
 		envelope.Data.Safety.Destructive {
@@ -2289,28 +2308,58 @@ func TestExecuteAuthLoginRequiresPrivateTerminal(t *testing.T) {
 	}
 }
 
-func TestExecuteAuthLoginNonInteractiveNeverReadsPrivateTerminal(t *testing.T) {
-	terminal := &scriptedPrivateTerminal{values: []string{"+15555550123"}}
-	httpCalled := false
-	result := app.Execute(context.Background(), app.Request{
-		Argv: []string{"auth", "login", "--non-interactive"},
-	}, app.Dependencies{
-		Terminal: terminal,
-		HTTP: scriptedHTTP{do: func(*http.Request) (*http.Response, error) {
-			httpCalled = true
-			return nil, errors.New("unexpected request")
-		}},
-	})
+func TestExecuteAuthLoginNoInputAliasesNeverStartAuthentication(t *testing.T) {
+	tests := []struct {
+		name string
+		argv []string
+	}{
+		{name: "no-input before command", argv: []string{"--no-input", "auth", "login"}},
+		{name: "no-input within command", argv: []string{"auth", "--no-input", "login"}},
+		{name: "no-input after command", argv: []string{"auth", "login", "--no-input"}},
+		{name: "non-interactive before command", argv: []string{"--non-interactive", "auth", "login"}},
+		{name: "non-interactive within command", argv: []string{"auth", "--non-interactive", "login"}},
+		{name: "non-interactive after command", argv: []string{"auth", "login", "--non-interactive"}},
+	}
 
-	if result.ExitCode != 3 ||
-		!strings.Contains(result.Stdout, `"type":"auth.human_required"`) {
-		t.Fatalf("result = %#v, want human-required failure", result)
-	}
-	if len(terminal.prompts) != 0 {
-		t.Fatalf("private terminal prompts = %#v, want none", terminal.prompts)
-	}
-	if httpCalled {
-		t.Fatal("non-interactive login reached HTTP")
+	const wantStdout = `{"ok":false,"error":{"type":"auth.human_required","code":"PRIVATE_TERMINAL_REQUIRED","message":"Authentication login requires a private terminal.","retryable":false,"details":{}},"meta":{"command":"auth.login","cliVersion":"3.0.0","productContractRevision":"2026-08-12.7","remoteContractRevision":"2026-08-12.7"}}` + "\n"
+	const wantStderr = "partiful: private terminal required\n"
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			terminal := &scriptedPrivateTerminal{values: []string{"must-not-be-read"}}
+			random := &countingReader{}
+			files := &memoryFilesystem{files: map[string][]byte{}}
+			httpCalls := 0
+			result := app.Execute(context.Background(), app.Request{
+				Argv: test.argv,
+			}, app.Dependencies{
+				Files:           files,
+				CredentialsPath: "/config/partiful/credentials.json",
+				AuthRandom:      random,
+				Terminal:        terminal,
+				HTTP: scriptedHTTP{do: func(*http.Request) (*http.Response, error) {
+					httpCalls++
+					return nil, errors.New("unexpected request")
+				}},
+			})
+
+			if result.ExitCode != 3 ||
+				result.Stdout != wantStdout ||
+				result.Stderr != wantStderr {
+				t.Fatalf("result = %#v, want private-terminal-required failure", result)
+			}
+			if len(terminal.prompts) != 0 {
+				t.Fatalf("private terminal prompts = %#v, want none", terminal.prompts)
+			}
+			if httpCalls != 0 {
+				t.Fatalf("HTTP calls = %d, want none", httpCalls)
+			}
+			if random.reads != 0 {
+				t.Fatalf("auth random reads = %d, want none", random.reads)
+			}
+			if files.atomicWrites != 0 {
+				t.Fatalf("credential writes = %d, want none", files.atomicWrites)
+			}
+		})
 	}
 }
 

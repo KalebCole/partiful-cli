@@ -107,11 +107,14 @@ var commandCatalog = []commandDefinition{
 		safety:        readOnlySafety(),
 	},
 	{
-		path:          "auth.login",
-		invocation:    []string{"auth", "login"},
-		kind:          authLoginCommand,
-		positionals:   []positionalDefinition{},
-		flags:         []flagDefinition{},
+		path:        "auth.login",
+		invocation:  []string{"auth", "login"},
+		kind:        authLoginCommand,
+		positionals: []positionalDefinition{},
+		flags: []flagDefinition{
+			{Name: "--non-interactive", Description: "Disable terminal prompts; login requires human interaction."},
+			{Name: "--no-input", Description: "Disable terminal prompts; alias of --non-interactive."},
+		},
 		inputSchema:   emptyInputSchema(),
 		successSchema: authStateSuccessSchema(),
 		failureTypes: []string{
@@ -1119,8 +1122,7 @@ func Execute(ctx context.Context, request Request, dependencies Dependencies) Re
 					Details:   map[string]any{},
 				}, pretty)
 			case authLoginCommand:
-				if slices.Contains(request.Argv, "--non-interactive") ||
-					dependencies.Terminal == nil {
+				if execution.NoInput || dependencies.Terminal == nil {
 					return privateTerminalRequiredFailure(definition.path, pretty)
 				}
 				if dependencies.CredentialsPathError != nil {

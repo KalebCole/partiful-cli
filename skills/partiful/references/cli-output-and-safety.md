@@ -18,6 +18,7 @@ CLI differ.
 |---|---|
 | `--pretty` | Indent JSON output without changing fields |
 | `--non-interactive` | Disable terminal prompts |
+| `--no-input` | Disable terminal prompts; alias of `--non-interactive` |
 | `--version` | Return the version envelope |
 
 Every mutation also accepts `--dry-run`, `--force`, and `--no-input`.

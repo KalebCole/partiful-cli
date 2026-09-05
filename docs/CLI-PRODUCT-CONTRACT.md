@@ -67,6 +67,7 @@ Global flags are:
 | --- | --- |
 | `--pretty` | Indent the JSON result without changing its fields. |
 | `--non-interactive` | Prohibit terminal prompts. This is the default for every command except `auth login`. |
+| `--no-input` | Prohibit terminal prompts. This is an alias of `--non-interactive`. |
 | `--version` | Return `{"version","productContractRevision","remoteContractRevision"}` in the success envelope with command `version`. Release builds may inject the version string at link time; development builds use the source default. |
 
 `schema` is the machine-readable discovery interface. Help text can guide a
