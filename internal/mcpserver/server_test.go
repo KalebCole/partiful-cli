@@ -1,21 +1,51 @@
 package mcpserver
 
 import (
+	"reflect"
 	"testing"
+	"time"
 
 	"github.com/KalebCole/partiful-cli/internal/app"
 )
 
 func TestParseOptionsRejectsUnknownAndSupportsCommaSeparatedFilters(t *testing.T) {
-	options, err := ParseOptions([]string{"--read-only", "--allow-tool", "events_*,posters_list"})
+	options, err := ParseOptions([]string{
+		"--read-only",
+		"--allow-tool", "events_*,posters_list",
+		"--timeout", "2s",
+		"--max-concurrency", "3",
+		"--max-output-bytes", "4096",
+		"--max-items", "17",
+		"--request-interval", "25ms",
+	})
 	if err != nil {
 		t.Fatalf("parse options: %v", err)
 	}
-	if !options.ReadOnly || len(options.AllowTools) != 2 {
+	if !options.ReadOnly ||
+		!reflect.DeepEqual(options.AllowTools, []string{"events_*", "posters_list"}) ||
+		options.CallTimeout != 2*time.Second ||
+		options.Concurrency != 3 ||
+		options.MaxBytes != 4096 ||
+		options.MaxItems != 17 ||
+		options.RequestInterval != 25*time.Millisecond {
 		t.Fatalf("options = %#v", options)
 	}
 	if _, err := ParseOptions([]string{"--allow-write"}); err == nil {
 		t.Fatal("unknown option accepted")
+	}
+}
+
+func TestParseOptionsRejectsUnsafeLimits(t *testing.T) {
+	for _, argv := range [][]string{
+		{"--timeout", "0s"},
+		{"--max-concurrency", "0"},
+		{"--max-output-bytes", "255"},
+		{"--max-items", "0"},
+		{"--request-interval", "-1ms"},
+	} {
+		if _, err := ParseOptions(argv); err == nil {
+			t.Fatalf("options %v accepted", argv)
+		}
 	}
 }
 
@@ -26,6 +56,15 @@ func TestEnabledToolsDefaultAndNarrowing(t *testing.T) {
 	}
 	if len(all) != len(app.MCPDefinitions()) {
 		t.Fatalf("default = %d, want %d", len(all), len(app.MCPDefinitions()))
+	}
+	foundDefaultWrite := false
+	for _, tool := range all {
+		if tool.Name == "events_create" && !tool.ReadOnly {
+			foundDefaultWrite = true
+		}
+	}
+	if !foundDefaultWrite {
+		t.Fatal("default tool set does not expose write operations")
 	}
 	readOnly, err := EnabledTools(Options{ReadOnly: true})
 	if err != nil {
@@ -45,5 +84,11 @@ func TestEnabledToolsDefaultAndNarrowing(t *testing.T) {
 	}
 	if _, err := EnabledTools(Options{AllowTools: []string{"no_such_tool"}}); err == nil {
 		t.Fatal("unknown allow tool accepted")
+	}
+	if _, err := EnabledTools(Options{
+		ReadOnly:   true,
+		AllowTools: []string{"events_create"},
+	}); err == nil {
+		t.Fatal("allow-tool widened a read-only server")
 	}
 }

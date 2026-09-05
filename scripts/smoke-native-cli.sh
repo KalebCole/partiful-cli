@@ -7,6 +7,7 @@ expected_version="${2:-}"
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 smoke_root="${repo_root}/.native-cli-smoke"
 config_root="${smoke_root}/config"
+home_root="${smoke_root}/home"
 
 cleanup() {
   rm -rf "${smoke_root}"
@@ -14,15 +15,18 @@ cleanup() {
 trap cleanup EXIT
 
 rm -rf "${smoke_root}"
-mkdir -p "${config_root}"
+mkdir -p "${config_root}" "${home_root}"
 
 version_json="${smoke_root}/version.json"
 schema_json="${smoke_root}/schema.json"
 doctor_json="${smoke_root}/doctor.json"
 
-"${binary_path}" --version > "${version_json}"
-"${binary_path}" schema > "${schema_json}"
-XDG_CONFIG_HOME="${config_root}" "${binary_path}" doctor > "${doctor_json}"
+HOME="${home_root}" XDG_CONFIG_HOME="${config_root}" APPDATA="${config_root}" LOCALAPPDATA="${config_root}" \
+  "${binary_path}" --version > "${version_json}"
+HOME="${home_root}" XDG_CONFIG_HOME="${config_root}" APPDATA="${config_root}" LOCALAPPDATA="${config_root}" \
+  "${binary_path}" schema > "${schema_json}"
+HOME="${home_root}" XDG_CONFIG_HOME="${config_root}" APPDATA="${config_root}" LOCALAPPDATA="${config_root}" \
+  "${binary_path}" doctor > "${doctor_json}"
 
 python3 - "${version_json}" "${schema_json}" "${doctor_json}" "${expected_version}" <<'PY'
 import json
