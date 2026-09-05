@@ -49,31 +49,40 @@ func destructiveConfirmationPrompt(command string, eventTitle *string) string {
 		"cohosts.revoke-invite": "Revoke a cohost invite for",
 		"cohosts.link.revoke":   "Revoke the cohost invite link for",
 	}[command]
-	title := ""
-	if eventTitle != nil {
-		var builder strings.Builder
-		hasDisplayText := false
-		previousWasControl := false
-		for _, r := range *eventTitle {
-			if unicode.IsControl(r) {
-				if !previousWasControl {
-					builder.WriteRune('�')
-				}
-				previousWasControl = true
-				continue
+	return action + " \"" + sanitizedEventTitle(eventTitle) + "\"? [y/N] "
+}
+
+func sanitizedEventTitle(eventTitle *string) string {
+	if eventTitle == nil {
+		return "Untitled event"
+	}
+
+	var builder strings.Builder
+	hasDisplayText := false
+	previousWasUnsafe := false
+	for _, r := range *eventTitle {
+		if unicode.IsControl(r) || unicode.Is(unicode.Cf, r) || unicode.Is(unicode.Zl, r) || unicode.Is(unicode.Zp, r) {
+			if !previousWasUnsafe {
+				builder.WriteRune('�')
 			}
-			builder.WriteRune(r)
+			previousWasUnsafe = true
+			continue
+		}
+		builder.WriteRune(r)
+		if !unicode.IsSpace(r) {
 			hasDisplayText = true
-			previousWasControl = false
 		}
-		if hasDisplayText {
-			title = strings.TrimSpace(builder.String())
-		}
+		previousWasUnsafe = false
 	}
+	if !hasDisplayText {
+		return "Untitled event"
+	}
+
+	title := strings.TrimSpace(builder.String())
 	if title == "" {
-		title = "Untitled event"
+		return "Untitled event"
 	}
-	return action + " \"" + title + "\"? [y/N] "
+	return strings.NewReplacer("\\", "\\\\", "\"", "\\\"").Replace(title)
 }
 
 func confirmationRequiredFailure(command string, pretty bool) Result {
