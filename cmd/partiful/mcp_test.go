@@ -120,10 +120,20 @@ Flags:
 `
 	initialize := `{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-11-25","capabilities":{},"clientInfo":{"name":"help-test","version":"1"}}}` + "\n"
 
-	for _, helpFlag := range []string{"-h", "--help"} {
-		t.Run(helpFlag, func(t *testing.T) {
+	for _, test := range []struct {
+		name string
+		argv []string
+	}{
+		{name: "short help", argv: []string{"-h"}},
+		{name: "long help", argv: []string{"--help"}},
+		{name: "help after valid flag", argv: []string{"--read-only", "--help"}},
+		{name: "help before valid flag", argv: []string{"-h", "--read-only"}},
+		{name: "help after unknown flag", argv: []string{"--invalid-option", "--help"}},
+		{name: "help before unknown flag", argv: []string{"-h", "--invalid-option"}},
+	} {
+		t.Run(test.name, func(t *testing.T) {
 			var stdout, stderr bytes.Buffer
-			command := exec.Command(binary, "mcp", helpFlag)
+			command := exec.Command(binary, append([]string{"mcp"}, test.argv...)...)
 			command.Env = append(os.Environ(), "HOME="+t.TempDir())
 			command.Stdin = strings.NewReader(initialize)
 			command.Stdout = &stdout

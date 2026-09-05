@@ -49,7 +49,7 @@ func productionDependencies() app.Dependencies {
 }
 
 func runMCP(ctx context.Context, argv []string, dependencies app.Dependencies) error {
-	if len(argv) == 1 && (argv[0] == "-h" || argv[0] == "--help") {
+	if slices.Contains(argv, "-h") || slices.Contains(argv, "--help") {
 		_, err := io.WriteString(os.Stdout, mcpserver.HelpText())
 		return err
 	}
