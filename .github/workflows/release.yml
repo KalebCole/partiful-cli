@@ -34,7 +34,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00 # v6
         with:
-          go-version: 1.22.12
+          go-version: 1.25.0
 
       - name: Verify module
         run: go mod verify
@@ -55,7 +55,7 @@ jobs:
           ./scripts/smoke-native-cli.sh ./.build/partiful "${expected_version}"
 
       - name: Install GoReleaser
-        run: GOTOOLCHAIN=go1.22.12 go install github.com/goreleaser/goreleaser/v2@v2.2.0
+        run: GOTOOLCHAIN=go1.25.0 go install github.com/goreleaser/goreleaser/v2@v2.2.0
 
       - name: Publish release
         env:

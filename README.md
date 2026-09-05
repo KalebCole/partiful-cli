@@ -41,7 +41,7 @@ Run the full native release rehearsal, including GoReleaser snapshot archives,
 checksum verification, and local `version/schema/doctor` smoke tests:
 
 ```bash
-GOTOOLCHAIN=go1.22.12 go install github.com/goreleaser/goreleaser/v2@v2.2.0
+GOTOOLCHAIN=go1.25.0 go install github.com/goreleaser/goreleaser/v2@v2.2.0
 ./scripts/verify-native-release.sh
 ```
 
