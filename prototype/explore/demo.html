@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <link rel="icon" href="data:,">
+  <title>Partiful Explore Data Model Prototype</title>
+  <style>
+    :root { color-scheme: light dark; --accent:#7c5cff; --line:#8884; --panel:#8881; }
+    * { box-sizing:border-box; }
+    body { max-width:980px; padding:32px; font:16px/1.45 system-ui,sans-serif; color:CanvasText; background:Canvas; }
+    h1,h2,h3,p { margin-top:0; }
+    .intro { max-width:760px; }
+    .notice { border-left:4px solid var(--accent); padding:12px 16px; background:var(--panel); }
+    .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:12px; }
+    .card,.state,.scenario { border:1px solid var(--line); border-radius:12px; padding:16px; }
+    .metric { font-size:1.6rem; font-weight:700; }
+    .muted { opacity:.7; }
+    button { border:1px solid var(--line); border-radius:8px; padding:10px 13px; margin:4px; color:inherit; background:var(--panel); cursor:pointer; }
+    button:hover { border-color:var(--accent); }
+    button.primary,.tab.active { background:var(--accent); color:white; border-color:var(--accent); }
+    .events { display:grid; gap:8px; margin-top:12px; }
+    .event { border-top:1px solid var(--line); padding-top:10px; }
+    .event:first-child { border-top:0; }
+    .pill { display:inline-block; border:1px solid var(--line); border-radius:999px; padding:2px 8px; margin:2px; font-size:.85rem; }
+    .tabs { margin-bottom:8px; }
+    .step.done { opacity:.55; text-decoration:line-through; }
+    section { margin-top:28px; }
+    code { color:var(--accent); }
+  </style>
+</head>
+<body>
+  <header class="intro">
+    <h1>Partiful Explore logic prototype</h1>
+    <p><strong>Question:</strong> Can the current authenticated Explore API support Seattle discovery, cursor pagination, filtering, and mutual-friend context with a sane agent-facing data model?</p>
+    <p class="notice"><strong>Throwaway prototype.</strong> The controls use sanitized in-memory examples derived from live API shapes. No network calls, credentials, real names, or real event IDs are stored in this file.</p>
+  </header>
+
+  <section>
+    <h2>Current state</h2>
+    <div id="state" class="state"></div>
+  </section>
+
+  <section>
+    <h2>Free play</h2>
+    <div id="actions"></div>
+  </section>
+
+  <section>
+    <h2>Guided walkthroughs</h2>
+    <div id="tabs" class="tabs"></div>
+    <div id="scenario" class="scenario"></div>
+  </section>
+
+<script>
+// Portable pure module: state and transformations only. No DOM access.
+const ExploreModel = (() => {
+  const initial = () => ({
+    area: { type: "DYNAMIC", city: "Seattle", state: "Washington", countryCode: "US" },
+    tag: "DISCOVER_HOME",
+    section: "feed",
+    dateFilter: "anytime",
+    pagesRead: 0,
+    fetchedEvents: [],
+    events: [],
+    nextCursor: null,
+    socialProofAttached: false,
+    lastChange: "Prototype reset. No API response has been modeled yet.",
+    blockedAction: null,
+  });
+
+  const dates = ["2026-09-09","2026-09-11","2026-09-12","2026-09-13","2026-09-18","2026-09-19","2026-09-20","2026-10-04","2026-10-04","2026-10-04"];
+  const event = n => ({
+    eventId: `event-${n}`,
+    title: `Seattle event ${n}`,
+    start: `${dates[n-1]||"2026-10-04"}T19:00:00-07:00`,
+    location: ["Seattle, WA"],
+    goingCount: 20+n,
+    interestedCount: 8+n,
+    mutuals: [],
+    mutualsPreviewComplete: null,
+  });
+
+  const ranges = {
+    today:["2026-09-05","2026-09-05"],
+    tomorrow:["2026-09-06","2026-09-06"],
+    "this-week":["2026-09-05","2026-09-06"],
+    "this-weekend":["2026-09-05","2026-09-06"],
+  };
+  const applyDateFilter = (events, facet) => facet === "anytime" ? events : events.filter(event => {
+    const key=event.start.slice(0,10), [from,to]=ranges[facet];
+    return key >= from && key <= to;
+  });
+  const withFilter = (state, facet, change) => ({...state,dateFilter:facet,events:applyDateFilter(state.fetchedEvents,facet),lastChange:change,blockedAction:null});
+  const withSection = (state, section, count) => {
+    const fetchedEvents=Array.from({length:count},(_,i)=>event(i+1));
+    return {...initial(),section,pagesRead:1,fetchedEvents,events:fetchedEvents,lastChange:`Loaded the ${section} section from getDiscoverSectionsV2.`};
+  };
+
+  function reduce(state, action) {
+    switch (action.type) {
+      case "RESET": return initial();
+      case "LOAD_FIRST_PAGE": {
+        const fetchedEvents=[1,2,3,4,5].map(event);
+        return {...initial(),pagesRead:1,fetchedEvents,events:fetchedEvents,nextCursor:"opaque-cursor-2",lastChange:"Loaded five Seattle events from getDiscoverFeedV2."};
+      }
+      case "LOAD_NEXT_PAGE": {
+        if (!state.nextCursor) return {...state, blockedAction:"No cursor is available.", lastChange:"Next-page request was blocked locally."};
+        const fetchedEvents=[...state.fetchedEvents,...[6,7,8,9,10].map(event)];
+        return {...state,pagesRead:state.pagesRead+1,fetchedEvents,events:applyDateFilter(fetchedEvents,state.dateFilter),nextCursor:"opaque-cursor-3",blockedAction:null,lastChange:"Used the opaque cursor and appended five unique events."};
+      }
+      case "ATTACH_MUTUALS": {
+        if (!state.fetchedEvents.length) return {...state, blockedAction:"Load events before requesting decorators.", lastChange:"Decorator request was blocked locally."};
+        const previews = {1:[["Mutual A","going"],["Mutual B","interested"]],2:[["Mutual C","going"]],4:[["Mutual D","going"],["Mutual E","going"]],7:[["Mutual F","interested"]]};
+        const fetchedEvents=state.fetchedEvents.map((e,i)=>({...e,mutuals:previews[i+1]||[]}));
+        return {...state,socialProofAttached:true,blockedAction:null,fetchedEvents,events:applyDateFilter(fetchedEvents,state.dateFilter),lastChange:"Attached six sanitized mutual-guest previews. Completeness remains unknown."};
+      }
+      case "FILTER_ANYTIME": return withFilter(state,"anytime","Removed the date filter.");
+      case "FILTER_TODAY": return withFilter(state,"today","Applied the app's event-local Today overlap filter.");
+      case "FILTER_TOMORROW": return withFilter(state,"tomorrow","Applied the app's event-local Tomorrow overlap filter.");
+      case "FILTER_THIS_WEEK": return withFilter(state,"this-week","Applied the app's Monday-through-Sunday overlap filter, starting no earlier than today.");
+      case "FILTER_THIS_WEEKEND": return withFilter(state,"this-weekend","Applied the app's Saturday-through-Sunday overlap filter, starting no earlier than today.");
+      case "SECTION_TRENDING": return withSection(state,"trending",8);
+      case "SECTION_FRIENDS": return withSection(state,"friends",12);
+      case "SECTION_OPEN_INVITE": return withSection(state,"open-invite",9);
+      case "SECTION_FOLLOWED": return withSection(state,"followed",4);
+      default: return state;
+    }
+  }
+  return { initial, reduce };
+})();
+
+const actionLabels = {
+  RESET:"Reset",
+  LOAD_FIRST_PAGE:"Load Seattle page 1",
+  LOAD_NEXT_PAGE:"Load next page",
+  ATTACH_MUTUALS:"Attach mutual-friend context",
+  FILTER_ANYTIME:"Show anytime",
+  FILTER_TODAY:"Show today",
+  FILTER_TOMORROW:"Show tomorrow",
+  FILTER_THIS_WEEK:"Show this week",
+  FILTER_THIS_WEEKEND:"Show this weekend",
+  SECTION_TRENDING:"Trending events",
+  SECTION_FRIENDS:"Friends are going",
+  SECTION_OPEN_INVITE:"Open invites",
+  SECTION_FOLLOWED:"Followed orgs",
+};
+const scenarios = [
+  {name:"Happy path",description:"Prove that Seattle feed data composes with pagination and authenticated mutual context.",steps:["LOAD_FIRST_PAGE","LOAD_NEXT_PAGE","ATTACH_MUTUALS"]},
+  {name:"Date filters",description:"Show the app's client-side date facets. The current sanitized Seattle sample begins after this week, so the dated views correctly become empty.",steps:["LOAD_FIRST_PAGE","LOAD_NEXT_PAGE","FILTER_THIS_WEEKEND","FILTER_ANYTIME"]},
+  {name:"Discovery modes",description:"Switch among the four populated server-generated Seattle sections.",steps:["SECTION_TRENDING","SECTION_FRIENDS","SECTION_OPEN_INVITE","SECTION_FOLLOWED"]},
+  {name:"Blocked ordering",description:"Prove that decorators and pagination require prior feed state.",steps:["ATTACH_MUTUALS","LOAD_NEXT_PAGE"]},
+];
+let state=ExploreModel.initial(), activeScenario=0, step=0;
+
+function dispatch(type){ state=ExploreModel.reduce(state,{type}); render(); }
+function startScenario(index){ activeScenario=index; step=0; state=ExploreModel.initial(); render(); }
+function runStep(type){ dispatch(type); step++; render(); }
+function esc(v){ return String(v).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+
+function renderState(){
+  const mutualCount=state.events.reduce((n,e)=>n+e.mutuals.length,0);
+  document.querySelector("#state").innerHTML=`
+    <div class="grid">
+      <div><div class="muted">Area</div><strong>${esc(state.area.city)}, ${esc(state.area.state)}</strong><br><code>${esc(state.area.type)}</code></div>
+      <div><div class="muted">Tag</div><strong>${esc(state.tag)}</strong></div>
+      <div><div class="muted">Discovery mode</div><strong>${esc(state.section)}</strong></div>
+      <div><div class="muted">Date filter</div><strong>${esc(state.dateFilter)}</strong></div>
+      <div><div class="muted">Pages read</div><div class="metric">${state.pagesRead}</div></div>
+      <div><div class="muted">Fetched events</div><div class="metric">${state.fetchedEvents.length}</div></div>
+      <div><div class="muted">Visible events</div><div class="metric">${state.events.length}</div></div>
+      <div><div class="muted">Mutual previews</div><div class="metric">${mutualCount}</div></div>
+      <div><div class="muted">Next cursor</div><strong>${state.nextCursor?"Available":"None"}</strong></div>
+    </div>
+    <p class="notice" style="margin-top:16px">${esc(state.lastChange)}${state.blockedAction?` <strong>Blocked:</strong> ${esc(state.blockedAction)}`:""}</p>
+    <div class="events">${state.events.map(e=>`<div class="event"><strong>${esc(e.title)}</strong> <span class="pill">${e.goingCount} going</span> <span class="pill">${e.interestedCount} interested</span><br><span class="muted">${esc(e.start)} · ${esc(e.location.join(", "))}</span>${e.mutuals.length?`<div>${e.mutuals.map(m=>`<span class="pill">${esc(m.displayName||m[0])}: ${esc(m.status||m[1])}</span>`).join("")} <span class="muted">preview completeness unknown</span></div>`:""}</div>`).join("")}</div>`;
+}
+function render(){
+  renderState();
+  document.querySelector("#actions").innerHTML=Object.entries(actionLabels).map(([type,label])=>`<button class="${type==="LOAD_FIRST_PAGE"?"primary":""}" data-action="${type}">${label}</button>`).join("");
+  document.querySelectorAll("[data-action]").forEach(b=>b.onclick=()=>dispatch(b.dataset.action));
+  document.querySelector("#tabs").innerHTML=scenarios.map((s,i)=>`<button class="tab ${i===activeScenario?"active":""}" data-tab="${i}">${esc(s.name)}</button>`).join("");
+  document.querySelectorAll("[data-tab]").forEach(b=>b.onclick=()=>startScenario(Number(b.dataset.tab)));
+  const s=scenarios[activeScenario];
+  document.querySelector("#scenario").innerHTML=`<h3>${esc(s.name)}</h3><p>${esc(s.description)}</p>${s.steps.map((type,i)=>`<button class="step ${i<step?"done":""}" data-step="${i}" ${i!==step?"disabled":""}>${i+1}. ${esc(actionLabels[type])}</button>`).join("")}`;
+  document.querySelectorAll("[data-step]").forEach(b=>b.onclick=()=>runStep(s.steps[Number(b.dataset.step)]));
+}
+render();
+</script>
+</body>
+</html>
