@@ -65,7 +65,7 @@ type resolvedCohostContact struct {
 func executeCohostInvite(
 	ctx context.Context,
 	definition commandDefinition,
-	argv []string,
+	options cohostActionOptions,
 	dependencies Dependencies,
 	execution mutationExecution,
 	pretty bool,
@@ -73,7 +73,7 @@ func executeCohostInvite(
 	return executeCohostContactAction(
 		ctx,
 		definition,
-		argv,
+		options,
 		dependencies,
 		execution,
 		pretty,
@@ -93,7 +93,7 @@ func executeCohostInvite(
 func executeCohostRevokeInvite(
 	ctx context.Context,
 	definition commandDefinition,
-	argv []string,
+	options cohostActionOptions,
 	dependencies Dependencies,
 	execution mutationExecution,
 	pretty bool,
@@ -101,7 +101,7 @@ func executeCohostRevokeInvite(
 	return executeCohostContactAction(
 		ctx,
 		definition,
-		argv,
+		options,
 		dependencies,
 		execution,
 		pretty,
@@ -121,7 +121,7 @@ func executeCohostRevokeInvite(
 func executeCohostRemove(
 	ctx context.Context,
 	definition commandDefinition,
-	argv []string,
+	options cohostActionOptions,
 	dependencies Dependencies,
 	execution mutationExecution,
 	pretty bool,
@@ -129,7 +129,7 @@ func executeCohostRemove(
 	return executeCohostContactAction(
 		ctx,
 		definition,
-		argv,
+		options,
 		dependencies,
 		execution,
 		pretty,
@@ -149,7 +149,7 @@ func executeCohostRemove(
 func executeCohostContactAction(
 	ctx context.Context,
 	definition commandDefinition,
-	argv []string,
+	options cohostActionOptions,
 	dependencies Dependencies,
 	execution mutationExecution,
 	pretty bool,
@@ -160,10 +160,6 @@ func executeCohostContactAction(
 	dispatch func(remote.Client, context.Context, string, string, string, remote.CohostTargetParams) error,
 	preconditionMessage string,
 ) Result {
-	options, inputError := parseCohostActionOptions(definition, argv)
-	if inputError != nil {
-		return failure(definition.path, exitCodeForType(inputError.Type), *inputError, pretty)
-	}
 	session, sessionFailure := acquireProtectedMutationSession(ctx, definition.path, dependencies, execution, pretty)
 	if sessionFailure != nil {
 		return *sessionFailure
@@ -242,11 +238,9 @@ func executeCohostContactAction(
 			Preconditions: map[string]string{"ownership": "bound", "contact": "bound", "cohostState": "bound"},
 		}, pretty)
 	}
-	if confirmationFailure := requireDestructiveConfirmation(
+	if confirmationFailure := execution.confirmDestructive(
 		definition,
 		event.Title,
-		execution,
-		dependencies,
 		pretty,
 	); confirmationFailure != nil {
 		return *confirmationFailure
@@ -272,7 +266,7 @@ func executeCohostContactAction(
 func executeCohostLinkCreate(
 	ctx context.Context,
 	definition commandDefinition,
-	argv []string,
+	options cohostLinkOptions,
 	dependencies Dependencies,
 	execution mutationExecution,
 	pretty bool,
@@ -280,7 +274,7 @@ func executeCohostLinkCreate(
 	return executeCohostLinkAction(
 		ctx,
 		definition,
-		argv,
+		options,
 		dependencies,
 		execution,
 		pretty,
@@ -307,7 +301,7 @@ func executeCohostLinkCreate(
 func executeCohostLinkRevoke(
 	ctx context.Context,
 	definition commandDefinition,
-	argv []string,
+	options cohostLinkOptions,
 	dependencies Dependencies,
 	execution mutationExecution,
 	pretty bool,
@@ -315,7 +309,7 @@ func executeCohostLinkRevoke(
 	return executeCohostLinkAction(
 		ctx,
 		definition,
-		argv,
+		options,
 		dependencies,
 		execution,
 		pretty,
@@ -337,7 +331,7 @@ func executeCohostLinkRevoke(
 func executeCohostLinkAction(
 	ctx context.Context,
 	definition commandDefinition,
-	argv []string,
+	options cohostLinkOptions,
 	dependencies Dependencies,
 	execution mutationExecution,
 	pretty bool,
@@ -349,10 +343,6 @@ func executeCohostLinkAction(
 	successState string,
 	emitURL bool,
 ) Result {
-	options, inputError := parseCohostLinkOptions(definition, argv)
-	if inputError != nil {
-		return failure(definition.path, exitCodeForType(inputError.Type), *inputError, pretty)
-	}
 	session, sessionFailure := acquireProtectedMutationSession(ctx, definition.path, dependencies, execution, pretty)
 	if sessionFailure != nil {
 		return *sessionFailure
@@ -402,11 +392,9 @@ func executeCohostLinkAction(
 			Preconditions: map[string]string{"ownership": "bound", "link": "bound"},
 		}, pretty)
 	}
-	if confirmationFailure := requireDestructiveConfirmation(
+	if confirmationFailure := execution.confirmDestructive(
 		definition,
 		event.Title,
-		execution,
-		dependencies,
 		pretty,
 	); confirmationFailure != nil {
 		return *confirmationFailure

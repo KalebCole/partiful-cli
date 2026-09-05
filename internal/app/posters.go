@@ -2,6 +2,7 @@ package app
 
 import (
 	"bytes"
+	"context"
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/sha256"
@@ -29,6 +30,7 @@ type collectionOptions struct {
 	max            int
 	query          string
 	when           string
+	serverLimited  bool
 }
 
 type cursorPayload struct {
@@ -41,6 +43,103 @@ type cursorPayload struct {
 type cursorValidationFailure struct {
 	exitCode int
 	body     errorBody
+}
+
+func executePosters(
+	ctx context.Context,
+	definition commandDefinition,
+	options collectionOptions,
+	dependencies Dependencies,
+	pretty bool,
+) Result {
+	filterHash := normalizedFilterHash(definition.path, options.query)
+	var decodedCursor cursorPayload
+	var cursorKey []byte
+	var err error
+	if options.cursorProvided {
+		cursorKey, err = loadCursorKey(dependencies)
+		if err != nil {
+			return internalFailure(definition.path, pretty)
+		}
+		var cursorFailure *cursorValidationFailure
+		decodedCursor, cursorFailure = decodeCursor(options.cursor, filterHash, cursorKey)
+		if cursorFailure != nil {
+			return failure(definition.path, cursorFailure.exitCode, cursorFailure.body, pretty)
+		}
+	}
+	catalog, err := (remote.Client{HTTP: dependencies.HTTP}).GetPosterCatalog(ctx)
+	if err != nil {
+		if errors.Is(err, remote.ErrUnavailable) {
+			return remoteUnavailableFailure(definition.path, pretty)
+		}
+		return protocolChangedFailure(definition.path, pretty)
+	}
+	filteredPosters := catalog.Posters
+	if definition.kind == postersSearchCommand {
+		filteredPosters = filterPosters(catalog.Posters, options.query)
+	}
+	offset := 0
+	if options.cursorProvided {
+		var cursorFailure *cursorValidationFailure
+		offset, cursorFailure = cursorSnapshotOffset(
+			decodedCursor,
+			catalog.PayloadSHA256,
+			len(filteredPosters),
+			"The poster catalog changed after this cursor was issued.",
+		)
+		if cursorFailure != nil {
+			return failure(definition.path, cursorFailure.exitCode, cursorFailure.body, pretty)
+		}
+	}
+	end := min(offset+options.limit, len(filteredPosters))
+	items := make([]poster, 0, end-offset)
+	for _, remotePoster := range filteredPosters[offset:end] {
+		items = append(items, poster{
+			PosterID:    remotePoster.ID,
+			Name:        remotePoster.Name,
+			URL:         remotePoster.URL,
+			ContentType: remotePoster.ContentType,
+			Width:       remotePoster.Width,
+			Height:      remotePoster.Height,
+			Tags:        remotePoster.Tags,
+			Categories:  remotePoster.Categories,
+		})
+	}
+	var cursor *string
+	hasMore := end < len(filteredPosters)
+	if hasMore {
+		if cursorKey == nil {
+			cursorKey, err = loadCursorKey(dependencies)
+			if err != nil {
+				return internalFailure(definition.path, pretty)
+			}
+		}
+		value, err := nextCursor(
+			catalog.PayloadSHA256,
+			filterHash,
+			end,
+			cursorKey,
+			dependencies.CursorRandom,
+		)
+		if err != nil {
+			return internalFailure(definition.path, pretty)
+		}
+		cursor = &value
+	}
+	return collectionSuccess(definition.path, posterData{Items: items}, pageMeta{
+		Limit:            options.limit,
+		NextCursor:       cursor,
+		HasMore:          hasMore,
+		Truncated:        options.serverLimited && hasMore,
+		TruncationReason: collectionTruncationReason(options, hasMore),
+	}, pretty)
+}
+
+func collectionTruncationReason(options collectionOptions, hasMore bool) string {
+	if options.serverLimited && hasMore {
+		return "server_item_limit"
+	}
+	return ""
 }
 
 func parseCollectionOptions(definition commandDefinition, argv []string) (collectionOptions, *errorBody) {

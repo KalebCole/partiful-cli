@@ -70,22 +70,12 @@ const (
 
 func executeRSVPSet(
 	ctx context.Context,
-	request Request,
 	definition commandDefinition,
-	argv []string,
+	options rsvpSetOptions,
 	dependencies Dependencies,
 	execution mutationExecution,
 	pretty bool,
 ) Result {
-	options, inputError := parseRSVPSetOptions(
-		request,
-		definition,
-		argv,
-		dependencies,
-	)
-	if inputError != nil {
-		return failure(definition.path, 2, *inputError, pretty)
-	}
 	session, sessionFailure := acquireProtectedMutationSession(
 		ctx,
 		definition.path,

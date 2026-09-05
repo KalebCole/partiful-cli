@@ -15,7 +15,13 @@ func acquireProtectedSession(
 	dependencies Dependencies,
 	pretty bool,
 ) (auth.Session, *Result) {
-	return acquireProtectedSessionWithPersistence(ctx, command, dependencies, pretty, true)
+	return acquireProtectedSessionWithPersistence(
+		ctx,
+		command,
+		dependencies,
+		pretty,
+		!dependencies.ExecutionPolicy.DisableCredentialPersistence,
+	)
 }
 
 func acquireProtectedMutationSession(
@@ -25,7 +31,13 @@ func acquireProtectedMutationSession(
 	execution mutationExecution,
 	pretty bool,
 ) (auth.Session, *Result) {
-	return acquireProtectedSessionWithPersistence(ctx, command, dependencies, pretty, !execution.DryRun)
+	return acquireProtectedSessionWithPersistence(
+		ctx,
+		command,
+		dependencies,
+		pretty,
+		!execution.DryRun && !dependencies.ExecutionPolicy.DisableCredentialPersistence,
+	)
 }
 
 func acquireProtectedSessionWithPersistence(
