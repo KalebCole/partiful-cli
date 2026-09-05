@@ -361,7 +361,10 @@ func newServerWithSDKOptions(
 				definition.Name,
 				arguments,
 				dependencies,
-				app.MCPExecutionOptions{MaxItems: options.MaxItems},
+				app.MCPExecutionOptions{
+					MaxItems:                     options.MaxItems,
+					DisableCredentialPersistence: options.ReadOnly,
+				},
 			)
 			mutationMayHaveDispatched := !definition.ReadOnly && !dryRun(arguments)
 			if callContext.Err() != nil && !mutationMayHaveDispatched {

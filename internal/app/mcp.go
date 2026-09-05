@@ -19,7 +19,8 @@ type MCPDefinition struct {
 }
 
 type MCPExecutionOptions struct {
-	MaxItems int
+	MaxItems                     int
+	DisableCredentialPersistence bool
 }
 
 // MCPDefinitions exposes only the curated product operations. CLI-only and
@@ -231,6 +232,9 @@ func ExecuteMCP(
 	if len(options) > 0 {
 		executionOptions = options[0]
 	}
+	dependencies.ExecutionPolicy.DisableCredentialPersistence =
+		dependencies.ExecutionPolicy.DisableCredentialPersistence ||
+			executionOptions.DisableCredentialPersistence
 	invocation, inputError := parseMCPProductInvocation(definition, document, executionOptions)
 	if inputError != nil {
 		return failure(definition.path, exitCodeForType(inputError.Type), *inputError, false)
