@@ -20,7 +20,7 @@ Use the native release verification script when you change build metadata,
 release packaging, command contracts, or archive contents:
 
 ```bash
-GOTOOLCHAIN=go1.22.12 go install github.com/goreleaser/goreleaser/v2@v2.2.0
+GOTOOLCHAIN=go1.25.0 go install github.com/goreleaser/goreleaser/v2@v2.2.0
 ./scripts/verify-native-release.sh
 ```
 
