@@ -72,17 +72,12 @@ type eventFieldSnapshot struct {
 
 func executeEventCreate(
 	ctx context.Context,
-	request Request,
 	definition commandDefinition,
-	argv []string,
+	options eventCreateOptions,
 	dependencies Dependencies,
 	execution mutationExecution,
 	pretty bool,
 ) Result {
-	options, inputError := parseEventCreateOptions(request, definition, argv, dependencies)
-	if inputError != nil {
-		return failure(definition.path, exitCodeForType(inputError.Type), *inputError, pretty)
-	}
 	client := remote.Client{HTTP: dependencies.HTTP}
 	if execution.DryRun {
 		privateRequest, prepareFailure := prepareEventCreate(
@@ -148,17 +143,12 @@ func prepareEventCreate(
 
 func executeEventUpdate(
 	ctx context.Context,
-	request Request,
 	definition commandDefinition,
-	argv []string,
+	options eventUpdateOptions,
 	dependencies Dependencies,
 	execution mutationExecution,
 	pretty bool,
 ) Result {
-	options, inputError := parseEventUpdateOptions(request, definition, argv, dependencies)
-	if inputError != nil {
-		return failure(definition.path, exitCodeForType(inputError.Type), *inputError, pretty)
-	}
 	session, sessionFailure := acquireProtectedMutationSession(ctx, definition.path, dependencies, execution, pretty)
 	if sessionFailure != nil {
 		return *sessionFailure
@@ -235,17 +225,12 @@ func executeEventUpdate(
 
 func executeEventCancel(
 	ctx context.Context,
-	request Request,
 	definition commandDefinition,
-	argv []string,
+	options eventCancelOptions,
 	dependencies Dependencies,
 	execution mutationExecution,
 	pretty bool,
 ) Result {
-	options, inputError := parseEventCancelOptions(request, definition, argv, dependencies)
-	if inputError != nil {
-		return failure(definition.path, exitCodeForType(inputError.Type), *inputError, pretty)
-	}
 	session, sessionFailure := acquireProtectedMutationSession(ctx, definition.path, dependencies, execution, pretty)
 	if sessionFailure != nil {
 		return *sessionFailure
@@ -305,11 +290,9 @@ func executeEventCancel(
 			Preconditions: map[string]string{"ownership": "bound", "status": "bound", "start": "bound", "guestCount": "bound"},
 		}, pretty)
 	}
-	if confirmationFailure := requireDestructiveConfirmation(
+	if confirmationFailure := execution.confirmDestructive(
 		definition,
 		event.Title,
-		execution,
-		dependencies,
 		pretty,
 	); confirmationFailure != nil {
 		return *confirmationFailure

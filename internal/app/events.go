@@ -45,14 +45,10 @@ type eventDetail struct {
 func executeEventsList(
 	ctx context.Context,
 	definition commandDefinition,
-	argv []string,
+	options collectionOptions,
 	dependencies Dependencies,
 	pretty bool,
 ) Result {
-	options, inputError := parseCollectionOptions(definition, argv)
-	if inputError != nil {
-		return failure(definition.path, 2, *inputError, pretty)
-	}
 	filterHash := normalizedFilterHash(definition.path, options.when)
 	var decodedCursor cursorPayload
 	var cursorKey []byte
@@ -152,9 +148,11 @@ func executeEventsList(
 		cursor = &value
 	}
 	return collectionSuccess(definition.path, eventData{Items: items}, pageMeta{
-		Limit:      options.limit,
-		NextCursor: cursor,
-		HasMore:    hasMore,
+		Limit:            options.limit,
+		NextCursor:       cursor,
+		HasMore:          hasMore,
+		Truncated:        options.serverLimited && hasMore,
+		TruncationReason: collectionTruncationReason(options, hasMore),
 	}, pretty)
 }
 
@@ -192,14 +190,10 @@ func projectEventSummary(event remote.Event, currentUserID string) (eventSummary
 func executeEventGet(
 	ctx context.Context,
 	definition commandDefinition,
-	argv []string,
+	eventID string,
 	dependencies Dependencies,
 	pretty bool,
 ) Result {
-	eventID, inputError := parseEventID(definition, argv)
-	if inputError != nil {
-		return failure(definition.path, 2, *inputError, pretty)
-	}
 	session, sessionFailure := acquireProtectedSession(
 		ctx,
 		definition.path,
