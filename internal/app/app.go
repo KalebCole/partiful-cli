@@ -1145,7 +1145,7 @@ func Execute(ctx context.Context, request Request, dependencies Dependencies) Re
 					Details:   map[string]any{},
 				}, pretty)
 			case authLoginCommand:
-				if execution.NoInput || dependencies.Terminal == nil {
+				if noInput || dependencies.Terminal == nil {
 					return privateTerminalRequiredFailure(definition.path, pretty)
 				}
 				if dependencies.CredentialsPathError != nil {
