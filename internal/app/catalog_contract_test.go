@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"reflect"
+	"strings"
 	"testing"
 
 	"github.com/KalebCole/partiful-cli/internal/app"
@@ -77,6 +78,28 @@ func TestExecuteSchemaPublishesEveryApprovedCommandDefinition(t *testing.T) {
 		}
 		if len(envelope.Data.Safety) == 0 {
 			t.Fatalf("schema %s omitted safety metadata", command)
+		}
+	}
+}
+
+func TestExploreSchemaPublishesApprovedPublicContract(t *testing.T) {
+	result := app.Execute(context.Background(), app.Request{Argv: []string{"schema", "explore.list"}}, app.Dependencies{})
+	if result.ExitCode != 0 {
+		t.Fatalf("schema result = %#v", result)
+	}
+	var document map[string]any
+	if err := json.Unmarshal([]byte(result.Stdout), &document); err != nil {
+		t.Fatal(err)
+	}
+	encoded, _ := json.Marshal(document)
+	for _, name := range []string{"--date-filter", "dateFilter", "location", "mapsUrl", "goingCount", "maybeCount", "interestedCount"} {
+		if !strings.Contains(string(encoded), `"`+name+`"`) {
+			t.Fatalf("schema omits approved %q: %s", name, encoded)
+		}
+	}
+	for _, rejected := range []string{"locationLines", "googleMapsUrl", "goingGuestCount", "maybeGuestCount", "interestedGuestCount"} {
+		if strings.Contains(string(encoded), `"`+rejected+`"`) {
+			t.Fatalf("schema publishes rejected %q: %s", rejected, encoded)
 		}
 	}
 }

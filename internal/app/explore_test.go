@@ -47,7 +47,9 @@ func TestExecuteExploreListProjectsReviewedPublicFields(t *testing.T) {
 		Data struct {
 			Items []struct {
 				EventID, URL  string
-				LocationLines []string `json:"locationLines"`
+				Location []string `json:"location"`
+				MapsURL *string `json:"mapsUrl"`
+				GoingCount *int `json:"goingCount"`
 				Mutuals       []struct {
 					DisplayName *string `json:"displayName"`
 					Status      *string `json:"status"`
@@ -64,7 +66,7 @@ func TestExecuteExploreListProjectsReviewedPublicFields(t *testing.T) {
 	if err := json.Unmarshal([]byte(result.Stdout), &output); err != nil {
 		t.Fatal(err)
 	}
-	if result.ExitCode != 0 || calls != 2 || len(output.Data.Items) != 1 || output.Data.Items[0].EventID != "event-public" || output.Data.Items[0].URL != "https://partiful.com/e/event-public" || output.Data.Items[0].Mutuals[0].Status == nil || *output.Data.Items[0].Mutuals[0].Status != "going" || output.Data.Items[0].MutualsPreviewComplete != nil || output.Meta.Page.FilterComplete == nil || !*output.Meta.Page.FilterComplete {
+	if result.ExitCode != 0 || calls != 2 || len(output.Data.Items) != 1 || output.Data.Items[0].EventID != "event-public" || output.Data.Items[0].URL != "https://partiful.com/e/event-public" || len(output.Data.Items[0].Location) != 1 || output.Data.Items[0].Location[0] != "Seattle" || output.Data.Items[0].MapsURL == nil || *output.Data.Items[0].MapsURL != "https://maps.example/" || output.Data.Items[0].GoingCount == nil || *output.Data.Items[0].GoingCount != 2 || output.Data.Items[0].Mutuals[0].Status == nil || *output.Data.Items[0].Mutuals[0].Status != "going" || output.Data.Items[0].MutualsPreviewComplete != nil || output.Meta.Page.FilterComplete == nil || !*output.Meta.Page.FilterComplete {
 		t.Fatalf("result=%#v output=%#v", result, output)
 	}
 	for _, private := range []string{"private-token", "private-user"} {

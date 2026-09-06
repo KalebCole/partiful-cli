@@ -44,11 +44,11 @@ type exploreEvent struct {
 	Start                  *string         `json:"start"`
 	End                    *string         `json:"end"`
 	Timezone               *string         `json:"timezone"`
-	LocationLines          []string        `json:"locationLines"`
-	GoogleMapsURL          *string         `json:"googleMapsUrl"`
-	GoingGuestCount        *int            `json:"goingGuestCount"`
-	MaybeGuestCount        *int            `json:"maybeGuestCount"`
-	InterestedGuestCount   *int            `json:"interestedGuestCount"`
+	Location               []string        `json:"location"`
+	MapsURL                *string         `json:"mapsUrl"`
+	GoingCount             *int            `json:"goingCount"`
+	MaybeCount             *int            `json:"maybeCount"`
+	InterestedCount        *int            `json:"interestedCount"`
 	Mutuals                []exploreMutual `json:"mutuals"`
 	MutualsPreviewComplete any             `json:"mutualsPreviewComplete"`
 }
@@ -65,7 +65,7 @@ func exploreListInputSchema() jsonSchema {
 	schema.Properties["state"] = jsonSchema{Type: "string", MinLength: &one, Pattern: `\S`}
 	schema.Properties["country"] = jsonSchema{Type: "string", MinLength: &one, Pattern: `\S`}
 	schema.Properties["section"] = jsonSchema{Type: "string", Enum: []string{"trending", "friends", "open-invite", "followed"}}
-	schema.Properties["date"] = jsonSchema{Type: "string", Enum: []string{"anytime", "today", "tomorrow", "this-week", "this-weekend"}}
+	schema.Properties["dateFilter"] = jsonSchema{Type: "string", Enum: []string{"anytime", "today", "tomorrow", "this-week", "this-weekend"}}
 	return schema
 }
 
@@ -73,9 +73,9 @@ func exploreListSuccessSchema() jsonSchema {
 	nullableString := jsonSchema{Type: []string{"string", "null"}}
 	nullableInt := jsonSchema{Type: []string{"integer", "null"}}
 	mutual := objectSchema([]string{"displayName", "status"}, map[string]jsonSchema{"displayName": nullableString, "status": jsonSchema{OneOf: []jsonSchema{{Type: "string", Enum: eventReadRsvpValues()}, {Type: "null"}}}})
-	item := objectSchema([]string{"eventId", "url", "title", "start", "end", "timezone", "locationLines", "googleMapsUrl", "goingGuestCount", "maybeGuestCount", "interestedGuestCount", "mutuals", "mutualsPreviewComplete"}, map[string]jsonSchema{
+	item := objectSchema([]string{"eventId", "url", "title", "start", "end", "timezone", "location", "mapsUrl", "goingCount", "maybeCount", "interestedCount", "mutuals", "mutualsPreviewComplete"}, map[string]jsonSchema{
 		"eventId": {Type: "string"}, "url": {Type: "string", Format: "uri"}, "title": nullableString, "start": nullableString, "end": nullableString, "timezone": nullableString,
-		"locationLines": {Type: "array", Items: &jsonSchema{Type: "string"}}, "googleMapsUrl": nullableString, "goingGuestCount": nullableInt, "maybeGuestCount": nullableInt, "interestedGuestCount": nullableInt,
+		"location": {Type: "array", Items: &jsonSchema{Type: "string"}}, "mapsUrl": nullableString, "goingCount": nullableInt, "maybeCount": nullableInt, "interestedCount": nullableInt,
 		"mutuals": {Type: "array", Items: &mutual}, "mutualsPreviewComplete": {Type: "null"},
 	})
 	return objectSchema([]string{"items"}, map[string]jsonSchema{"items": {Type: "array", Items: &item}})
@@ -97,11 +97,11 @@ func parseExploreOptions(definition commandDefinition, argv []string) (exploreOp
 	if o.section != "" && o.section != "trending" && o.section != "friends" && o.section != "open-invite" && o.section != "followed" {
 		return exploreOptions{}, exploreInputFailure("SECTION_INVALID", "--section must be trending, friends, open-invite, or followed.")
 	}
-	if v, ok := values["--date"]; ok {
+	if v, ok := values["--date-filter"]; ok {
 		o.date = strings.ToLower(strings.TrimSpace(v))
 	}
 	if o.date != "anytime" && o.date != "today" && o.date != "tomorrow" && o.date != "this-week" && o.date != "this-weekend" {
-		return exploreOptions{}, exploreInputFailure("DATE_INVALID", "--date must be anytime, today, tomorrow, this-week, or this-weekend.")
+		return exploreOptions{}, exploreInputFailure("DATE_INVALID", "--date-filter must be anytime, today, tomorrow, this-week, or this-weekend.")
 	}
 	if v, ok := values["--limit"]; ok {
 		n, e := strconv.Atoi(v)
@@ -309,22 +309,29 @@ func decorateExplore(ctx context.Context, client remote.Client, token, userID st
 	if len(events) == 0 {
 		return []exploreEvent{}, nil
 	}
-	ids := make([]string, len(events))
-	for i, event := range events {
-		ids[i] = event.ID
-	}
-	decorators, err := client.GetDiscoverEventItemDecorators(ctx, token, userID, ids)
-	if err != nil {
-		return nil, err
+	allDecorators := remote.DiscoverDecorators{ByEventID: make(map[string][]remote.DiscoverMutualGuest, len(events))}
+	for start := 0; start < len(events); start += maximumCollectionLimit {
+		end := min(start+maximumCollectionLimit, len(events))
+		ids := make([]string, end-start)
+		for i, event := range events[start:end] {
+			ids[i] = event.ID
+		}
+		decorators, err := client.GetDiscoverEventItemDecorators(ctx, token, userID, ids)
+		if err != nil {
+			return nil, err
+		}
+		for id, guests := range decorators.ByEventID {
+			allDecorators.ByEventID[id] = guests
+		}
 	}
 	out := make([]exploreEvent, 0, len(events))
 	for _, event := range events {
-		item := exploreEvent{EventID: event.ID, URL: "https://partiful.com/e/" + event.ID, Title: event.Title, Start: event.Start, End: event.End, Timezone: event.Timezone, LocationLines: []string{}, GoingGuestCount: event.GoingGuestCount, MaybeGuestCount: event.MaybeGuestCount, InterestedGuestCount: event.InterestedGuestCount, Mutuals: []exploreMutual{}, MutualsPreviewComplete: nil}
+		item := exploreEvent{EventID: event.ID, URL: "https://partiful.com/e/" + event.ID, Title: event.Title, Start: event.Start, End: event.End, Timezone: event.Timezone, Location: []string{}, GoingCount: event.GoingGuestCount, MaybeCount: event.MaybeGuestCount, InterestedCount: event.InterestedGuestCount, Mutuals: []exploreMutual{}, MutualsPreviewComplete: nil}
 		if event.Location != nil {
-			item.LocationLines = append(item.LocationLines, event.Location.DisplayAddressLines...)
-			item.GoogleMapsURL = event.Location.GoogleMapsURL
+			item.Location = append(item.Location, event.Location.DisplayAddressLines...)
+			item.MapsURL = event.Location.GoogleMapsURL
 		}
-		for _, guest := range decorators.ByEventID[event.ID] {
+		for _, guest := range allDecorators.ByEventID[event.ID] {
 			status, err := projectEventRSVP(&guest.Status)
 			if err != nil {
 				return nil, err

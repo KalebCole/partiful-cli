@@ -63,7 +63,7 @@ func TestExecuteConventionalHelp(t *testing.T) {
 		{
 			name: "explore list help",
 			argv: []string{"explore", "list", "--help"},
-			want: []string{"Usage: partiful explore list", "--city", "--state", "--country", "--section", "--date", "--limit", "--cursor", "--all", "--max-items", "Required fields:", "city", "state", "country"},
+			want: []string{"Usage: partiful explore list", "--city", "--state", "--country", "--section", "--date-filter", "--limit", "--cursor", "--all", "--max-items", "Required fields:", "city", "state", "country"},
 		},
 	}
 

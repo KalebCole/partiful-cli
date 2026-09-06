@@ -319,7 +319,7 @@ var commandCatalog = []commandDefinition{
 			{Name: "--state", Description: "Dynamic-area state.", Required: true, TakesValue: true},
 			{Name: "--country", Description: "Dynamic-area country code.", Required: true, TakesValue: true},
 			{Name: "--section", Description: "Optional Explore section.", TakesValue: true},
-			{Name: "--date", Description: "Event-local date facet.", TakesValue: true},
+			{Name: "--date-filter", Description: "Event-local date facet.", TakesValue: true},
 		}, collectionFlagDefinitions()...),
 		inputSchema:   exploreListInputSchema(),
 		successSchema: exploreListSuccessSchema(),
