@@ -40,9 +40,11 @@ for `anytime`, a terminal feed traversal, or a section result after filtering.
 
 Every result item includes `eventId`, `url`, `title`, `start`, `end`,
 `timezone`, `location`, `mapsUrl`, `goingCount`, `maybeCount`,
-`interestedCount`, `mutuals`, and `mutualsPreviewComplete`. Only `eventId` and
-`url` are non-null. `mutualsPreviewComplete` is always `null` because remote
-completeness is unproved.
+`interestedCount`, `mutuals`, and `mutualsPreviewComplete`. `eventId` and `url`
+are non-null; `location` and `mutuals` are always arrays (possibly empty);
+`title`, `start`, `end`, `timezone`, `mapsUrl`, `goingCount`, `maybeCount`, and
+`interestedCount` may be `null`. `mutualsPreviewComplete` is always `null`
+because remote completeness is unproved.
 
 Location can preserve hidden or approximate display lines. Mutuals expose only
 a display name and normalized RSVP status. Do not expose access tokens, phone
