@@ -16,7 +16,7 @@ import (
 type exploreCursorKeys struct{}
 
 func (exploreCursorKeys) Key() ([]byte, error) { return bytes32(), nil }
-func bytes32() []byte                          { return []byte("01234567890123456789012345678901") }
+func bytes32() []byte                          { return []byte("cursorfixturematerialabcdefghijk") }
 
 func exploreDependencies(httpClient scriptedHTTP) app.Dependencies {
 	return app.Dependencies{
