@@ -4,17 +4,25 @@ import (
 	encodingjson "encoding/json"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"testing"
 
 	"github.com/KalebCole/partiful-cli/internal/app"
 )
 
+type evidenceClaim struct {
+	Classification string `json:"classification"`
+	Citation       string `json:"citation"`
+}
+
 type evidenceDocument struct {
-	ContractRevision string                             `json:"contractRevision"`
-	Status           string                             `json:"status"`
-	Operations       map[string]encodingjson.RawMessage `json:"operations"`
-	OperationClaims  map[string]map[string]string       `json:"operationClaims"`
+	ContractRevision   string                             `json:"contractRevision"`
+	Status             string                             `json:"status"`
+	Operations         map[string]encodingjson.RawMessage `json:"operations"`
+	OperationClaims    map[string]map[string]string       `json:"operationClaims"`
+	Claims             map[string]evidenceClaim           `json:"claims"`
+	MaterialClaimCount int                                `json:"materialClaimCount"`
 }
 
 type openAPIDocument struct {
@@ -40,6 +48,68 @@ func readRepoFile(t *testing.T, root, rel string) string {
 		t.Fatalf("read %s: %v", rel, err)
 	}
 	return string(data)
+}
+
+func escapeJSONPointerToken(token string) string {
+	return strings.NewReplacer("~", "~0", "/", "~1").Replace(token)
+}
+
+func collectSchemaClaimPointers(schema any, pointer string, pointers map[string]struct{}) {
+	object, ok := schema.(map[string]any)
+	if !ok {
+		return
+	}
+	for key, value := range object {
+		childPointer := pointer + "/" + escapeJSONPointerToken(key)
+		switch typed := value.(type) {
+		case map[string]any:
+			if key == "properties" {
+				for property, propertySchema := range typed {
+					propertyPointer := childPointer + "/" + escapeJSONPointerToken(property)
+					pointers[propertyPointer] = struct{}{}
+					collectSchemaClaimPointers(propertySchema, propertyPointer, pointers)
+				}
+				continue
+			}
+			collectSchemaClaimPointers(typed, childPointer, pointers)
+		case []any:
+			if key == "const" {
+				pointers[childPointer] = struct{}{}
+				continue
+			}
+			for index := range typed {
+				pointers[childPointer+"/"+strconv.Itoa(index)] = struct{}{}
+			}
+		default:
+			pointers[childPointer] = struct{}{}
+		}
+	}
+}
+
+func valueAt(document map[string]any, pointer string) (any, bool) {
+	value := any(document)
+	for _, rawToken := range strings.Split(strings.TrimPrefix(pointer, "#/"), "/") {
+		token := strings.NewReplacer("~1", "/", "~0", "~").Replace(rawToken)
+		object, ok := value.(map[string]any)
+		if !ok {
+			return nil, false
+		}
+		var found bool
+		value, found = object[token]
+		if !found {
+			return nil, false
+		}
+	}
+	return value, true
+}
+
+func schemaAt(t *testing.T, document map[string]any, pointer string) any {
+	t.Helper()
+	value, ok := valueAt(document, pointer)
+	if !ok {
+		t.Fatalf("%s is absent or has a non-object parent", pointer)
+	}
+	return value
 }
 
 func TestContractRevisionsStayInSyncAcrossDocsAndSpecs(t *testing.T) {
@@ -104,5 +174,53 @@ func TestContractRevisionsStayInSyncAcrossDocsAndSpecs(t *testing.T) {
 		if _, ok := openapi.Paths[path]; !ok {
 			t.Fatalf("openapi does not declare path %q", path)
 		}
+	}
+
+	var rawOpenAPI map[string]any
+	if err := encodingjson.Unmarshal([]byte(readRepoFile(t, root, "spec/partiful.openapi.json")), &rawOpenAPI); err != nil {
+		t.Fatalf("decode raw spec/partiful.openapi.json: %v", err)
+	}
+	for pointer, want := range map[string][]string{
+		"#/paths/~1getDiscoverFeedV2/post/requestBody/content/application~1json/schema/properties/data/properties/params/properties/allowedFeedPresentationStyles/const":        {"rows"},
+		"#/paths/~1getDiscoverSectionsV2/post/requestBody/content/application~1json/schema/properties/data/properties/params/properties/allowedSectionPresentationStyles/const": {"carousel-small", "carousel-medium", "carousel-large"},
+	} {
+		actual, found := valueAt(rawOpenAPI, pointer)
+		got, ok := actual.([]any)
+		if !found || !ok || len(got) != len(want) {
+			t.Errorf("%s = %#v, want exact array %#v", pointer, actual, want)
+			continue
+		}
+		for index, value := range want {
+			if got[index] != value {
+				t.Errorf("%s[%d] = %#v, want %#v", pointer, index, got[index], value)
+			}
+		}
+	}
+
+	for path, citation := range map[string]string{
+		"/getDiscoverFeedV2":              "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoverfeedv2",
+		"/getDiscoverSectionsV2":          "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoversectionsv2",
+		"/getDiscoverEventItemDecorators": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscovereventitemdecorators",
+	} {
+		for _, schemaPointer := range []string{
+			"#/paths/" + escapeJSONPointerToken(path) + "/post/requestBody/content/application~1json/schema",
+			"#/paths/" + escapeJSONPointerToken(path) + "/post/responses/200/content/application~1json/schema",
+		} {
+			pointers := make(map[string]struct{})
+			collectSchemaClaimPointers(schemaAt(t, rawOpenAPI, schemaPointer), schemaPointer, pointers)
+			for claimPointer := range pointers {
+				claim, ok := evidence.Claims[claimPointer]
+				if !ok {
+					t.Errorf("evidence lacks schema claim %s", claimPointer)
+					continue
+				}
+				if claim.Classification != "dated-live-observation" || claim.Citation != citation {
+					t.Errorf("evidence claim %s = %#v, want dated-live-observation cited to %s", claimPointer, claim, citation)
+				}
+			}
+		}
+	}
+	if evidence.MaterialClaimCount != len(evidence.Claims) {
+		t.Errorf("materialClaimCount = %d, want mechanically counted %d claims", evidence.MaterialClaimCount, len(evidence.Claims))
 	}
 }

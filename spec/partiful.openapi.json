@@ -2296,10 +2296,9 @@
                             "const": "DISCOVER_HOME"
                           },
                           "allowedFeedPresentationStyles": {
-                            "type": "array",
-                            "items": {
-                              "const": "rows"
-                            }
+                            "const": [
+                              "rows"
+                            ]
                           }
                         }
                       },
@@ -2534,14 +2533,11 @@
                             "const": "DISCOVER_HOME"
                           },
                           "allowedSectionPresentationStyles": {
-                            "type": "array",
-                            "items": {
-                              "enum": [
-                                "carousel-small",
-                                "carousel-medium",
-                                "carousel-large"
-                              ]
-                            }
+                            "const": [
+                              "carousel-small",
+                              "carousel-medium",
+                              "carousel-large"
+                            ]
                           },
                           "locale": {
                             "const": "en"

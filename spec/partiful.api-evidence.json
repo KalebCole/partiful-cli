@@ -7640,6 +7640,1186 @@
     "#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1{collectionPath}/get/responses/200/content/application~1json/schema/$ref": {
       "classification": "official-protocol-specification",
       "citation": "docs/research/2026-08-12-text-blast-mapping-public-assets.md#host-only-precondition-reads"
+    },
+    "#/paths/~1getDiscoverFeedV2/post/requestBody/content/application~1json/schema/additionalProperties": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoverfeedv2"
+    },
+    "#/paths/~1getDiscoverFeedV2/post/requestBody/content/application~1json/schema/properties/data": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoverfeedv2"
+    },
+    "#/paths/~1getDiscoverFeedV2/post/requestBody/content/application~1json/schema/properties/data/additionalProperties": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoverfeedv2"
+    },
+    "#/paths/~1getDiscoverFeedV2/post/requestBody/content/application~1json/schema/properties/data/properties/paging": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoverfeedv2"
+    },
+    "#/paths/~1getDiscoverFeedV2/post/requestBody/content/application~1json/schema/properties/data/properties/paging/additionalProperties": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoverfeedv2"
+    },
+    "#/paths/~1getDiscoverFeedV2/post/requestBody/content/application~1json/schema/properties/data/properties/paging/properties/cursor": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoverfeedv2"
+    },
+    "#/paths/~1getDiscoverFeedV2/post/requestBody/content/application~1json/schema/properties/data/properties/paging/properties/cursor/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoverfeedv2"
+    },
+    "#/paths/~1getDiscoverFeedV2/post/requestBody/content/application~1json/schema/properties/data/properties/paging/properties/maxResults": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoverfeedv2"
+    },
+    "#/paths/~1getDiscoverFeedV2/post/requestBody/content/application~1json/schema/properties/data/properties/paging/properties/maxResults/maximum": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoverfeedv2"
+    },
+    "#/paths/~1getDiscoverFeedV2/post/requestBody/content/application~1json/schema/properties/data/properties/paging/properties/maxResults/minimum": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoverfeedv2"
+    },
+    "#/paths/~1getDiscoverFeedV2/post/requestBody/content/application~1json/schema/properties/data/properties/paging/properties/maxResults/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoverfeedv2"
+    },
+    "#/paths/~1getDiscoverFeedV2/post/requestBody/content/application~1json/schema/properties/data/properties/paging/required/0": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoverfeedv2"
+    },
+    "#/paths/~1getDiscoverFeedV2/post/requestBody/content/application~1json/schema/properties/data/properties/paging/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoverfeedv2"
+    },
+    "#/paths/~1getDiscoverFeedV2/post/requestBody/content/application~1json/schema/properties/data/properties/params": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoverfeedv2"
+    },
+    "#/paths/~1getDiscoverFeedV2/post/requestBody/content/application~1json/schema/properties/data/properties/params/additionalProperties": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoverfeedv2"
+    },
+    "#/paths/~1getDiscoverFeedV2/post/requestBody/content/application~1json/schema/properties/data/properties/params/properties/allowedFeedPresentationStyles": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoverfeedv2"
+    },
+    "#/paths/~1getDiscoverFeedV2/post/requestBody/content/application~1json/schema/properties/data/properties/params/properties/allowedFeedPresentationStyles/const": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoverfeedv2"
+    },
+    "#/paths/~1getDiscoverFeedV2/post/requestBody/content/application~1json/schema/properties/data/properties/params/properties/area": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoverfeedv2"
+    },
+    "#/paths/~1getDiscoverFeedV2/post/requestBody/content/application~1json/schema/properties/data/properties/params/properties/area/additionalProperties": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoverfeedv2"
+    },
+    "#/paths/~1getDiscoverFeedV2/post/requestBody/content/application~1json/schema/properties/data/properties/params/properties/area/properties/city": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoverfeedv2"
+    },
+    "#/paths/~1getDiscoverFeedV2/post/requestBody/content/application~1json/schema/properties/data/properties/params/properties/area/properties/city/minLength": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoverfeedv2"
+    },
+    "#/paths/~1getDiscoverFeedV2/post/requestBody/content/application~1json/schema/properties/data/properties/params/properties/area/properties/city/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoverfeedv2"
+    },
+    "#/paths/~1getDiscoverFeedV2/post/requestBody/content/application~1json/schema/properties/data/properties/params/properties/area/properties/countryCode": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoverfeedv2"
+    },
+    "#/paths/~1getDiscoverFeedV2/post/requestBody/content/application~1json/schema/properties/data/properties/params/properties/area/properties/countryCode/minLength": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoverfeedv2"
+    },
+    "#/paths/~1getDiscoverFeedV2/post/requestBody/content/application~1json/schema/properties/data/properties/params/properties/area/properties/countryCode/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoverfeedv2"
+    },
+    "#/paths/~1getDiscoverFeedV2/post/requestBody/content/application~1json/schema/properties/data/properties/params/properties/area/properties/state": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoverfeedv2"
+    },
+    "#/paths/~1getDiscoverFeedV2/post/requestBody/content/application~1json/schema/properties/data/properties/params/properties/area/properties/state/minLength": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoverfeedv2"
+    },
+    "#/paths/~1getDiscoverFeedV2/post/requestBody/content/application~1json/schema/properties/data/properties/params/properties/area/properties/state/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoverfeedv2"
+    },
+    "#/paths/~1getDiscoverFeedV2/post/requestBody/content/application~1json/schema/properties/data/properties/params/properties/area/properties/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoverfeedv2"
+    },
+    "#/paths/~1getDiscoverFeedV2/post/requestBody/content/application~1json/schema/properties/data/properties/params/properties/area/properties/type/const": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoverfeedv2"
+    },
+    "#/paths/~1getDiscoverFeedV2/post/requestBody/content/application~1json/schema/properties/data/properties/params/properties/area/required/0": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoverfeedv2"
+    },
+    "#/paths/~1getDiscoverFeedV2/post/requestBody/content/application~1json/schema/properties/data/properties/params/properties/area/required/1": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoverfeedv2"
+    },
+    "#/paths/~1getDiscoverFeedV2/post/requestBody/content/application~1json/schema/properties/data/properties/params/properties/area/required/2": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoverfeedv2"
+    },
+    "#/paths/~1getDiscoverFeedV2/post/requestBody/content/application~1json/schema/properties/data/properties/params/properties/area/required/3": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoverfeedv2"
+    },
+    "#/paths/~1getDiscoverFeedV2/post/requestBody/content/application~1json/schema/properties/data/properties/params/properties/area/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoverfeedv2"
+    },
+    "#/paths/~1getDiscoverFeedV2/post/requestBody/content/application~1json/schema/properties/data/properties/params/properties/tagId": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoverfeedv2"
+    },
+    "#/paths/~1getDiscoverFeedV2/post/requestBody/content/application~1json/schema/properties/data/properties/params/properties/tagId/const": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoverfeedv2"
+    },
+    "#/paths/~1getDiscoverFeedV2/post/requestBody/content/application~1json/schema/properties/data/properties/params/required/0": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoverfeedv2"
+    },
+    "#/paths/~1getDiscoverFeedV2/post/requestBody/content/application~1json/schema/properties/data/properties/params/required/1": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoverfeedv2"
+    },
+    "#/paths/~1getDiscoverFeedV2/post/requestBody/content/application~1json/schema/properties/data/properties/params/required/2": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoverfeedv2"
+    },
+    "#/paths/~1getDiscoverFeedV2/post/requestBody/content/application~1json/schema/properties/data/properties/params/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoverfeedv2"
+    },
+    "#/paths/~1getDiscoverFeedV2/post/requestBody/content/application~1json/schema/properties/data/required/0": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoverfeedv2"
+    },
+    "#/paths/~1getDiscoverFeedV2/post/requestBody/content/application~1json/schema/properties/data/required/1": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoverfeedv2"
+    },
+    "#/paths/~1getDiscoverFeedV2/post/requestBody/content/application~1json/schema/properties/data/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoverfeedv2"
+    },
+    "#/paths/~1getDiscoverFeedV2/post/requestBody/content/application~1json/schema/required/0": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoverfeedv2"
+    },
+    "#/paths/~1getDiscoverFeedV2/post/requestBody/content/application~1json/schema/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoverfeedv2"
+    },
+    "#/paths/~1getDiscoverFeedV2/post/responses/200/content/application~1json/schema/additionalProperties": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoverfeedv2"
+    },
+    "#/paths/~1getDiscoverFeedV2/post/responses/200/content/application~1json/schema/properties/result": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoverfeedv2"
+    },
+    "#/paths/~1getDiscoverFeedV2/post/responses/200/content/application~1json/schema/properties/result/additionalProperties": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoverfeedv2"
+    },
+    "#/paths/~1getDiscoverFeedV2/post/responses/200/content/application~1json/schema/properties/result/properties/data": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoverfeedv2"
+    },
+    "#/paths/~1getDiscoverFeedV2/post/responses/200/content/application~1json/schema/properties/result/properties/data/additionalProperties": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoverfeedv2"
+    },
+    "#/paths/~1getDiscoverFeedV2/post/responses/200/content/application~1json/schema/properties/result/properties/data/properties/items": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoverfeedv2"
+    },
+    "#/paths/~1getDiscoverFeedV2/post/responses/200/content/application~1json/schema/properties/result/properties/data/properties/items/items/additionalProperties": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoverfeedv2"
+    },
+    "#/paths/~1getDiscoverFeedV2/post/responses/200/content/application~1json/schema/properties/result/properties/data/properties/items/items/properties/event": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoverfeedv2"
+    },
+    "#/paths/~1getDiscoverFeedV2/post/responses/200/content/application~1json/schema/properties/result/properties/data/properties/items/items/properties/event/additionalProperties": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoverfeedv2"
+    },
+    "#/paths/~1getDiscoverFeedV2/post/responses/200/content/application~1json/schema/properties/result/properties/data/properties/items/items/properties/event/properties/endDate": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoverfeedv2"
+    },
+    "#/paths/~1getDiscoverFeedV2/post/responses/200/content/application~1json/schema/properties/result/properties/data/properties/items/items/properties/event/properties/endDate/type/0": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoverfeedv2"
+    },
+    "#/paths/~1getDiscoverFeedV2/post/responses/200/content/application~1json/schema/properties/result/properties/data/properties/items/items/properties/event/properties/endDate/type/1": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoverfeedv2"
+    },
+    "#/paths/~1getDiscoverFeedV2/post/responses/200/content/application~1json/schema/properties/result/properties/data/properties/items/items/properties/event/properties/goingGuestCount": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoverfeedv2"
+    },
+    "#/paths/~1getDiscoverFeedV2/post/responses/200/content/application~1json/schema/properties/result/properties/data/properties/items/items/properties/event/properties/goingGuestCount/minimum": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoverfeedv2"
+    },
+    "#/paths/~1getDiscoverFeedV2/post/responses/200/content/application~1json/schema/properties/result/properties/data/properties/items/items/properties/event/properties/goingGuestCount/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoverfeedv2"
+    },
+    "#/paths/~1getDiscoverFeedV2/post/responses/200/content/application~1json/schema/properties/result/properties/data/properties/items/items/properties/event/properties/id": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoverfeedv2"
+    },
+    "#/paths/~1getDiscoverFeedV2/post/responses/200/content/application~1json/schema/properties/result/properties/data/properties/items/items/properties/event/properties/id/minLength": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoverfeedv2"
+    },
+    "#/paths/~1getDiscoverFeedV2/post/responses/200/content/application~1json/schema/properties/result/properties/data/properties/items/items/properties/event/properties/id/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoverfeedv2"
+    },
+    "#/paths/~1getDiscoverFeedV2/post/responses/200/content/application~1json/schema/properties/result/properties/data/properties/items/items/properties/event/properties/interestedGuestCount": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoverfeedv2"
+    },
+    "#/paths/~1getDiscoverFeedV2/post/responses/200/content/application~1json/schema/properties/result/properties/data/properties/items/items/properties/event/properties/interestedGuestCount/minimum": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoverfeedv2"
+    },
+    "#/paths/~1getDiscoverFeedV2/post/responses/200/content/application~1json/schema/properties/result/properties/data/properties/items/items/properties/event/properties/interestedGuestCount/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoverfeedv2"
+    },
+    "#/paths/~1getDiscoverFeedV2/post/responses/200/content/application~1json/schema/properties/result/properties/data/properties/items/items/properties/event/properties/locationInfo": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoverfeedv2"
+    },
+    "#/paths/~1getDiscoverFeedV2/post/responses/200/content/application~1json/schema/properties/result/properties/data/properties/items/items/properties/event/properties/locationInfo/properties/displayAddressLines": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoverfeedv2"
+    },
+    "#/paths/~1getDiscoverFeedV2/post/responses/200/content/application~1json/schema/properties/result/properties/data/properties/items/items/properties/event/properties/locationInfo/properties/displayAddressLines/items/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoverfeedv2"
+    },
+    "#/paths/~1getDiscoverFeedV2/post/responses/200/content/application~1json/schema/properties/result/properties/data/properties/items/items/properties/event/properties/locationInfo/properties/displayAddressLines/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoverfeedv2"
+    },
+    "#/paths/~1getDiscoverFeedV2/post/responses/200/content/application~1json/schema/properties/result/properties/data/properties/items/items/properties/event/properties/locationInfo/properties/mapsInfo": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoverfeedv2"
+    },
+    "#/paths/~1getDiscoverFeedV2/post/responses/200/content/application~1json/schema/properties/result/properties/data/properties/items/items/properties/event/properties/locationInfo/properties/mapsInfo/properties/googleMapsUrl": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoverfeedv2"
+    },
+    "#/paths/~1getDiscoverFeedV2/post/responses/200/content/application~1json/schema/properties/result/properties/data/properties/items/items/properties/event/properties/locationInfo/properties/mapsInfo/properties/googleMapsUrl/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoverfeedv2"
+    },
+    "#/paths/~1getDiscoverFeedV2/post/responses/200/content/application~1json/schema/properties/result/properties/data/properties/items/items/properties/event/properties/locationInfo/properties/mapsInfo/type/0": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoverfeedv2"
+    },
+    "#/paths/~1getDiscoverFeedV2/post/responses/200/content/application~1json/schema/properties/result/properties/data/properties/items/items/properties/event/properties/locationInfo/properties/mapsInfo/type/1": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoverfeedv2"
+    },
+    "#/paths/~1getDiscoverFeedV2/post/responses/200/content/application~1json/schema/properties/result/properties/data/properties/items/items/properties/event/properties/locationInfo/type/0": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoverfeedv2"
+    },
+    "#/paths/~1getDiscoverFeedV2/post/responses/200/content/application~1json/schema/properties/result/properties/data/properties/items/items/properties/event/properties/locationInfo/type/1": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoverfeedv2"
+    },
+    "#/paths/~1getDiscoverFeedV2/post/responses/200/content/application~1json/schema/properties/result/properties/data/properties/items/items/properties/event/properties/maybeGuestCount": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoverfeedv2"
+    },
+    "#/paths/~1getDiscoverFeedV2/post/responses/200/content/application~1json/schema/properties/result/properties/data/properties/items/items/properties/event/properties/maybeGuestCount/minimum": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoverfeedv2"
+    },
+    "#/paths/~1getDiscoverFeedV2/post/responses/200/content/application~1json/schema/properties/result/properties/data/properties/items/items/properties/event/properties/maybeGuestCount/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoverfeedv2"
+    },
+    "#/paths/~1getDiscoverFeedV2/post/responses/200/content/application~1json/schema/properties/result/properties/data/properties/items/items/properties/event/properties/startDate": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoverfeedv2"
+    },
+    "#/paths/~1getDiscoverFeedV2/post/responses/200/content/application~1json/schema/properties/result/properties/data/properties/items/items/properties/event/properties/startDate/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoverfeedv2"
+    },
+    "#/paths/~1getDiscoverFeedV2/post/responses/200/content/application~1json/schema/properties/result/properties/data/properties/items/items/properties/event/properties/timezone": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoverfeedv2"
+    },
+    "#/paths/~1getDiscoverFeedV2/post/responses/200/content/application~1json/schema/properties/result/properties/data/properties/items/items/properties/event/properties/timezone/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoverfeedv2"
+    },
+    "#/paths/~1getDiscoverFeedV2/post/responses/200/content/application~1json/schema/properties/result/properties/data/properties/items/items/properties/event/properties/title": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoverfeedv2"
+    },
+    "#/paths/~1getDiscoverFeedV2/post/responses/200/content/application~1json/schema/properties/result/properties/data/properties/items/items/properties/event/properties/title/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoverfeedv2"
+    },
+    "#/paths/~1getDiscoverFeedV2/post/responses/200/content/application~1json/schema/properties/result/properties/data/properties/items/items/properties/event/required/0": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoverfeedv2"
+    },
+    "#/paths/~1getDiscoverFeedV2/post/responses/200/content/application~1json/schema/properties/result/properties/data/properties/items/items/properties/event/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoverfeedv2"
+    },
+    "#/paths/~1getDiscoverFeedV2/post/responses/200/content/application~1json/schema/properties/result/properties/data/properties/items/items/properties/tags": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoverfeedv2"
+    },
+    "#/paths/~1getDiscoverFeedV2/post/responses/200/content/application~1json/schema/properties/result/properties/data/properties/items/items/properties/tags/items/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoverfeedv2"
+    },
+    "#/paths/~1getDiscoverFeedV2/post/responses/200/content/application~1json/schema/properties/result/properties/data/properties/items/items/properties/tags/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoverfeedv2"
+    },
+    "#/paths/~1getDiscoverFeedV2/post/responses/200/content/application~1json/schema/properties/result/properties/data/properties/items/items/required/0": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoverfeedv2"
+    },
+    "#/paths/~1getDiscoverFeedV2/post/responses/200/content/application~1json/schema/properties/result/properties/data/properties/items/items/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoverfeedv2"
+    },
+    "#/paths/~1getDiscoverFeedV2/post/responses/200/content/application~1json/schema/properties/result/properties/data/properties/items/maxItems": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoverfeedv2"
+    },
+    "#/paths/~1getDiscoverFeedV2/post/responses/200/content/application~1json/schema/properties/result/properties/data/properties/items/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoverfeedv2"
+    },
+    "#/paths/~1getDiscoverFeedV2/post/responses/200/content/application~1json/schema/properties/result/properties/data/required/0": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoverfeedv2"
+    },
+    "#/paths/~1getDiscoverFeedV2/post/responses/200/content/application~1json/schema/properties/result/properties/data/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoverfeedv2"
+    },
+    "#/paths/~1getDiscoverFeedV2/post/responses/200/content/application~1json/schema/properties/result/properties/paging": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoverfeedv2"
+    },
+    "#/paths/~1getDiscoverFeedV2/post/responses/200/content/application~1json/schema/properties/result/properties/paging/additionalProperties": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoverfeedv2"
+    },
+    "#/paths/~1getDiscoverFeedV2/post/responses/200/content/application~1json/schema/properties/result/properties/paging/properties/nextCursor": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoverfeedv2"
+    },
+    "#/paths/~1getDiscoverFeedV2/post/responses/200/content/application~1json/schema/properties/result/properties/paging/properties/nextCursor/type/0": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoverfeedv2"
+    },
+    "#/paths/~1getDiscoverFeedV2/post/responses/200/content/application~1json/schema/properties/result/properties/paging/properties/nextCursor/type/1": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoverfeedv2"
+    },
+    "#/paths/~1getDiscoverFeedV2/post/responses/200/content/application~1json/schema/properties/result/properties/paging/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoverfeedv2"
+    },
+    "#/paths/~1getDiscoverFeedV2/post/responses/200/content/application~1json/schema/properties/result/required/0": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoverfeedv2"
+    },
+    "#/paths/~1getDiscoverFeedV2/post/responses/200/content/application~1json/schema/properties/result/required/1": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoverfeedv2"
+    },
+    "#/paths/~1getDiscoverFeedV2/post/responses/200/content/application~1json/schema/properties/result/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoverfeedv2"
+    },
+    "#/paths/~1getDiscoverFeedV2/post/responses/200/content/application~1json/schema/required/0": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoverfeedv2"
+    },
+    "#/paths/~1getDiscoverFeedV2/post/responses/200/content/application~1json/schema/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoverfeedv2"
+    },
+    "#/paths/~1getDiscoverSectionsV2/post/requestBody/content/application~1json/schema/additionalProperties": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoversectionsv2"
+    },
+    "#/paths/~1getDiscoverSectionsV2/post/requestBody/content/application~1json/schema/properties/data": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoversectionsv2"
+    },
+    "#/paths/~1getDiscoverSectionsV2/post/requestBody/content/application~1json/schema/properties/data/additionalProperties": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoversectionsv2"
+    },
+    "#/paths/~1getDiscoverSectionsV2/post/requestBody/content/application~1json/schema/properties/data/properties/paging": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoversectionsv2"
+    },
+    "#/paths/~1getDiscoverSectionsV2/post/requestBody/content/application~1json/schema/properties/data/properties/paging/additionalProperties": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoversectionsv2"
+    },
+    "#/paths/~1getDiscoverSectionsV2/post/requestBody/content/application~1json/schema/properties/data/properties/paging/properties/cursor": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoversectionsv2"
+    },
+    "#/paths/~1getDiscoverSectionsV2/post/requestBody/content/application~1json/schema/properties/data/properties/paging/properties/cursor/const": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoversectionsv2"
+    },
+    "#/paths/~1getDiscoverSectionsV2/post/requestBody/content/application~1json/schema/properties/data/properties/paging/properties/maxResults": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoversectionsv2"
+    },
+    "#/paths/~1getDiscoverSectionsV2/post/requestBody/content/application~1json/schema/properties/data/properties/paging/properties/maxResults/const": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoversectionsv2"
+    },
+    "#/paths/~1getDiscoverSectionsV2/post/requestBody/content/application~1json/schema/properties/data/properties/paging/required/0": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoversectionsv2"
+    },
+    "#/paths/~1getDiscoverSectionsV2/post/requestBody/content/application~1json/schema/properties/data/properties/paging/required/1": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoversectionsv2"
+    },
+    "#/paths/~1getDiscoverSectionsV2/post/requestBody/content/application~1json/schema/properties/data/properties/paging/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoversectionsv2"
+    },
+    "#/paths/~1getDiscoverSectionsV2/post/requestBody/content/application~1json/schema/properties/data/properties/params": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoversectionsv2"
+    },
+    "#/paths/~1getDiscoverSectionsV2/post/requestBody/content/application~1json/schema/properties/data/properties/params/additionalProperties": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoversectionsv2"
+    },
+    "#/paths/~1getDiscoverSectionsV2/post/requestBody/content/application~1json/schema/properties/data/properties/params/properties/allowedSectionPresentationStyles": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoversectionsv2"
+    },
+    "#/paths/~1getDiscoverSectionsV2/post/requestBody/content/application~1json/schema/properties/data/properties/params/properties/allowedSectionPresentationStyles/const": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoversectionsv2"
+    },
+    "#/paths/~1getDiscoverSectionsV2/post/requestBody/content/application~1json/schema/properties/data/properties/params/properties/area": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoversectionsv2"
+    },
+    "#/paths/~1getDiscoverSectionsV2/post/requestBody/content/application~1json/schema/properties/data/properties/params/properties/area/additionalProperties": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoversectionsv2"
+    },
+    "#/paths/~1getDiscoverSectionsV2/post/requestBody/content/application~1json/schema/properties/data/properties/params/properties/area/properties/city": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoversectionsv2"
+    },
+    "#/paths/~1getDiscoverSectionsV2/post/requestBody/content/application~1json/schema/properties/data/properties/params/properties/area/properties/city/minLength": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoversectionsv2"
+    },
+    "#/paths/~1getDiscoverSectionsV2/post/requestBody/content/application~1json/schema/properties/data/properties/params/properties/area/properties/city/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoversectionsv2"
+    },
+    "#/paths/~1getDiscoverSectionsV2/post/requestBody/content/application~1json/schema/properties/data/properties/params/properties/area/properties/countryCode": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoversectionsv2"
+    },
+    "#/paths/~1getDiscoverSectionsV2/post/requestBody/content/application~1json/schema/properties/data/properties/params/properties/area/properties/countryCode/minLength": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoversectionsv2"
+    },
+    "#/paths/~1getDiscoverSectionsV2/post/requestBody/content/application~1json/schema/properties/data/properties/params/properties/area/properties/countryCode/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoversectionsv2"
+    },
+    "#/paths/~1getDiscoverSectionsV2/post/requestBody/content/application~1json/schema/properties/data/properties/params/properties/area/properties/state": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoversectionsv2"
+    },
+    "#/paths/~1getDiscoverSectionsV2/post/requestBody/content/application~1json/schema/properties/data/properties/params/properties/area/properties/state/minLength": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoversectionsv2"
+    },
+    "#/paths/~1getDiscoverSectionsV2/post/requestBody/content/application~1json/schema/properties/data/properties/params/properties/area/properties/state/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoversectionsv2"
+    },
+    "#/paths/~1getDiscoverSectionsV2/post/requestBody/content/application~1json/schema/properties/data/properties/params/properties/area/properties/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoversectionsv2"
+    },
+    "#/paths/~1getDiscoverSectionsV2/post/requestBody/content/application~1json/schema/properties/data/properties/params/properties/area/properties/type/const": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoversectionsv2"
+    },
+    "#/paths/~1getDiscoverSectionsV2/post/requestBody/content/application~1json/schema/properties/data/properties/params/properties/area/required/0": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoversectionsv2"
+    },
+    "#/paths/~1getDiscoverSectionsV2/post/requestBody/content/application~1json/schema/properties/data/properties/params/properties/area/required/1": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoversectionsv2"
+    },
+    "#/paths/~1getDiscoverSectionsV2/post/requestBody/content/application~1json/schema/properties/data/properties/params/properties/area/required/2": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoversectionsv2"
+    },
+    "#/paths/~1getDiscoverSectionsV2/post/requestBody/content/application~1json/schema/properties/data/properties/params/properties/area/required/3": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoversectionsv2"
+    },
+    "#/paths/~1getDiscoverSectionsV2/post/requestBody/content/application~1json/schema/properties/data/properties/params/properties/area/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoversectionsv2"
+    },
+    "#/paths/~1getDiscoverSectionsV2/post/requestBody/content/application~1json/schema/properties/data/properties/params/properties/locale": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoversectionsv2"
+    },
+    "#/paths/~1getDiscoverSectionsV2/post/requestBody/content/application~1json/schema/properties/data/properties/params/properties/locale/const": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoversectionsv2"
+    },
+    "#/paths/~1getDiscoverSectionsV2/post/requestBody/content/application~1json/schema/properties/data/properties/params/properties/tagId": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoversectionsv2"
+    },
+    "#/paths/~1getDiscoverSectionsV2/post/requestBody/content/application~1json/schema/properties/data/properties/params/properties/tagId/const": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoversectionsv2"
+    },
+    "#/paths/~1getDiscoverSectionsV2/post/requestBody/content/application~1json/schema/properties/data/properties/params/required/0": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoversectionsv2"
+    },
+    "#/paths/~1getDiscoverSectionsV2/post/requestBody/content/application~1json/schema/properties/data/properties/params/required/1": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoversectionsv2"
+    },
+    "#/paths/~1getDiscoverSectionsV2/post/requestBody/content/application~1json/schema/properties/data/properties/params/required/2": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoversectionsv2"
+    },
+    "#/paths/~1getDiscoverSectionsV2/post/requestBody/content/application~1json/schema/properties/data/properties/params/required/3": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoversectionsv2"
+    },
+    "#/paths/~1getDiscoverSectionsV2/post/requestBody/content/application~1json/schema/properties/data/properties/params/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoversectionsv2"
+    },
+    "#/paths/~1getDiscoverSectionsV2/post/requestBody/content/application~1json/schema/properties/data/properties/userId": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoversectionsv2"
+    },
+    "#/paths/~1getDiscoverSectionsV2/post/requestBody/content/application~1json/schema/properties/data/properties/userId/minLength": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoversectionsv2"
+    },
+    "#/paths/~1getDiscoverSectionsV2/post/requestBody/content/application~1json/schema/properties/data/properties/userId/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoversectionsv2"
+    },
+    "#/paths/~1getDiscoverSectionsV2/post/requestBody/content/application~1json/schema/properties/data/required/0": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoversectionsv2"
+    },
+    "#/paths/~1getDiscoverSectionsV2/post/requestBody/content/application~1json/schema/properties/data/required/1": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoversectionsv2"
+    },
+    "#/paths/~1getDiscoverSectionsV2/post/requestBody/content/application~1json/schema/properties/data/required/2": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoversectionsv2"
+    },
+    "#/paths/~1getDiscoverSectionsV2/post/requestBody/content/application~1json/schema/properties/data/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoversectionsv2"
+    },
+    "#/paths/~1getDiscoverSectionsV2/post/requestBody/content/application~1json/schema/required/0": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoversectionsv2"
+    },
+    "#/paths/~1getDiscoverSectionsV2/post/requestBody/content/application~1json/schema/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoversectionsv2"
+    },
+    "#/paths/~1getDiscoverSectionsV2/post/responses/200/content/application~1json/schema/additionalProperties": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoversectionsv2"
+    },
+    "#/paths/~1getDiscoverSectionsV2/post/responses/200/content/application~1json/schema/properties/result": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoversectionsv2"
+    },
+    "#/paths/~1getDiscoverSectionsV2/post/responses/200/content/application~1json/schema/properties/result/additionalProperties": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoversectionsv2"
+    },
+    "#/paths/~1getDiscoverSectionsV2/post/responses/200/content/application~1json/schema/properties/result/properties/data": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoversectionsv2"
+    },
+    "#/paths/~1getDiscoverSectionsV2/post/responses/200/content/application~1json/schema/properties/result/properties/data/additionalProperties": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoversectionsv2"
+    },
+    "#/paths/~1getDiscoverSectionsV2/post/responses/200/content/application~1json/schema/properties/result/properties/data/properties/sections": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoversectionsv2"
+    },
+    "#/paths/~1getDiscoverSectionsV2/post/responses/200/content/application~1json/schema/properties/result/properties/data/properties/sections/items/additionalProperties": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoversectionsv2"
+    },
+    "#/paths/~1getDiscoverSectionsV2/post/responses/200/content/application~1json/schema/properties/result/properties/data/properties/sections/items/properties/id": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoversectionsv2"
+    },
+    "#/paths/~1getDiscoverSectionsV2/post/responses/200/content/application~1json/schema/properties/result/properties/data/properties/sections/items/properties/id/enum/0": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoversectionsv2"
+    },
+    "#/paths/~1getDiscoverSectionsV2/post/responses/200/content/application~1json/schema/properties/result/properties/data/properties/sections/items/properties/id/enum/1": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoversectionsv2"
+    },
+    "#/paths/~1getDiscoverSectionsV2/post/responses/200/content/application~1json/schema/properties/result/properties/data/properties/sections/items/properties/id/enum/2": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoversectionsv2"
+    },
+    "#/paths/~1getDiscoverSectionsV2/post/responses/200/content/application~1json/schema/properties/result/properties/data/properties/sections/items/properties/id/enum/3": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoversectionsv2"
+    },
+    "#/paths/~1getDiscoverSectionsV2/post/responses/200/content/application~1json/schema/properties/result/properties/data/properties/sections/items/properties/items": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoversectionsv2"
+    },
+    "#/paths/~1getDiscoverSectionsV2/post/responses/200/content/application~1json/schema/properties/result/properties/data/properties/sections/items/properties/items/items/additionalProperties": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoversectionsv2"
+    },
+    "#/paths/~1getDiscoverSectionsV2/post/responses/200/content/application~1json/schema/properties/result/properties/data/properties/sections/items/properties/items/items/properties/event": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoversectionsv2"
+    },
+    "#/paths/~1getDiscoverSectionsV2/post/responses/200/content/application~1json/schema/properties/result/properties/data/properties/sections/items/properties/items/items/properties/event/additionalProperties": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoversectionsv2"
+    },
+    "#/paths/~1getDiscoverSectionsV2/post/responses/200/content/application~1json/schema/properties/result/properties/data/properties/sections/items/properties/items/items/properties/event/properties/endDate": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoversectionsv2"
+    },
+    "#/paths/~1getDiscoverSectionsV2/post/responses/200/content/application~1json/schema/properties/result/properties/data/properties/sections/items/properties/items/items/properties/event/properties/endDate/type/0": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoversectionsv2"
+    },
+    "#/paths/~1getDiscoverSectionsV2/post/responses/200/content/application~1json/schema/properties/result/properties/data/properties/sections/items/properties/items/items/properties/event/properties/endDate/type/1": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoversectionsv2"
+    },
+    "#/paths/~1getDiscoverSectionsV2/post/responses/200/content/application~1json/schema/properties/result/properties/data/properties/sections/items/properties/items/items/properties/event/properties/goingGuestCount": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoversectionsv2"
+    },
+    "#/paths/~1getDiscoverSectionsV2/post/responses/200/content/application~1json/schema/properties/result/properties/data/properties/sections/items/properties/items/items/properties/event/properties/goingGuestCount/minimum": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoversectionsv2"
+    },
+    "#/paths/~1getDiscoverSectionsV2/post/responses/200/content/application~1json/schema/properties/result/properties/data/properties/sections/items/properties/items/items/properties/event/properties/goingGuestCount/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoversectionsv2"
+    },
+    "#/paths/~1getDiscoverSectionsV2/post/responses/200/content/application~1json/schema/properties/result/properties/data/properties/sections/items/properties/items/items/properties/event/properties/id": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoversectionsv2"
+    },
+    "#/paths/~1getDiscoverSectionsV2/post/responses/200/content/application~1json/schema/properties/result/properties/data/properties/sections/items/properties/items/items/properties/event/properties/id/minLength": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoversectionsv2"
+    },
+    "#/paths/~1getDiscoverSectionsV2/post/responses/200/content/application~1json/schema/properties/result/properties/data/properties/sections/items/properties/items/items/properties/event/properties/id/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoversectionsv2"
+    },
+    "#/paths/~1getDiscoverSectionsV2/post/responses/200/content/application~1json/schema/properties/result/properties/data/properties/sections/items/properties/items/items/properties/event/properties/interestedGuestCount": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoversectionsv2"
+    },
+    "#/paths/~1getDiscoverSectionsV2/post/responses/200/content/application~1json/schema/properties/result/properties/data/properties/sections/items/properties/items/items/properties/event/properties/interestedGuestCount/minimum": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoversectionsv2"
+    },
+    "#/paths/~1getDiscoverSectionsV2/post/responses/200/content/application~1json/schema/properties/result/properties/data/properties/sections/items/properties/items/items/properties/event/properties/interestedGuestCount/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoversectionsv2"
+    },
+    "#/paths/~1getDiscoverSectionsV2/post/responses/200/content/application~1json/schema/properties/result/properties/data/properties/sections/items/properties/items/items/properties/event/properties/locationInfo": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoversectionsv2"
+    },
+    "#/paths/~1getDiscoverSectionsV2/post/responses/200/content/application~1json/schema/properties/result/properties/data/properties/sections/items/properties/items/items/properties/event/properties/locationInfo/properties/displayAddressLines": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoversectionsv2"
+    },
+    "#/paths/~1getDiscoverSectionsV2/post/responses/200/content/application~1json/schema/properties/result/properties/data/properties/sections/items/properties/items/items/properties/event/properties/locationInfo/properties/displayAddressLines/items/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoversectionsv2"
+    },
+    "#/paths/~1getDiscoverSectionsV2/post/responses/200/content/application~1json/schema/properties/result/properties/data/properties/sections/items/properties/items/items/properties/event/properties/locationInfo/properties/displayAddressLines/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoversectionsv2"
+    },
+    "#/paths/~1getDiscoverSectionsV2/post/responses/200/content/application~1json/schema/properties/result/properties/data/properties/sections/items/properties/items/items/properties/event/properties/locationInfo/properties/mapsInfo": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoversectionsv2"
+    },
+    "#/paths/~1getDiscoverSectionsV2/post/responses/200/content/application~1json/schema/properties/result/properties/data/properties/sections/items/properties/items/items/properties/event/properties/locationInfo/properties/mapsInfo/properties/googleMapsUrl": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoversectionsv2"
+    },
+    "#/paths/~1getDiscoverSectionsV2/post/responses/200/content/application~1json/schema/properties/result/properties/data/properties/sections/items/properties/items/items/properties/event/properties/locationInfo/properties/mapsInfo/properties/googleMapsUrl/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoversectionsv2"
+    },
+    "#/paths/~1getDiscoverSectionsV2/post/responses/200/content/application~1json/schema/properties/result/properties/data/properties/sections/items/properties/items/items/properties/event/properties/locationInfo/properties/mapsInfo/type/0": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoversectionsv2"
+    },
+    "#/paths/~1getDiscoverSectionsV2/post/responses/200/content/application~1json/schema/properties/result/properties/data/properties/sections/items/properties/items/items/properties/event/properties/locationInfo/properties/mapsInfo/type/1": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoversectionsv2"
+    },
+    "#/paths/~1getDiscoverSectionsV2/post/responses/200/content/application~1json/schema/properties/result/properties/data/properties/sections/items/properties/items/items/properties/event/properties/locationInfo/type/0": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoversectionsv2"
+    },
+    "#/paths/~1getDiscoverSectionsV2/post/responses/200/content/application~1json/schema/properties/result/properties/data/properties/sections/items/properties/items/items/properties/event/properties/locationInfo/type/1": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoversectionsv2"
+    },
+    "#/paths/~1getDiscoverSectionsV2/post/responses/200/content/application~1json/schema/properties/result/properties/data/properties/sections/items/properties/items/items/properties/event/properties/maybeGuestCount": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoversectionsv2"
+    },
+    "#/paths/~1getDiscoverSectionsV2/post/responses/200/content/application~1json/schema/properties/result/properties/data/properties/sections/items/properties/items/items/properties/event/properties/maybeGuestCount/minimum": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoversectionsv2"
+    },
+    "#/paths/~1getDiscoverSectionsV2/post/responses/200/content/application~1json/schema/properties/result/properties/data/properties/sections/items/properties/items/items/properties/event/properties/maybeGuestCount/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoversectionsv2"
+    },
+    "#/paths/~1getDiscoverSectionsV2/post/responses/200/content/application~1json/schema/properties/result/properties/data/properties/sections/items/properties/items/items/properties/event/properties/startDate": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoversectionsv2"
+    },
+    "#/paths/~1getDiscoverSectionsV2/post/responses/200/content/application~1json/schema/properties/result/properties/data/properties/sections/items/properties/items/items/properties/event/properties/startDate/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoversectionsv2"
+    },
+    "#/paths/~1getDiscoverSectionsV2/post/responses/200/content/application~1json/schema/properties/result/properties/data/properties/sections/items/properties/items/items/properties/event/properties/timezone": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoversectionsv2"
+    },
+    "#/paths/~1getDiscoverSectionsV2/post/responses/200/content/application~1json/schema/properties/result/properties/data/properties/sections/items/properties/items/items/properties/event/properties/timezone/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoversectionsv2"
+    },
+    "#/paths/~1getDiscoverSectionsV2/post/responses/200/content/application~1json/schema/properties/result/properties/data/properties/sections/items/properties/items/items/properties/event/properties/title": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoversectionsv2"
+    },
+    "#/paths/~1getDiscoverSectionsV2/post/responses/200/content/application~1json/schema/properties/result/properties/data/properties/sections/items/properties/items/items/properties/event/properties/title/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoversectionsv2"
+    },
+    "#/paths/~1getDiscoverSectionsV2/post/responses/200/content/application~1json/schema/properties/result/properties/data/properties/sections/items/properties/items/items/properties/event/required/0": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoversectionsv2"
+    },
+    "#/paths/~1getDiscoverSectionsV2/post/responses/200/content/application~1json/schema/properties/result/properties/data/properties/sections/items/properties/items/items/properties/event/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoversectionsv2"
+    },
+    "#/paths/~1getDiscoverSectionsV2/post/responses/200/content/application~1json/schema/properties/result/properties/data/properties/sections/items/properties/items/items/properties/tags": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoversectionsv2"
+    },
+    "#/paths/~1getDiscoverSectionsV2/post/responses/200/content/application~1json/schema/properties/result/properties/data/properties/sections/items/properties/items/items/properties/tags/items/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoversectionsv2"
+    },
+    "#/paths/~1getDiscoverSectionsV2/post/responses/200/content/application~1json/schema/properties/result/properties/data/properties/sections/items/properties/items/items/properties/tags/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoversectionsv2"
+    },
+    "#/paths/~1getDiscoverSectionsV2/post/responses/200/content/application~1json/schema/properties/result/properties/data/properties/sections/items/properties/items/items/required/0": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoversectionsv2"
+    },
+    "#/paths/~1getDiscoverSectionsV2/post/responses/200/content/application~1json/schema/properties/result/properties/data/properties/sections/items/properties/items/items/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoversectionsv2"
+    },
+    "#/paths/~1getDiscoverSectionsV2/post/responses/200/content/application~1json/schema/properties/result/properties/data/properties/sections/items/properties/items/maxItems": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoversectionsv2"
+    },
+    "#/paths/~1getDiscoverSectionsV2/post/responses/200/content/application~1json/schema/properties/result/properties/data/properties/sections/items/properties/items/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoversectionsv2"
+    },
+    "#/paths/~1getDiscoverSectionsV2/post/responses/200/content/application~1json/schema/properties/result/properties/data/properties/sections/items/required/0": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoversectionsv2"
+    },
+    "#/paths/~1getDiscoverSectionsV2/post/responses/200/content/application~1json/schema/properties/result/properties/data/properties/sections/items/required/1": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoversectionsv2"
+    },
+    "#/paths/~1getDiscoverSectionsV2/post/responses/200/content/application~1json/schema/properties/result/properties/data/properties/sections/items/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoversectionsv2"
+    },
+    "#/paths/~1getDiscoverSectionsV2/post/responses/200/content/application~1json/schema/properties/result/properties/data/properties/sections/maxItems": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoversectionsv2"
+    },
+    "#/paths/~1getDiscoverSectionsV2/post/responses/200/content/application~1json/schema/properties/result/properties/data/properties/sections/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoversectionsv2"
+    },
+    "#/paths/~1getDiscoverSectionsV2/post/responses/200/content/application~1json/schema/properties/result/properties/data/required/0": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoversectionsv2"
+    },
+    "#/paths/~1getDiscoverSectionsV2/post/responses/200/content/application~1json/schema/properties/result/properties/data/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoversectionsv2"
+    },
+    "#/paths/~1getDiscoverSectionsV2/post/responses/200/content/application~1json/schema/properties/result/required/0": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoversectionsv2"
+    },
+    "#/paths/~1getDiscoverSectionsV2/post/responses/200/content/application~1json/schema/properties/result/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoversectionsv2"
+    },
+    "#/paths/~1getDiscoverSectionsV2/post/responses/200/content/application~1json/schema/required/0": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoversectionsv2"
+    },
+    "#/paths/~1getDiscoverSectionsV2/post/responses/200/content/application~1json/schema/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoversectionsv2"
+    },
+    "#/paths/~1getDiscoverEventItemDecorators/post/requestBody/content/application~1json/schema/additionalProperties": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscovereventitemdecorators"
+    },
+    "#/paths/~1getDiscoverEventItemDecorators/post/requestBody/content/application~1json/schema/properties/data": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscovereventitemdecorators"
+    },
+    "#/paths/~1getDiscoverEventItemDecorators/post/requestBody/content/application~1json/schema/properties/data/additionalProperties": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscovereventitemdecorators"
+    },
+    "#/paths/~1getDiscoverEventItemDecorators/post/requestBody/content/application~1json/schema/properties/data/properties/params": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscovereventitemdecorators"
+    },
+    "#/paths/~1getDiscoverEventItemDecorators/post/requestBody/content/application~1json/schema/properties/data/properties/params/additionalProperties": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscovereventitemdecorators"
+    },
+    "#/paths/~1getDiscoverEventItemDecorators/post/requestBody/content/application~1json/schema/properties/data/properties/params/properties/eventIds": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscovereventitemdecorators"
+    },
+    "#/paths/~1getDiscoverEventItemDecorators/post/requestBody/content/application~1json/schema/properties/data/properties/params/properties/eventIds/items/minLength": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscovereventitemdecorators"
+    },
+    "#/paths/~1getDiscoverEventItemDecorators/post/requestBody/content/application~1json/schema/properties/data/properties/params/properties/eventIds/items/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscovereventitemdecorators"
+    },
+    "#/paths/~1getDiscoverEventItemDecorators/post/requestBody/content/application~1json/schema/properties/data/properties/params/properties/eventIds/maxItems": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscovereventitemdecorators"
+    },
+    "#/paths/~1getDiscoverEventItemDecorators/post/requestBody/content/application~1json/schema/properties/data/properties/params/properties/eventIds/minItems": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscovereventitemdecorators"
+    },
+    "#/paths/~1getDiscoverEventItemDecorators/post/requestBody/content/application~1json/schema/properties/data/properties/params/properties/eventIds/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscovereventitemdecorators"
+    },
+    "#/paths/~1getDiscoverEventItemDecorators/post/requestBody/content/application~1json/schema/properties/data/properties/params/required/0": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscovereventitemdecorators"
+    },
+    "#/paths/~1getDiscoverEventItemDecorators/post/requestBody/content/application~1json/schema/properties/data/properties/params/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscovereventitemdecorators"
+    },
+    "#/paths/~1getDiscoverEventItemDecorators/post/requestBody/content/application~1json/schema/properties/data/properties/userId": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscovereventitemdecorators"
+    },
+    "#/paths/~1getDiscoverEventItemDecorators/post/requestBody/content/application~1json/schema/properties/data/properties/userId/minLength": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscovereventitemdecorators"
+    },
+    "#/paths/~1getDiscoverEventItemDecorators/post/requestBody/content/application~1json/schema/properties/data/properties/userId/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscovereventitemdecorators"
+    },
+    "#/paths/~1getDiscoverEventItemDecorators/post/requestBody/content/application~1json/schema/properties/data/required/0": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscovereventitemdecorators"
+    },
+    "#/paths/~1getDiscoverEventItemDecorators/post/requestBody/content/application~1json/schema/properties/data/required/1": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscovereventitemdecorators"
+    },
+    "#/paths/~1getDiscoverEventItemDecorators/post/requestBody/content/application~1json/schema/properties/data/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscovereventitemdecorators"
+    },
+    "#/paths/~1getDiscoverEventItemDecorators/post/requestBody/content/application~1json/schema/required/0": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscovereventitemdecorators"
+    },
+    "#/paths/~1getDiscoverEventItemDecorators/post/requestBody/content/application~1json/schema/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscovereventitemdecorators"
+    },
+    "#/paths/~1getDiscoverEventItemDecorators/post/responses/200/content/application~1json/schema/additionalProperties": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscovereventitemdecorators"
+    },
+    "#/paths/~1getDiscoverEventItemDecorators/post/responses/200/content/application~1json/schema/properties/result": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscovereventitemdecorators"
+    },
+    "#/paths/~1getDiscoverEventItemDecorators/post/responses/200/content/application~1json/schema/properties/result/additionalProperties": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscovereventitemdecorators"
+    },
+    "#/paths/~1getDiscoverEventItemDecorators/post/responses/200/content/application~1json/schema/properties/result/properties/data": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscovereventitemdecorators"
+    },
+    "#/paths/~1getDiscoverEventItemDecorators/post/responses/200/content/application~1json/schema/properties/result/properties/data/additionalProperties": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscovereventitemdecorators"
+    },
+    "#/paths/~1getDiscoverEventItemDecorators/post/responses/200/content/application~1json/schema/properties/result/properties/data/properties/decoratorsByEventId": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscovereventitemdecorators"
+    },
+    "#/paths/~1getDiscoverEventItemDecorators/post/responses/200/content/application~1json/schema/properties/result/properties/data/properties/decoratorsByEventId/additionalProperties/additionalProperties": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscovereventitemdecorators"
+    },
+    "#/paths/~1getDiscoverEventItemDecorators/post/responses/200/content/application~1json/schema/properties/result/properties/data/properties/decoratorsByEventId/additionalProperties/properties/mutualGuests": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscovereventitemdecorators"
+    },
+    "#/paths/~1getDiscoverEventItemDecorators/post/responses/200/content/application~1json/schema/properties/result/properties/data/properties/decoratorsByEventId/additionalProperties/properties/mutualGuests/items/additionalProperties": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscovereventitemdecorators"
+    },
+    "#/paths/~1getDiscoverEventItemDecorators/post/responses/200/content/application~1json/schema/properties/result/properties/data/properties/decoratorsByEventId/additionalProperties/properties/mutualGuests/items/properties/name": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscovereventitemdecorators"
+    },
+    "#/paths/~1getDiscoverEventItemDecorators/post/responses/200/content/application~1json/schema/properties/result/properties/data/properties/decoratorsByEventId/additionalProperties/properties/mutualGuests/items/properties/name/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscovereventitemdecorators"
+    },
+    "#/paths/~1getDiscoverEventItemDecorators/post/responses/200/content/application~1json/schema/properties/result/properties/data/properties/decoratorsByEventId/additionalProperties/properties/mutualGuests/items/properties/status": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscovereventitemdecorators"
+    },
+    "#/paths/~1getDiscoverEventItemDecorators/post/responses/200/content/application~1json/schema/properties/result/properties/data/properties/decoratorsByEventId/additionalProperties/properties/mutualGuests/items/properties/status/enum/0": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscovereventitemdecorators"
+    },
+    "#/paths/~1getDiscoverEventItemDecorators/post/responses/200/content/application~1json/schema/properties/result/properties/data/properties/decoratorsByEventId/additionalProperties/properties/mutualGuests/items/properties/status/enum/1": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscovereventitemdecorators"
+    },
+    "#/paths/~1getDiscoverEventItemDecorators/post/responses/200/content/application~1json/schema/properties/result/properties/data/properties/decoratorsByEventId/additionalProperties/properties/mutualGuests/items/properties/status/enum/10": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscovereventitemdecorators"
+    },
+    "#/paths/~1getDiscoverEventItemDecorators/post/responses/200/content/application~1json/schema/properties/result/properties/data/properties/decoratorsByEventId/additionalProperties/properties/mutualGuests/items/properties/status/enum/11": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscovereventitemdecorators"
+    },
+    "#/paths/~1getDiscoverEventItemDecorators/post/responses/200/content/application~1json/schema/properties/result/properties/data/properties/decoratorsByEventId/additionalProperties/properties/mutualGuests/items/properties/status/enum/12": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscovereventitemdecorators"
+    },
+    "#/paths/~1getDiscoverEventItemDecorators/post/responses/200/content/application~1json/schema/properties/result/properties/data/properties/decoratorsByEventId/additionalProperties/properties/mutualGuests/items/properties/status/enum/13": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscovereventitemdecorators"
+    },
+    "#/paths/~1getDiscoverEventItemDecorators/post/responses/200/content/application~1json/schema/properties/result/properties/data/properties/decoratorsByEventId/additionalProperties/properties/mutualGuests/items/properties/status/enum/14": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscovereventitemdecorators"
+    },
+    "#/paths/~1getDiscoverEventItemDecorators/post/responses/200/content/application~1json/schema/properties/result/properties/data/properties/decoratorsByEventId/additionalProperties/properties/mutualGuests/items/properties/status/enum/15": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscovereventitemdecorators"
+    },
+    "#/paths/~1getDiscoverEventItemDecorators/post/responses/200/content/application~1json/schema/properties/result/properties/data/properties/decoratorsByEventId/additionalProperties/properties/mutualGuests/items/properties/status/enum/2": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscovereventitemdecorators"
+    },
+    "#/paths/~1getDiscoverEventItemDecorators/post/responses/200/content/application~1json/schema/properties/result/properties/data/properties/decoratorsByEventId/additionalProperties/properties/mutualGuests/items/properties/status/enum/3": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscovereventitemdecorators"
+    },
+    "#/paths/~1getDiscoverEventItemDecorators/post/responses/200/content/application~1json/schema/properties/result/properties/data/properties/decoratorsByEventId/additionalProperties/properties/mutualGuests/items/properties/status/enum/4": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscovereventitemdecorators"
+    },
+    "#/paths/~1getDiscoverEventItemDecorators/post/responses/200/content/application~1json/schema/properties/result/properties/data/properties/decoratorsByEventId/additionalProperties/properties/mutualGuests/items/properties/status/enum/5": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscovereventitemdecorators"
+    },
+    "#/paths/~1getDiscoverEventItemDecorators/post/responses/200/content/application~1json/schema/properties/result/properties/data/properties/decoratorsByEventId/additionalProperties/properties/mutualGuests/items/properties/status/enum/6": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscovereventitemdecorators"
+    },
+    "#/paths/~1getDiscoverEventItemDecorators/post/responses/200/content/application~1json/schema/properties/result/properties/data/properties/decoratorsByEventId/additionalProperties/properties/mutualGuests/items/properties/status/enum/7": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscovereventitemdecorators"
+    },
+    "#/paths/~1getDiscoverEventItemDecorators/post/responses/200/content/application~1json/schema/properties/result/properties/data/properties/decoratorsByEventId/additionalProperties/properties/mutualGuests/items/properties/status/enum/8": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscovereventitemdecorators"
+    },
+    "#/paths/~1getDiscoverEventItemDecorators/post/responses/200/content/application~1json/schema/properties/result/properties/data/properties/decoratorsByEventId/additionalProperties/properties/mutualGuests/items/properties/status/enum/9": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscovereventitemdecorators"
+    },
+    "#/paths/~1getDiscoverEventItemDecorators/post/responses/200/content/application~1json/schema/properties/result/properties/data/properties/decoratorsByEventId/additionalProperties/properties/mutualGuests/items/properties/user": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscovereventitemdecorators"
+    },
+    "#/paths/~1getDiscoverEventItemDecorators/post/responses/200/content/application~1json/schema/properties/result/properties/data/properties/decoratorsByEventId/additionalProperties/properties/mutualGuests/items/properties/user/properties/name": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscovereventitemdecorators"
+    },
+    "#/paths/~1getDiscoverEventItemDecorators/post/responses/200/content/application~1json/schema/properties/result/properties/data/properties/decoratorsByEventId/additionalProperties/properties/mutualGuests/items/properties/user/properties/name/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscovereventitemdecorators"
+    },
+    "#/paths/~1getDiscoverEventItemDecorators/post/responses/200/content/application~1json/schema/properties/result/properties/data/properties/decoratorsByEventId/additionalProperties/properties/mutualGuests/items/properties/user/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscovereventitemdecorators"
+    },
+    "#/paths/~1getDiscoverEventItemDecorators/post/responses/200/content/application~1json/schema/properties/result/properties/data/properties/decoratorsByEventId/additionalProperties/properties/mutualGuests/items/required/0": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscovereventitemdecorators"
+    },
+    "#/paths/~1getDiscoverEventItemDecorators/post/responses/200/content/application~1json/schema/properties/result/properties/data/properties/decoratorsByEventId/additionalProperties/properties/mutualGuests/items/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscovereventitemdecorators"
+    },
+    "#/paths/~1getDiscoverEventItemDecorators/post/responses/200/content/application~1json/schema/properties/result/properties/data/properties/decoratorsByEventId/additionalProperties/properties/mutualGuests/maxItems": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscovereventitemdecorators"
+    },
+    "#/paths/~1getDiscoverEventItemDecorators/post/responses/200/content/application~1json/schema/properties/result/properties/data/properties/decoratorsByEventId/additionalProperties/properties/mutualGuests/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscovereventitemdecorators"
+    },
+    "#/paths/~1getDiscoverEventItemDecorators/post/responses/200/content/application~1json/schema/properties/result/properties/data/properties/decoratorsByEventId/additionalProperties/required/0": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscovereventitemdecorators"
+    },
+    "#/paths/~1getDiscoverEventItemDecorators/post/responses/200/content/application~1json/schema/properties/result/properties/data/properties/decoratorsByEventId/additionalProperties/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscovereventitemdecorators"
+    },
+    "#/paths/~1getDiscoverEventItemDecorators/post/responses/200/content/application~1json/schema/properties/result/properties/data/properties/decoratorsByEventId/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscovereventitemdecorators"
+    },
+    "#/paths/~1getDiscoverEventItemDecorators/post/responses/200/content/application~1json/schema/properties/result/properties/data/required/0": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscovereventitemdecorators"
+    },
+    "#/paths/~1getDiscoverEventItemDecorators/post/responses/200/content/application~1json/schema/properties/result/properties/data/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscovereventitemdecorators"
+    },
+    "#/paths/~1getDiscoverEventItemDecorators/post/responses/200/content/application~1json/schema/properties/result/required/0": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscovereventitemdecorators"
+    },
+    "#/paths/~1getDiscoverEventItemDecorators/post/responses/200/content/application~1json/schema/properties/result/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscovereventitemdecorators"
+    },
+    "#/paths/~1getDiscoverEventItemDecorators/post/responses/200/content/application~1json/schema/required/0": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscovereventitemdecorators"
+    },
+    "#/paths/~1getDiscoverEventItemDecorators/post/responses/200/content/application~1json/schema/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscovereventitemdecorators"
     }
   },
   "posterCatalogObservation": {
@@ -8254,7 +9434,7 @@
       "addInvitedGuestsAsHost"
     ]
   },
-  "materialClaimCount": 1785,
+  "materialClaimCount": 2083,
   "publicCohostAssetResearch": {
     "classification": "current-first-party-public-asset-research",
     "sourceCitation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#scope-and-provenance",
