@@ -26,6 +26,7 @@ var approvedCommandCatalog = []string{
 	"events.get",
 	"events.list",
 	"events.update",
+	"explore.list",
 	"guests.invite",
 	"guests.list",
 	"posters.list",

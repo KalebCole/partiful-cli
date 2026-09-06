@@ -60,6 +60,11 @@ func TestExecuteConventionalHelp(t *testing.T) {
 			argv: []string{"auth", "login", "--help"},
 			want: []string{"Usage: partiful auth login", "Flags:", "--non-interactive", "--no-input"},
 		},
+		{
+			name: "explore list help",
+			argv: []string{"explore", "list", "--help"},
+			want: []string{"Usage: partiful explore list", "--city", "--state", "--country", "--section", "--date", "--limit", "--cursor", "--all", "--max-items", "Required fields:", "city", "state", "country"},
+		},
 	}
 
 	for _, test := range tests {

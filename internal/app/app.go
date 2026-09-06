@@ -57,6 +57,7 @@ const (
 	eventsCreateCommand
 	eventsUpdateCommand
 	eventsCancelCommand
+	exploreListCommand
 	blastsSendCommand
 	rsvpGetCommand
 	rsvpSetCommand
@@ -307,6 +308,23 @@ var commandCatalog = []commandDefinition{
 			"internal.failure",
 		},
 		safety: readOnlySafety(),
+	},
+	{
+		path:        "explore.list",
+		invocation:  []string{"explore", "list"},
+		kind:        exploreListCommand,
+		positionals: []positionalDefinition{},
+		flags: append([]flagDefinition{
+			{Name: "--city", Description: "Dynamic-area city.", Required: true, TakesValue: true},
+			{Name: "--state", Description: "Dynamic-area state.", Required: true, TakesValue: true},
+			{Name: "--country", Description: "Dynamic-area country code.", Required: true, TakesValue: true},
+			{Name: "--section", Description: "Optional Explore section.", TakesValue: true},
+			{Name: "--date", Description: "Event-local date facet.", TakesValue: true},
+		}, collectionFlagDefinitions()...),
+		inputSchema:   exploreListInputSchema(),
+		successSchema: exploreListSuccessSchema(),
+		failureTypes:  []string{"input.invalid", "auth.required", "auth.expired", "state.conflict", "remote.unavailable", "contract.protocol_changed", "internal.failure"},
+		safety:        readOnlySafety(),
 	},
 	{
 		path:       "events.get",
@@ -1015,9 +1033,10 @@ type successMeta struct {
 }
 
 type pageMeta struct {
-	Limit      int     `json:"limit"`
-	NextCursor *string `json:"nextCursor"`
-	HasMore    bool    `json:"hasMore"`
+	Limit          int     `json:"limit"`
+	NextCursor     *string `json:"nextCursor"`
+	HasMore        bool    `json:"hasMore"`
+	FilterComplete *bool   `json:"filterComplete,omitempty"`
 }
 
 type posterData struct {
@@ -1505,6 +1524,8 @@ func Execute(ctx context.Context, request Request, dependencies Dependencies) Re
 				return executeGuestsInvite(ctx, definition, argv, dependencies, execution, pretty)
 			case eventsListCommand:
 				return executeEventsList(ctx, definition, argv, dependencies, pretty)
+			case exploreListCommand:
+				return executeExploreList(ctx, definition, argv, dependencies, pretty)
 			case eventsGetCommand:
 				return executeEventGet(ctx, definition, argv, dependencies, pretty)
 			case eventsCreateCommand:
@@ -1566,6 +1587,7 @@ func (definition commandDefinition) matches(argv []string) bool {
 		definition.kind == eventsCreateCommand ||
 		definition.kind == eventsUpdateCommand ||
 		definition.kind == eventsCancelCommand ||
+		definition.kind == exploreListCommand ||
 		definition.kind == blastsSendCommand ||
 		definition.kind == rsvpGetCommand ||
 		definition.kind == rsvpSetCommand ||
