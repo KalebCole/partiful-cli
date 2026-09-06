@@ -1,8 +1,13 @@
 ---
-status: accepted
+status: superseded
 ---
 
 # Keep product orchestration behind one application seam
+
+> Superseded by #201 for mutation execution. The module-boundary decision still
+> applies, but the persistent plan-token design below is historical. Current
+> mutations use one invocation, `--dry-run`, and TTY confirmation for destructive
+> actions.
 
 The greenfield Go CLI will use one Go module with `cmd/partiful` as composition
 only and one deep internal application module as the interface used by the
