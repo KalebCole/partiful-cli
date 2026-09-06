@@ -1,6 +1,6 @@
 {
-  "contractRevision": "2026-08-12.7",
-  "ownerReviewedBaseline": "2026-08-12.6",
+  "contractRevision": "2026-09-05.1",
+  "ownerReviewedBaseline": "2026-08-12.7",
   "contractPath": "spec/partiful.openapi.json",
   "allowedClassifications": [
     "dated-live-observation",
@@ -72,7 +72,8 @@
     "publicTextBlastCompletion20260812": "docs/research/2026-08-12-text-blast-mapping-public-assets.md#createtextblast-helper-and-completion",
     "publicTextBlastAllGuests20260812": "docs/research/2026-08-12-text-blast-mapping-public-assets.md#group-derivation-for-all-guests",
     "publicTextBlastPreconditions20260812": "docs/research/2026-08-12-text-blast-mapping-public-assets.md#host-only-precondition-reads",
-    "publicTextBlastSubmitted20260812": "docs/research/2026-08-12-text-blast-mapping-public-assets.md#submitted-only-boundary"
+    "publicTextBlastSubmitted20260812": "docs/research/2026-08-12-text-blast-mapping-public-assets.md#submitted-only-boundary",
+    "exploreV1ContractEvidence20260905": "docs/research/2026-09-05-explore-v1-contract-evidence.md"
   },
   "operations": {
     "createEvent": {
@@ -186,6 +187,18 @@
     "getGuests": {
       "classification": "current-first-party-public-asset-research",
       "citation": "docs/research/2026-08-12-guest-mapping-public-assets.md#scope-and-provenance"
+    },
+    "getDiscoverFeedV2": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoverfeedv2"
+    },
+    "getDiscoverSectionsV2": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoversectionsv2"
+    },
+    "getDiscoverEventItemDecorators": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscovereventitemdecorators"
     }
   },
   "operationClaims": {
@@ -412,6 +425,30 @@
       "responseCitation": "docs/research/2026-08-12-guest-mapping-public-assets.md#getguests-response-and-guest-fields",
       "status": "official-protocol-specification",
       "statusCitation": "docs/research/2026-08-10-contract-evidence-sources.md#official-firebase-callable-protocol"
+    },
+    "getDiscoverFeedV2": {
+      "request": "dated-live-observation",
+      "requestCitation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoverfeedv2",
+      "response": "dated-live-observation",
+      "responseCitation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoverfeedv2",
+      "status": "dated-live-observation",
+      "statusCitation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoverfeedv2"
+    },
+    "getDiscoverSectionsV2": {
+      "request": "dated-live-observation",
+      "requestCitation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoversectionsv2",
+      "response": "dated-live-observation",
+      "responseCitation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoversectionsv2",
+      "status": "dated-live-observation",
+      "statusCitation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoversectionsv2"
+    },
+    "getDiscoverEventItemDecorators": {
+      "request": "dated-live-observation",
+      "requestCitation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscovereventitemdecorators",
+      "response": "dated-live-observation",
+      "responseCitation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscovereventitemdecorators",
+      "status": "dated-live-observation",
+      "statusCitation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscovereventitemdecorators"
     }
   },
   "contradictions": [
@@ -447,7 +484,8 @@
     "Contact invalid-cursor behavior, cursor lifetime and reuse, ordering key, snapshot behavior, useAuthUser, rate limiting, unsupported statuses, future catalog completeness, server duplicate behavior, and duplicates outside two traversals remain unknown.",
     "RSVP mutation failures, server-side rejection mappings, ticketing, application, waitlist, protected-event submission, and post-write RSVP business state remain unknown.",
     "Event-write endpoint business success, persisted Event state, post-write reads, unobserved errors and statuses, inaccessible-event permissions, cancellation delivery, and automatic retry safety remain unknown.",
-    "Guest list and host invite permission bodies, attendee-denial behavior for getGuests, non-empty phone/email invite member shapes, and post-invite business state remain unknown."
+    "Guest list and host invite permission bodies, attendee-denial behavior for getGuests, non-empty phone/email invite member shapes, and post-invite business state remain unknown.",
+    "Explore V1 covers only the reviewed dynamic feed, generated sections, and authenticated decorators; authorization differences, non-200 statuses, error bodies, cursor lifetime, remote ordering, unknown event fields, and mutual-preview completeness remain explicit unknowns."
   ],
   "status": "owner-reviewed",
   "claims": {
@@ -8216,7 +8254,7 @@
       "addInvitedGuestsAsHost"
     ]
   },
-  "materialClaimCount": 1782,
+  "materialClaimCount": 1785,
   "publicCohostAssetResearch": {
     "classification": "current-first-party-public-asset-research",
     "sourceCitation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#scope-and-provenance",

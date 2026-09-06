@@ -2,7 +2,7 @@
   "openapi": "3.1.0",
   "info": {
     "title": "Partiful remote API contract",
-    "version": "2026-08-12.7",
+    "version": "2026-09-05.1",
     "description": "Owner-reviewed remote-only transport snapshot. Evidence classifications and uncertainty are recorded in spec/partiful.api-evidence.json."
   },
   "servers": [
@@ -2230,6 +2230,652 @@
         "servers": [
           {
             "url": "https://assets.getpartiful.com"
+          }
+        ]
+      }
+    },
+    "/getDiscoverFeedV2": {
+      "post": {
+        "operationId": "getDiscoverFeedV2",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "data"
+                ],
+                "properties": {
+                  "data": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                      "params",
+                      "paging"
+                    ],
+                    "properties": {
+                      "params": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                          "area",
+                          "tagId",
+                          "allowedFeedPresentationStyles"
+                        ],
+                        "properties": {
+                          "area": {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "required": [
+                              "type",
+                              "countryCode",
+                              "state",
+                              "city"
+                            ],
+                            "properties": {
+                              "type": {
+                                "const": "DYNAMIC"
+                              },
+                              "countryCode": {
+                                "type": "string",
+                                "minLength": 1
+                              },
+                              "state": {
+                                "type": "string",
+                                "minLength": 1
+                              },
+                              "city": {
+                                "type": "string",
+                                "minLength": 1
+                              }
+                            }
+                          },
+                          "tagId": {
+                            "const": "DISCOVER_HOME"
+                          },
+                          "allowedFeedPresentationStyles": {
+                            "type": "array",
+                            "items": {
+                              "const": "rows"
+                            }
+                          }
+                        }
+                      },
+                      "paging": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                          "maxResults"
+                        ],
+                        "properties": {
+                          "maxResults": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "maximum": 100
+                          },
+                          "cursor": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Observed Explore V2 success envelope.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "result"
+                  ],
+                  "properties": {
+                    "result": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "required": [
+                        "data",
+                        "paging"
+                      ],
+                      "properties": {
+                        "data": {
+                          "type": "object",
+                          "additionalProperties": false,
+                          "required": [
+                            "items"
+                          ],
+                          "properties": {
+                            "items": {
+                              "type": "array",
+                              "maxItems": 100,
+                              "items": {
+                                "type": "object",
+                                "additionalProperties": true,
+                                "required": [
+                                  "event"
+                                ],
+                                "properties": {
+                                  "event": {
+                                    "type": "object",
+                                    "additionalProperties": true,
+                                    "required": [
+                                      "id"
+                                    ],
+                                    "properties": {
+                                      "id": {
+                                        "type": "string",
+                                        "minLength": 1
+                                      },
+                                      "title": {
+                                        "type": "string"
+                                      },
+                                      "startDate": {
+                                        "type": "string"
+                                      },
+                                      "endDate": {
+                                        "type": [
+                                          "string",
+                                          "null"
+                                        ]
+                                      },
+                                      "timezone": {
+                                        "type": "string"
+                                      },
+                                      "locationInfo": {
+                                        "type": [
+                                          "object",
+                                          "null"
+                                        ],
+                                        "properties": {
+                                          "displayAddressLines": {
+                                            "type": "array",
+                                            "items": {
+                                              "type": "string"
+                                            }
+                                          },
+                                          "mapsInfo": {
+                                            "type": [
+                                              "object",
+                                              "null"
+                                            ],
+                                            "properties": {
+                                              "googleMapsUrl": {
+                                                "type": "string"
+                                              }
+                                            }
+                                          }
+                                        }
+                                      },
+                                      "goingGuestCount": {
+                                        "type": "integer",
+                                        "minimum": 0
+                                      },
+                                      "maybeGuestCount": {
+                                        "type": "integer",
+                                        "minimum": 0
+                                      },
+                                      "interestedGuestCount": {
+                                        "type": "integer",
+                                        "minimum": 0
+                                      }
+                                    }
+                                  },
+                                  "tags": {
+                                    "type": "array",
+                                    "items": {
+                                      "type": "string"
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        },
+                        "paging": {
+                          "type": "object",
+                          "additionalProperties": false,
+                          "properties": {
+                            "nextCursor": {
+                              "type": [
+                                "string",
+                                "null"
+                              ]
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Unobserved response status or body; explicit unknown and protocol drift."
+          }
+        },
+        "security": [
+          {
+            "firebaseBearer": []
+          }
+        ]
+      }
+    },
+    "/getDiscoverSectionsV2": {
+      "post": {
+        "operationId": "getDiscoverSectionsV2",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "data"
+                ],
+                "properties": {
+                  "data": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                      "params",
+                      "paging",
+                      "userId"
+                    ],
+                    "properties": {
+                      "params": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                          "area",
+                          "tagId",
+                          "allowedSectionPresentationStyles",
+                          "locale"
+                        ],
+                        "properties": {
+                          "area": {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "required": [
+                              "type",
+                              "countryCode",
+                              "state",
+                              "city"
+                            ],
+                            "properties": {
+                              "type": {
+                                "const": "DYNAMIC"
+                              },
+                              "countryCode": {
+                                "type": "string",
+                                "minLength": 1
+                              },
+                              "state": {
+                                "type": "string",
+                                "minLength": 1
+                              },
+                              "city": {
+                                "type": "string",
+                                "minLength": 1
+                              }
+                            }
+                          },
+                          "tagId": {
+                            "const": "DISCOVER_HOME"
+                          },
+                          "allowedSectionPresentationStyles": {
+                            "type": "array",
+                            "items": {
+                              "enum": [
+                                "carousel-small",
+                                "carousel-medium",
+                                "carousel-large"
+                              ]
+                            }
+                          },
+                          "locale": {
+                            "const": "en"
+                          }
+                        }
+                      },
+                      "paging": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                          "maxResults",
+                          "cursor"
+                        ],
+                        "properties": {
+                          "maxResults": {
+                            "const": 10
+                          },
+                          "cursor": {
+                            "const": "1"
+                          }
+                        }
+                      },
+                      "userId": {
+                        "type": "string",
+                        "minLength": 1
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Observed Explore V2 success envelope.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "result"
+                  ],
+                  "properties": {
+                    "result": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "required": [
+                        "data"
+                      ],
+                      "properties": {
+                        "data": {
+                          "type": "object",
+                          "additionalProperties": false,
+                          "required": [
+                            "sections"
+                          ],
+                          "properties": {
+                            "sections": {
+                              "type": "array",
+                              "maxItems": 100,
+                              "items": {
+                                "type": "object",
+                                "additionalProperties": true,
+                                "required": [
+                                  "id",
+                                  "items"
+                                ],
+                                "properties": {
+                                  "id": {
+                                    "enum": [
+                                      "area-dynamic-trending-events",
+                                      "area-mutual-events",
+                                      "area-open-invite",
+                                      "area-followed-events"
+                                    ]
+                                  },
+                                  "items": {
+                                    "type": "array",
+                                    "maxItems": 100,
+                                    "items": {
+                                      "type": "object",
+                                      "additionalProperties": true,
+                                      "required": [
+                                        "event"
+                                      ],
+                                      "properties": {
+                                        "event": {
+                                          "type": "object",
+                                          "additionalProperties": true,
+                                          "required": [
+                                            "id"
+                                          ],
+                                          "properties": {
+                                            "id": {
+                                              "type": "string",
+                                              "minLength": 1
+                                            },
+                                            "title": {
+                                              "type": "string"
+                                            },
+                                            "startDate": {
+                                              "type": "string"
+                                            },
+                                            "endDate": {
+                                              "type": [
+                                                "string",
+                                                "null"
+                                              ]
+                                            },
+                                            "timezone": {
+                                              "type": "string"
+                                            },
+                                            "locationInfo": {
+                                              "type": [
+                                                "object",
+                                                "null"
+                                              ],
+                                              "properties": {
+                                                "displayAddressLines": {
+                                                  "type": "array",
+                                                  "items": {
+                                                    "type": "string"
+                                                  }
+                                                },
+                                                "mapsInfo": {
+                                                  "type": [
+                                                    "object",
+                                                    "null"
+                                                  ],
+                                                  "properties": {
+                                                    "googleMapsUrl": {
+                                                      "type": "string"
+                                                    }
+                                                  }
+                                                }
+                                              }
+                                            },
+                                            "goingGuestCount": {
+                                              "type": "integer",
+                                              "minimum": 0
+                                            },
+                                            "maybeGuestCount": {
+                                              "type": "integer",
+                                              "minimum": 0
+                                            },
+                                            "interestedGuestCount": {
+                                              "type": "integer",
+                                              "minimum": 0
+                                            }
+                                          }
+                                        },
+                                        "tags": {
+                                          "type": "array",
+                                          "items": {
+                                            "type": "string"
+                                          }
+                                        }
+                                      }
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Unobserved response status or body; explicit unknown and protocol drift."
+          }
+        },
+        "security": [
+          {
+            "firebaseBearer": []
+          }
+        ]
+      }
+    },
+    "/getDiscoverEventItemDecorators": {
+      "post": {
+        "operationId": "getDiscoverEventItemDecorators",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "data"
+                ],
+                "properties": {
+                  "data": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                      "params",
+                      "userId"
+                    ],
+                    "properties": {
+                      "params": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                          "eventIds"
+                        ],
+                        "properties": {
+                          "eventIds": {
+                            "type": "array",
+                            "minItems": 1,
+                            "maxItems": 100,
+                            "items": {
+                              "type": "string",
+                              "minLength": 1
+                            }
+                          }
+                        }
+                      },
+                      "userId": {
+                        "type": "string",
+                        "minLength": 1
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Observed Explore V2 success envelope.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "result"
+                  ],
+                  "properties": {
+                    "result": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "required": [
+                        "data"
+                      ],
+                      "properties": {
+                        "data": {
+                          "type": "object",
+                          "additionalProperties": false,
+                          "required": [
+                            "decoratorsByEventId"
+                          ],
+                          "properties": {
+                            "decoratorsByEventId": {
+                              "type": "object",
+                              "additionalProperties": {
+                                "type": "object",
+                                "additionalProperties": true,
+                                "required": [
+                                  "mutualGuests"
+                                ],
+                                "properties": {
+                                  "mutualGuests": {
+                                    "type": "array",
+                                    "maxItems": 100,
+                                    "items": {
+                                      "type": "object",
+                                      "additionalProperties": true,
+                                      "required": [
+                                        "status"
+                                      ],
+                                      "properties": {
+                                        "name": {
+                                          "type": "string"
+                                        },
+                                        "user": {
+                                          "type": "object",
+                                          "properties": {
+                                            "name": {
+                                              "type": "string"
+                                            }
+                                          }
+                                        },
+                                        "status": {
+                                          "enum": [
+                                            "READY_TO_SEND",
+                                            "SENDING",
+                                            "SEND_ERROR",
+                                            "DELIVERY_ERROR",
+                                            "SENT",
+                                            "INTERESTED",
+                                            "WAITLIST",
+                                            "MAYBE",
+                                            "DECLINED",
+                                            "GOING",
+                                            "PENDING_APPROVAL",
+                                            "APPROVED",
+                                            "WITHDRAWN",
+                                            "WAITLISTED_FOR_APPROVAL",
+                                            "REJECTED",
+                                            "RESPONDED_TO_FIND_A_TIME"
+                                          ]
+                                        }
+                                      }
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Unobserved response status or body; explicit unknown and protocol drift."
+          }
+        },
+        "security": [
+          {
+            "firebaseBearer": []
           }
         ]
       }

@@ -2,13 +2,13 @@
 
 **Status:** Approved product contract
 
-**Product contract revision:** `2026-08-12.7`
+**Product contract revision:** `2026-09-05.1`
 
-**Remote API contract revision:** `2026-08-12.7`
+**Remote API contract revision:** `2026-09-05.1`
 
-**Owner-reviewed baseline:** product and remote `2026-08-12.6`
+**Owner-reviewed baseline:** product and remote `2026-08-12.7`
 
-**Currently shipped Go revisions:** product and remote `2026-08-12.7`
+**Currently shipped Go revisions:** product and remote `2026-09-05.1`
 
 This document defines the public behavior of the greenfield Go `partiful` CLI.
 It is the authority for commands, inputs, JSON outputs, failures, and mutation
@@ -326,6 +326,18 @@ Missing credentials return `auth.required`. Stored credentials that are
 expired without a usable refresh token return `auth.expired`. A refresh rejected by the reviewed remote mapping also returns `auth.expired`.
 Unavailable refresh transport returns `remote.unavailable`; an unrecognized
 released refresh response returns `contract.protocol_changed`.
+
+## Explore
+
+### `partiful explore list`
+
+`explore list` is authenticated and read-only. It requires non-empty `--city`, `--state`, and `--country` values; the CLI does not guess an area or region code. Optional `--section` accepts only `trending`, `friends`, `open-invite`, or `followed`; remote generated-section IDs are internal. Optional `--date-filter` accepts `anytime`, `today`, `tomorrow`, `this-week`, or `this-weekend` and defaults to `anytime`. It also accepts the collection flags in this contract.
+
+The feed uses a reviewed dynamic area and bounded remote cursor page. `--all` requires `--max-items`; the command deduplicates by event ID with the first occurrence winning and fails closed on a repeated cursor or a page that cannot progress. Section selection is a single reviewed response with local snapshot pagination. `meta.page` includes `filterComplete`: `true` for `anytime`, for terminal feed traversal, and for returned section filtering; `false` when a date-filtered feed has unread remote cursor state.
+
+Each item always includes `eventId`, derived `url`, nullable `title`, `start`, `end`, `timezone`, `location`, `mapsUrl`, `goingCount`, `maybeCount`, `interestedCount`, `mutuals`, and `mutualsPreviewComplete`. `eventId` and `url` are non-null. Location preserves reviewed display lines, including hidden or approximate presentation; unavailable values are null. Mutuals contain only `displayName` and normalized closed status; guest, owner, user, and other private identifiers never enter output. `mutualsPreviewComplete` is null because remote completeness is unproved. Empty feeds, missing or empty selected sections, and no-mutual values are successful empty results.
+
+Date facets are local event-timezone calendar overlap filters. An absent end uses start. `today` and `tomorrow` use their local one-day spans; `this-week` runs from the later of today or Monday through Sunday; `this-weekend` from the later of today or Saturday through Sunday. Missing or malformed reviewed date/timezone values and invalid cursor/filter bindings are `contract.protocol_changed` or `input.invalid` as applicable. Missing or expired session follows the existing `auth.required`/`auth.expired` boundary. Any received non-200, malformed reviewed envelope or field, non-JSON body, bound breach, or unsupported remote variant is `contract.protocol_changed`; unreviewed failure statuses and bodies are not reclassified.
 
 ## Public commands
 

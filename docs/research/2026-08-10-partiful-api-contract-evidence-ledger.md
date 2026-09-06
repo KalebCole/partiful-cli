@@ -1,7 +1,7 @@
 # Partiful remote API contract evidence ledger
 
-**Proposed contract revision:** `2026-08-12.7`
-**Owner-reviewed baseline:** `2026-08-12.6`
+**Proposed contract revision:** `2026-09-05.1`
+**Owner-reviewed baseline:** `2026-08-12.7`
 **Status:** Owner-reviewed
 **Contract:** `spec/partiful.openapi.json`
 **Machine-readable ledger:** `spec/partiful.api-evidence.json`
@@ -96,6 +96,14 @@ Go tests in `internal/app/catalog_contract_test.go` and
 either to a JSON Pointer in the committed non-authoritative historical artifact
 or to a heading in the committed stable source index. This keeps the audit
 independent of unreachable historical Git objects in shallow CI checkouts.
+
+## Explore V1 evidence
+
+Revision `2026-09-05.1` adds three dated-live operation claims from the privacy-safe Explore synthesis: `getDiscoverFeedV2`, `getDiscoverSectionsV2`, and `getDiscoverEventItemDecorators`. The synthesis records only request/response paths, types, bounds, aggregate counts, and protocol findings; it contains no raw live body, credential, private identifier, or real display name.
+
+The exact reviewed request shapes use `data.params.area` with `type: DYNAMIC`, country code, state, and city; `data.params.tagId: DISCOVER_HOME`; feed `allowedFeedPresentationStyles:["rows"]`; section `allowedSectionPresentationStyles:["carousel-small","carousel-medium","carousel-large"]` and `locale:"en"`; reviewed paging; and private `userId` only for sections and decorators. The decorator request is `data.params.eventIds` plus private `userId`. The observed success paths are `result.data.items` and `result.paging.nextCursor`, `result.data.sections`, and `result.data.decoratorsByEventId`.
+
+Only HTTP `200` JSON envelopes are promoted. Empty feed, section, and decorator collections are successful values. Required ID and envelope fields, reviewed optional event fields, nonnegative counts, closed guest statuses, and the stated item limits are contract constraints. No-response mapping, authorization variation, non-200 status, error body, ordering, cursor lifetime, unreviewed event fields, and mutual-preview completeness remain explicit unknowns and fail closed in product use.
 
 ## Poster catalog evidence
 

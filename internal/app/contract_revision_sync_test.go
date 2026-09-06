@@ -11,14 +11,17 @@ import (
 )
 
 type evidenceDocument struct {
-	ContractRevision string `json:"contractRevision"`
-	Status           string `json:"status"`
+	ContractRevision string                             `json:"contractRevision"`
+	Status           string                             `json:"status"`
+	Operations       map[string]encodingjson.RawMessage `json:"operations"`
+	OperationClaims  map[string]map[string]string       `json:"operationClaims"`
 }
 
 type openAPIDocument struct {
 	Info struct {
 		Version string `json:"version"`
 	} `json:"info"`
+	Paths map[string]encodingjson.RawMessage `json:"paths"`
 }
 
 func repoRoot(t *testing.T) string {
@@ -40,6 +43,14 @@ func readRepoFile(t *testing.T, root, rel string) string {
 }
 
 func TestContractRevisionsStayInSyncAcrossDocsAndSpecs(t *testing.T) {
+	const exploreContractRevision = "2026-09-05.1"
+	if app.ProductContractRevision != exploreContractRevision {
+		t.Fatalf("product contract revision = %q, want %q", app.ProductContractRevision, exploreContractRevision)
+	}
+	if app.RemoteContractRevision != exploreContractRevision {
+		t.Fatalf("remote contract revision = %q, want %q", app.RemoteContractRevision, exploreContractRevision)
+	}
+
 	root := repoRoot(t)
 	productDoc := readRepoFile(t, root, "docs/CLI-PRODUCT-CONTRACT.md")
 	if !strings.Contains(productDoc, "**Product contract revision:** `"+app.ProductContractRevision+"`") {
@@ -67,6 +78,20 @@ func TestContractRevisionsStayInSyncAcrossDocsAndSpecs(t *testing.T) {
 	if evidence.Status != "owner-reviewed" {
 		t.Fatalf("evidence status = %q, want owner-reviewed", evidence.Status)
 	}
+	for _, operation := range []string{"getDiscoverFeedV2", "getDiscoverSectionsV2", "getDiscoverEventItemDecorators"} {
+		if _, ok := evidence.Operations[operation]; !ok {
+			t.Fatalf("evidence does not declare operation %q", operation)
+		}
+		claims, ok := evidence.OperationClaims[operation]
+		if !ok {
+			t.Fatalf("evidence does not declare claims for operation %q", operation)
+		}
+		for _, claim := range []string{"request", "response", "status"} {
+			if claims[claim] == "" {
+				t.Fatalf("evidence operation %q does not declare %s claim", operation, claim)
+			}
+		}
+	}
 
 	var openapi openAPIDocument
 	if err := encodingjson.Unmarshal([]byte(readRepoFile(t, root, "spec/partiful.openapi.json")), &openapi); err != nil {
@@ -74,5 +99,10 @@ func TestContractRevisionsStayInSyncAcrossDocsAndSpecs(t *testing.T) {
 	}
 	if openapi.Info.Version != app.RemoteContractRevision {
 		t.Fatalf("openapi version = %q, want %q", openapi.Info.Version, app.RemoteContractRevision)
+	}
+	for _, path := range []string{"/getDiscoverFeedV2", "/getDiscoverSectionsV2", "/getDiscoverEventItemDecorators"} {
+		if _, ok := openapi.Paths[path]; !ok {
+			t.Fatalf("openapi does not declare path %q", path)
+		}
 	}
 }

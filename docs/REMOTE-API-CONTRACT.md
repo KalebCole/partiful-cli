@@ -1,12 +1,12 @@
 # Remote API contract
 
-`spec/partiful.openapi.json` is owner-reviewed revision `2026-08-12.7` of the
-remote transport snapshot. Its owner-reviewed baseline is `2026-08-12.6`,
+`spec/partiful.openapi.json` is owner-reviewed revision `2026-09-05.1` of the
+remote transport snapshot. Its owner-reviewed baseline is `2026-08-12.7`,
 which is based on owner-reviewed revision `2026-08-12.3`. It describes only
 network operations and wire shapes. It does not prescribe commands, output,
 credentials, mutation safeguards, or implementation architecture.
 
-The Go CLI ships remote contract revision `2026-08-12.7`.
+The Go CLI ships remote contract revision `2026-09-05.1`.
 
 ## Authority and change process
 
@@ -390,6 +390,12 @@ list-documents HTTP `200` completion for
 This remains broad transport grammar. It does not infer Partiful authorization,
 query completeness, or business meaning beyond the collection paths reviewed
 for this slice.
+
+## Explore V1 proposal
+
+Revision `2026-09-05.1` promotes only three authenticated Explore V2 callables: `getDiscoverFeedV2`, `getDiscoverSectionsV2`, and `getDiscoverEventItemDecorators`. The reviewed request envelopes use a `DYNAMIC` area (`countryCode`, `state`, and `city`), `DISCOVER_HOME`, feed `rows`, section carousel presentation styles, locale `en`, bounded paging, and a private authenticated `userId` only where the reviewed wire shape requires it. Decorator requests contain only a bounded event-ID list and that private user ID.
+
+The strict observed success envelopes are feed `result.data.items` with `result.paging.nextCursor`, section `result.data.sections`, and decorator `result.data.decoratorsByEventId`. Events require a non-empty ID; reviewed optional title, dates, timezone, location presentation, Maps URL, and nonnegative attendance counts remain optional or nullable. Mutual previews retain only a display name source and closed guest status. Empty feed, selected-section, and decorator values are valid successes. Only HTTP `200` JSON envelopes are reviewed; no response maps to `remote.unavailable`, and every other received status, malformed reviewed field, non-JSON body, or bound breach is `contract.protocol_changed`. Authorization behavior, error bodies, cursor lifetime, ordering, unknown event fields, and mutual-preview completeness remain explicit unknowns. The privacy-safe evidence is `docs/research/2026-09-05-explore-v1-contract-evidence.md`.
 
 ## Historical provenance
 
