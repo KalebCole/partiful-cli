@@ -228,4 +228,60 @@ func TestGetDiscoverRejectsBounds(t *testing.T) {
 	}
 }
 
+func TestGetDiscoverClosedEnvelopesRejectExtrasAndOpenObjectsAcceptThem(t *testing.T) {
+	area := DynamicArea{CountryCode: "US", State: "WA", City: "Seattle"}
+	feed := func(body string) error {
+		client := Client{HTTP: discoverHTTPClientFunc(func(*http.Request) (*http.Response, error) {
+			return discoverResponse(http.StatusOK, "application/json", body), nil
+		})}
+		_, err := client.GetDiscoverFeedV2(context.Background(), "test-token", area, 1, nil)
+		return err
+	}
+	sections := func(body string) error {
+		client := Client{HTTP: discoverHTTPClientFunc(func(*http.Request) (*http.Response, error) {
+			return discoverResponse(http.StatusOK, "application/json", body), nil
+		})}
+		_, err := client.GetDiscoverSectionsV2(context.Background(), "test-token", "test-user", area)
+		return err
+	}
+	decorators := func(body string) error {
+		client := Client{HTTP: discoverHTTPClientFunc(func(*http.Request) (*http.Response, error) {
+			return discoverResponse(http.StatusOK, "application/json", body), nil
+		})}
+		_, err := client.GetDiscoverEventItemDecorators(context.Background(), "test-token", "test-user", []string{"event-a"})
+		return err
+	}
+
+	for _, testCase := range []struct {
+		name         string
+		call         func(string) error
+		body         string
+		wantProtocol bool
+	}{
+		{"feed root", feed, `{"unreviewed":true,"result":{"data":{"items":[]},"paging":{}}}`, true},
+		{"feed result", feed, `{"result":{"unreviewed":true,"data":{"items":[]},"paging":{}}}`, true},
+		{"feed data", feed, `{"result":{"data":{"unreviewed":true,"items":[]},"paging":{}}}`, true},
+		{"feed paging", feed, `{"result":{"data":{"items":[]},"paging":{"unreviewed":true}}}`, true},
+		{"sections root", sections, `{"unreviewed":true,"result":{"data":{"sections":[]}}}`, true},
+		{"sections result", sections, `{"result":{"unreviewed":true,"data":{"sections":[]}}}`, true},
+		{"sections data", sections, `{"result":{"data":{"unreviewed":true,"sections":[]}}}`, true},
+		{"decorators root", decorators, `{"unreviewed":true,"result":{"data":{"decoratorsByEventId":{}}}}`, true},
+		{"decorators result", decorators, `{"result":{"unreviewed":true,"data":{"decoratorsByEventId":{}}}}`, true},
+		{"decorators data", decorators, `{"result":{"data":{"unreviewed":true,"decoratorsByEventId":{}}}}`, true},
+		{"open item event location", feed, `{"result":{"data":{"items":[{"unreviewedItem":true,"event":{"id":"event-a","unreviewedEvent":true,"locationInfo":{"unreviewedLocation":true}}}]},"paging":{}}}`, false},
+		{"open decorator and mutual guest", decorators, `{"result":{"data":{"decoratorsByEventId":{"event-a":{"unreviewedDecorator":true,"mutualGuests":[{"status":"GOING","unreviewedMutual":true}]}}}}}`, false},
+	} {
+		t.Run(testCase.name, func(t *testing.T) {
+			err := testCase.call(testCase.body)
+			if testCase.wantProtocol {
+				if !errors.Is(err, ErrProtocolChanged) {
+					t.Fatalf("error = %v, want protocol changed", err)
+				}
+			} else if err != nil {
+				t.Fatal(err)
+			}
+		})
+	}
+}
+
 func stringPointer(value string) *string { return &value }

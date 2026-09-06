@@ -121,19 +121,19 @@ func (client Client) GetDiscoverFeedV2(ctx context.Context, accessToken string, 
 		return DiscoverPage{}, err
 	}
 	root, err := decodeEventObject(body)
-	if err != nil {
+	if err != nil || !discoverClosedObject(root, "result") {
 		return DiscoverPage{}, discoverProtocol("feed response")
 	}
 	result, err := eventObjectField(root, "result")
-	if err != nil {
+	if err != nil || !discoverClosedObject(result, "data", "paging") {
 		return DiscoverPage{}, discoverProtocol("feed result")
 	}
 	data, err := eventObjectField(result, "data")
-	if err != nil {
+	if err != nil || !discoverClosedObject(data, "items") {
 		return DiscoverPage{}, discoverProtocol("feed data")
 	}
 	paging, err := eventObjectField(result, "paging")
-	if err != nil {
+	if err != nil || !discoverClosedObject(paging, "nextCursor") {
 		return DiscoverPage{}, discoverProtocol("feed paging")
 	}
 	items, err := discoverItems(data, "items")
@@ -161,15 +161,15 @@ func (client Client) GetDiscoverSectionsV2(ctx context.Context, accessToken, use
 		return nil, err
 	}
 	root, err := decodeEventObject(body)
-	if err != nil {
+	if err != nil || !discoverClosedObject(root, "result") {
 		return nil, discoverProtocol("sections response")
 	}
 	result, err := eventObjectField(root, "result")
-	if err != nil {
+	if err != nil || !discoverClosedObject(result, "data") {
 		return nil, discoverProtocol("sections result")
 	}
 	data, err := eventObjectField(result, "data")
-	if err != nil {
+	if err != nil || !discoverClosedObject(data, "sections") {
 		return nil, discoverProtocol("sections data")
 	}
 	raw, ok := data["sections"]
@@ -207,15 +207,15 @@ func (client Client) GetDiscoverEventItemDecorators(ctx context.Context, accessT
 		return DiscoverDecorators{}, err
 	}
 	root, err := decodeEventObject(body)
-	if err != nil {
+	if err != nil || !discoverClosedObject(root, "result") {
 		return DiscoverDecorators{}, discoverProtocol("decorator response")
 	}
 	result, err := eventObjectField(root, "result")
-	if err != nil {
+	if err != nil || !discoverClosedObject(result, "data") {
 		return DiscoverDecorators{}, discoverProtocol("decorator result")
 	}
 	data, err := eventObjectField(result, "data")
-	if err != nil {
+	if err != nil || !discoverClosedObject(data, "decoratorsByEventId") {
 		return DiscoverDecorators{}, discoverProtocol("decorator data")
 	}
 	raw, ok := data["decoratorsByEventId"]
@@ -489,6 +489,22 @@ func decodeSingleDiscoverJSON(body []byte, destination any) error {
 		return errors.New("trailing JSON")
 	}
 	return nil
+}
+
+func discoverClosedObject(object map[string]json.RawMessage, fields ...string) bool {
+	for key := range object {
+		allowed := false
+		for _, field := range fields {
+			if key == field {
+				allowed = true
+				break
+			}
+		}
+		if !allowed {
+			return false
+		}
+	}
+	return true
 }
 
 func validDiscoverArea(area DynamicArea) bool {
