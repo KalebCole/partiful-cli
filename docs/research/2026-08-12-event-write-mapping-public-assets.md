@@ -1,5 +1,10 @@
 # Event-write mapping from current public assets
 
+> Historical research note. Issue #201 superseded the plan-token and exact
+> confirmation design described below. The remote API evidence remains useful;
+> current CLI mutations use one invocation with optional `--dry-run` and
+> destructive-action confirmation.
+
 ## Scope and provenance
 
 This note records only unauthenticated, first-party public Partiful assets and

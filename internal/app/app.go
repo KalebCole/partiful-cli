@@ -34,9 +34,8 @@ type Dependencies struct {
 	CursorKeys           CursorKeyProvider
 	CursorRandom         io.Reader
 	AuthRandom           io.Reader
-	MutationPath         string
-	MutationRandom       io.Reader
 	Terminal             auth.PrivateTerminal
+	Confirmer            Confirmer
 }
 
 type commandKind uint8
@@ -108,11 +107,14 @@ var commandCatalog = []commandDefinition{
 		safety:        readOnlySafety(),
 	},
 	{
-		path:          "auth.login",
-		invocation:    []string{"auth", "login"},
-		kind:          authLoginCommand,
-		positionals:   []positionalDefinition{},
-		flags:         []flagDefinition{},
+		path:        "auth.login",
+		invocation:  []string{"auth", "login"},
+		kind:        authLoginCommand,
+		positionals: []positionalDefinition{},
+		flags: []flagDefinition{
+			{Name: "--non-interactive", Description: "Disable terminal prompts; login requires human interaction."},
+			{Name: "--no-input", Description: "Disable terminal prompts; alias of --non-interactive."},
+		},
 		inputSchema:   emptyInputSchema(),
 		successSchema: authStateSuccessSchema(),
 		failureTypes: []string{
@@ -124,9 +126,8 @@ var commandCatalog = []commandDefinition{
 			"internal.failure",
 		},
 		safety: safetyDefinition{
-			Kind:                 "local-mutation",
-			PlanRequired:         false,
-			ConfirmationRequired: false,
+			Kind:        "local-mutation",
+			Destructive: false,
 		},
 	},
 	{
@@ -144,9 +145,8 @@ var commandCatalog = []commandDefinition{
 			"internal.failure",
 		},
 		safety: safetyDefinition{
-			Kind:                 "local-mutation",
-			PlanRequired:         false,
-			ConfirmationRequired: false,
+			Kind:        "local-mutation",
+			Destructive: false,
 		},
 	},
 	{
@@ -159,9 +159,8 @@ var commandCatalog = []commandDefinition{
 		successSchema: authStateSuccessSchema(),
 		failureTypes:  []string{"internal.failure"},
 		safety: safetyDefinition{
-			Kind:                 "local-mutation",
-			PlanRequired:         false,
-			ConfirmationRequired: false,
+			Kind:        "local-mutation",
+			Destructive: false,
 		},
 	},
 	{
@@ -269,11 +268,9 @@ var commandCatalog = []commandDefinition{
 			Required:    true,
 			Description: "Event identifier.",
 		}},
-		flags: []flagDefinition{
+		flags: append([]flagDefinition{
 			{Name: "--contact", Description: "Resolvable contact display name.", Required: true, TakesValue: true},
-			{Name: "--apply", Description: "Apply a reviewed consequential plan."},
-			{Name: "--confirm", Description: "Exact consequential confirmation token.", TakesValue: true},
-		},
+		}, mutationFlagDefinitions()...),
 		inputSchema:   guestInviteInputSchema(),
 		successSchema: guestInviteSuccessSchema(),
 		failureTypes: []string{
@@ -282,8 +279,6 @@ var commandCatalog = []commandDefinition{
 			"permission.denied",
 			"resource.not_found",
 			"match.ambiguous",
-			"safety.confirmation_required",
-			"safety.plan_stale",
 			"remote.unavailable",
 			"contract.protocol_changed",
 			"internal.failure",
@@ -340,7 +335,7 @@ var commandCatalog = []commandDefinition{
 		invocation:  []string{"events", "create"},
 		kind:        eventsCreateCommand,
 		positionals: []positionalDefinition{},
-		flags: []flagDefinition{
+		flags: append([]flagDefinition{
 			{Name: "--input", Description: "Read one structured JSON input object.", TakesValue: true},
 			{Name: "--title", Description: "Event title.", TakesValue: true},
 			{Name: "--start", Description: "RFC 3339 start time.", TakesValue: true},
@@ -352,16 +347,13 @@ var commandCatalog = []commandDefinition{
 			{Name: "--guest-limit", Description: "Positive guest limit.", TakesValue: true},
 			{Name: "--link", Description: "Link in label=url form; this flag can repeat.", TakesValue: true},
 			{Name: "--poster-id", Description: "Exact built-in poster ID.", TakesValue: true},
-			{Name: "--apply", Description: "Apply a reviewed mutation plan."},
-			{Name: "--plan", Description: "Opaque mutation plan token.", TakesValue: true},
-		},
+		}, mutationFlagDefinitions()...),
 		inputSchema:   eventCreateInputSchema(),
 		successSchema: eventCreateSuccessSchema(),
 		failureTypes: []string{
 			"auth.required",
 			"auth.expired",
 			"resource.not_found",
-			"safety.plan_stale",
 			"remote.unavailable",
 			"contract.protocol_changed",
 			"internal.failure",
@@ -377,7 +369,7 @@ var commandCatalog = []commandDefinition{
 			Required:    true,
 			Description: "Event identifier.",
 		}},
-		flags: []flagDefinition{
+		flags: append([]flagDefinition{
 			{Name: "--input", Description: "Read one structured JSON input object.", TakesValue: true},
 			{Name: "--title", Description: "Event title.", TakesValue: true},
 			{Name: "--description", Description: "Optional description.", TakesValue: true},
@@ -387,9 +379,7 @@ var commandCatalog = []commandDefinition{
 			{Name: "--guest-limit", Description: "Positive guest limit.", TakesValue: true},
 			{Name: "--link", Description: "Link in label=url form; this flag can repeat.", TakesValue: true},
 			{Name: "--poster-id", Description: "Exact built-in poster ID.", TakesValue: true},
-			{Name: "--apply", Description: "Apply a reviewed mutation plan."},
-			{Name: "--plan", Description: "Opaque mutation plan token.", TakesValue: true},
-		},
+		}, mutationFlagDefinitions()...),
 		inputSchema:   eventUpdateInputSchema(),
 		successSchema: eventUpdateSuccessSchema(),
 		failureTypes: []string{
@@ -398,7 +388,6 @@ var commandCatalog = []commandDefinition{
 			"permission.denied",
 			"resource.not_found",
 			"state.conflict",
-			"safety.plan_stale",
 			"remote.unavailable",
 			"contract.protocol_changed",
 			"internal.failure",
@@ -414,13 +403,11 @@ var commandCatalog = []commandDefinition{
 			Required:    true,
 			Description: "Event identifier.",
 		}},
-		flags: []flagDefinition{
+		flags: append([]flagDefinition{
 			{Name: "--input", Description: "Read one structured JSON input object.", TakesValue: true},
 			{Name: "--message", Description: "Optional cancellation message.", TakesValue: true},
 			{Name: "--notify-guests", Description: "true or false.", TakesValue: true},
-			{Name: "--apply", Description: "Apply a reviewed consequential plan."},
-			{Name: "--confirm", Description: "Exact consequential confirmation token.", TakesValue: true},
-		},
+		}, mutationFlagDefinitions()...),
 		inputSchema:   eventCancelInputSchema(),
 		successSchema: eventCancelSuccessSchema(),
 		failureTypes: []string{
@@ -430,12 +417,11 @@ var commandCatalog = []commandDefinition{
 			"resource.not_found",
 			"state.conflict",
 			"safety.confirmation_required",
-			"safety.plan_stale",
 			"remote.unavailable",
 			"contract.protocol_changed",
 			"internal.failure",
 		},
-		safety: consequentialActionSafety(),
+		safety: destructiveActionSafety(),
 	},
 	{
 		path:       "blasts.send",
@@ -446,13 +432,11 @@ var commandCatalog = []commandDefinition{
 			Required:    true,
 			Description: "Event identifier.",
 		}},
-		flags: []flagDefinition{
+		flags: append([]flagDefinition{
 			{Name: "--audience", Description: "Only all-guests is supported.", TakesValue: true},
 			{Name: "--message-file", Description: "Read the private message from a file path or - for stdin.", TakesValue: true},
 			{Name: "--show-on-event-page", Description: "Show the blast in the event activity feed."},
-			{Name: "--apply", Description: "Apply a reviewed consequential plan."},
-			{Name: "--confirm", Description: "Exact consequential confirmation token.", TakesValue: true},
-		},
+		}, mutationFlagDefinitions()...),
 		inputSchema:   blastSendInputSchema(),
 		successSchema: blastSendSuccessSchema(),
 		failureTypes: []string{
@@ -461,8 +445,6 @@ var commandCatalog = []commandDefinition{
 			"permission.denied",
 			"resource.not_found",
 			"state.conflict",
-			"safety.confirmation_required",
-			"safety.plan_stale",
 			"remote.unavailable",
 			"contract.protocol_changed",
 			"internal.failure",
@@ -499,7 +481,7 @@ var commandCatalog = []commandDefinition{
 			Required:    true,
 			Description: "Event identifier.",
 		}},
-		flags: []flagDefinition{
+		flags: append([]flagDefinition{
 			{Name: "--input", Description: "Read one structured JSON input object.", TakesValue: true},
 			{Name: "--status", Description: "Writable RSVP intent.", TakesValue: true},
 			{Name: "--display-name", Description: "Attendee display name.", TakesValue: true},
@@ -508,9 +490,7 @@ var commandCatalog = []commandDefinition{
 			{Name: "--message", Description: "Optional RSVP message.", TakesValue: true},
 			{Name: "--timezone", Description: "IANA timezone.", TakesValue: true},
 			{Name: "--questionnaire-response", Description: "Questionnaire response JSON.", TakesValue: true},
-			{Name: "--apply", Description: "Apply a reviewed mutation plan."},
-			{Name: "--plan", Description: "Opaque mutation plan token.", TakesValue: true},
-		},
+		}, mutationFlagDefinitions()...),
 		inputSchema:   rsvpSetInputSchema(),
 		successSchema: rsvpSetSuccessSchema(),
 		failureTypes: []string{
@@ -518,7 +498,6 @@ var commandCatalog = []commandDefinition{
 			"auth.expired",
 			"resource.not_found",
 			"state.conflict",
-			"safety.plan_stale",
 			"remote.unavailable",
 			"contract.protocol_changed",
 			"internal.failure",
@@ -534,11 +513,9 @@ var commandCatalog = []commandDefinition{
 			Required:    true,
 			Description: "Event identifier.",
 		}},
-		flags: []flagDefinition{
+		flags: append([]flagDefinition{
 			{Name: "--contact", Description: "Resolvable contact display name.", TakesValue: true, Required: true},
-			{Name: "--apply", Description: "Apply a reviewed consequential plan."},
-			{Name: "--confirm", Description: "Exact consequential confirmation token.", TakesValue: true},
-		},
+		}, mutationFlagDefinitions()...),
 		inputSchema:   cohostContactInputSchema(),
 		successSchema: cohostInviteSuccessSchema(),
 		failureTypes: []string{
@@ -548,8 +525,6 @@ var commandCatalog = []commandDefinition{
 			"resource.not_found",
 			"match.ambiguous",
 			"state.conflict",
-			"safety.confirmation_required",
-			"safety.plan_stale",
 			"remote.unavailable",
 			"contract.protocol_changed",
 			"internal.failure",
@@ -565,11 +540,9 @@ var commandCatalog = []commandDefinition{
 			Required:    true,
 			Description: "Event identifier.",
 		}},
-		flags: []flagDefinition{
+		flags: append([]flagDefinition{
 			{Name: "--contact", Description: "Resolvable contact display name.", TakesValue: true, Required: true},
-			{Name: "--apply", Description: "Apply a reviewed consequential plan."},
-			{Name: "--confirm", Description: "Exact consequential confirmation token.", TakesValue: true},
-		},
+		}, mutationFlagDefinitions()...),
 		inputSchema:   cohostContactInputSchema(),
 		successSchema: cohostRevokeInviteSuccessSchema(),
 		failureTypes: []string{
@@ -580,12 +553,11 @@ var commandCatalog = []commandDefinition{
 			"match.ambiguous",
 			"state.conflict",
 			"safety.confirmation_required",
-			"safety.plan_stale",
 			"remote.unavailable",
 			"contract.protocol_changed",
 			"internal.failure",
 		},
-		safety: consequentialActionSafety(),
+		safety: destructiveActionSafety(),
 	},
 	{
 		path:       "cohosts.remove",
@@ -596,11 +568,9 @@ var commandCatalog = []commandDefinition{
 			Required:    true,
 			Description: "Event identifier.",
 		}},
-		flags: []flagDefinition{
+		flags: append([]flagDefinition{
 			{Name: "--contact", Description: "Resolvable contact display name.", TakesValue: true, Required: true},
-			{Name: "--apply", Description: "Apply a reviewed consequential plan."},
-			{Name: "--confirm", Description: "Exact consequential confirmation token.", TakesValue: true},
-		},
+		}, mutationFlagDefinitions()...),
 		inputSchema:   cohostContactInputSchema(),
 		successSchema: cohostRemoveSuccessSchema(),
 		failureTypes: []string{
@@ -611,12 +581,11 @@ var commandCatalog = []commandDefinition{
 			"match.ambiguous",
 			"state.conflict",
 			"safety.confirmation_required",
-			"safety.plan_stale",
 			"remote.unavailable",
 			"contract.protocol_changed",
 			"internal.failure",
 		},
-		safety: consequentialActionSafety(),
+		safety: destructiveActionSafety(),
 	},
 	{
 		path:       "cohosts.link.create",
@@ -627,10 +596,7 @@ var commandCatalog = []commandDefinition{
 			Required:    true,
 			Description: "Event identifier.",
 		}},
-		flags: []flagDefinition{
-			{Name: "--apply", Description: "Apply a reviewed consequential plan."},
-			{Name: "--confirm", Description: "Exact consequential confirmation token.", TakesValue: true},
-		},
+		flags:         mutationFlagDefinitions(),
 		inputSchema:   emptyInputSchema(),
 		successSchema: cohostLinkCreateSuccessSchema(),
 		failureTypes: []string{
@@ -639,8 +605,6 @@ var commandCatalog = []commandDefinition{
 			"permission.denied",
 			"resource.not_found",
 			"state.conflict",
-			"safety.confirmation_required",
-			"safety.plan_stale",
 			"remote.unavailable",
 			"contract.protocol_changed",
 			"internal.failure",
@@ -656,10 +620,7 @@ var commandCatalog = []commandDefinition{
 			Required:    true,
 			Description: "Event identifier.",
 		}},
-		flags: []flagDefinition{
-			{Name: "--apply", Description: "Apply a reviewed consequential plan."},
-			{Name: "--confirm", Description: "Exact consequential confirmation token.", TakesValue: true},
-		},
+		flags:         mutationFlagDefinitions(),
 		inputSchema:   emptyInputSchema(),
 		successSchema: cohostLinkRevokeSuccessSchema(),
 		failureTypes: []string{
@@ -669,12 +630,11 @@ var commandCatalog = []commandDefinition{
 			"resource.not_found",
 			"state.conflict",
 			"safety.confirmation_required",
-			"safety.plan_stale",
 			"remote.unavailable",
 			"contract.protocol_changed",
 			"internal.failure",
 		},
-		safety: consequentialActionSafety(),
+		safety: destructiveActionSafety(),
 	},
 }
 
@@ -712,9 +672,8 @@ type jsonSchema struct {
 }
 
 type safetyDefinition struct {
-	Kind                 string `json:"kind"`
-	PlanRequired         bool   `json:"planRequired"`
-	ConfirmationRequired bool   `json:"confirmationRequired"`
+	Kind        string `json:"kind"`
+	Destructive bool   `json:"destructive"`
 }
 
 func emptyInputSchema() jsonSchema {
@@ -777,14 +736,13 @@ func schemaSuccessSchema() jsonSchema {
 	stringList := jsonSchema{Type: "array", Items: &stringItem}
 	descriptorList := jsonSchema{Type: "array", Items: &descriptor}
 	safety := objectSchema(
-		[]string{"kind", "planRequired", "confirmationRequired"},
+		[]string{"kind", "destructive"},
 		map[string]jsonSchema{
 			"kind": {
 				Type: "string",
 				Enum: []string{"read-only", "local-mutation", "standard-mutation", "consequential-action"},
 			},
-			"planRequired":         {Type: "boolean"},
-			"confirmationRequired": {Type: "boolean"},
+			"destructive": {Type: "boolean"},
 		},
 	)
 	commandDetail := objectSchema(
@@ -839,6 +797,14 @@ func collectionFlagDefinitions() []flagDefinition {
 		{Name: "--cursor", Description: "Opaque cursor from the same command and filters.", TakesValue: true},
 		{Name: "--all", Description: "Return multiple pages up to --max-items."},
 		{Name: "--max-items", Description: "Hard result limit for --all.", TakesValue: true},
+	}
+}
+
+func mutationFlagDefinitions() []flagDefinition {
+	return []flagDefinition{
+		{Name: "--dry-run", Description: "Preview the validated mutation without dispatching it."},
+		{Name: "--force", Description: "Skip the confirmation prompt for a destructive command."},
+		{Name: "--no-input", Description: "Never prompt; fail if confirmation is required."},
 	}
 }
 
@@ -1028,9 +994,8 @@ func rsvpReadSuccessSchema() jsonSchema {
 
 func readOnlySafety() safetyDefinition {
 	return safetyDefinition{
-		Kind:                 "read-only",
-		PlanRequired:         false,
-		ConfirmationRequired: false,
+		Kind:        "read-only",
+		Destructive: false,
 	}
 }
 
@@ -1092,6 +1057,7 @@ func Execute(ctx context.Context, request Request, dependencies Dependencies) Re
 
 	argv := make([]string, 0, len(request.Argv))
 	pretty := slices.Contains(request.Argv, "--pretty")
+	execution := mutationExecution{}
 	seenGlobalFlags := make(map[string]bool)
 	for _, argument := range request.Argv {
 		switch argument {
@@ -1106,6 +1072,28 @@ func Execute(ctx context.Context, request Request, dependencies Dependencies) Re
 				return repeatedFlagFailure(commandName(request.Argv), argument, pretty)
 			}
 			seenGlobalFlags[argument] = true
+			execution.NoInput = true
+			continue
+		case "--dry-run":
+			if seenGlobalFlags[argument] {
+				return repeatedFlagFailure(commandName(request.Argv), argument, pretty)
+			}
+			seenGlobalFlags[argument] = true
+			execution.DryRun = true
+			continue
+		case "--force":
+			if seenGlobalFlags[argument] {
+				return repeatedFlagFailure(commandName(request.Argv), argument, pretty)
+			}
+			seenGlobalFlags[argument] = true
+			execution.Force = true
+			continue
+		case "--no-input":
+			if seenGlobalFlags[argument] {
+				return repeatedFlagFailure(commandName(request.Argv), argument, pretty)
+			}
+			seenGlobalFlags[argument] = true
+			execution.NoInput = true
 			continue
 		}
 		argv = append(argv, argument)
@@ -1134,8 +1122,7 @@ func Execute(ctx context.Context, request Request, dependencies Dependencies) Re
 					Details:   map[string]any{},
 				}, pretty)
 			case authLoginCommand:
-				if slices.Contains(request.Argv, "--non-interactive") ||
-					dependencies.Terminal == nil {
+				if execution.NoInput || dependencies.Terminal == nil {
 					return privateTerminalRequiredFailure(definition.path, pretty)
 				}
 				if dependencies.CredentialsPathError != nil {
@@ -1515,33 +1502,33 @@ func Execute(ctx context.Context, request Request, dependencies Dependencies) Re
 			case guestsListCommand:
 				return executeGuestsList(ctx, definition, argv, dependencies, pretty)
 			case guestsInviteCommand:
-				return executeGuestsInvite(ctx, definition, argv, dependencies, pretty)
+				return executeGuestsInvite(ctx, definition, argv, dependencies, execution, pretty)
 			case eventsListCommand:
 				return executeEventsList(ctx, definition, argv, dependencies, pretty)
 			case eventsGetCommand:
 				return executeEventGet(ctx, definition, argv, dependencies, pretty)
 			case eventsCreateCommand:
-				return executeEventCreate(ctx, request, definition, argv, dependencies, pretty)
+				return executeEventCreate(ctx, request, definition, argv, dependencies, execution, pretty)
 			case eventsUpdateCommand:
-				return executeEventUpdate(ctx, request, definition, argv, dependencies, pretty)
+				return executeEventUpdate(ctx, request, definition, argv, dependencies, execution, pretty)
 			case eventsCancelCommand:
-				return executeEventCancel(ctx, request, definition, argv, dependencies, pretty)
+				return executeEventCancel(ctx, request, definition, argv, dependencies, execution, pretty)
 			case blastsSendCommand:
-				return executeBlastSend(ctx, request, definition, argv, dependencies, pretty)
+				return executeBlastSend(ctx, request, definition, argv, dependencies, execution, pretty)
 			case rsvpGetCommand:
 				return executeRSVPGet(ctx, definition, argv, dependencies, pretty)
 			case rsvpSetCommand:
-				return executeRSVPSet(ctx, request, definition, argv, dependencies, pretty)
+				return executeRSVPSet(ctx, request, definition, argv, dependencies, execution, pretty)
 			case cohostsInviteCommand:
-				return executeCohostInvite(ctx, definition, argv, dependencies, pretty)
+				return executeCohostInvite(ctx, definition, argv, dependencies, execution, pretty)
 			case cohostsRevokeInviteCommand:
-				return executeCohostRevokeInvite(ctx, definition, argv, dependencies, pretty)
+				return executeCohostRevokeInvite(ctx, definition, argv, dependencies, execution, pretty)
 			case cohostsRemoveCommand:
-				return executeCohostRemove(ctx, definition, argv, dependencies, pretty)
+				return executeCohostRemove(ctx, definition, argv, dependencies, execution, pretty)
 			case cohostsLinkCreateCommand:
-				return executeCohostLinkCreate(ctx, definition, argv, dependencies, pretty)
+				return executeCohostLinkCreate(ctx, definition, argv, dependencies, execution, pretty)
 			case cohostsLinkRevokeCommand:
-				return executeCohostLinkRevoke(ctx, definition, argv, dependencies, pretty)
+				return executeCohostLinkRevoke(ctx, definition, argv, dependencies, execution, pretty)
 			}
 		}
 	}
@@ -1604,7 +1591,7 @@ func helpTarget(argv []string) ([]string, bool) {
 		switch argument {
 		case "-h", "--help":
 			requested = true
-		case "--pretty", "--non-interactive":
+		case "--pretty", "--non-interactive", "--dry-run", "--force", "--no-input":
 			// Global presentation and interaction flags do not affect help.
 		default:
 			target = append(target, argument)
@@ -1758,14 +1745,13 @@ func helpExample(definition commandDefinition) string {
 }
 
 func helpSafety(definition commandDefinition) string {
-	if !definition.safety.PlanRequired {
+	if definition.safety.Kind == "read-only" || definition.safety.Kind == "local-mutation" {
 		return "This command is " + definition.safety.Kind + "; review its schema before execution."
 	}
-	text := "Generate a plan by running the command with the original payload. Apply it with the same original payload plus --apply --plan <token>; you must repeat the original payload because the plan is bound to it."
-	if definition.safety.ConfirmationRequired {
-		text += " Consequential actions also require the exact --confirm token from the plan."
+	if definition.safety.Destructive {
+		return "Use --dry-run to preview the request. Execution prompts only on a terminal; use --force to skip the prompt or --no-input to fail instead of prompting."
 	}
-	return text
+	return "Use --dry-run to preview the request. Without --dry-run, one validated invocation dispatches the mutation once."
 }
 
 type schemaCatalog struct {
@@ -1856,7 +1842,11 @@ func declaredFailureTypes(definition commandDefinition) []string {
 func commandName(argv []string) string {
 	filtered := make([]string, 0, len(argv))
 	for _, argument := range argv {
-		if argument != "--pretty" && argument != "--non-interactive" {
+		if argument != "--pretty" &&
+			argument != "--non-interactive" &&
+			argument != "--dry-run" &&
+			argument != "--force" &&
+			argument != "--no-input" {
 			filtered = append(filtered, argument)
 		}
 	}

@@ -15,6 +15,10 @@ import (
 func main() {
 	credentialsPath, credentialsPathError := auth.DefaultCredentialsPath()
 	cursorKeyPath, _ := app.DefaultCursorKeyPath()
+	terminal := auth.OSTerminal{
+		Input:  os.Stdin,
+		Output: os.Stderr,
+	}
 	result := app.Execute(context.Background(), app.Request{
 		Argv:  os.Args[1:],
 		Stdin: os.Stdin,
@@ -27,11 +31,10 @@ func main() {
 		CursorKeys:           app.FileCursorKeyProvider{Path: cursorKeyPath},
 		CursorRandom:         rand.Reader,
 		AuthRandom:           rand.Reader,
-		MutationPath:         credentialsPath + ".mutation-plans",
-		MutationRandom:       rand.Reader,
-		Terminal: auth.OSTerminal{
-			Input:  os.Stdin,
-			Output: os.Stderr,
+		Terminal:             terminal,
+		Confirmer: terminalConfirmer{
+			input:  os.Stdin,
+			output: os.Stderr,
 		},
 	})
 

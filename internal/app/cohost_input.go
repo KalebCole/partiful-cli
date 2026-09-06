@@ -10,16 +10,12 @@ type cohostContactInput struct {
 }
 
 type cohostActionOptions struct {
-	EventID      string
-	Input        cohostContactInput
-	Apply        bool
-	ConfirmToken string
+	EventID string
+	Input   cohostContactInput
 }
 
 type cohostLinkOptions struct {
-	EventID      string
-	Apply        bool
-	ConfirmToken string
+	EventID string
 }
 
 func (input cohostContactInput) document() json.RawMessage {
@@ -40,14 +36,6 @@ func parseCohostActionOptions(
 		return cohostActionOptions{}, parseError
 	}
 	options := cohostActionOptions{EventID: eventID}
-	_, options.Apply = scalars["--apply"]
-	options.ConfirmToken = scalars["--confirm"]
-	if options.Apply && options.ConfirmToken == "" {
-		return cohostActionOptions{}, confirmationRequiredErrorBody()
-	}
-	if !options.Apply && options.ConfirmToken != "" {
-		return cohostActionOptions{}, eventWriteInputFailure("APPLY_REQUIRED", "--confirm requires --apply.")
-	}
 	contact := strings.TrimSpace(scalars["--contact"])
 	if contact == "" {
 		return cohostActionOptions{}, eventWriteInputFailure("CONTACT_REQUIRED", "--contact is required.")
@@ -64,20 +52,11 @@ func parseCohostLinkOptions(
 	if inputError != nil {
 		return cohostLinkOptions{}, inputError
 	}
-	scalars, parseError := parseCohostFlags(definition, argv, len(definition.invocation)+1)
+	_, parseError := parseCohostFlags(definition, argv, len(definition.invocation)+1)
 	if parseError != nil {
 		return cohostLinkOptions{}, parseError
 	}
-	options := cohostLinkOptions{EventID: eventID}
-	_, options.Apply = scalars["--apply"]
-	options.ConfirmToken = scalars["--confirm"]
-	if options.Apply && options.ConfirmToken == "" {
-		return cohostLinkOptions{}, confirmationRequiredErrorBody()
-	}
-	if !options.Apply && options.ConfirmToken != "" {
-		return cohostLinkOptions{}, eventWriteInputFailure("APPLY_REQUIRED", "--confirm requires --apply.")
-	}
-	return options, nil
+	return cohostLinkOptions{EventID: eventID}, nil
 }
 
 func parseCohostFlags(
@@ -136,9 +115,8 @@ func cohostRemoveSuccessSchema() jsonSchema {
 
 func cohostContactActionSuccessSchema(operation, status string) jsonSchema {
 	one := 1
-	threeHundred := 300
-	plan := objectSchema(
-		[]string{"operation", "eventId", "contact", "request", "effects", "preconditions", "expiresInSeconds", "planToken"},
+	preview := objectSchema(
+		[]string{"operation", "eventId", "contact", "request", "effects", "preconditions"},
 		map[string]jsonSchema{
 			"operation": {Type: "string", Enum: []string{operation}},
 			"eventId":   {Type: "string", MinLength: &one},
@@ -146,11 +124,9 @@ func cohostContactActionSuccessSchema(operation, status string) jsonSchema {
 				[]string{"displayName"},
 				map[string]jsonSchema{"displayName": {Type: "string", MinLength: &one}},
 			),
-			"request":          {Type: "object"},
-			"effects":          {Type: "array", Items: pointerSchema(jsonSchema{Type: "string"})},
-			"preconditions":    {Type: "object"},
-			"expiresInSeconds": {Type: "integer", Minimum: &threeHundred, Maximum: &threeHundred},
-			"planToken":        {Type: "string", MinLength: &one},
+			"request":       {Type: "object"},
+			"effects":       {Type: "array", Items: pointerSchema(jsonSchema{Type: "string"})},
+			"preconditions": {Type: "object"},
 		},
 	)
 	success := objectSchema(
@@ -166,7 +142,7 @@ func cohostContactActionSuccessSchema(operation, status string) jsonSchema {
 			),
 		},
 	)
-	return jsonSchema{Type: "object", OneOf: []jsonSchema{plan, success}}
+	return jsonSchema{Type: "object", OneOf: []jsonSchema{preview, success}}
 }
 
 func cohostLinkCreateSuccessSchema() jsonSchema {
@@ -179,17 +155,14 @@ func cohostLinkRevokeSuccessSchema() jsonSchema {
 
 func cohostLinkActionSuccessSchema(operation, state string, includeURL bool) jsonSchema {
 	one := 1
-	threeHundred := 300
-	plan := objectSchema(
-		[]string{"operation", "eventId", "request", "effects", "preconditions", "expiresInSeconds", "planToken"},
+	preview := objectSchema(
+		[]string{"operation", "eventId", "request", "effects", "preconditions"},
 		map[string]jsonSchema{
-			"operation":        {Type: "string", Enum: []string{operation}},
-			"eventId":          {Type: "string", MinLength: &one},
-			"request":          {Type: "object"},
-			"effects":          {Type: "array", Items: pointerSchema(jsonSchema{Type: "string"})},
-			"preconditions":    {Type: "object"},
-			"expiresInSeconds": {Type: "integer", Minimum: &threeHundred, Maximum: &threeHundred},
-			"planToken":        {Type: "string", MinLength: &one},
+			"operation":     {Type: "string", Enum: []string{operation}},
+			"eventId":       {Type: "string", MinLength: &one},
+			"request":       {Type: "object"},
+			"effects":       {Type: "array", Items: pointerSchema(jsonSchema{Type: "string"})},
+			"preconditions": {Type: "object"},
 		},
 	)
 	linkURLType := []string{"null"}
@@ -209,5 +182,5 @@ func cohostLinkActionSuccessSchema(operation, state string, includeURL bool) jso
 			),
 		},
 	)
-	return jsonSchema{Type: "object", OneOf: []jsonSchema{plan, success}}
+	return jsonSchema{Type: "object", OneOf: []jsonSchema{preview, success}}
 }

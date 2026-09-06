@@ -11,7 +11,7 @@ workflows. The story separates two parts:
    CLI ships.
 
 Never imply that an accepted invite or blast request proves delivery.
-Describe mutation plans as reviewed intent, not completed outcome.
+Describe dry-run previews as intended requests, not completed outcomes.
 
 ## Visual direction
 

@@ -10,8 +10,9 @@ partiful rsvp set <event-id> --status not-going   --display-name "Example"   --p
 `rsvp get` returns the reviewed RSVP state or `null`. It does not expose guest
 or account IDs.
 
-`rsvp set` is a standard mutation. Review the returned plan, then repeat the
-same normalized input with `--apply --plan <token>`.
+Add `--dry-run` to `rsvp set` for a redacted normalized request preview.
+Without `--dry-run`, the command performs current event and guest checks, then
+dispatches once without prompting.
 
 For going RSVPs, use `--plus-one` repeatedly for named plus-ones. For larger or
 structured input, pass `--input <path-or->` and inspect

@@ -18,11 +18,18 @@ CLI differ.
 |---|---|
 | `--pretty` | Indent JSON output without changing fields |
 | `--non-interactive` | Disable terminal prompts |
+| `--no-input` | Disable terminal prompts; alias of `--non-interactive` |
 | `--version` | Return the version envelope |
 
-Standard mutations return a plan until you add `--apply --plan <token>`.
-Consequential actions return a plan until you add `--apply --confirm <token>`
-after approval.
+Every mutation also accepts `--dry-run`, `--force`, and `--no-input`.
+`--dry-run` returns a redacted normalized preview after required read-only
+resolution and never sends a write. Without it, the command dispatches once
+and never retries automatically.
+
+`events cancel`, `cohosts remove`, `cohosts revoke-invite`, and
+`cohosts link revoke` prompt only on a TTY. `--force` skips only that prompt.
+`--no-input`, `--non-interactive`, or a non-TTY invocation fails with
+`safety.confirmation_required` unless `--force` is present.
 
 Success and failure use stable JSON envelopes:
 
@@ -36,6 +43,7 @@ Success and failure use stable JSON envelopes:
 
 ## Safety
 
-- Get explicit approval before sending blasts, cancelling events, inviting guests, changing cohosts, or creating/revoking cohost links.
+- Review `--dry-run` output when the user requests a preview.
+- Get explicit approval before using `--force` for a destructive command.
 - Keep JSON on stdout and diagnostics on stderr.
 - Do not include phone numbers, email addresses, access tokens, or Partiful user IDs in user-facing summaries.

@@ -12,8 +12,9 @@ reference needed for the current task.
 
 1. Run `partiful doctor` before assuming authentication works.
 2. Keep default JSON output for agent workflows. Use `partiful schema <command.path>` when exact parameters matter.
-3. For standard mutations, run the command once without `--apply` to get a plan token, then repeat it with `--apply --plan <token>`.
-4. For consequential actions, run the command once without `--apply` to get a plan token, then repeat it with `--apply --confirm <token>` only after approval.
+3. Add `--dry-run` to any mutation for a redacted preview with no remote write.
+4. Without `--dry-run`, a mutation validates, performs required read checks, and dispatches once.
+5. `events cancel`, `cohosts remove`, `cohosts revoke-invite`, and `cohosts link revoke` prompt on a TTY. Use `--force` only after approval, or `--no-input` to fail rather than prompt.
 
 ## Route by Task
 

@@ -3,7 +3,6 @@ package app
 import (
 	"bytes"
 	"context"
-	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -11,39 +10,43 @@ import (
 	"sort"
 	"time"
 
-	"github.com/KalebCole/partiful-cli/internal/mutation"
 	"github.com/KalebCole/partiful-cli/internal/remote"
 )
 
-type eventCreatePlan struct {
-	Operation        string                 `json:"operation"`
-	Input            eventCreatePublicInput `json:"input"`
-	Request          any                    `json:"request"`
-	Preconditions    map[string]string      `json:"preconditions"`
-	ExpiresInSeconds int                    `json:"expiresInSeconds"`
-	PlanToken        string                 `json:"planToken"`
+type eventCreatePreview struct {
+	Operation     string                 `json:"operation"`
+	Input         eventCreatePublicInput `json:"input"`
+	Request       any                    `json:"request"`
+	Preconditions map[string]string      `json:"preconditions"`
 }
 
-type eventUpdatePlan struct {
-	Operation        string            `json:"operation"`
-	EventID          string            `json:"eventId"`
-	Fields           []string          `json:"fields"`
-	Input            map[string]any    `json:"input"`
-	Request          any               `json:"request"`
-	Preconditions    map[string]string `json:"preconditions"`
-	ExpiresInSeconds int               `json:"expiresInSeconds"`
-	PlanToken        string            `json:"planToken"`
+type eventUpdatePreview struct {
+	Operation     string            `json:"operation"`
+	EventID       string            `json:"eventId"`
+	Fields        []string          `json:"fields"`
+	Input         map[string]any    `json:"input"`
+	Request       any               `json:"request"`
+	Preconditions map[string]string `json:"preconditions"`
 }
 
-type eventCancelPlan struct {
-	Operation        string                     `json:"operation"`
-	EventID          string                     `json:"eventId"`
-	Input            normalizedEventCancelInput `json:"input"`
-	Request          remote.CancelEventParams   `json:"request"`
-	Effects          []string                   `json:"effects"`
-	Preconditions    map[string]string          `json:"preconditions"`
-	ExpiresInSeconds int                        `json:"expiresInSeconds"`
-	PlanToken        string                     `json:"planToken"`
+type eventCancelPreview struct {
+	Operation     string                    `json:"operation"`
+	EventID       string                    `json:"eventId"`
+	Input         eventCancelPreviewInput   `json:"input"`
+	Request       eventCancelPreviewRequest `json:"request"`
+	Effects       []string                  `json:"effects"`
+	Preconditions map[string]string         `json:"preconditions"`
+}
+
+type eventCancelPreviewInput struct {
+	MessageProvided bool `json:"messageProvided"`
+	NotifyGuests    bool `json:"notifyGuests"`
+}
+
+type eventCancelPreviewRequest struct {
+	EventID                     string `json:"eventId"`
+	CancellationMessageProvided bool   `json:"cancellationMessageProvided"`
+	ShouldSkipNotifyGuests      bool   `json:"shouldSkipNotifyGuests"`
 }
 
 type eventCreateSubmitted struct {
@@ -62,28 +65,9 @@ type eventCancelSubmitted struct {
 	Submitted    bool   `json:"submitted"`
 }
 
-type eventPosterBinding struct {
-	CatalogDigest string                `json:"catalogDigest"`
-	Poster        remote.PartifulPoster `json:"poster"`
-}
-
 type eventFieldSnapshot struct {
 	State string          `json:"state"`
 	Value json.RawMessage `json:"value,omitempty"`
-}
-
-type eventUpdatePrivatePreconditions struct {
-	OwnerIDs  eventFieldSnapshot            `json:"ownerIds"`
-	Status    eventFieldSnapshot            `json:"status"`
-	Target    map[string]eventFieldSnapshot `json:"target"`
-	DateGuard map[string]eventFieldSnapshot `json:"dateGuard,omitempty"`
-}
-
-type eventCancelPrivatePreconditions struct {
-	OwnerIDs   eventFieldSnapshot `json:"ownerIds"`
-	Status     eventFieldSnapshot `json:"status"`
-	StartDate  eventFieldSnapshot `json:"startDate"`
-	GuestCount eventFieldSnapshot `json:"guestCount"`
 }
 
 func executeEventCreate(
@@ -92,76 +76,74 @@ func executeEventCreate(
 	definition commandDefinition,
 	argv []string,
 	dependencies Dependencies,
+	execution mutationExecution,
 	pretty bool,
 ) Result {
 	options, inputError := parseEventCreateOptions(request, definition, argv, dependencies)
 	if inputError != nil {
 		return failure(definition.path, exitCodeForType(inputError.Type), *inputError, pretty)
 	}
-	session, sessionFailure := acquireProtectedSession(ctx, definition.path, dependencies, pretty)
+	client := remote.Client{HTTP: dependencies.HTTP}
+	if execution.DryRun {
+		privateRequest, prepareFailure := prepareEventCreate(
+			ctx,
+			definition.path,
+			client,
+			options.Input,
+			pretty,
+		)
+		if prepareFailure != nil {
+			return *prepareFailure
+		}
+		return success(definition.path, eventCreatePreview{
+			Operation:     "createEvent",
+			Input:         options.Input.public(),
+			Request:       privateRequest,
+			Preconditions: map[string]string{"poster": "bound"},
+		}, pretty)
+	}
+	session, sessionFailure := acquireProtectedMutationSession(ctx, definition.path, dependencies, execution, pretty)
 	if sessionFailure != nil {
 		return *sessionFailure
 	}
-	if session.AccountFingerprint == "" {
+	if session.UserID == "" {
 		return internalFailure(definition.path, pretty)
 	}
-	clock := time.Now
-	if dependencies.Now != nil {
-		clock = dependencies.Now
+	privateRequest, prepareFailure := prepareEventCreate(
+		ctx,
+		definition.path,
+		client,
+		options.Input,
+		pretty,
+	)
+	if prepareFailure != nil {
+		return *prepareFailure
 	}
-	authority := mutation.Authority{Files: dependencies.Files, Path: eventMutationPath(dependencies), Now: clock, Random: dependencies.MutationRandom}
-	inputDocument := options.Input.document()
-	var inspected mutation.Record
-	if options.Apply {
-		var err error
-		inspected, err = authority.Inspect(options.PlanToken, definition.path, "createEvent", session.AccountFingerprint, inputDocument)
-		if err != nil {
-			if errors.Is(err, mutation.ErrStale) {
-				return eventPlanStaleFailure(definition.path, pretty)
-			}
-			return internalFailure(definition.path, pretty)
+	if _, err := client.CreateEvent(ctx, session.AccessToken, session.UserID, privateRequest); err != nil {
+		if errors.Is(err, remote.ErrUnavailable) {
+			return eventSubmissionUnavailableFailure(definition.path, "Create submission could not be confirmed. Inspect remote state before another attempt.", pretty)
 		}
+		return eventWriteProtocolChangedFailure(definition.path, "CREATE_EVENT_PROTOCOL_CHANGED", "The event create response no longer matches the reviewed remote contract.", "partiful: event create protocol changed\n", pretty)
 	}
-	client := remote.Client{HTTP: dependencies.HTTP}
-	posterImage, posterBinding, err := resolvePosterBinding(ctx, client, options.Input.PosterID)
+	return success(definition.path, eventCreateSubmitted{Submitted: true}, pretty)
+}
+
+func prepareEventCreate(
+	ctx context.Context,
+	command string,
+	client remote.Client,
+	input normalizedEventCreateInput,
+	pretty bool,
+) (remote.CreateEventParams, *Result) {
+	posterImage, err := resolvePoster(ctx, client, input.PosterID)
 	if err != nil {
-		return mapPosterError(definition.path, err, pretty)
+		result := mapPosterError(command, err, pretty)
+		return remote.CreateEventParams{}, &result
 	}
-	privateRequest := remote.CreateEventParams{Event: buildCreateEventDraft(options.Input, posterImage), CohostIDs: []string{}}
-	requestDocument, _ := json.Marshal(privateRequest)
-	preconditionDocument, _ := json.Marshal(posterBinding)
-	binding := mutation.Binding{Command: definition.path, Operation: "createEvent", AccountFingerprint: session.AccountFingerprint, Input: inputDocument, Request: requestDocument, Preconditions: preconditionDocument}
-	if options.Apply {
-		if !bytes.Equal(inspected.Binding.Request, requestDocument) || !bytes.Equal(inspected.Binding.Preconditions, preconditionDocument) {
-			return eventPlanStaleFailure(definition.path, pretty)
-		}
-		if err := authority.Consume(options.PlanToken, binding); err != nil {
-			if errors.Is(err, mutation.ErrStale) {
-				return eventPlanStaleFailure(definition.path, pretty)
-			}
-			return internalFailure(definition.path, pretty)
-		}
-		_, err := client.CreateEvent(ctx, session.AccessToken, session.UserID, privateRequest)
-		if err != nil {
-			if errors.Is(err, remote.ErrUnavailable) {
-				return eventSubmissionUnavailableFailure(definition.path, "Create submission could not be confirmed. Create a new plan before another attempt.", pretty)
-			}
-			return eventWriteProtocolChangedFailure(definition.path, "CREATE_EVENT_PROTOCOL_CHANGED", "The event create response no longer matches the reviewed remote contract.", "partiful: event create protocol changed\n", pretty)
-		}
-		return success(definition.path, eventCreateSubmitted{Submitted: true}, pretty)
-	}
-	token, err := authority.Create(binding)
-	if err != nil {
-		return internalFailure(definition.path, pretty)
-	}
-	return success(definition.path, eventCreatePlan{
-		Operation:        "createEvent",
-		Input:            options.Input.public(),
-		Request:          privateRequest,
-		Preconditions:    map[string]string{"poster": "bound"},
-		ExpiresInSeconds: 300,
-		PlanToken:        token,
-	}, pretty)
+	return remote.CreateEventParams{
+		Event:     buildCreateEventDraft(input, posterImage),
+		CohostIDs: []string{},
+	}, nil
 }
 
 func executeEventUpdate(
@@ -170,35 +152,23 @@ func executeEventUpdate(
 	definition commandDefinition,
 	argv []string,
 	dependencies Dependencies,
+	execution mutationExecution,
 	pretty bool,
 ) Result {
 	options, inputError := parseEventUpdateOptions(request, definition, argv, dependencies)
 	if inputError != nil {
 		return failure(definition.path, exitCodeForType(inputError.Type), *inputError, pretty)
 	}
-	session, sessionFailure := acquireProtectedSession(ctx, definition.path, dependencies, pretty)
+	session, sessionFailure := acquireProtectedMutationSession(ctx, definition.path, dependencies, execution, pretty)
 	if sessionFailure != nil {
 		return *sessionFailure
 	}
-	if session.AccountFingerprint == "" || session.UserID == "" {
+	if session.UserID == "" {
 		return internalFailure(definition.path, pretty)
 	}
 	clock := time.Now
 	if dependencies.Now != nil {
 		clock = dependencies.Now
-	}
-	authority := mutation.Authority{Files: dependencies.Files, Path: eventMutationPath(dependencies), Now: clock, Random: dependencies.MutationRandom}
-	inputDocument := options.Input.document()
-	var inspected mutation.Record
-	if options.Apply {
-		var err error
-		inspected, err = authority.Inspect(options.PlanToken, definition.path, "firestorePatchEvent", session.AccountFingerprint, inputDocument)
-		if err != nil {
-			if errors.Is(err, mutation.ErrStale) {
-				return eventPlanStaleFailure(definition.path, pretty)
-			}
-			return internalFailure(definition.path, pretty)
-		}
 	}
 	deviceID, err := randomDeviceID(dependencies.AuthRandom)
 	if err != nil {
@@ -209,9 +179,6 @@ func executeEventUpdate(
 	if err != nil {
 		switch {
 		case errors.Is(err, remote.ErrEventNotFound):
-			if options.Apply {
-				return eventPlanStaleFailure(definition.path, pretty)
-			}
 			return eventNotFoundFailure(definition.path, pretty)
 		case errors.Is(err, remote.ErrUnavailable):
 			return eventRemoteUnavailableFailure(definition.path, "The event update could not read current event data.", "partiful: event update unavailable\n", pretty)
@@ -226,10 +193,9 @@ func executeEventUpdate(
 	if mergedRangeError != nil {
 		return *mergedRangeError
 	}
-	preconditions, conditionFailure := buildUpdatePreconditions(
+	conditionFailure := validateEventUpdatePreconditions(
 		definition.path,
 		event,
-		session.UserID,
 		options.Input,
 		clock(),
 		pretty,
@@ -241,7 +207,6 @@ func executeEventUpdate(
 		ctx,
 		definition.path,
 		client,
-		event,
 		options.Input,
 		session.UserID,
 		pretty,
@@ -249,41 +214,23 @@ func executeEventUpdate(
 	if prepareErr != nil {
 		return *prepareErr
 	}
-	requestDocument, _ := json.Marshal(privateRequest)
-	preconditionDocument, _ := json.Marshal(preconditions)
-	binding := mutation.Binding{Command: definition.path, Operation: "firestorePatchEvent", AccountFingerprint: session.AccountFingerprint, Input: inputDocument, Request: requestDocument, Preconditions: preconditionDocument}
-	if options.Apply {
-		if !bytes.Equal(inspected.Binding.Request, requestDocument) || !bytes.Equal(inspected.Binding.Preconditions, preconditionDocument) {
-			return eventPlanStaleFailure(definition.path, pretty)
-		}
-		if err := authority.Consume(options.PlanToken, binding); err != nil {
-			if errors.Is(err, mutation.ErrStale) {
-				return eventPlanStaleFailure(definition.path, pretty)
-			}
-			return internalFailure(definition.path, pretty)
-		}
-		if err := client.FirestorePatchEvent(ctx, session.AccessToken, options.EventID, fieldPaths, privateRequest); err != nil {
-			if errors.Is(err, remote.ErrUnavailable) {
-				return eventSubmissionUnavailableFailure(definition.path, "Update submission could not be confirmed. Create a new plan before another attempt.", pretty)
-			}
-			return eventWriteProtocolChangedFailure(definition.path, "EVENT_UPDATE_PROTOCOL_CHANGED", "The event update response no longer matches the reviewed remote contract.", "partiful: event update protocol changed\n", pretty)
-		}
-		return success(definition.path, eventUpdateSubmitted{EventID: options.EventID, Fields: options.Input.fields(), Submitted: true}, pretty)
+	if execution.DryRun {
+		return success(definition.path, eventUpdatePreview{
+			Operation:     "firestorePatchEvent",
+			EventID:       options.EventID,
+			Fields:        options.Input.fields(),
+			Input:         options.Input.public(),
+			Request:       publicRequest,
+			Preconditions: map[string]string{"ownership": "bound", "status": "bound", "targetFields": "bound"},
+		}, pretty)
 	}
-	token, err := authority.Create(binding)
-	if err != nil {
-		return internalFailure(definition.path, pretty)
+	if err := client.FirestorePatchEvent(ctx, session.AccessToken, options.EventID, fieldPaths, privateRequest); err != nil {
+		if errors.Is(err, remote.ErrUnavailable) {
+			return eventSubmissionUnavailableFailure(definition.path, "Update submission could not be confirmed. Inspect remote state before another attempt.", pretty)
+		}
+		return eventWriteProtocolChangedFailure(definition.path, "EVENT_UPDATE_PROTOCOL_CHANGED", "The event update response no longer matches the reviewed remote contract.", "partiful: event update protocol changed\n", pretty)
 	}
-	return success(definition.path, eventUpdatePlan{
-		Operation:        "firestorePatchEvent",
-		EventID:          options.EventID,
-		Fields:           options.Input.fields(),
-		Input:            options.Input.public(),
-		Request:          publicRequest,
-		Preconditions:    map[string]string{"ownership": "bound", "status": "bound", "targetFields": "bound"},
-		ExpiresInSeconds: 300,
-		PlanToken:        token,
-	}, pretty)
+	return success(definition.path, eventUpdateSubmitted{EventID: options.EventID, Fields: options.Input.fields(), Submitted: true}, pretty)
 }
 
 func executeEventCancel(
@@ -292,35 +239,23 @@ func executeEventCancel(
 	definition commandDefinition,
 	argv []string,
 	dependencies Dependencies,
+	execution mutationExecution,
 	pretty bool,
 ) Result {
 	options, inputError := parseEventCancelOptions(request, definition, argv, dependencies)
 	if inputError != nil {
 		return failure(definition.path, exitCodeForType(inputError.Type), *inputError, pretty)
 	}
-	session, sessionFailure := acquireProtectedSession(ctx, definition.path, dependencies, pretty)
+	session, sessionFailure := acquireProtectedMutationSession(ctx, definition.path, dependencies, execution, pretty)
 	if sessionFailure != nil {
 		return *sessionFailure
 	}
-	if session.AccountFingerprint == "" || session.UserID == "" {
+	if session.UserID == "" {
 		return internalFailure(definition.path, pretty)
 	}
 	clock := time.Now
 	if dependencies.Now != nil {
 		clock = dependencies.Now
-	}
-	authority := mutation.Authority{Files: dependencies.Files, Path: eventMutationPath(dependencies), Now: clock, Random: dependencies.MutationRandom}
-	inputDocument := options.Input.document()
-	var inspected mutation.Record
-	if options.Apply {
-		var err error
-		inspected, err = authority.Inspect(options.ConfirmToken, definition.path, "cancelEvent", session.AccountFingerprint, inputDocument)
-		if err != nil {
-			if errors.Is(err, mutation.ErrStale) {
-				return eventPlanStaleFailure(definition.path, pretty)
-			}
-			return internalFailure(definition.path, pretty)
-		}
 	}
 	deviceID, err := randomDeviceID(dependencies.AuthRandom)
 	if err != nil {
@@ -331,9 +266,6 @@ func executeEventCancel(
 	if err != nil {
 		switch {
 		case errors.Is(err, remote.ErrEventNotFound):
-			if options.Apply {
-				return eventPlanStaleFailure(definition.path, pretty)
-			}
 			return eventNotFoundFailure(definition.path, pretty)
 		case errors.Is(err, remote.ErrUnavailable):
 			return eventRemoteUnavailableFailure(definition.path, "The event cancellation could not read current event data.", "partiful: event cancel unavailable\n", pretty)
@@ -341,7 +273,7 @@ func executeEventCancel(
 			return eventWriteProtocolChangedFailure(definition.path, "EVENT_CANCEL_PROTOCOL_CHANGED", "The event cancel flow no longer matches the reviewed remote contract.", "partiful: event cancel protocol changed\n", pretty)
 		}
 	}
-	preconditions, conditionFailure := buildCancelPreconditions(
+	conditionFailure := validateEventCancelPreconditions(
 		definition.path,
 		event,
 		session.UserID,
@@ -352,45 +284,43 @@ func executeEventCancel(
 		return *conditionFailure
 	}
 	privateRequest := remote.CancelEventParams{EventID: options.EventID, CancellationMessage: options.Input.Message, ShouldSkipNotifyGuests: !options.Input.NotifyGuests}
-	requestDocument, _ := json.Marshal(privateRequest)
-	preconditionDocument, _ := json.Marshal(preconditions)
-	binding := mutation.Binding{Command: definition.path, Operation: "cancelEvent", AccountFingerprint: session.AccountFingerprint, Input: inputDocument, Request: requestDocument, Preconditions: preconditionDocument}
-	if options.Apply {
-		if !bytes.Equal(inspected.Binding.Request, requestDocument) || !bytes.Equal(inspected.Binding.Preconditions, preconditionDocument) {
-			return eventPlanStaleFailure(definition.path, pretty)
-		}
-		if err := authority.Consume(options.ConfirmToken, binding); err != nil {
-			if errors.Is(err, mutation.ErrStale) {
-				return eventPlanStaleFailure(definition.path, pretty)
-			}
-			return internalFailure(definition.path, pretty)
-		}
-		if err := client.CancelEvent(ctx, session.AccessToken, session.UserID, privateRequest); err != nil {
-			if errors.Is(err, remote.ErrUnavailable) {
-				return eventSubmissionUnavailableFailure(definition.path, "Cancel submission could not be confirmed. Create a new plan before another attempt.", pretty)
-			}
-			return eventWriteProtocolChangedFailure(definition.path, "EVENT_CANCEL_PROTOCOL_CHANGED", "The event cancel response no longer matches the reviewed remote contract.", "partiful: event cancel protocol changed\n", pretty)
-		}
-		return success(definition.path, eventCancelSubmitted{EventID: options.EventID, NotifyGuests: options.Input.NotifyGuests, Submitted: true}, pretty)
-	}
-	token, err := authority.Create(binding)
-	if err != nil {
-		return internalFailure(definition.path, pretty)
-	}
 	effects := []string{"Cancels the event"}
 	if options.Input.NotifyGuests {
 		effects = append(effects, "Sends a cancellation notification to guests")
 	}
-	return success(definition.path, eventCancelPlan{
-		Operation:        "cancelEvent",
-		EventID:          options.EventID,
-		Input:            options.Input,
-		Request:          privateRequest,
-		Effects:          effects,
-		Preconditions:    map[string]string{"ownership": "bound", "status": "bound", "start": "bound", "guestCount": "bound"},
-		ExpiresInSeconds: 300,
-		PlanToken:        token,
-	}, pretty)
+	if execution.DryRun {
+		return success(definition.path, eventCancelPreview{
+			Operation: "cancelEvent",
+			EventID:   options.EventID,
+			Input: eventCancelPreviewInput{
+				MessageProvided: options.Input.Message != "",
+				NotifyGuests:    options.Input.NotifyGuests,
+			},
+			Request: eventCancelPreviewRequest{
+				EventID:                     options.EventID,
+				CancellationMessageProvided: options.Input.Message != "",
+				ShouldSkipNotifyGuests:      !options.Input.NotifyGuests,
+			},
+			Effects:       effects,
+			Preconditions: map[string]string{"ownership": "bound", "status": "bound", "start": "bound", "guestCount": "bound"},
+		}, pretty)
+	}
+	if confirmationFailure := requireDestructiveConfirmation(
+		definition,
+		event.Title,
+		execution,
+		dependencies,
+		pretty,
+	); confirmationFailure != nil {
+		return *confirmationFailure
+	}
+	if err := client.CancelEvent(ctx, session.AccessToken, session.UserID, privateRequest); err != nil {
+		if errors.Is(err, remote.ErrUnavailable) {
+			return eventSubmissionUnavailableFailure(definition.path, "Cancel submission could not be confirmed. Inspect remote state before another attempt.", pretty)
+		}
+		return eventWriteProtocolChangedFailure(definition.path, "EVENT_CANCEL_PROTOCOL_CHANGED", "The event cancel response no longer matches the reviewed remote contract.", "partiful: event cancel protocol changed\n", pretty)
+	}
+	return success(definition.path, eventCancelSubmitted{EventID: options.EventID, NotifyGuests: options.Input.NotifyGuests, Submitted: true}, pretty)
 }
 
 func buildCreateEventDraft(input normalizedEventCreateInput, poster remote.PartifulPosterImage) remote.CreateEventDraft {
@@ -443,10 +373,14 @@ func buildCreateEventDraft(input normalizedEventCreateInput, poster remote.Parti
 	return draft
 }
 
-func resolvePosterBinding(ctx context.Context, client remote.Client, posterID string) (remote.PartifulPosterImage, eventPosterBinding, error) {
+func resolvePoster(
+	ctx context.Context,
+	client remote.Client,
+	posterID string,
+) (remote.PartifulPosterImage, error) {
 	catalog, err := client.GetPosterCatalog(ctx)
 	if err != nil {
-		return remote.PartifulPosterImage{}, eventPosterBinding{}, err
+		return remote.PartifulPosterImage{}, err
 	}
 	matches := make([]remote.Poster, 0, 1)
 	for _, poster := range catalog.Posters {
@@ -455,13 +389,12 @@ func resolvePosterBinding(ctx context.Context, client remote.Client, posterID st
 		}
 	}
 	if len(matches) == 0 {
-		return remote.PartifulPosterImage{}, eventPosterBinding{}, errPosterNotFound
+		return remote.PartifulPosterImage{}, errPosterNotFound
 	}
 	if len(matches) != 1 {
-		return remote.PartifulPosterImage{}, eventPosterBinding{}, errPosterDuplicate
+		return remote.PartifulPosterImage{}, errPosterDuplicate
 	}
-	posterImage := remote.NewPartifulPosterImage(matches[0])
-	return posterImage, eventPosterBinding{CatalogDigest: hex.EncodeToString(catalog.PayloadSHA256[:]), Poster: posterImage.Poster}, nil
+	return remote.NewPartifulPosterImage(matches[0]), nil
 }
 
 var (
@@ -484,87 +417,48 @@ func mapPosterError(command string, err error, pretty bool) Result {
 	}
 }
 
-func buildUpdatePreconditions(
+func validateEventUpdatePreconditions(
 	command string,
 	event remote.Event,
-	currentUserID string,
 	input normalizedEventUpdateInput,
 	now time.Time,
 	pretty bool,
-) (eventUpdatePrivatePreconditions, *Result) {
-	preconditions := eventUpdatePrivatePreconditions{
-		OwnerIDs: rawEventField(event, "ownerIds"),
-		Status:   rawEventField(event, "status"),
-		Target:   make(map[string]eventFieldSnapshot),
-	}
-	if input.HasTitle {
-		preconditions.Target["title"] = rawEventField(event, "title")
-	}
-	if input.HasDescription {
-		preconditions.Target["description"] = rawEventField(event, "description")
-	}
-	if input.HasStart {
-		preconditions.Target["startDate"] = rawEventField(event, "startDate")
-	}
-	if input.HasEnd {
-		preconditions.Target["endDate"] = rawEventField(event, "endDate")
-	}
-	if input.HasTimezone {
-		preconditions.Target["timezone"] = rawEventField(event, "timezone")
-	}
-	if input.HasGuestLimit {
-		preconditions.Target["enableWaitlist"] = rawEventField(event, "enableWaitlist")
-		preconditions.Target["maxCapacity"] = rawEventField(event, "maxCapacity")
-	}
-	if input.HasLinks {
-		preconditions.Target["customFields"] = rawEventField(event, "customFields")
-	}
-	if input.HasPosterID {
-		preconditions.Target["image"] = rawEventField(event, "image")
-	}
+) *Result {
 	if input.HasStart || input.HasEnd || input.HasTimezone {
 		if event.HasGuests.State == remote.FieldAbsent {
-			return eventUpdatePrivatePreconditions{}, resultPointer(eventTimeProtocolChangedFailure(command, pretty))
+			return resultPointer(eventTimeProtocolChangedFailure(command, pretty))
 		}
 		if event.Safeguards.Ticketing.State == remote.FieldValue {
-			return eventUpdatePrivatePreconditions{}, resultPointer(eventPreconditionFailure(command, pretty))
-		}
-		preconditions.DateGuard = map[string]eventFieldSnapshot{
-			"startDate": rawEventField(event, "startDate"),
-			"endDate":   rawEventField(event, "endDate"),
-			"hasGuests": rawEventField(event, "hasGuests"),
-			"ticketing": rawEventField(event, "ticketing"),
+			return resultPointer(eventPreconditionFailure(command, pretty))
 		}
 		if event.HasGuests.State != remote.FieldValue {
-			return eventUpdatePrivatePreconditions{}, resultPointer(eventTimeProtocolChangedFailure(command, pretty))
+			return resultPointer(eventTimeProtocolChangedFailure(command, pretty))
 		}
 		if event.HasGuests.Value {
 			start, failure := requiredCurrentEventTime(command, event, "startDate", pretty)
 			if failure != nil {
-				return eventUpdatePrivatePreconditions{}, resultPointer(*failure)
+				return resultPointer(*failure)
 			}
 			end, hasEnd, failure := optionalCurrentEventTime(command, event, "endDate", pretty)
 			if failure != nil {
-				return eventUpdatePrivatePreconditions{}, resultPointer(*failure)
+				return resultPointer(*failure)
 			}
 			boundary := start.Add(8 * time.Hour)
 			if hasEnd {
 				boundary = end.Add(2 * time.Hour)
 			}
 			if now.After(boundary) {
-				return eventUpdatePrivatePreconditions{}, resultPointer(eventPreconditionFailure(command, pretty))
+				return resultPointer(eventPreconditionFailure(command, pretty))
 			}
 		}
 	}
-	_ = currentUserID
-	return preconditions, nil
+	return nil
 }
 
 func buildUpdateRequest(
 	ctx context.Context,
 	command string,
 	client remote.Client,
-	event remote.Event,
 	input normalizedEventUpdateInput,
 	currentUserID string,
 	pretty bool,
@@ -622,7 +516,7 @@ func buildUpdateRequest(
 	if input.HasPosterID {
 		mask = append(mask, "image")
 		if input.PosterID != nil {
-			image, _, err := resolvePosterBinding(ctx, client, *input.PosterID)
+			image, err := resolvePoster(ctx, client, *input.PosterID)
 			if err != nil {
 				result := mapPosterError(command, err, pretty)
 				return remote.FirestoreWriteDocument{}, nil, nil, &result
@@ -636,7 +530,6 @@ func buildUpdateRequest(
 	publicFields["updatedBy"] = remote.FirestoreReferenceValue{ReferenceValue: "<redacted>"}
 	mask = append(mask, "updatedBy")
 	sort.Strings(mask)
-	_ = event
 	return remote.FirestoreWriteDocument{Fields: fields}, map[string]any{"fields": publicFields}, mask, nil
 }
 
@@ -701,52 +594,46 @@ func firestoreStringArray(values []string) []any {
 	return encoded
 }
 
-func buildCancelPreconditions(
+func validateEventCancelPreconditions(
 	command string,
 	event remote.Event,
 	currentUserID string,
 	now time.Time,
 	pretty bool,
-) (eventCancelPrivatePreconditions, *Result) {
-	preconditions := eventCancelPrivatePreconditions{
-		OwnerIDs:   rawEventField(event, "ownerIds"),
-		Status:     rawEventField(event, "status"),
-		StartDate:  rawEventField(event, "startDate"),
-		GuestCount: rawEventField(event, "guestCount"),
-	}
-	if preconditions.OwnerIDs.State != "value" {
+) *Result {
+	if rawEventField(event, "ownerIds").State != "value" {
 		result := eventTimeProtocolChangedFailure(command, pretty)
-		return eventCancelPrivatePreconditions{}, &result
+		return &result
 	}
 	if !event.OwnerIDsPresent || !slices.Contains(event.OwnerIDs, currentUserID) {
 		result := hostPermissionFailure(command, pretty)
-		return eventCancelPrivatePreconditions{}, &result
+		return &result
 	}
-	if preconditions.Status.State != "value" || event.Status == nil {
+	if rawEventField(event, "status").State != "value" || event.Status == nil {
 		result := eventTimeProtocolChangedFailure(command, pretty)
-		return eventCancelPrivatePreconditions{}, &result
+		return &result
 	}
 	if *event.Status != "PUBLISHED" {
 		result := eventPreconditionFailure(command, pretty)
-		return eventCancelPrivatePreconditions{}, &result
+		return &result
 	}
-	if preconditions.GuestCount.State != "value" || event.GuestCount.State != remote.FieldValue {
+	if rawEventField(event, "guestCount").State != "value" || event.GuestCount.State != remote.FieldValue {
 		result := eventTimeProtocolChangedFailure(command, pretty)
-		return eventCancelPrivatePreconditions{}, &result
+		return &result
 	}
 	if event.GuestCount.Value <= 0 {
 		result := eventPreconditionFailure(command, pretty)
-		return eventCancelPrivatePreconditions{}, &result
+		return &result
 	}
 	start, failure := requiredCurrentEventTime(command, event, "startDate", pretty)
 	if failure != nil {
-		return eventCancelPrivatePreconditions{}, resultPointer(*failure)
+		return resultPointer(*failure)
 	}
 	if !start.After(now) {
 		result := eventPreconditionFailure(command, pretty)
-		return eventCancelPrivatePreconditions{}, &result
+		return &result
 	}
-	return preconditions, nil
+	return nil
 }
 
 func validateMergedUpdateRange(command string, event remote.Event, input normalizedEventUpdateInput, pretty bool) *Result {
@@ -861,12 +748,6 @@ func rawEventField(event remote.Event, name string) eventFieldSnapshot {
 	return eventFieldSnapshot{State: "value", Value: bytes.Clone(raw)}
 }
 
-func eventPlanStaleFailure(command string, pretty bool) Result {
-	result := failure(command, 7, errorBody{Type: "safety.plan_stale", Code: "PLAN_STALE", Message: "The mutation plan is expired, used, or no longer matches.", Retryable: false, Details: map[string]any{}}, pretty)
-	result.Stderr = "partiful: mutation plan stale\n"
-	return result
-}
-
 func hostPermissionFailure(command string, pretty bool) Result {
 	result := failure(command, 4, errorBody{Type: "permission.denied", Code: "HOST_PERMISSION_REQUIRED", Message: "This command requires host access to the event.", Retryable: false, Details: map[string]any{"requiredRole": "host"}}, pretty)
 	result.Stderr = "partiful: host access required\n"
@@ -899,18 +780,11 @@ func eventSubmissionUnavailableFailure(command, message string, pretty bool) Res
 
 func exitCodeForType(failureType string) int {
 	switch failureType {
-	case "safety.confirmation_required", "safety.plan_stale":
+	case "safety.confirmation_required":
 		return 7
 	default:
 		return 2
 	}
-}
-
-func eventMutationPath(dependencies Dependencies) string {
-	if dependencies.MutationPath != "" {
-		return dependencies.MutationPath
-	}
-	return "/config/partiful/mutation-plans.json"
 }
 
 func resultPointer(result Result) *Result {
