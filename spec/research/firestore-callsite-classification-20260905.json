@@ -1,0 +1,47 @@
+{
+  "artifact_schema_version": 1,
+  "source_commit": "edbdd4de7c1c6e768394bed1a989f8091364231d",
+  "evidence_class": "repo-derived",
+  "count": 5,
+  "operations": [
+    {
+      "operation": "GET collection events/{eventID}/guests?pageSize=1000[&pageToken=...]",
+      "consumer": "CLI blasts.send only, via remote.ListEventGuests called at internal/app/blasts.go:170. It is not used by guests.list.",
+      "disposition": "Fields consumed: required guest status (validated against validGuestStatus) and presence/non-nullness of checkIn, producing Status and CheckedIn. Safety pre-read: after callable GetEventInfo confirms the caller is an owner, this snapshot feeds recipient-group derivation, guest counts, and bound blast preconditions before createTextBlast. Looks command/RPC-like in purpose, implemented as a collection-list GET; not realtime/data-plane. Candidate callable replacement needed for a Firestore-free migration; endpoint unknown.",
+      "evidence": "repo-derived: path and field decoding internal/remote/firestore_list.go:34-59; generic paginated GET internal/remote/firestore_list.go:88-158; consumer and fail-closed handling internal/app/blasts.go:152-191; recipient/precondition use internal/app/blasts.go:370-460."
+    },
+    {
+      "operation": "GET collection events/{eventID}/hostMessages?pageSize=1000[&pageToken=...]",
+      "consumer": "CLI blasts.send only, via remote.CountTextBlasts called at internal/app/blasts.go:177.",
+      "disposition": "Fields consumed: optional nullable type; a missing/null type or TEXT_BLAST increments the count, other types do not. Safety pre-read: blocks plan/apply when the existing blast count reaches 10 and binds the count into blast preconditions before createTextBlast. Looks command/RPC-like in purpose, implemented as a collection-list GET; not realtime/data-plane. Candidate callable replacement needed for a Firestore-free migration; endpoint unknown.",
+      "evidence": "repo-derived: path and type-count rule internal/remote/firestore_list.go:62-85; generic paginated GET internal/remote/firestore_list.go:88-158; consumer/fail-closed handling internal/app/blasts.go:170-191; count limit and bound precondition internal/app/blasts.go:387-406."
+    },
+    {
+      "operation": "GET collection events/{eventID}/cohostRequests?pageSize=100",
+      "consumer": "CLI cohosts.invite, cohosts.revoke-invite, and cohosts.remove share executeCohostContactAction, which calls remote.GetCohostRequests at internal/app/cohosts.go:250.",
+      "disposition": "Fields consumed: target Firestore reference, constrained to users/{userID}, and required status constrained to PENDING, ACCEPTED, or DECLINED. Safety pre-reads: callable GetEventInfo establishes ownership; callable GetContacts resolves or revalidates the target; this collection establishes the target's current cohost state and the plan's bound preconditions before create/delete/remove callable dispatch. Looks command/RPC-like in purpose, implemented as a bounded collection-list GET; not realtime/data-plane. Candidate callable replacement needed for a Firestore-free migration; endpoint unknown.",
+      "evidence": "repo-derived: path, one-page bound, consumed fields, and status validation internal/remote/cohosts.go:164-214 and :465-504; GET construction internal/remote/cohosts.go:308-350; all three command wrappers internal/app/cohosts.go:87-162; pre-read/state/dispatch chain internal/app/cohosts.go:210-326."
+    },
+    {
+      "operation": "GET document events/{eventID}/private/cohostSecret",
+      "consumer": "CLI cohosts.link.create and cohosts.link.revoke share executeCohostLinkAction, which calls remote.GetCohostLink at internal/app/cohosts.go:485.",
+      "disposition": "Fields consumed: required non-empty path when the document exists; a validated Firestore NOT_FOUND response is an allowed absent-link state. Safety pre-read: callable GetEventInfo establishes ownership; this document binds whether a link is absent/present and its path before generate/revoke callable dispatch. Looks command/RPC-like in purpose, implemented as a document GET; not realtime/data-plane. Candidate callable replacement needed for a Firestore-free migration; endpoint unknown.",
+      "evidence": "repo-derived: path, not-found behavior, and path validation internal/remote/cohosts.go:217-238 and :353-400; NOT_FOUND validation internal/remote/cohosts.go:489-500; command wrappers internal/app/cohosts.go:354-412; pre-read/state/dispatch chain internal/app/cohosts.go:461-539."
+    },
+    {
+      "operation": "PATCH document events/{eventID}?currentDocument.exists=true&updateMask.fieldPaths=...",
+      "consumer": "CLI events.update only, via remote.FirestorePatchEvent at internal/app/event_write.go:265.",
+      "disposition": "Fields written: selected title, description, startDate, endDate, timezone, enableWaitlist, maxCapacity, customFields[{icon,url,value}], image{blurHash,contentType,height,name,poster{blurHash,categories,contentType,height,id,name,tags,url,width},source,url,width}, and always updatedBy as users/{currentUserID} reference. Update mask always includes updatedBy; nullable clear paths are masked while omitted from the fields map. Safety pre-reads: callable GetEventInfo checks event existence/ownership and supplies merged-range, target-field, ticketing, hasGuests, and status preconditions; poster changes also read the callable poster catalog; local reviewed-plan bindings must match before dispatch. PATCH itself requires only currentDocument.exists=true, not an update-time/version condition. Looks command/RPC-like in purpose but is a direct document mutation. Highest-priority callable replacement candidate; endpoint unknown.",
+      "evidence": "repo-derived: PATCH request, existence precondition, and response validation internal/remote/event_writes.go:265-316; callable event pre-read/ownership/plan comparison/dispatch internal/app/event_write.go:179-286; precondition fields internal/app/event_write.go:487-560; field and update-mask construction internal/app/event_write.go:563-640; nested link/image encoding internal/app/event_write.go:643-700."
+    }
+  ],
+  "followups": [
+    "Capture or recover callable contracts for the five listed behaviors before replacing them; this repo-only audit establishes no callable names for those replacements.",
+    "Prioritize events.update because it is the only direct Firestore write and presently relies on a document-exists check rather than a server-side command contract or update-time concurrency precondition.",
+    "If migrating blast safety reads, preserve the current fail-closed behavior for malformed/unavailable guest and host-message state and preserve the bound guest snapshot/text-blast-count plan checks.",
+    "If migrating cohost safety reads, preserve explicit absent-vs-present semantics for cohostSecret and target-reference/status validation for cohostRequests."
+  ],
+  "notes": [
+    "This inventory describes current production transport use. Candidate replacement language is not evidence that a replacement callable exists."
+  ]
+}
