@@ -8820,6 +8820,26 @@
     "#/paths/~1getDiscoverEventItemDecorators/post/responses/200/content/application~1json/schema/type": {
       "classification": "dated-live-observation",
       "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscovereventitemdecorators"
+    },
+    "#/paths/~1getDiscoverFeedV2/post/responses/200/content/application~1json/schema/properties/result/properties/data/properties/presentationStyle": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoverfeedv2"
+    },
+    "#/paths/~1getDiscoverFeedV2/post/responses/200/content/application~1json/schema/properties/result/properties/data/properties/presentationStyle/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoverfeedv2"
+    },
+    "#/paths/~1getDiscoverFeedV2/post/responses/200/content/application~1json/schema/properties/result/properties/paging/properties/pageResultCount": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoverfeedv2"
+    },
+    "#/paths/~1getDiscoverFeedV2/post/responses/200/content/application~1json/schema/properties/result/properties/paging/properties/pageResultCount/type": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoverfeedv2"
+    },
+    "#/paths/~1getDiscoverFeedV2/post/responses/200/content/application~1json/schema/properties/result/properties/paging/properties/pageResultCount/minimum": {
+      "classification": "dated-live-observation",
+      "citation": "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoverfeedv2"
     }
   },
   "posterCatalogObservation": {
@@ -9434,7 +9454,7 @@
       "addInvitedGuestsAsHost"
     ]
   },
-  "materialClaimCount": 2083,
+  "materialClaimCount": 2088,
   "publicCohostAssetResearch": {
     "classification": "current-first-party-public-asset-research",
     "sourceCitation": "docs/research/2026-08-12-cohost-lifecycle-public-assets.md#scope-and-provenance",

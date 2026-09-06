@@ -129,12 +129,18 @@ func (client Client) GetDiscoverFeedV2(ctx context.Context, accessToken string, 
 		return DiscoverPage{}, discoverProtocol("feed result")
 	}
 	data, err := eventObjectField(result, "data")
-	if err != nil || !discoverClosedObject(data, "items") {
+	if err != nil || !discoverClosedObject(data, "items", "presentationStyle") {
 		return DiscoverPage{}, discoverProtocol("feed data")
 	}
 	paging, err := eventObjectField(result, "paging")
-	if err != nil || !discoverClosedObject(paging, "nextCursor") {
+	if err != nil || !discoverClosedObject(paging, "nextCursor", "pageResultCount") {
 		return DiscoverPage{}, discoverProtocol("feed paging")
+	}
+	if _, _, err := eventStringField(data, "presentationStyle", false); err != nil {
+		return DiscoverPage{}, discoverProtocol("feed presentation style")
+	}
+	if _, err := discoverOptionalCount(paging, "pageResultCount"); err != nil {
+		return DiscoverPage{}, discoverProtocol("feed page result count")
 	}
 	items, err := discoverItems(data, "items")
 	if err != nil {

@@ -196,6 +196,15 @@ func TestContractRevisionsStayInSyncAcrossDocsAndSpecs(t *testing.T) {
 			}
 		}
 	}
+	for pointer, want := range map[string]any{
+		"#/paths/~1getDiscoverFeedV2/post/responses/200/content/application~1json/schema/properties/result/properties/data/properties/presentationStyle/type":    "string",
+		"#/paths/~1getDiscoverFeedV2/post/responses/200/content/application~1json/schema/properties/result/properties/paging/properties/pageResultCount/type":    "integer",
+		"#/paths/~1getDiscoverFeedV2/post/responses/200/content/application~1json/schema/properties/result/properties/paging/properties/pageResultCount/minimum": float64(0),
+	} {
+		if actual, found := valueAt(rawOpenAPI, pointer); !found || actual != want {
+			t.Errorf("%s = %#v, want %#v", pointer, actual, want)
+		}
+	}
 
 	for path, citation := range map[string]string{
 		"/getDiscoverFeedV2":              "docs/research/2026-09-05-explore-v1-contract-evidence.md#getdiscoverfeedv2",

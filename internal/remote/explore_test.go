@@ -113,6 +113,33 @@ func TestGetDiscoverDecodesReviewedNullableAndLocationVariants(t *testing.T) {
 	}
 }
 
+func TestGetDiscoverFeedV2AcceptsReviewedPresentationMetadataWithoutProjection(t *testing.T) {
+	client := Client{HTTP: discoverHTTPClientFunc(func(*http.Request) (*http.Response, error) {
+		return discoverResponse(http.StatusOK, "application/json", `{"result":{"data":{"items":[],"presentationStyle":"rows"},"paging":{"nextCursor":null,"pageResultCount":0}}}`), nil
+	})}
+	page, err := client.GetDiscoverFeedV2(context.Background(), "test-token", DynamicArea{CountryCode: "US", State: "WA", City: "Seattle"}, 1, nil)
+	if err != nil || len(page.Events) != 0 || page.NextCursor != nil {
+		t.Fatalf("page = %#v, err = %v", page, err)
+	}
+}
+
+func TestGetDiscoverFeedV2RejectsInvalidReviewedPresentationMetadata(t *testing.T) {
+	area := DynamicArea{CountryCode: "US", State: "WA", City: "Seattle"}
+	for _, body := range []string{
+		`{"result":{"data":{"items":[],"presentationStyle":3},"paging":{}}}`,
+		`{"result":{"data":{"items":[],"presentationStyle":"rows"},"paging":{"pageResultCount":"1"}}}`,
+		`{"result":{"data":{"items":[],"presentationStyle":"rows"},"paging":{"pageResultCount":-1}}}`,
+		`{"result":{"data":{"items":[],"presentationStyle":"rows"},"paging":{"pageResultCount":1.5}}}`,
+	} {
+		client := Client{HTTP: discoverHTTPClientFunc(func(*http.Request) (*http.Response, error) {
+			return discoverResponse(http.StatusOK, "application/json", body), nil
+		})}
+		if _, err := client.GetDiscoverFeedV2(context.Background(), "test-token", area, 1, nil); !errors.Is(err, ErrProtocolChanged) {
+			t.Fatalf("body %s: error = %v", body, err)
+		}
+	}
+}
+
 func TestGetDiscoverRejectsMalformedOrUnavailableResponses(t *testing.T) {
 	validFeed := `{"result":{"data":{"items":[]},"paging":{}}}`
 	cases := []struct {

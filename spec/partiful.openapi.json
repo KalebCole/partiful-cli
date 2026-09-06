@@ -2436,6 +2436,9 @@
                                   }
                                 }
                               }
+                            },
+                            "presentationStyle": {
+                              "type": "string"
                             }
                           }
                         },
@@ -2448,6 +2451,10 @@
                                 "string",
                                 "null"
                               ]
+                            },
+                            "pageResultCount": {
+                              "type": "integer",
+                              "minimum": 0
                             }
                           }
                         }

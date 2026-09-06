@@ -20,6 +20,12 @@ explicit `countryCode`, `state`, and `city`; `data.params.tagId:
 "DISCOVER_HOME"`; `allowedFeedPresentationStyles:["rows"]`; and
 `data.paging.maxResults` with optional opaque `cursor`. The observed success
 is HTTP `200` JSON at `result.data.items` and `result.paging.nextCursor`.
+A privacy-safe live structural probe also observed optional
+`result.data.presentationStyle` as a string and optional
+`result.paging.pageResultCount` as a nonnegative integer. The probe retained
+only keys and JSON types: no metadata values, identifiers, names, credentials,
+or raw response body are committed. These transport metadata fields are
+validated but not projected into the product model.
 
 A complete observed Seattle feed had 17 unique events across two pages. Feed
 items establish a non-empty event ID and reviewed optional event title, dates,
