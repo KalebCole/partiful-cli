@@ -22,6 +22,7 @@ reference needed for the current task.
 |---|---|
 | Login, auth status, credential resolution, or authentication diagnostics | [Authentication](references/authentication.md) |
 | Output envelopes, global flags, schema discovery, errors, or safety flow | [CLI output and safety](references/cli-output-and-safety.md) |
+| Discover public events in an explicit area | [Explore](references/explore.md) |
 | List, inspect, create, update, or cancel events | [Events](references/events.md) |
 | RSVP or express interest as an attendee | [RSVPs and interest](references/rsvps-and-interest.md) |
 | List guests, resolve contacts, invite guests, or manage cohosts as a host | [Guests, invitations, and cohosts](references/guests-invitations-and-cohosts.md) |

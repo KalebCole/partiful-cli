@@ -57,6 +57,7 @@ partiful auth logout
 partiful posters list
 partiful posters search --query <text>
 partiful contacts list [--query <text>]
+partiful explore list --city Seattle --state WA --country US --section trending --date-filter this-weekend
 partiful events list --when <upcoming|past>
 partiful events get <event-id>
 partiful guests list <event-id>
