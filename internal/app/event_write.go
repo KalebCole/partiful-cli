@@ -50,7 +50,8 @@ type eventCancelPreviewRequest struct {
 }
 
 type eventCreateSubmitted struct {
-	Submitted bool `json:"submitted"`
+	EventID   string `json:"eventId"`
+	Submitted bool   `json:"submitted"`
 }
 
 type eventUpdateSubmitted struct {
@@ -119,13 +120,14 @@ func executeEventCreate(
 	if prepareFailure != nil {
 		return *prepareFailure
 	}
-	if _, err := client.CreateEvent(ctx, session.AccessToken, session.UserID, privateRequest); err != nil {
+	eventID, err := client.CreateEvent(ctx, session.AccessToken, session.UserID, privateRequest)
+	if err != nil {
 		if errors.Is(err, remote.ErrUnavailable) {
 			return eventSubmissionUnavailableFailure(definition.path, "Create submission could not be confirmed. Inspect remote state before another attempt.", pretty)
 		}
 		return eventWriteProtocolChangedFailure(definition.path, "CREATE_EVENT_PROTOCOL_CHANGED", "The event create response no longer matches the reviewed remote contract.", "partiful: event create protocol changed\n", pretty)
 	}
-	return success(definition.path, eventCreateSubmitted{Submitted: true}, pretty)
+	return success(definition.path, eventCreateSubmitted{EventID: eventID, Submitted: true}, pretty)
 }
 
 func prepareEventCreate(
