@@ -712,12 +712,8 @@ func TestExecuteEventsListFailsClosedInsteadOfTruncatingLocalBounds(t *testing.T
 	}
 }
 
-func TestExecuteEventsGetProjectsReviewedDetailAndNullUnavailableFields(t *testing.T) {
-	const (
-		credentials        = `{"accessToken":"private-access-token","expiresAt":"2026-08-12T02:00:00Z"}`
-		privateRemoteID    = "private-different-remote-event"
-		privateDescription = "private unprojected description"
-	)
+func TestExecuteEventsGetProjectsPopulatedSupportedDetails(t *testing.T) {
+	const credentials = `{"accessToken":"private-access-token","expiresAt":"2026-08-12T02:00:00Z"}`
 	terminal := &scriptedPrivateTerminal{values: []string{"must-not-be-read"}}
 	result := app.Execute(context.Background(), app.Request{
 		Argv: []string{"events", "get", "event-example"},
@@ -751,28 +747,17 @@ func TestExecuteEventsGetProjectsReviewedDetailAndNullUnavailableFields(t *testi
 			}
 			return jsonResponse(
 				http.StatusOK,
-				`{"result":{"data":{"event":{"id":"`+privateRemoteID+`","title":"Example event","startDate":"2026-09-12T19:00:00-07:00","endDate":"2026-09-12T22:00:00-07:00","timezone":"America/Los_Angeles","status":"CANCELED","description":"`+privateDescription+`","location":"private unreviewed location","links":["private unreviewed link"]}}}}`,
+				`{"result":{"data":{"event":{"id":"remote-event","title":"Example event","startDate":"2026-09-12T19:00:00-07:00","endDate":"2026-09-12T22:00:00-07:00","timezone":"America/Los_Angeles","status":"CANCELED","description":"Bring snacks","location":"The courtyard","locationInfo":{"type":"freeform","value":"123 Example Street"},"visibility":"private","guestLimit":12,"image":{"source":"partiful_posters","url":"https://example.invalid/poster.png"},"customFields":[{"icon":"link","value":"Tickets","url":"https://example.invalid/tickets"}]}}}}`,
 			), nil
 		}},
 	})
 
-	const want = `{"ok":true,"data":{"eventId":"event-example","title":"Example event","start":"2026-09-12T19:00:00-07:00","end":"2026-09-12T22:00:00-07:00","timezone":"America/Los_Angeles","state":"cancelled","userRole":null,"myRsvp":null,"description":null,"location":null,"address":null,"visibility":null,"guestLimit":null,"poster":null,"links":null},"meta":{"command":"events.get","cliVersion":"3.0.0","productContractRevision":"2026-08-12.7","remoteContractRevision":"2026-08-12.7","warnings":[]}}` + "\n"
+	const want = `{"ok":true,"data":{"eventId":"event-example","title":"Example event","start":"2026-09-12T19:00:00-07:00","end":"2026-09-12T22:00:00-07:00","timezone":"America/Los_Angeles","state":"cancelled","userRole":null,"myRsvp":null,"description":"Bring snacks","location":"The courtyard","address":{"type":"freeform","value":"123 Example Street"},"visibility":"private","guestLimit":12,"poster":{"source":"partiful_posters","url":"https://example.invalid/poster.png"},"links":[{"icon":"link","value":"Tickets","url":"https://example.invalid/tickets"}]},"meta":{"command":"events.get","cliVersion":"3.0.0","productContractRevision":"2026-08-12.7","remoteContractRevision":"2026-08-12.7","warnings":[]}}` + "\n"
 	if result.ExitCode != 0 || result.Stdout != want || result.Stderr != "" {
-		t.Fatalf("result = %#v, want reviewed nullable event detail", result)
+		t.Fatalf("result = %#v, want populated event detail", result)
 	}
 	if len(terminal.prompts) != 0 {
 		t.Fatalf("protected command prompted: %#v", terminal.prompts)
-	}
-	for _, privateValue := range []string{
-		privateRemoteID,
-		privateDescription,
-		"private unreviewed location",
-		"private unreviewed link",
-		"private-access-token",
-	} {
-		if strings.Contains(result.Stdout+result.Stderr, privateValue) {
-			t.Fatalf("output exposed unavailable or private value %q", privateValue)
-		}
 	}
 }
 
@@ -1064,8 +1049,14 @@ func TestExecuteSchemaProjectsCompleteEventReadDefinitions(t *testing.T) {
 	if !reflect.DeepEqual(get.Data.SuccessSchema.Required, wantEventFields) ||
 		get.Data.SuccessSchema.Properties["userRole"].Type != "null" ||
 		get.Data.SuccessSchema.Properties["myRsvp"].Type != "null" ||
-		get.Data.SuccessSchema.Properties["links"].Type != "null" {
-		t.Fatalf("event success schema = %#v, want nullable S3 event", get.Data.SuccessSchema)
+		!reflect.DeepEqual(get.Data.SuccessSchema.Properties["description"].Type, []any{"string", "null"}) ||
+		!reflect.DeepEqual(get.Data.SuccessSchema.Properties["location"].Type, []any{"string", "null"}) ||
+		!reflect.DeepEqual(get.Data.SuccessSchema.Properties["address"].Type, []any{"object", "null"}) ||
+		!reflect.DeepEqual(get.Data.SuccessSchema.Properties["visibility"].Type, []any{"string", "null"}) ||
+		!reflect.DeepEqual(get.Data.SuccessSchema.Properties["guestLimit"].Type, []any{"integer", "null"}) ||
+		!reflect.DeepEqual(get.Data.SuccessSchema.Properties["poster"].Type, []any{"object", "null"}) ||
+		!reflect.DeepEqual(get.Data.SuccessSchema.Properties["links"].Type, []any{"array", "null"}) {
+		t.Fatalf("event success schema = %#v, want populated detail field schemas", get.Data.SuccessSchema)
 	}
 	for _, definition := range []schemaEnvelope{list, get} {
 		if definition.Data.Safety.Kind != "read-only" ||
