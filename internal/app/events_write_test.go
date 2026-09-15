@@ -181,7 +181,7 @@ func TestExecuteEventCreateDryRunReturnsExactNormalizedRequestAndDefaultPoster(t
 	}
 }
 
-func TestExecuteEventCreateDispatchesOneAttemptAndReturnsSubmittedOnly(t *testing.T) {
+func TestExecuteEventCreateParsesCurrentCompletionAndReturnsCreatedEventID(t *testing.T) {
 	files := &memoryFilesystem{files: map[string][]byte{
 		eventWriteCredentialsPath: []byte(eventWriteCredentials),
 	}}
@@ -208,7 +208,9 @@ func TestExecuteEventCreateDispatchesOneAttemptAndReturnsSubmittedOnly(t *testin
 			return jsonResponse(http.StatusOK, catalogBody), nil
 		case 2:
 			assertEventCallableRequest(t, request, "createEvent", `{"data":{"params":{"event":{"title":"Example event","startDate":"2026-09-13T02:00:00Z","timezone":"America/Los_Angeles","guestStatusCounts":{"APPROVED":0,"DECLINED":0,"DELIVERY_ERROR":0,"GOING":0,"INTERESTED":0,"MAYBE":0,"PENDING_APPROVAL":0,"READY_TO_SEND":0,"REJECTED":0,"RESPONDED_TO_FIND_A_TIME":0,"SENDING":0,"SEND_ERROR":0,"SENT":0,"WAITLIST":0,"WAITLISTED_FOR_APPROVAL":0,"WITHDRAWN":0},"displaySettings":{"theme":"cloudflow","effect":"fireflies","titleFont":"display"},"status":"UNSAVED","rsvpButtonGlyphType":"emojis","image":{"source":"partiful_posters","poster":{"id":"birthdaycake.png","name":"Birthday Cake","url":"https://assets.getpartiful.com/posters/birthdaycake.png","blurHash":"LKO2?U%2Tw=w]~RBVZRi};RPxuwH","contentType":"image/png","height":1200,"width":800,"tags":["birthday"],"categories":["birthday"]},"url":"https://assets.getpartiful.com/posters/birthdaycake.png","blurHash":"LKO2?U%2Tw=w]~RBVZRi};RPxuwH","contentType":"image/png","name":"Birthday Cake","height":1200,"width":800},"showHostList":true,"showGuestCount":true,"showGuestList":true,"showActivityTimestamps":true,"displayInviteButton":true,"visibility":"public","allowGuestPhotoUpload":true,"enableGuestReminders":true,"rsvpsEnabled":true,"allowGuestsToInviteMutuals":true},"cohostIds":[]},"userId":"private-account"}}`)
-			return jsonResponse(http.StatusOK, `{"data":"private-event-id"}`), nil
+			// Sanitized fixture of the current create completion: the callable returns
+			// the created event object rather than a bare event ID string.
+			return jsonResponse(http.StatusOK, `{"data":{"event":{"id":"event-created-fixture"}}}`), nil
 		default:
 			t.Fatalf("unexpected request %d: %s", call, request.URL)
 			return nil, nil
@@ -223,10 +225,9 @@ func TestExecuteEventCreateDispatchesOneAttemptAndReturnsSubmittedOnly(t *testin
 	}
 	applied := app.Execute(context.Background(), app.Request{Argv: argv}, dependencies)
 	if applied.ExitCode != 0 ||
-		!strings.Contains(applied.Stdout, `"data":{"submitted":true}`) ||
-		strings.Contains(applied.Stdout, "private-event-id") ||
+		!strings.Contains(applied.Stdout, `"data":{"eventId":"event-created-fixture","submitted":true}`) ||
 		applied.Stderr != "" {
-		t.Fatalf("applied = %#v, want submitted-only create result", applied)
+		t.Fatalf("applied = %#v, want submitted create result with event ID", applied)
 	}
 	if call != 2 {
 		t.Fatalf("request count = %d, want one catalog read and one submission attempt", call)

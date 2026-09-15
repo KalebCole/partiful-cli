@@ -180,10 +180,18 @@ func (client Client) CreateEvent(
 		return "", err
 	}
 	var eventID string
-	if json.Unmarshal(completion, &eventID) != nil || eventID == "" {
+	if json.Unmarshal(completion, &eventID) == nil && eventID != "" {
+		return eventID, nil
+	}
+	var created struct {
+		Event struct {
+			ID string `json:"id"`
+		} `json:"event"`
+	}
+	if json.Unmarshal(completion, &created) != nil || created.Event.ID == "" {
 		return "", fmt.Errorf("%w: create event completion", ErrProtocolChanged)
 	}
-	return eventID, nil
+	return created.Event.ID, nil
 }
 
 func (client Client) CancelEvent(
