@@ -340,7 +340,7 @@ func buildCreateEventDraft(input normalizedEventCreateInput, poster remote.Parti
 		ShowGuestList:              true,
 		ShowActivityTimestamps:     true,
 		DisplayInviteButton:        true,
-		Visibility:                 "public",
+		Visibility:                 input.Visibility,
 		AllowGuestPhotoUpload:      true,
 		EnableGuestReminders:       true,
 		RSVPsEnabled:               true,
