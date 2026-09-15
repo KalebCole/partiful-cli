@@ -234,12 +234,19 @@ func executeEventGet(
 		return eventProtocolChangedFailure(definition.path, pretty)
 	}
 	return success(definition.path, eventDetail{
-		EventID:  eventID,
-		Title:    event.Title,
-		Start:    event.Start,
-		End:      event.End,
-		Timezone: event.Timezone,
-		State:    state,
+		EventID:     eventID,
+		Title:       event.Title,
+		Start:       event.Start,
+		End:         event.End,
+		Timezone:    event.Timezone,
+		State:       state,
+		Description: event.RawFields["description"],
+		Location:    event.RawFields["location"],
+		Address:     event.RawFields["locationInfo"],
+		Visibility:  event.RawFields["visibility"],
+		GuestLimit:  event.RawFields["guestLimit"],
+		Poster:      event.RawFields["image"],
+		Links:       event.RawFields["customFields"],
 	}, pretty)
 }
 
