@@ -455,12 +455,12 @@ nullable field projection occurs. A null, scalar, or array event value returns
 event. This is a CLI output invariant and does not claim that the remote
 operation accepts only one top-level variant.
 
-`description`, `location`, `address`, `visibility`, `guestLimit`, `poster`,
-and `links` are unavailable-not-claimed in S3. They are null even if an
-unreviewed remote property has a similar name. In particular, `links` is
-`null`, not an empty array; this does not mean that the remote event has no
-links. A later contract revision can add a field only after its transport
-shape and product projection are reviewed.
+`description`, `location`, `visibility`, and `guestLimit` are nullable scalar
+projections from same-named `getEventInfo` properties. `address` preserves the
+nullable `locationInfo` object, `poster` preserves the nullable `image` object,
+and `links` preserves the nullable `customFields` array. Absent or explicit null
+remote fields remain null. This command does not infer values from similarly
+named fields or synthesize empty arrays or objects.
 
 `getEventInfo` has this read failure boundary:
 
