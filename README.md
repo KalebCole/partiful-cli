@@ -91,7 +91,7 @@ prompting and fails safely unless `--force` is also present.
 ## Release notes
 
 - GoReleaser injects the tagged release version with ldflags.
-- Source builds default to `3.0.0` until a release tag overrides it.
+- Source builds default to `3.0.1` until a release tag overrides it.
 - Each native archive bundles `README.md` and `LICENSE`.
 - `doctor` is the safe local smoke command for authentication state.
 
