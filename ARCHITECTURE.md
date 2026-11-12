@@ -19,8 +19,8 @@ not another contract to update.
 
 The native Go program lives in `cmd/partiful` and `internal/`. `internal/app`
 handles commands and product safety; `internal/remote` handles wire requests;
-`internal/auth` handles credential state and attended login. The
-[product contract](CLI-PRODUCT-CONTRACT.md) defines user-facing behavior.
+`internal/auth` handles credential state and attended login. The command
+definitions and Go tests define user-facing behavior.
 
 ## Checks against the spec
 
@@ -54,4 +54,34 @@ its dated `x-evidence` note. Cite privacy-safe research and keep unsupported
 responses explicit. Add a focused Go test for the call or correction, implement
 the adapter as needed, and run the checks above. No separate evidence ledger,
 proposal document, or owner sign-off ceremony is required. User-facing changes
-also need to satisfy the product contract.
+also need to satisfy the product tests and reviewed schema snapshot.
+
+## Why these product rules exist
+
+Task-oriented commands and complete JSON results let people and agents compose
+workflows without knowing private transport details. Stable errors let callers
+choose a safe next step. Redacted previews and explicit destructive confirmation
+make consequential changes reviewable; dispatching once avoids duplicate effects
+when completion is uncertain. Failing closed on unreviewed responses protects
+users from guesses about a changing private API. The old TypeScript CLI remains
+research evidence, rather than a compatibility target.
+
+`partiful schema [command.path]` describes the executable public surface.
+`internal/app/product_rules_test.go` applies shared envelope, privacy, and failure
+checks to command fixtures; `internal/app/testdata/schema.golden.json` records the
+catalog and every command definition. `productContractRevision` remains a public
+compatibility field identifying this executable product baseline and its goldens;
+`remoteContractRevision` independently identifies the OpenAPI revision.
+
+| Deliberately excluded feature | Rationale |
+| --- | --- |
+| Templates, clone | Add persistence or orchestration beyond reviewed remote behavior. |
+| Export | JSON and shell redirection already compose. |
+| Watch | Polling, identity stability, and delivery guarantees are unestablished. |
+| Bulk mutation | Needs separately designed safety for multiple consequential effects. |
+| Skill installation | Agent configuration belongs outside this CLI. |
+| Image upload; raw HTTP, callable, Firebase, Firestore access | Unreviewed upload behavior and generic escape hatches bypass domain safeguards. |
+
+New features need reviewed product tests and remote evidence; the existence of a
+remote endpoint alone is insufficient. Tests can check evidence structure and
+known fixtures, but people must assess evidence quality and product scope.

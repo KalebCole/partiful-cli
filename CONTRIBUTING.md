@@ -38,7 +38,7 @@ They do not require live Partiful credentials or remote mutations.
 
 ## Public contract
 
-- `docs/CLI-PRODUCT-CONTRACT.md` is the user-facing command authority.
+- Command definitions and Go tests enforce the user-facing rules.
 - [`spec/partiful.openapi.json`](../spec/partiful.openapi.json) is the remote transport authority.
 - [Architecture](ARCHITECTURE.md) explains authentication and contract checks.
 - `partiful schema [command.path]` is the machine-readable command catalog.
@@ -57,3 +57,23 @@ They do not require live Partiful credentials or remote mutations.
 - Do not use live Partiful credentials in tests or release verification.
 - Do not expose phone numbers, email addresses, access tokens, or Partiful user IDs.
 - Keep black-box command tests at the `app.Execute` seam.
+
+## Reviewing public behavior changes
+
+Run `go test ./...` to check command envelopes, error mappings, privacy fixtures,
+mutation safety, and the complete schema snapshot. The existing native CI runs
+these tests with the race detector as well as native packaging checks.
+
+For an intentional public schema or error mapping change, inspect the behavior
+and update the reviewed snapshots explicitly:
+
+```bash
+go test ./internal/app -update-product-goldens
+git diff -- internal/app/testdata
+```
+
+Keep `productContractRevision` in `internal/app/buildinfo.go` aligned with deliberate
+changes to the executable product baseline. The schema golden records that revision
+in its metadata. Error goldens pin observed type/code/exit mappings;
+command fixtures exercise the actual failure paths. See [Architecture](ARCHITECTURE.md#why-these-product-rules-exist)
+for the rationale and excluded features.
