@@ -1220,13 +1220,13 @@ hatch.
 
 ## Implementation gates and remote changes
 
-The owner-reviewed remote API contract records observed response statuses and
+The [OpenAPI spec](../spec/partiful.openapi.json) records supported response statuses and
 bodies for some operations. Unobserved mappings remain unknown. Before a
 public command ships, its implementation slice must:
 
 1. obtain privacy-safe evidence for every remote response and failure mapping
    it needs;
-2. update the remote API contract and evidence ledger through owner review;
+2. update the operation and its `x-evidence` note in the OpenAPI spec and add a test;
 3. prove that it can populate every required product output field;
 4. prove that it can distinguish the documented failure types without
    guessing;
@@ -1237,9 +1237,7 @@ is `contract.protocol_changed`. The CLI stops, returns exit `9`, and tells the
 user to update the CLI. It does not continue with partial data or infer a new
 mapping.
 
-The separate supervised contract-refresh process can inspect the changed API,
-collect approved browser evidence, propose a new remote API contract revision,
-and open a pull request. It cannot approve or merge that revision.
+See [Architecture](ARCHITECTURE.md) for the call change process and checks.
 
 ## Deliberately excluded features
 
