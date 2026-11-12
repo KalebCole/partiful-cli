@@ -17,6 +17,9 @@ import (
 const (
 	maximumFirestoreListBytes = 8 << 20
 	firestorePageSize         = 1000
+	// These are CLI safety bounds, not Firestore collection-size limits.
+	maximumGuestFirestorePages = maximumGuestCatalogSize / firestorePageSize
+	maximumBlastFirestorePages = 10
 )
 
 type EventGuest struct {
@@ -40,6 +43,7 @@ func (client Client) ListEventGuests(
 		ctx,
 		accessToken,
 		firestoreCollectionPath("events", eventID, "guests"),
+		maximumGuestFirestorePages,
 	)
 	if err != nil {
 		return nil, err
@@ -68,6 +72,7 @@ func (client Client) CountTextBlasts(
 		ctx,
 		accessToken,
 		firestoreCollectionPath("events", eventID, "hostMessages"),
+		maximumBlastFirestorePages,
 	)
 	if err != nil {
 		return 0, err
@@ -89,13 +94,21 @@ func (client Client) listFirestoreDocuments(
 	ctx context.Context,
 	accessToken string,
 	collectionPath string,
+	maximumPages int,
 ) ([]firestoreDocumentRecord, error) {
 	if client.HTTP == nil {
 		return nil, fmt.Errorf("%w: firestore list transport", ErrUnavailable)
 	}
+	if maximumPages <= 0 {
+		return nil, fmt.Errorf("%w: firestore list page safety cap must be positive", ErrProtocolChanged)
+	}
 	var documents []firestoreDocumentRecord
 	pageToken := ""
-	for {
+	seenTokens := make(map[string]struct{})
+	for pageCount := 0; ; pageCount++ {
+		if pageCount >= maximumPages {
+			return nil, fmt.Errorf("%w: firestore list page safety cap (%d pages)", ErrProtocolChanged, maximumPages)
+		}
 		page, nextToken, err := client.listFirestoreDocumentsPage(
 			ctx,
 			accessToken,
@@ -105,10 +118,17 @@ func (client Client) listFirestoreDocuments(
 		if err != nil {
 			return nil, err
 		}
+		if len(page) > maximumPages*firestorePageSize-len(documents) {
+			return nil, fmt.Errorf("%w: firestore list document safety cap (%d documents)", ErrProtocolChanged, maximumPages*firestorePageSize)
+		}
 		documents = append(documents, page...)
 		if nextToken == "" {
 			return documents, nil
 		}
+		if _, repeated := seenTokens[nextToken]; repeated {
+			return nil, fmt.Errorf("%w: firestore list repeated nextPageToken", ErrProtocolChanged)
+		}
+		seenTokens[nextToken] = struct{}{}
 		pageToken = nextToken
 	}
 }

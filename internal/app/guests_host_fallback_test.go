@@ -58,7 +58,7 @@ func TestExecuteGuestsListFallsBackToGuestsSubcollectionForHost(t *testing.T) {
 		`{"name":"projects/getpartiful/databases/(default)/documents/events/event-example/guests/private-guest-2","fields":{"name":{"stringValue":"Cohost Example"},"status":{"stringValue":"SENT"},"count":{"integerValue":"1"},"userId":{"stringValue":"private-cohost"}}}` +
 		`]}`
 	calls := 0
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv: []string{"guests", "list", "event-example"},
 	}, hostFallbackDependencies(t, documents, &calls))
 	if result.ExitCode != 0 || result.Stderr != "" {
@@ -91,7 +91,7 @@ func TestExecuteGuestsListFallsBackToGuestsSubcollectionForHost(t *testing.T) {
 
 func TestExecuteGuestsListHostFallbackReturnsEmptyCollection(t *testing.T) {
 	calls := 0
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv: []string{"guests", "list", "event-example"},
 	}, hostFallbackDependencies(t, `{}`, &calls))
 	if result.ExitCode != 0 || !strings.Contains(result.Stdout, `"data":{"items":[]}`) || result.Stderr != "" {
@@ -102,7 +102,7 @@ func TestExecuteGuestsListHostFallbackReturnsEmptyCollection(t *testing.T) {
 func TestExecuteGuestsListHostFallbackFailsClosedOnUnknownGuestDocument(t *testing.T) {
 	const documents = `{"documents":[{"name":"projects/getpartiful/databases/(default)/documents/events/event-example/guests/private-guest-1","fields":{"displayName":{"stringValue":"Alice Example"},"status":{"stringValue":"GOING"}}}]}`
 	calls := 0
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv: []string{"guests", "list", "event-example"},
 	}, hostFallbackDependencies(t, documents, &calls))
 	if result.ExitCode == 0 || !strings.Contains(result.Stdout, "GUESTS_PROTOCOL_CHANGED") {

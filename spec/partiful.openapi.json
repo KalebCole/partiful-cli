@@ -506,6 +506,36 @@
           },
           "default": {
             "description": "Unobserved response status or body."
+          },
+          "400": {
+            "description": "Reported live host rejection in PR #249 (2026-09-29); only this exact first-page error enables the Firestore host fallback.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "error"
+                  ],
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "required": [
+                        "message",
+                        "status"
+                      ],
+                      "properties": {
+                        "message": {
+                          "const": "User is host"
+                        },
+                        "status": {
+                          "const": "FAILED_PRECONDITION"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
           }
         },
         "security": [
@@ -516,7 +546,7 @@
         "x-evidence": {
           "status": "observed",
           "date": "2026-08-12",
-          "source": "Request: current-first-party-public-asset-research (docs/research/2026-08-12-guest-mapping-public-assets.md#getguests-request-and-pagination). Response: current-first-party-public-asset-research (docs/research/2026-08-12-guest-mapping-public-assets.md#getguests-response-and-guest-fields). Status: official-protocol-specification (docs/research/2026-08-10-contract-evidence-sources.md#official-firebase-callable-protocol)."
+          "source": "Request: current-first-party-public-asset-research (docs/research/2026-08-12-guest-mapping-public-assets.md#getguests-request-and-pagination). Response: current-first-party-public-asset-research (docs/research/2026-08-12-guest-mapping-public-assets.md#getguests-response-and-guest-fields). Status: official-protocol-specification (docs/research/2026-08-10-contract-evidence-sources.md#official-firebase-callable-protocol). PR #249 reports HTTP 400 with error.message User is host and error.status FAILED_PRECONDITION on 2026-09-29; only an empty Firestore host list was live-checked."
         }
       }
     },
@@ -2353,11 +2383,11 @@
         ],
         "responses": {
           "200": {
-            "description": "Official Firestore list-documents protocol; collection fields are supported by the cited first-party client research. Partiful authorization and unobserved errors remain unknown.",
+            "description": "Official Firestore list-documents envelope. The host guest fallback has only an empty-list live observation reported in PR #249; populated guest field mappings are inferred from getGuests and remain unverified. Unknown document shapes fail closed. Blast preconditions read only status and checkIn.",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/FirestoreListResponse"
+                  "$ref": "#/components/schemas/FirestoreEventGuestsListResponse"
                 }
               }
             }
@@ -2378,8 +2408,8 @@
         ],
         "x-evidence": {
           "status": "observed",
-          "date": "2026-08-12",
-          "source": "Official Firestore list protocol: docs/research/2026-08-10-contract-evidence-sources.md#official-firestore-rest-protocol. Collection path and client preconditions: docs/research/2026-08-12-text-blast-mapping-public-assets.md#host-only-precondition-reads. Public-asset research only; no live collection request or mutation. Pagination limits, authorization, and unobserved failures unknown."
+          "date": "2026-09-29",
+          "source": "Official Firestore list protocol: docs/research/2026-08-10-contract-evidence-sources.md#official-firestore-rest-protocol. Collection path and client preconditions: docs/research/2026-08-12-text-blast-mapping-public-assets.md#host-only-precondition-reads. Public-asset research only; no live collection request or mutation. Pagination limits, authorization, and unobserved failures unknown. PR #249 reports a live empty host list on 2026-09-29 after getGuests returned HTTP 400 FAILED_PRECONDITION / User is host. Populated host guest fields name, status, count, userId, and anchorGuestId are inferred from the callable guest projection, not a populated Firestore observation; require real Partiful evidence. Document ID comes from the Firestore document name. The CLI bounds traversal to 10 pages of pageSize=1000 and 10000 documents, rejecting repeated tokens or overflow without partial results. These are local safety caps; Firestore documents no maximum collection size."
         },
         "tags": [
           "firestore"
@@ -4303,6 +4333,110 @@
           }
         },
         "additionalProperties": true
+      },
+      "FirestoreHostGuestDocument": {
+        "description": "Provisional host guest projection inferred in PR #249, not verified against a populated host response. Additional fields ignored by the CLI.",
+        "type": "object",
+        "required": [
+          "name",
+          "fields"
+        ],
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "fields": {
+            "type": "object",
+            "required": [
+              "name",
+              "status",
+              "count"
+            ],
+            "properties": {
+              "name": {
+                "$ref": "#/components/schemas/FirestoreObservedStringValue"
+              },
+              "status": {
+                "$ref": "#/components/schemas/FirestoreObservedStringValue"
+              },
+              "count": {
+                "type": "object",
+                "required": [
+                  "integerValue"
+                ],
+                "properties": {
+                  "integerValue": {
+                    "type": "string",
+                    "pattern": "^[0-9]+$"
+                  }
+                }
+              },
+              "userId": {
+                "anyOf": [
+                  {
+                    "$ref": "#/components/schemas/FirestoreObservedStringValue"
+                  },
+                  {
+                    "type": "object",
+                    "required": [
+                      "nullValue"
+                    ],
+                    "properties": {
+                      "nullValue": {
+                        "type": "null"
+                      }
+                    }
+                  }
+                ]
+              },
+              "anchorGuestId": {
+                "anyOf": [
+                  {
+                    "$ref": "#/components/schemas/FirestoreObservedStringValue"
+                  },
+                  {
+                    "type": "object",
+                    "required": [
+                      "nullValue"
+                    ],
+                    "properties": {
+                      "nullValue": {
+                        "type": "null"
+                      }
+                    }
+                  }
+                ]
+              }
+            },
+            "additionalProperties": {
+              "$ref": "#/components/schemas/FirestoreValue"
+            }
+          }
+        },
+        "additionalProperties": true
+      },
+      "FirestoreEventGuestsListResponse": {
+        "type": "object",
+        "properties": {
+          "documents": {
+            "type": "array",
+            "items": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/FirestoreHostGuestDocument"
+                },
+                {
+                  "$ref": "#/components/schemas/FirestoreDocument"
+                }
+              ]
+            }
+          },
+          "nextPageToken": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": true,
+        "description": "Shared collection read. Host fallback requires the provisional full guest subset; blast preconditions need only status and checkIn. Empty documents may be omitted."
       }
     }
   },

@@ -197,6 +197,7 @@ func TestRemoteCallsMatchOpenAPI(t *testing.T) {
 		},
 		"firestoreListCohostRequests": func() { _, _ = client.GetCohostRequests(ctx, "test-token", "event-example") },
 		"firestoreGetCohostLink":      func() { _, _ = client.GetCohostLink(ctx, "test-token", "event-example") },
+		"firestoreHostGuestsFallback": func() { _, _ = client.getHostGuests(ctx, "test-token", "event-example") },
 		"firestoreListEventGuests":    func() { _, _ = client.ListEventGuests(ctx, "test-token", "event-example") },
 		"firestoreListHostMessages":   func() { _, _ = client.CountTextBlasts(ctx, "test-token", "event-example") },
 		"getPosterCatalog":            func() { _, _ = client.GetPosterCatalog(ctx) },
@@ -264,7 +265,11 @@ func TestRemoteCallsMatchOpenAPI(t *testing.T) {
 						}
 					}
 				}
-				if !reflect.DeepEqual(matches, []string{id}) {
+				wantID := id
+				if id == "firestoreHostGuestsFallback" {
+					wantID = "firestoreListEventGuests"
+				}
+				if !reflect.DeepEqual(matches, []string{wantID}) {
 					t.Errorf("%s: outbound request matches operations %v", id, matches)
 				}
 				return nil, errors.New("contract test: stop before remote dispatch")

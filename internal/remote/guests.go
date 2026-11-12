@@ -436,12 +436,10 @@ func (client Client) getHostGuests(
 		ctx,
 		accessToken,
 		firestoreCollectionPath("events", eventID, "guests"),
+		maximumGuestFirestorePages,
 	)
 	if err != nil {
 		return GuestCatalog{}, err
-	}
-	if len(documents) > maximumGuestCatalogSize {
-		return GuestCatalog{}, fmt.Errorf("%w: guests traversal bound", ErrProtocolChanged)
 	}
 	guests := make([]Guest, 0, len(documents))
 	for _, document := range documents {
