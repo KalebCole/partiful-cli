@@ -455,12 +455,18 @@ nullable field projection occurs. A null, scalar, or array event value returns
 event. This is a CLI output invariant and does not claim that the remote
 operation accepts only one top-level variant.
 
-`description`, `location`, `visibility`, and `guestLimit` are nullable scalar
-projections from same-named `getEventInfo` properties. `address` preserves the
-nullable `locationInfo` object, `poster` preserves the nullable `image` object,
-and `links` preserves the nullable `customFields` array. Absent or explicit null
-remote fields remain null. This command does not infer values from similarly
-named fields or synthesize empty arrays or objects.
+`description` and `location` are nullable scalar projections from same-named
+`getEventInfo` properties. `visibility` is the product choice, not the raw
+transport field: `isPublic: true` is `public`, and every other case, including
+an absent `isPublic`, is `private`. Create keeps the separate `visibility`
+property fixed at `"public"`, so that property cannot distinguish a private
+event. `guestLimit` uses the same-named property when it is present and not
+null, and otherwise uses `maxCapacity` (the field create writes). `address`
+preserves the nullable `locationInfo` object, `poster` preserves the nullable
+`image` object, and `links` preserves the nullable `customFields` array.
+Absent or explicit null remote fields remain null, other than this visibility
+and capacity projection. This command does not infer any other value from a
+similarly named field or synthesize empty arrays or objects.
 
 `getEventInfo` has this read failure boundary:
 

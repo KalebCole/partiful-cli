@@ -761,6 +761,104 @@ func TestExecuteEventsGetProjectsPopulatedSupportedDetails(t *testing.T) {
 	}
 }
 
+func TestExecuteEventsGetProjectsPopulatedSupportedDetailsFromCreateFields(t *testing.T) {
+	const credentials = `{"accessToken":"private-access-token","expiresAt":"2026-08-12T02:00:00Z"}`
+	terminal := &scriptedPrivateTerminal{values: []string{"must-not-be-read"}}
+	result := app.Execute(context.Background(), app.Request{
+		Argv: []string{"events", "get", "event-example"},
+	}, app.Dependencies{
+		Files: fakeFilesystem{
+			readFile: func(string) ([]byte, error) {
+				return []byte(credentials), nil
+			},
+		},
+		CredentialsPath: "/config/partiful/credentials.json",
+		Now: func() time.Time {
+			return time.Date(2026, time.August, 12, 0, 0, 0, 0, time.UTC)
+		},
+		AuthRandom: strings.NewReader("0123456789abcdef"),
+		Terminal:   terminal,
+		HTTP: scriptedHTTP{do: func(request *http.Request) (*http.Response, error) {
+			if request.Method != http.MethodPost ||
+				request.URL.String() != "https://api.partiful.com/getEventInfo" {
+				t.Fatalf("request = %s %s, want reviewed event detail operation", request.Method, request.URL)
+			}
+			if got := request.Header.Get("Authorization"); got != "Bearer private-access-token" {
+				t.Fatalf("authorization = %q, want bearer credential", got)
+			}
+			body, err := io.ReadAll(request.Body)
+			if err != nil {
+				t.Fatalf("read request body: %v", err)
+			}
+			const wantBody = `{"data":{"params":{"eventId":"event-example"},"amplitudeDeviceId":"MDEyMzQ1Njc4OWFiY2RlZg"}}`
+			if string(body) != wantBody {
+				t.Fatalf("request body = %s, want %s", body, wantBody)
+			}
+			return jsonResponse(
+				http.StatusOK,
+				`{"result":{"data":{"event":{"id":"remote-event","title":"Example event","startDate":"2026-09-12T19:00:00-07:00","endDate":"2026-09-12T22:00:00-07:00","timezone":"America/Los_Angeles","status":"CANCELED","description":"Bring snacks","location":"The courtyard","locationInfo":{"type":"freeform","value":"123 Example Street"},"visibility":"public","maxCapacity":2,"image":{"source":"partiful_posters","url":"https://example.invalid/poster.png"},"customFields":[{"icon":"link","value":"Tickets","url":"https://example.invalid/tickets"}]}}}}`,
+			), nil
+		}},
+	})
+
+	const want = `{"ok":true,"data":{"eventId":"event-example","title":"Example event","start":"2026-09-12T19:00:00-07:00","end":"2026-09-12T22:00:00-07:00","timezone":"America/Los_Angeles","state":"cancelled","userRole":null,"myRsvp":null,"description":"Bring snacks","location":"The courtyard","address":{"type":"freeform","value":"123 Example Street"},"visibility":"private","guestLimit":2,"poster":{"source":"partiful_posters","url":"https://example.invalid/poster.png"},"links":[{"icon":"link","value":"Tickets","url":"https://example.invalid/tickets"}]},"meta":{"command":"events.get","cliVersion":"3.0.1","productContractRevision":"2026-08-12.7","remoteContractRevision":"2026-08-12.7","warnings":[]}}` + "\n"
+	if result.ExitCode != 0 || result.Stdout != want || result.Stderr != "" {
+		t.Fatalf("result = %#v, want populated event detail", result)
+	}
+	if len(terminal.prompts) != 0 {
+		t.Fatalf("protected command prompted: %#v", terminal.prompts)
+	}
+}
+
+func TestExecuteEventsGetProjectsPopulatedSupportedDetailsFromPublicCreateFields(t *testing.T) {
+	const credentials = `{"accessToken":"private-access-token","expiresAt":"2026-08-12T02:00:00Z"}`
+	terminal := &scriptedPrivateTerminal{values: []string{"must-not-be-read"}}
+	result := app.Execute(context.Background(), app.Request{
+		Argv: []string{"events", "get", "event-example"},
+	}, app.Dependencies{
+		Files: fakeFilesystem{
+			readFile: func(string) ([]byte, error) {
+				return []byte(credentials), nil
+			},
+		},
+		CredentialsPath: "/config/partiful/credentials.json",
+		Now: func() time.Time {
+			return time.Date(2026, time.August, 12, 0, 0, 0, 0, time.UTC)
+		},
+		AuthRandom: strings.NewReader("0123456789abcdef"),
+		Terminal:   terminal,
+		HTTP: scriptedHTTP{do: func(request *http.Request) (*http.Response, error) {
+			if request.Method != http.MethodPost ||
+				request.URL.String() != "https://api.partiful.com/getEventInfo" {
+				t.Fatalf("request = %s %s, want reviewed event detail operation", request.Method, request.URL)
+			}
+			if got := request.Header.Get("Authorization"); got != "Bearer private-access-token" {
+				t.Fatalf("authorization = %q, want bearer credential", got)
+			}
+			body, err := io.ReadAll(request.Body)
+			if err != nil {
+				t.Fatalf("read request body: %v", err)
+			}
+			const wantBody = `{"data":{"params":{"eventId":"event-example"},"amplitudeDeviceId":"MDEyMzQ1Njc4OWFiY2RlZg"}}`
+			if string(body) != wantBody {
+				t.Fatalf("request body = %s, want %s", body, wantBody)
+			}
+			return jsonResponse(
+				http.StatusOK,
+				`{"result":{"data":{"event":{"id":"remote-event","title":"Example event","startDate":"2026-09-12T19:00:00-07:00","endDate":"2026-09-12T22:00:00-07:00","timezone":"America/Los_Angeles","status":"CANCELED","description":"Bring snacks","location":"The courtyard","locationInfo":{"type":"freeform","value":"123 Example Street"},"visibility":"public","isPublic":true,"maxCapacity":2,"image":{"source":"partiful_posters","url":"https://example.invalid/poster.png"},"customFields":[{"icon":"link","value":"Tickets","url":"https://example.invalid/tickets"}]}}}}`,
+			), nil
+		}},
+	})
+
+	const want = `{"ok":true,"data":{"eventId":"event-example","title":"Example event","start":"2026-09-12T19:00:00-07:00","end":"2026-09-12T22:00:00-07:00","timezone":"America/Los_Angeles","state":"cancelled","userRole":null,"myRsvp":null,"description":"Bring snacks","location":"The courtyard","address":{"type":"freeform","value":"123 Example Street"},"visibility":"public","guestLimit":2,"poster":{"source":"partiful_posters","url":"https://example.invalid/poster.png"},"links":[{"icon":"link","value":"Tickets","url":"https://example.invalid/tickets"}]},"meta":{"command":"events.get","cliVersion":"3.0.1","productContractRevision":"2026-08-12.7","remoteContractRevision":"2026-08-12.7","warnings":[]}}` + "\n"
+	if result.ExitCode != 0 || result.Stdout != want || result.Stderr != "" {
+		t.Fatalf("result = %#v, want populated event detail", result)
+	}
+	if len(terminal.prompts) != 0 {
+		t.Fatalf("protected command prompted: %#v", terminal.prompts)
+	}
+}
+
 func TestExecuteEventsGetMapsOnlyReviewedFailuresAndObjectVariants(t *testing.T) {
 	cases := []struct {
 		name        string
