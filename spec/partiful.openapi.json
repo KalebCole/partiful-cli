@@ -88,7 +88,7 @@
         },
         "responses": {
           "200": {
-            "description": "Generic callable protocol completion. The current client uses decoded completion data as an event ID; persisted event state is not established.",
+            "description": "Callable completion containing the created event ID, including the observed result.data string. Persisted event state is not established.",
             "content": {
               "application/json": {
                 "schema": {
@@ -108,8 +108,8 @@
         ],
         "x-evidence": {
           "status": "observed",
-          "date": "2026-08-12",
-          "source": "Request: current-first-party-public-asset-research (docs/research/2026-08-12-event-write-mapping-public-assets.md#createevent-request). Response: current-first-party-public-asset-research (docs/research/2026-08-12-event-write-mapping-public-assets.md#createevent-completion). Status: official-protocol-specification (docs/research/2026-08-10-contract-evidence-sources.md#official-firebase-callable-protocol). Client completion or protocol evidence does not establish persisted business state, delivery, or unobserved failure mappings."
+          "date": "2026-09-29",
+          "source": "Request: current-first-party-public-asset-research (docs/research/2026-08-12-event-write-mapping-public-assets.md#createevent-request). Response: current-first-party-public-asset-research (docs/research/2026-08-12-event-write-mapping-public-assets.md#createevent-completion). Status: official-protocol-specification (docs/research/2026-08-10-contract-evidence-sources.md#official-firebase-callable-protocol). Client completion or protocol evidence does not establish persisted business state, delivery, or unobserved failure mappings. PR #247 reports a sanitized live completion observed 2026-09-29: {\"result\":{\"data\":\"<event-id>\"}}; reproduced offline in TestExecuteEventCreateParsesResultDataCompletionAndReturnsCreatedEventID. No new live request was made during this update."
         }
       }
     },
@@ -4061,7 +4061,49 @@
               "result"
             ],
             "properties": {
-              "result": {}
+              "result": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  {
+                    "type": "object",
+                    "required": [
+                      "data"
+                    ],
+                    "properties": {
+                      "data": {
+                        "type": "string",
+                        "minLength": 1
+                      }
+                    },
+                    "additionalProperties": true
+                  },
+                  {
+                    "type": "object",
+                    "required": [
+                      "event"
+                    ],
+                    "properties": {
+                      "event": {
+                        "type": "object",
+                        "required": [
+                          "id"
+                        ],
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "minLength": 1
+                          }
+                        },
+                        "additionalProperties": true
+                      }
+                    },
+                    "additionalProperties": true
+                  }
+                ]
+              }
             },
             "additionalProperties": true
           },
@@ -4071,7 +4113,49 @@
               "data"
             ],
             "properties": {
-              "data": {}
+              "data": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  {
+                    "type": "object",
+                    "required": [
+                      "data"
+                    ],
+                    "properties": {
+                      "data": {
+                        "type": "string",
+                        "minLength": 1
+                      }
+                    },
+                    "additionalProperties": true
+                  },
+                  {
+                    "type": "object",
+                    "required": [
+                      "event"
+                    ],
+                    "properties": {
+                      "event": {
+                        "type": "object",
+                        "required": [
+                          "id"
+                        ],
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "minLength": 1
+                          }
+                        },
+                        "additionalProperties": true
+                      }
+                    },
+                    "additionalProperties": true
+                  }
+                ]
+              }
             },
             "additionalProperties": true
           }
