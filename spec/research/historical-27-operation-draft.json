@@ -1,0 +1,2251 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Partiful Port API Contract",
+    "version": "2.1.0",
+    "description": "Reverse-engineered transport contract used to port partiful-cli to Go. Covers Firebase callable, Firestore, Firebase authentication, image upload, and poster catalog requests. Command workflows remain a custom compatibility layer above these transports."
+  },
+  "servers": [
+    {
+      "url": "https://api.partiful.com"
+    }
+  ],
+  "paths": {
+    "/createEvent": {
+      "post": {
+        "operationId": "createEvent",
+        "tags": ["events"],
+        "summary": "createEvent",
+        "security": [
+          {
+            "firebaseBearer": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["data"],
+                "properties": {
+                  "data": {
+                    "type": "object",
+                    "required": ["params", "amplitudeDeviceId"],
+                    "properties": {
+                      "params": {
+                        "type": "object",
+                        "properties": {
+                          "event": {
+                            "$ref": "#/components/schemas/EventDraft"
+                          },
+                          "cohostIds": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          }
+                        },
+                        "additionalProperties": false,
+                        "required": ["event", "cohostIds"]
+                      },
+                      "amplitudeDeviceId": {
+                        "type": "string"
+                      },
+                      "amplitudeSessionId": {
+                        "type": "integer",
+                        "format": "int64"
+                      },
+                      "userId": {
+                        "type": ["string", "null"]
+                      }
+                    },
+                    "additionalProperties": false
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Firebase callable response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CallableResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication failed"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "429": {
+            "description": "Rate limited"
+          }
+        },
+        "x-pp-resource": "events"
+      }
+    },
+    "/cancelEvent": {
+      "post": {
+        "operationId": "cancelEvent",
+        "tags": ["events"],
+        "summary": "cancelEvent",
+        "security": [
+          {
+            "firebaseBearer": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["data"],
+                "properties": {
+                  "data": {
+                    "type": "object",
+                    "required": ["params", "amplitudeDeviceId"],
+                    "properties": {
+                      "params": {
+                        "type": "object",
+                        "properties": {
+                          "eventId": {
+                            "type": "string"
+                          }
+                        },
+                        "additionalProperties": false,
+                        "required": ["eventId"]
+                      },
+                      "amplitudeDeviceId": {
+                        "type": "string"
+                      },
+                      "amplitudeSessionId": {
+                        "type": "integer",
+                        "format": "int64"
+                      },
+                      "userId": {
+                        "type": ["string", "null"]
+                      }
+                    },
+                    "additionalProperties": false
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Firebase callable response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CallableResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication failed"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "429": {
+            "description": "Rate limited"
+          }
+        },
+        "x-pp-resource": "events"
+      }
+    },
+    "/getEventInfo": {
+      "post": {
+        "operationId": "getEventInfo",
+        "tags": ["events"],
+        "summary": "getEventInfo",
+        "security": [
+          {
+            "firebaseBearer": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["data"],
+                "properties": {
+                  "data": {
+                    "type": "object",
+                    "required": ["params", "amplitudeDeviceId"],
+                    "properties": {
+                      "params": {
+                        "type": "object",
+                        "properties": {
+                          "eventId": {
+                            "type": "string"
+                          }
+                        },
+                        "additionalProperties": false,
+                        "required": ["eventId"]
+                      },
+                      "amplitudeDeviceId": {
+                        "type": "string"
+                      },
+                      "amplitudeSessionId": {
+                        "type": "integer",
+                        "format": "int64"
+                      },
+                      "userId": {
+                        "type": ["string", "null"]
+                      }
+                    },
+                    "additionalProperties": false
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Firebase callable response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CallableResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication failed"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "429": {
+            "description": "Rate limited"
+          }
+        },
+        "x-pp-resource": "events"
+      }
+    },
+    "/getContacts": {
+      "post": {
+        "operationId": "getContacts",
+        "tags": ["contacts"],
+        "summary": "getContacts",
+        "security": [
+          {
+            "firebaseBearer": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["data"],
+                "properties": {
+                  "data": {
+                    "type": "object",
+                    "required": ["params", "amplitudeDeviceId"],
+                    "properties": {
+                      "params": {
+                        "type": "object",
+                        "properties": {},
+                        "additionalProperties": false
+                      },
+                      "amplitudeDeviceId": {
+                        "type": "string"
+                      },
+                      "amplitudeSessionId": {
+                        "type": "integer",
+                        "format": "int64"
+                      },
+                      "userId": {
+                        "type": ["string", "null"]
+                      }
+                    },
+                    "additionalProperties": false
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Firebase callable response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CallableResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication failed"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "429": {
+            "description": "Rate limited"
+          }
+        },
+        "x-pp-resource": "contacts"
+      }
+    },
+    "/createTextBlast": {
+      "post": {
+        "operationId": "createTextBlast",
+        "tags": ["blasts"],
+        "summary": "createTextBlast",
+        "security": [
+          {
+            "firebaseBearer": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["data"],
+                "properties": {
+                  "data": {
+                    "type": "object",
+                    "required": ["params", "amplitudeDeviceId"],
+                    "properties": {
+                      "params": {
+                        "type": "object",
+                        "properties": {
+                          "eventId": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          },
+                          "recipientStatuses": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          }
+                        },
+                        "additionalProperties": false,
+                        "required": ["eventId", "message"],
+                        "description": "recipientStatuses is optional; omit it to use the service default audience."
+                      },
+                      "amplitudeDeviceId": {
+                        "type": "string"
+                      },
+                      "amplitudeSessionId": {
+                        "type": "integer",
+                        "format": "int64"
+                      },
+                      "userId": {
+                        "type": ["string", "null"]
+                      }
+                    },
+                    "additionalProperties": false
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Firebase callable response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CallableResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication failed"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "429": {
+            "description": "Rate limited"
+          }
+        },
+        "x-pp-resource": "blasts"
+      }
+    },
+    "/addInvitedGuestsAsHost": {
+      "post": {
+        "operationId": "addInvitedGuestsAsHost",
+        "tags": ["guests"],
+        "summary": "addInvitedGuestsAsHost",
+        "security": [
+          {
+            "firebaseBearer": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["data"],
+                "properties": {
+                  "data": {
+                    "type": "object",
+                    "required": ["params", "amplitudeDeviceId"],
+                    "properties": {
+                      "params": {
+                        "type": "object",
+                        "properties": {
+                          "eventId": {
+                            "type": "string"
+                          },
+                          "guests": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "additionalProperties": true
+                            }
+                          }
+                        },
+                        "additionalProperties": false,
+                        "required": ["eventId", "guests"]
+                      },
+                      "amplitudeDeviceId": {
+                        "type": "string"
+                      },
+                      "amplitudeSessionId": {
+                        "type": "integer",
+                        "format": "int64"
+                      },
+                      "userId": {
+                        "type": ["string", "null"]
+                      }
+                    },
+                    "additionalProperties": false
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Firebase callable response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CallableResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication failed"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "429": {
+            "description": "Rate limited"
+          }
+        },
+        "x-pp-resource": "guests"
+      }
+    },
+    "/createCohostRequest": {
+      "post": {
+        "operationId": "createCohostRequest",
+        "tags": ["cohosts"],
+        "summary": "createCohostRequest",
+        "security": [
+          {
+            "firebaseBearer": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["data"],
+                "properties": {
+                  "data": {
+                    "type": "object",
+                    "required": ["params", "amplitudeDeviceId"],
+                    "properties": {
+                      "params": {
+                        "type": "object",
+                        "properties": {
+                          "eventId": {
+                            "type": "string"
+                          },
+                          "targetUserId": {
+                            "type": "string"
+                          }
+                        },
+                        "additionalProperties": false,
+                        "required": ["eventId", "targetUserId"]
+                      },
+                      "amplitudeDeviceId": {
+                        "type": "string"
+                      },
+                      "amplitudeSessionId": {
+                        "type": "integer",
+                        "format": "int64"
+                      },
+                      "userId": {
+                        "type": ["string", "null"]
+                      }
+                    },
+                    "additionalProperties": false
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Firebase callable response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CallableResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication failed"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "429": {
+            "description": "Rate limited"
+          }
+        },
+        "x-pp-resource": "cohosts"
+      }
+    },
+    "/deleteCohostRequest": {
+      "post": {
+        "operationId": "deleteCohostRequest",
+        "tags": ["cohosts"],
+        "summary": "deleteCohostRequest",
+        "security": [
+          {
+            "firebaseBearer": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["data"],
+                "properties": {
+                  "data": {
+                    "type": "object",
+                    "required": ["params", "amplitudeDeviceId"],
+                    "properties": {
+                      "params": {
+                        "type": "object",
+                        "properties": {
+                          "eventId": {
+                            "type": "string"
+                          },
+                          "targetUserId": {
+                            "type": "string"
+                          }
+                        },
+                        "additionalProperties": false,
+                        "required": ["eventId", "targetUserId"]
+                      },
+                      "amplitudeDeviceId": {
+                        "type": "string"
+                      },
+                      "amplitudeSessionId": {
+                        "type": "integer",
+                        "format": "int64"
+                      },
+                      "userId": {
+                        "type": ["string", "null"]
+                      }
+                    },
+                    "additionalProperties": false
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Firebase callable response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CallableResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication failed"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "429": {
+            "description": "Rate limited"
+          }
+        },
+        "x-pp-resource": "cohosts"
+      }
+    },
+    "/removeCohost": {
+      "post": {
+        "operationId": "removeCohost",
+        "tags": ["cohosts"],
+        "summary": "removeCohost",
+        "security": [
+          {
+            "firebaseBearer": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["data"],
+                "properties": {
+                  "data": {
+                    "type": "object",
+                    "required": ["params", "amplitudeDeviceId"],
+                    "properties": {
+                      "params": {
+                        "type": "object",
+                        "properties": {
+                          "eventId": {
+                            "type": "string"
+                          },
+                          "targetUserId": {
+                            "type": "string"
+                          }
+                        },
+                        "additionalProperties": false,
+                        "required": ["eventId", "targetUserId"]
+                      },
+                      "amplitudeDeviceId": {
+                        "type": "string"
+                      },
+                      "amplitudeSessionId": {
+                        "type": "integer",
+                        "format": "int64"
+                      },
+                      "userId": {
+                        "type": ["string", "null"]
+                      }
+                    },
+                    "additionalProperties": false
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Firebase callable response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CallableResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication failed"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "429": {
+            "description": "Rate limited"
+          }
+        },
+        "x-pp-resource": "cohosts"
+      }
+    },
+    "/generateEventCohostLink": {
+      "post": {
+        "operationId": "generateEventCohostLink",
+        "tags": ["cohosts"],
+        "summary": "generateEventCohostLink",
+        "security": [
+          {
+            "firebaseBearer": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["data"],
+                "properties": {
+                  "data": {
+                    "type": "object",
+                    "required": ["params", "amplitudeDeviceId"],
+                    "properties": {
+                      "params": {
+                        "type": "object",
+                        "properties": {
+                          "eventId": {
+                            "type": "string"
+                          }
+                        },
+                        "additionalProperties": false,
+                        "required": ["eventId"]
+                      },
+                      "amplitudeDeviceId": {
+                        "type": "string"
+                      },
+                      "amplitudeSessionId": {
+                        "type": "integer",
+                        "format": "int64"
+                      },
+                      "userId": {
+                        "type": ["string", "null"]
+                      }
+                    },
+                    "additionalProperties": false
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Firebase callable response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CallableResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication failed"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "429": {
+            "description": "Rate limited"
+          }
+        },
+        "x-pp-resource": "cohosts"
+      }
+    },
+    "/revokeEventCohostLink": {
+      "post": {
+        "operationId": "revokeEventCohostLink",
+        "tags": ["cohosts"],
+        "summary": "revokeEventCohostLink",
+        "security": [
+          {
+            "firebaseBearer": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["data"],
+                "properties": {
+                  "data": {
+                    "type": "object",
+                    "required": ["params", "amplitudeDeviceId"],
+                    "properties": {
+                      "params": {
+                        "type": "object",
+                        "properties": {
+                          "eventId": {
+                            "type": "string"
+                          }
+                        },
+                        "additionalProperties": false,
+                        "required": ["eventId"]
+                      },
+                      "amplitudeDeviceId": {
+                        "type": "string"
+                      },
+                      "amplitudeSessionId": {
+                        "type": "integer",
+                        "format": "int64"
+                      },
+                      "userId": {
+                        "type": ["string", "null"]
+                      }
+                    },
+                    "additionalProperties": false
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Firebase callable response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CallableResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication failed"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "429": {
+            "description": "Rate limited"
+          }
+        },
+        "x-pp-resource": "cohosts"
+      }
+    },
+    "/getMyUpcomingEventsForHomePage": {
+      "post": {
+        "operationId": "getMyUpcomingEventsForHomePage",
+        "tags": ["events"],
+        "summary": "getMyUpcomingEventsForHomePage",
+        "security": [
+          {
+            "firebaseBearer": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["data"],
+                "properties": {
+                  "data": {
+                    "type": "object",
+                    "required": ["params", "amplitudeDeviceId"],
+                    "properties": {
+                      "params": {
+                        "type": "object",
+                        "properties": {},
+                        "additionalProperties": false
+                      },
+                      "amplitudeDeviceId": {
+                        "type": "string"
+                      },
+                      "amplitudeSessionId": {
+                        "type": "integer",
+                        "format": "int64"
+                      },
+                      "userId": {
+                        "type": ["string", "null"]
+                      }
+                    },
+                    "additionalProperties": false
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Firebase callable response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CallableResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication failed"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "429": {
+            "description": "Rate limited"
+          }
+        },
+        "x-pp-resource": "events"
+      }
+    },
+    "/getMyPastEventsForHomePage": {
+      "post": {
+        "operationId": "getMyPastEventsForHomePage",
+        "tags": ["events"],
+        "summary": "getMyPastEventsForHomePage",
+        "security": [
+          {
+            "firebaseBearer": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["data"],
+                "properties": {
+                  "data": {
+                    "type": "object",
+                    "required": ["params", "amplitudeDeviceId"],
+                    "properties": {
+                      "params": {
+                        "type": "object",
+                        "properties": {},
+                        "additionalProperties": false
+                      },
+                      "amplitudeDeviceId": {
+                        "type": "string"
+                      },
+                      "amplitudeSessionId": {
+                        "type": "integer",
+                        "format": "int64"
+                      },
+                      "userId": {
+                        "type": ["string", "null"]
+                      }
+                    },
+                    "additionalProperties": false
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Firebase callable response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CallableResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication failed"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "429": {
+            "description": "Rate limited"
+          }
+        },
+        "x-pp-resource": "events"
+      }
+    },
+    "/addGuest": {
+      "post": {
+        "operationId": "addGuest",
+        "tags": ["rsvp"],
+        "summary": "addGuest",
+        "security": [
+          {
+            "firebaseBearer": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["data"],
+                "properties": {
+                  "data": {
+                    "type": "object",
+                    "required": ["params", "amplitudeDeviceId"],
+                    "properties": {
+                      "params": {
+                        "type": "object",
+                        "properties": {
+                          "eventId": {
+                            "type": "string"
+                          },
+                          "rsvp": {
+                            "$ref": "#/components/schemas/RsvpDraft"
+                          }
+                        },
+                        "additionalProperties": false,
+                        "required": ["eventId", "rsvp"]
+                      },
+                      "amplitudeDeviceId": {
+                        "type": "string"
+                      },
+                      "amplitudeSessionId": {
+                        "type": "integer",
+                        "format": "int64"
+                      },
+                      "userId": {
+                        "type": ["string", "null"]
+                      }
+                    },
+                    "additionalProperties": false
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Firebase callable response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CallableResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication failed"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "429": {
+            "description": "Rate limited"
+          }
+        },
+        "x-pp-resource": "rsvp"
+      }
+    },
+    "/markEventInterest": {
+      "post": {
+        "operationId": "markEventInterest",
+        "tags": ["rsvp"],
+        "summary": "markEventInterest",
+        "security": [
+          {
+            "firebaseBearer": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["data"],
+                "properties": {
+                  "data": {
+                    "type": "object",
+                    "required": ["params", "amplitudeDeviceId"],
+                    "properties": {
+                      "params": {
+                        "type": "object",
+                        "properties": {
+                          "eventId": {
+                            "type": "string"
+                          },
+                          "interested": {
+                            "type": "boolean"
+                          },
+                          "source": {
+                            "type": "string"
+                          }
+                        },
+                        "additionalProperties": false,
+                        "required": ["eventId", "interested", "source"]
+                      },
+                      "amplitudeDeviceId": {
+                        "type": "string"
+                      },
+                      "amplitudeSessionId": {
+                        "type": "integer",
+                        "format": "int64"
+                      },
+                      "userId": {
+                        "type": ["string", "null"]
+                      }
+                    },
+                    "additionalProperties": false
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Firebase callable response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CallableResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication failed"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "429": {
+            "description": "Rate limited"
+          }
+        },
+        "x-pp-resource": "rsvp"
+      }
+    },
+    "/getCurrentGuest": {
+      "post": {
+        "operationId": "getCurrentGuest",
+        "tags": ["rsvp"],
+        "summary": "getCurrentGuest",
+        "security": [
+          {
+            "firebaseBearer": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["data"],
+                "properties": {
+                  "data": {
+                    "type": "object",
+                    "required": ["params", "amplitudeDeviceId"],
+                    "properties": {
+                      "params": {
+                        "type": "object",
+                        "properties": {
+                          "eventId": {
+                            "type": "string"
+                          }
+                        },
+                        "additionalProperties": false,
+                        "required": ["eventId"]
+                      },
+                      "amplitudeDeviceId": {
+                        "type": "string"
+                      },
+                      "amplitudeSessionId": {
+                        "type": "integer",
+                        "format": "int64"
+                      },
+                      "userId": {
+                        "type": ["string", "null"]
+                      }
+                    },
+                    "additionalProperties": false
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Firebase callable response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CallableResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication failed"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "429": {
+            "description": "Rate limited"
+          }
+        },
+        "x-pp-resource": "rsvp"
+      }
+    },
+    "/v1/projects/getpartiful/databases/(default)/documents/events/{eventId}": {
+      "get": {
+        "operationId": "firestoreGetEvent",
+        "tags": ["firestore"],
+        "x-pp-resource": "firestore",
+        "summary": "firestoreGetEvent",
+        "servers": [
+          {
+            "url": "https://firestore.googleapis.com"
+          }
+        ],
+        "security": [
+          {
+            "firebaseBearer": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FirestoreDocument"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication failed"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "429": {
+            "description": "Rate limited"
+          }
+        },
+        "parameters": [
+          {
+            "name": "eventId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ]
+      },
+      "patch": {
+        "operationId": "firestorePatchEvent",
+        "tags": ["firestore"],
+        "x-pp-resource": "firestore",
+        "summary": "firestorePatchEvent",
+        "servers": [
+          {
+            "url": "https://firestore.googleapis.com"
+          }
+        ],
+        "security": [
+          {
+            "firebaseBearer": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FirestoreDocument"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication failed"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "429": {
+            "description": "Rate limited"
+          }
+        },
+        "parameters": [
+          {
+            "name": "eventId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "updateMask.fieldPaths",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FirestoreWriteDocument"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/projects/getpartiful/databases/(default)/documents/events/{eventId}/guests/{guestId}": {
+      "get": {
+        "operationId": "firestoreGetGuest",
+        "tags": ["firestore"],
+        "x-pp-resource": "firestore",
+        "summary": "firestoreGetGuest",
+        "servers": [
+          {
+            "url": "https://firestore.googleapis.com"
+          }
+        ],
+        "security": [
+          {
+            "firebaseBearer": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FirestoreDocument"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication failed"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "429": {
+            "description": "Rate limited"
+          }
+        },
+        "parameters": [
+          {
+            "name": "eventId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "guestId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ]
+      }
+    },
+    "/v1/projects/getpartiful/databases/(default)/documents/{collectionPath}": {
+      "get": {
+        "operationId": "firestoreListDocuments",
+        "tags": ["firestore"],
+        "x-pp-resource": "firestore",
+        "summary": "firestoreListDocuments",
+        "servers": [
+          {
+            "url": "https://firestore.googleapis.com"
+          }
+        ],
+        "security": [
+          {
+            "firebaseBearer": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FirestoreListResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication failed"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "429": {
+            "description": "Rate limited"
+          }
+        },
+        "parameters": [
+          {
+            "name": "collectionPath",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Slash-delimited document collection path; custom client preserves path segments."
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 100
+            }
+          },
+          {
+            "name": "pageToken",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ]
+      }
+    },
+    "/v1/token": {
+      "post": {
+        "operationId": "refreshToken",
+        "tags": ["authentication"],
+        "x-pp-resource": "authentication-api",
+        "summary": "refreshToken",
+        "servers": [
+          {
+            "url": "https://securetoken.googleapis.com"
+          }
+        ],
+        "security": [
+          {
+            "firebaseApiKey": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "type": "object",
+                "required": ["grant_type", "refresh_token"],
+                "properties": {
+                  "grant_type": {
+                    "type": "string",
+                    "enum": ["refresh_token"]
+                  },
+                  "refresh_token": {
+                    "type": "string"
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RefreshTokenResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "429": {
+            "description": "Rate limited"
+          }
+        }
+      }
+    },
+    "/sendAuthCodeTrusted": {
+      "post": {
+        "operationId": "sendAuthCodeTrusted",
+        "tags": ["authentication"],
+        "x-pp-resource": "authentication-api",
+        "summary": "sendAuthCodeTrusted",
+        "security": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["data"],
+                "properties": {
+                  "data": {
+                    "type": "object",
+                    "required": ["params", "amplitudeDeviceId"],
+                    "properties": {
+                      "params": {
+                        "type": "object",
+                        "required": [
+                          "displayName",
+                          "phoneNumber",
+                          "silent",
+                          "channelPreference",
+                          "captchaToken",
+                          "useAppleBusinessUpdates"
+                        ],
+                        "properties": {
+                          "displayName": {
+                            "type": "string"
+                          },
+                          "phoneNumber": {
+                            "type": "string"
+                          },
+                          "silent": {
+                            "type": "boolean"
+                          },
+                          "channelPreference": {
+                            "type": "string",
+                            "enum": ["sms"]
+                          },
+                          "captchaToken": {
+                            "type": ["string", "null"]
+                          },
+                          "useAppleBusinessUpdates": {
+                            "type": "boolean"
+                          }
+                        },
+                        "additionalProperties": false
+                      },
+                      "amplitudeDeviceId": {
+                        "type": "string"
+                      },
+                      "amplitudeSessionId": {
+                        "type": "integer",
+                        "format": "int64"
+                      }
+                    },
+                    "additionalProperties": false
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CallableResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "429": {
+            "description": "Rate limited"
+          }
+        }
+      }
+    },
+    "/getLoginToken": {
+      "post": {
+        "operationId": "getLoginToken",
+        "tags": ["authentication"],
+        "x-pp-resource": "authentication-api",
+        "summary": "getLoginToken",
+        "security": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["data"],
+                "properties": {
+                  "data": {
+                    "type": "object",
+                    "required": ["params", "amplitudeDeviceId"],
+                    "properties": {
+                      "params": {
+                        "type": "object",
+                        "required": [
+                          "phoneNumber",
+                          "authCode",
+                          "affiliateId",
+                          "utms"
+                        ],
+                        "properties": {
+                          "phoneNumber": {
+                            "type": "string"
+                          },
+                          "authCode": {
+                            "type": "string"
+                          },
+                          "affiliateId": {
+                            "type": ["string", "null"]
+                          },
+                          "utms": {
+                            "type": "object",
+                            "additionalProperties": true
+                          }
+                        },
+                        "additionalProperties": false
+                      },
+                      "amplitudeDeviceId": {
+                        "type": "string"
+                      },
+                      "amplitudeSessionId": {
+                        "type": "integer",
+                        "format": "int64"
+                      }
+                    },
+                    "additionalProperties": false
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CallableResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "429": {
+            "description": "Rate limited"
+          }
+        }
+      }
+    },
+    "/v1/accounts:signInWithCustomToken": {
+      "post": {
+        "operationId": "signInWithCustomToken",
+        "tags": ["authentication"],
+        "x-pp-resource": "authentication-api",
+        "summary": "signInWithCustomToken",
+        "servers": [
+          {
+            "url": "https://identitytoolkit.googleapis.com"
+          }
+        ],
+        "security": [
+          {
+            "firebaseApiKey": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["token", "returnSecureToken"],
+                "properties": {
+                  "token": {
+                    "type": "string"
+                  },
+                  "returnSecureToken": {
+                    "type": "boolean"
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FirebaseSignInResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "429": {
+            "description": "Rate limited"
+          }
+        }
+      }
+    },
+    "/v1/accounts:lookup": {
+      "post": {
+        "operationId": "lookupFirebaseUser",
+        "tags": ["authentication"],
+        "x-pp-resource": "authentication-api",
+        "summary": "lookupFirebaseUser",
+        "servers": [
+          {
+            "url": "https://identitytoolkit.googleapis.com"
+          }
+        ],
+        "security": [
+          {
+            "firebaseApiKey": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["idToken"],
+                "properties": {
+                  "idToken": {
+                    "type": "string"
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FirebaseLookupResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "429": {
+            "description": "Rate limited"
+          }
+        }
+      }
+    },
+    "/uploadPhoto": {
+      "post": {
+        "operationId": "uploadEventPhoto",
+        "tags": ["posters"],
+        "x-pp-resource": "posters",
+        "summary": "uploadEventPhoto",
+        "servers": [
+          {
+            "url": "https://us-central1-getpartiful.cloudfunctions.net"
+          }
+        ],
+        "security": [
+          {
+            "firebaseBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "uploadType",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": ["event_poster"]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UploadPhotoResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication failed"
+          },
+          "429": {
+            "description": "Rate limited"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "required": ["file"],
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary"
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        }
+      }
+    },
+    "/posters.json": {
+      "get": {
+        "operationId": "getPosterCatalog",
+        "tags": ["posters"],
+        "x-pp-resource": "posters",
+        "summary": "getPosterCatalog",
+        "servers": [
+          {
+            "url": "https://assets.getpartiful.com"
+          }
+        ],
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Poster catalog",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Poster"
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limited"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "firebaseBearer": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "Firebase ID token",
+        "description": "Set from PARTIFUL_TOKEN or refreshed Partiful credentials."
+      },
+      "firebaseApiKey": {
+        "type": "apiKey",
+        "in": "query",
+        "name": "key",
+        "description": "Firebase web API key loaded from Partiful client configuration."
+      }
+    },
+    "schemas": {
+      "EventDraft": {
+        "type": "object",
+        "required": ["title", "startDate", "timezone", "displaySettings"],
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "startDate": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "endDate": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "timezone": {
+            "type": "string"
+          },
+          "displaySettings": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "visibility": {
+            "type": "string",
+            "enum": ["public", "private"]
+          },
+          "location": {
+            "type": "string"
+          },
+          "address": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "guestLimit": {
+            "type": "integer"
+          },
+          "links": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "image": {}
+        },
+        "additionalProperties": true
+      },
+      "RsvpDraft": {
+        "type": "object",
+        "required": ["name", "count", "plusOnes", "status", "timezone"],
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "count": {
+            "type": "integer"
+          },
+          "plusOnes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "message": {
+            "type": ["string", "null"]
+          },
+          "emailInvitationId": {
+            "type": ["string", "null"]
+          },
+          "status": {
+            "type": "string"
+          },
+          "guestId": {
+            "type": ["string", "null"]
+          },
+          "timezone": {
+            "type": "string"
+          },
+          "password": {
+            "type": ["string", "null"]
+          },
+          "questionnaireResponse": {
+            "type": "object",
+            "properties": {
+              "questionnaireVersion": {
+                "type": "integer"
+              },
+              "answers": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "string"
+                }
+              }
+            },
+            "required": ["questionnaireVersion", "answers"]
+          }
+        },
+        "additionalProperties": false
+      },
+      "CallableResponse": {
+        "type": "object",
+        "properties": {
+          "result": {
+            "type": "object",
+            "properties": {
+              "data": {}
+            },
+            "additionalProperties": true
+          }
+        },
+        "additionalProperties": true
+      },
+      "FirestoreValue": {
+        "type": "object",
+        "additionalProperties": true
+      },
+      "FirestoreDocument": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "fields": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/FirestoreValue"
+            }
+          },
+          "createTime": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updateTime": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "additionalProperties": true
+      },
+      "FirestoreWriteDocument": {
+        "type": "object",
+        "required": ["fields"],
+        "properties": {
+          "fields": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/FirestoreValue"
+            }
+          }
+        },
+        "additionalProperties": false
+      },
+      "FirestoreListResponse": {
+        "type": "object",
+        "properties": {
+          "documents": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FirestoreDocument"
+            }
+          },
+          "nextPageToken": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": true
+      },
+      "RefreshTokenResponse": {
+        "type": "object",
+        "additionalProperties": true
+      },
+      "FirebaseSignInResponse": {
+        "type": "object",
+        "additionalProperties": true
+      },
+      "FirebaseLookupResponse": {
+        "type": "object",
+        "additionalProperties": true
+      },
+      "UploadData": {
+        "type": "object",
+        "required": ["url"],
+        "properties": {
+          "url": {
+            "type": "string",
+            "format": "uri"
+          },
+          "contentType": {
+            "type": "string"
+          },
+          "height": {
+            "type": "integer"
+          },
+          "width": {
+            "type": "integer"
+          }
+        },
+        "additionalProperties": true
+      },
+      "UploadPhotoResponse": {
+        "type": "object",
+        "properties": {
+          "uploadData": {
+            "$ref": "#/components/schemas/UploadData"
+          },
+          "result": {
+            "type": "object",
+            "properties": {
+              "uploadData": {
+                "$ref": "#/components/schemas/UploadData"
+              }
+            },
+            "additionalProperties": true
+          }
+        },
+        "additionalProperties": true
+      },
+      "Poster": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string",
+            "format": "uri"
+          },
+          "blurHash": {
+            "type": "string"
+          },
+          "contentType": {
+            "type": "string"
+          },
+          "height": {
+            "type": "integer"
+          },
+          "width": {
+            "type": "integer"
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "categories": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "additionalProperties": true
+      }
+    }
+  },
+  "x-auth-env-vars": ["PARTIFUL_TOKEN"],
+  "x-mcp": {
+    "transport": ["stdio", "http"],
+    "endpoint-tools": "hidden",
+    "orchestration": "code"
+  },
+  "x-partiful-port": {
+    "custom-client-required": true,
+    "command-layer": "Preserve TypeScript CLI workflows above generated transports.",
+    "credential-path": "$PARTIFUL_CREDENTIALS_FILE or ~/.config/partiful/auth.json",
+    "dynamic-image-downloads": "Handled by the custom client because URLs are user or API supplied.",
+    "poster-thumbnail-url-template": "https://partiful-posters.imgix.net/{posterId}?fit=max&w=400"
+  }
+}

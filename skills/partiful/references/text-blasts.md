@@ -1,39 +1,26 @@
 # Text Blasts
 
-Text blasts send real SMS messages. Partiful prepends its own host/event attribution.
+Text blasts send real SMS messages.
 
-## Draft and Preview
-
-Messages are limited to 480 characters. Valid target statuses: `GOING`, `MAYBE`, `DECLINED`, `SENT`, `INTERESTED`, `WAITLIST`, `APPROVED`, and `RESPONDED_TO_FIND_A_TIME`.
+## Preview the blast
 
 ```bash
-partiful guests list <event-id> --status GOING
-partiful blasts send <event-id> \
-  --message "See you tonight. Parking is on the left." \
-  --to GOING,MAYBE \
-  --dry-run
+partiful blasts send <event-id>   --audience all-guests   --message-file blast.txt   --dry-run
 ```
 
-Before sending, show the exact message, event, target statuses, and dry-run result. Get explicit approval. Never infer approval from a request to draft or preview.
+The preview includes the message SHA-256 and length, not the raw message body.
+Show the exact message from the local file before asking for approval.
 
-## Send
+## Send after approval
 
-```bash
-partiful blasts send <event-id> \
-  --message "See you tonight. Parking is on the left." \
-  --to GOING,MAYBE \
-  --yes
-```
+Run the command without `--dry-run` after explicit approval. It validates the
+current event and audience, then makes one send attempt without prompting or
+automatically retrying. Omit `--show-on-event-page` when the blast should stay
+off the event activity feed.
 
-Blasts appear on the event page by default. Use `--no-show-on-event-page` to hide one from the activity feed.
-
-## Safety Checklist
+## Safety checklist
 
 - Correct event ID and title
-- Exact final text, at most 480 characters
-- Correct target statuses
-- Dry run completed
-- Explicit approval received
-- `--yes` added only after approval
-
-Report delivery result and aggregate targeting, but do not expose recipient phone numbers or Partiful user IDs.
+- Exact final message text in the local file or stdin stream
+- Approval received before the non-dry-run invocation
+- No phone numbers, email addresses, or Partiful user IDs in summaries

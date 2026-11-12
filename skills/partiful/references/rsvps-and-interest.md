@@ -1,23 +1,22 @@
 # RSVPs and Interest
 
 ```bash
-partiful events rsvp get <event-id>
-partiful events rsvp set <event-id> --dry-run
-partiful events rsvp set <event-id> --status going
-partiful events rsvp set <event-id> --status going --plus-one "Alex Smith"
-partiful events rsvp set <event-id> --status maybe --message "I may be late"
-partiful events rsvp set <event-id> --status declined
-partiful events interested <event-id>
-partiful events interested <event-id> --remove
+partiful rsvp get <event-id>
+partiful rsvp set <event-id> --status interested
+partiful rsvp set <event-id> --status going   --display-name "Example"   --party-size 1   --timezone America/Los_Angeles
+partiful rsvp set <event-id> --status not-going   --display-name "Example"   --party-size 1   --timezone America/Los_Angeles
 ```
 
-`events rsvp get` reads your saved status and questionnaire answers without changing the RSVP. `explore rsvp get`, `explore rsvp set`, and `explore interested` are equivalent aliases under the discovery command group.
+`rsvp get` returns the reviewed RSVP state or `null`. It does not expose guest
+or account IDs.
 
-For questionnaire events, pass one repeatable answer per question. Keys may be the question ID or its exact text:
+Add `--dry-run` to `rsvp set` for a redacted normalized request preview.
+Without `--dry-run`, the command performs current event and guest checks, then
+dispatches once without prompting.
 
-```bash
-partiful events rsvp set <event-id> --answer "<question-id>=<value>"
-partiful events rsvp set <event-id> --answer "Dietary restrictions?=None" --answer "Song request?=Anything"
-```
+For going RSVPs, use `--plus-one` repeatedly for named plus-ones. For larger or
+structured input, pass `--input <path-or->` and inspect
+`partiful schema rsvp.set` for the exact JSON shape.
 
-Required answers are validated before submission. Successful writes read the Firestore guest document back to verify the saved status and questionnaire answers. Plain `--dry-run` remains offline; combining `--answer` with `--dry-run` performs read-only guest and event lookups to validate the live questionnaire preview. Ticketed or paid events remain unsupported because the CLI cannot purchase tickets.
+Ticketed, application, protected, at-capacity going, and unsupported
+questionnaire flows fail closed.

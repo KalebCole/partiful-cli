@@ -1,0 +1,96 @@
+{
+  "purpose": "Privacy-safe negative probes for auth error response evidence",
+  "observedAt": "2026-08-11T03:54:17Z",
+  "redaction": "Only HTTP metadata, JSON paths/types, and safe error codes retained. Fake tokens used; no real credentials.",
+  "probeMethod": "Structurally valid requests with clearly fake tokens that cannot authenticate. No SMS sent, no real credentials used.",
+  "observations": [
+    {
+      "operation": "signInWithCustomToken",
+      "phase": "invalid-token",
+      "endpoint": "/v1/accounts:signInWithCustomToken",
+      "status": 400,
+      "contentType": "application/json; charset=UTF-8",
+      "bodyKind": "json",
+      "bodyBytes": 270,
+      "shape": [
+        {
+          "path": "error.code",
+          "type": "number"
+        },
+        {
+          "path": "error.errors.[].domain",
+          "type": "string"
+        },
+        {
+          "path": "error.errors.[].message",
+          "type": "string"
+        },
+        {
+          "path": "error.errors.[].reason",
+          "type": "string"
+        },
+        {
+          "path": "error.message",
+          "type": "string"
+        }
+      ],
+      "errorCode": "INVALID_CUSTOM_TOKEN"
+    },
+    {
+      "operation": "refreshToken",
+      "phase": "invalid-token",
+      "endpoint": "/v1/token",
+      "status": 400,
+      "contentType": "application/json; charset=UTF-8",
+      "bodyKind": "json",
+      "bodyBytes": 111,
+      "shape": [
+        {
+          "path": "error.code",
+          "type": "number"
+        },
+        {
+          "path": "error.message",
+          "type": "string"
+        },
+        {
+          "path": "error.status",
+          "type": "string"
+        }
+      ],
+      "errorCode": "INVALID_REFRESH_TOKEN"
+    },
+    {
+      "operation": "lookupFirebaseUser",
+      "phase": "invalid-token",
+      "endpoint": "/v1/accounts:lookup",
+      "status": 400,
+      "contentType": "application/json; charset=UTF-8",
+      "bodyKind": "json",
+      "bodyBytes": 206,
+      "shape": [
+        {
+          "path": "error.code",
+          "type": "number"
+        },
+        {
+          "path": "error.errors.[].domain",
+          "type": "string"
+        },
+        {
+          "path": "error.errors.[].message",
+          "type": "string"
+        },
+        {
+          "path": "error.errors.[].reason",
+          "type": "string"
+        },
+        {
+          "path": "error.message",
+          "type": "string"
+        }
+      ],
+      "errorCode": "INVALID_ID_TOKEN"
+    }
+  ]
+}

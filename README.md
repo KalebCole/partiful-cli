@@ -2,276 +2,98 @@
 
 # partiful-cli
 
-> Manage [Partiful](https://partiful.com) events from your terminal. JSON-first, script-friendly.
+JSON-first native Go CLI for reviewed Partiful event workflows.
 
-[![npm version](https://img.shields.io/npm/v/partiful-cli)](https://www.npmjs.com/package/partiful-cli)
-[![license](https://img.shields.io/npm/l/partiful-cli)](LICENSE)
-[![node](https://img.shields.io/node/v/partiful-cli)](package.json)
-
-## Try it now
-
-```bash
-npx partiful-cli --help
-```
+The first native-only release line starts at `v3.0.0`. The install command
+below becomes available after the coordinated cutover release is published.
 
 ## Install
 
+Use a native release archive from GitHub Releases, or install the tagged Go
+module directly:
+
 ```bash
-# Install globally
-npm install -g partiful-cli
-
-# Or run without installing
-npx partiful-cli <command>
-
-# Or clone and link
-git clone https://github.com/KalebCole/partiful-cli && cd partiful-cli
-npm install && npm link
+go install github.com/KalebCole/partiful-cli/cmd/partiful@v3.0.0
 ```
 
-### Install the Partiful agent skill
-
-The package includes one Partiful skill. Install it globally for whichever agent you use:
+Verify a local install safely:
 
 ```bash
-partiful skill install hermes
-partiful skill install openclaw
-partiful skill install copilot
-partiful skill install claude
-```
-
-Remove an installer-owned copy with `partiful skill uninstall <agent>`. For OpenClaw, uninstall also cleans legacy `partiful-*` links created by older releases; pass `--workspace <path>` when the old workspace was not at `~/.openclaw/workspace`.
-
-Use `--dry-run` to preview filesystem changes. During installation, existing or locally modified skill directories are preserved unless `--force` is supplied. Uninstall never removes an unowned destination; an installer-owned copy with local edits also requires `--force`.
-
-## Features
-
-- 🎉 **Events** — create, list, get, update, cancel
-- 👥 **Guests** — list RSVPs, send invites
-- 📱 **Blasts** — text all your guests at once
-- 🎨 **Posters** — browse and attach poster images
-- 📋 **Templates** — save and reuse event configs
-- 📦 **Bulk** — batch create/update from JSON
-- 👀 **Watch** — live RSVP polling with NDJSON output
-- 🔄 **Clone** — duplicate events to new dates
-- 📤 **Export** — event + guests to JSON or CSV
-- 🩺 **Doctor** — diagnose auth and setup issues
-
-## Quick Start
-
-```bash
-# 1. Authenticate
-partiful auth login +12065551234
-
-# 2. Verify setup
+partiful --version
+partiful schema
 partiful doctor
-
-# 3. Create your first event
-partiful events create --title "Game Night" --date "Apr 15 7pm" --location "My Place"
-
-# 4. List your events
-partiful events list
-
-# 5. Invite and blast (use an eventId from step 4)
-partiful guests list <eventId>
-partiful blasts send <eventId> --message "See you tonight!"
 ```
 
-## Commands
+## Development
 
-### `auth` — Manage authentication
+Repository runtime, development, CI, verification, and release flow are
+Go-only.
 
 ```bash
-partiful auth login +12065551234    # SMS-based auth
-partiful auth status                # Check current auth
-partiful auth logout                # Clear credentials
+go mod verify
+go test ./...
+go test -race ./...
+go vet ./...
+go build ./...
 ```
 
-### `events` — Manage events
+Run the full native release rehearsal, including GoReleaser snapshot archives,
+checksum verification, and local `version/schema/doctor` smoke tests:
 
 ```bash
-partiful events list                # Upcoming events
-partiful events list --past         # Past events
-partiful events get <id>            # Event details
-partiful events create --title "Party" --date "May 1 8pm" --location "Rooftop"
-partiful events update <id> --title "New Title"
-partiful events cancel <id>
+GOTOOLCHAIN=go1.22.12 go install github.com/goreleaser/goreleaser/v2@v2.2.0
+./scripts/verify-native-release.sh
 ```
 
-### `events rsvp` / `events interested` — RSVP to events
+## Approved command catalog
 
-```bash
-partiful events rsvp get <id>                      # Read your RSVP and questionnaire answers
-partiful events rsvp set <id>                      # RSVP going (default)
-partiful events rsvp set <id> --status maybe       # going | maybe | declined
-partiful events rsvp set <id> --plus-one Maddie --plus-one Justin   # bring guests
-partiful events rsvp set <id> --name "Kaleb Cole" --message "Stoked!"
-partiful events rsvp set <id> --answer "<question-id-or-text>=<value>"  # repeat per host question
-partiful events interested <id>                    # mark interest
-partiful events interested <id> --remove           # remove interest
-```
-
-`events rsvp get` reads your saved status, guest details, and questionnaire
-answers without changing the RSVP. RSVP writes do a read-before-write: they update your existing guest record if you
-already RSVP'd, otherwise create one. Ticketed events are refused with a clear
-error (use the app to purchase a ticket). For host-questionnaire events, pass one
-repeatable `--answer "<question-id-or-exact-text>=<value>"` per answer; required
-answers are validated before submission. Plain `--dry-run` stays offline, while
-`--answer ... --dry-run` performs read-only guest/event lookups so the preview can
-validate and preserve live questionnaire state, then read the Firestore guest record
-back to verify the saved status and answers. The same verbs are available under
-`explore` (`partiful explore rsvp get <id>`) for the discovery flow.
-
-### `guests` — Manage event guests
-
-```bash
-partiful guests list <eventId>      # All guests with RSVP status
-partiful guests invite <eventId>    # Send invites
-```
-
-### `blasts` — Text guests
-
-```bash
-partiful blasts send <eventId> --message "Doors open at 7!"
-```
-
-### `contacts` — Manage contacts
-
-```bash
-partiful contacts list              # All contacts
-partiful contacts list "alex"       # Search by name
-```
-
-### `cohosts` — Manage co-hosts
-
-```bash
-partiful cohosts list <eventId>
-partiful cohosts add <eventId> --name "Alex" --name "Jordan"
-partiful cohosts remove <eventId>
-```
-
-### `posters` — Browse poster catalog
-
-```bash
+```text
+partiful --version
+partiful schema [command.path]
+partiful doctor
+partiful auth login
+partiful auth status
+partiful auth logout
 partiful posters list
-partiful posters search "birthday"
-partiful posters get <posterId>
+partiful posters search --query <text>
+partiful contacts list [--query <text>]
+partiful events list --when <upcoming|past>
+partiful events get <event-id>
+partiful guests list <event-id>
+partiful rsvp get <event-id>
+partiful events create [flags]
+partiful events update <event-id> [flags]
+partiful events cancel <event-id> [flags]
+partiful guests invite <event-id> --contact <name>
+partiful blasts send <event-id> --audience all-guests --message-file <path-or->
+partiful rsvp set <event-id> [flags]
+partiful cohosts invite <event-id> --contact <name>
+partiful cohosts revoke-invite <event-id> --contact <name>
+partiful cohosts remove <event-id> --contact <name>
+partiful cohosts link create <event-id>
+partiful cohosts link revoke <event-id>
 ```
 
-### `template` — Event templates
+All command results are JSON. Use `partiful schema <command.path>` for the
+exact input, success, failure, and safety contract for any approved command.
 
-```bash
-partiful template list                          # List saved templates
-partiful template show <name>                   # Show template details
-partiful template save --name "Game Night"       # Save a template
-partiful template edit <name>                   # Edit a template
-partiful template delete <name>                 # Delete a template
-```
+## Mutation safety
 
-### `bulk` — Batch operations
+Mutation commands execute once after validation and required read-before-write
+checks. Add `--dry-run` to return a redacted request preview without sending a
+write.
 
-```bash
-partiful bulk create events.json                              # Create from JSON file
-partiful bulk update --filter "title contains Game" --location "New Spot"  # Bulk update
-```
+`events cancel`, `cohosts remove`, `cohosts revoke-invite`, and
+`cohosts link revoke` require an interactive terminal confirmation.
+`--force` skips only that prompt. `--no-input` or `--non-interactive` disables
+prompting and fails safely unless `--force` is also present.
 
-### `schema` — Introspect command parameters
+## Release notes
 
-```bash
-partiful schema events.create       # Show params for events create
-```
-
-### `doctor` — Health check
-
-```bash
-partiful doctor                     # Check auth, connectivity, setup
-```
-
-### Clone and helper commands
-
-```bash
-# Clone an event to next week
-partiful events clone <eventId>
-partiful events clone <eventId> --shift 14
-partiful events clone <eventId> --date "May 1 8pm" --title "Game Night v2"
-
-# Watch RSVPs in real-time (NDJSON stream)
-partiful +watch <eventId> --interval 15 --duration 30
-
-# Export event + guest list
-partiful +export <eventId> --format json --output party.json
-partiful +export <eventId> --format csv
-
-# Event details include the shareable URL
-partiful events get <eventId>
-```
-
-## Global Flags
-
-`--format <fmt>` (json/table/csv/ndjson) · `--dry-run` · `-y, --yes` · `--force` · `-v, --verbose` · `-o, --output <path>` · `--no-color`
-
-## Auth Setup
-
-Partiful doesn't have a public API. This CLI authenticates via SMS verification through Firebase.
-
-```bash
-partiful auth login +12065551234   # sends SMS code, completes auth
-partiful auth status               # verify you're logged in
-```
-
-**How it works:**
-1. You provide your phone number (E.164 format, e.g. `+12065551234`)
-2. Partiful sends an SMS verification code to that number
-3. On macOS with [`imsg`](https://github.com/nicktomlin/imsg) installed, the code is auto-retrieved from Messages
-4. Otherwise, you'll be prompted to enter it manually
-5. Credentials are saved to `~/.config/partiful/auth.json`
-
-Tokens auto-refresh when expired. Run `partiful doctor` if anything seems off.
-
-## JSON Output
-
-All commands support `--format json`. Responses follow a consistent envelope:
-
-```json
-{
-  "status": "success",
-  "data": { ... },
-  "metadata": {}
-}
-```
-
-`events list` returns one summary object per event. Each includes your **own** RSVP and host status:
-
-```json
-{
-  "id": "BiwCtA9kRMh8Od5TvuPq",
-  "title": "Skills & Drills",
-  "startDate": "2026-07-08T01:30:00.000Z",
-  "endDate": null,
-  "location": null,
-  "status": "PUBLISHED",
-  "isHost": false,
-  "myRsvp": "GOING",
-  "going": 12,
-  "maybe": 14,
-  "url": "https://partiful.com/e/BiwCtA9kRMh8Od5TvuPq"
-}
-```
-
-- **`myRsvp`** — your personal RSVP: `GOING`, `MAYBE`, `DECLINED`, `SENT` (invited, no reply yet), or `null` on events you host. Filter on this to sync only the events you've accepted, e.g. `partiful events list | jq '.data[] | select(.myRsvp == "GOING")'`.
-- **`isHost`** — `true` for events you own. (`going`/`maybe` are aggregate counts across all guests, not your status.)
-
-Errors return `{ "status": "error", "error": { "code": 1, "type": "api_error", "message": "..." } }`.
-
-Exit codes: `0` success · `1` API error · `2` auth error · `3` validation · `4` not found · `5` internal.
-
-## Contributing
-
-```bash
-git clone https://github.com/KalebCole/partiful-cli && cd partiful-cli
-npm install
-npm link          # makes `partiful` available globally for testing
-npm test          # run tests
-```
+- GoReleaser injects the tagged release version with ldflags.
+- Source builds default to `3.0.1` until a release tag overrides it.
+- Each native archive bundles `README.md` and `LICENSE`.
+- `doctor` is the safe local smoke command for authentication state.
 
 ## License
 
