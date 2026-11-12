@@ -27,7 +27,8 @@ partiful doctor
 ## Development
 
 Repository runtime, development, CI, verification, and release flow are
-Go-only.
+Go-only. See [Architecture](docs/ARCHITECTURE.md) for the auth flow and contract
+checks; [the OpenAPI spec](spec/partiful.openapi.json) defines every remote call.
 
 ```bash
 go mod verify

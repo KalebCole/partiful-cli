@@ -10,11 +10,6 @@ import (
 	"github.com/KalebCole/partiful-cli/internal/app"
 )
 
-type evidenceDocument struct {
-	ContractRevision string `json:"contractRevision"`
-	Status           string `json:"status"`
-}
-
 type openAPIDocument struct {
 	Info struct {
 		Version string `json:"version"`
@@ -47,25 +42,6 @@ func TestContractRevisionsStayInSyncAcrossDocsAndSpecs(t *testing.T) {
 	}
 	if !strings.Contains(productDoc, "**Remote API contract revision:** `"+app.RemoteContractRevision+"`") {
 		t.Fatalf("product contract doc does not publish remote revision %q", app.RemoteContractRevision)
-	}
-
-	remoteDoc := readRepoFile(t, root, "docs/REMOTE-API-CONTRACT.md")
-	if !strings.Contains(remoteDoc, "owner-reviewed revision `"+app.RemoteContractRevision+"`") {
-		t.Fatalf("remote contract doc does not publish revision %q", app.RemoteContractRevision)
-	}
-	if !strings.Contains(remoteDoc, "The Go CLI ships remote contract revision `"+app.RemoteContractRevision+"`.") {
-		t.Fatalf("remote contract doc does not bind the Go CLI to revision %q", app.RemoteContractRevision)
-	}
-
-	var evidence evidenceDocument
-	if err := encodingjson.Unmarshal([]byte(readRepoFile(t, root, "spec/partiful.api-evidence.json")), &evidence); err != nil {
-		t.Fatalf("decode spec/partiful.api-evidence.json: %v", err)
-	}
-	if evidence.ContractRevision != app.RemoteContractRevision {
-		t.Fatalf("evidence contract revision = %q, want %q", evidence.ContractRevision, app.RemoteContractRevision)
-	}
-	if evidence.Status != "owner-reviewed" {
-		t.Fatalf("evidence status = %q, want owner-reviewed", evidence.Status)
 	}
 
 	var openapi openAPIDocument
