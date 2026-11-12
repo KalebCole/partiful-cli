@@ -1373,6 +1373,10 @@ func TestExecuteSchemaPublishesCompleteRSVPSurfaceAndSafety(t *testing.T) {
 		set.Data.Safety.Destructive {
 		t.Fatalf("set success/safety = %#v, want preview-or-submitted standard mutation", set.Data)
 	}
+	if !strings.Contains(setResult.Stdout, `"ticketPaid":{"type":"boolean"}`) ||
+		strings.Contains(setResult.Stdout, `"shouldFollowOrgs","ticketPaid"`) {
+		t.Fatalf("success schema = %s, want optional ticketPaid", setResult.Stdout)
+	}
 	for _, failureType := range []string{
 		"input.invalid",
 		"auth.required",
