@@ -11,6 +11,12 @@ cleanup() {
 }
 trap cleanup EXIT
 
+# Check executable product rules, schema goldens, and OpenAPI provenance before packaging.
+(
+  cd "${repo_root}"
+  go test ./internal/app ./internal/remote
+)
+
 source_version="$(sed -n 's/^[[:space:]]*Version[[:space:]]*=[[:space:]]*"\([^"]*\)".*/\1/p' "${repo_root}/internal/app/buildinfo.go")"
 if [[ -z "${source_version}" ]]; then
   echo "could not read source version" >&2

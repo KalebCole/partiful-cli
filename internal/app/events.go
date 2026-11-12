@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"slices"
 	"strings"
@@ -243,11 +244,32 @@ func executeEventGet(
 		Description: event.RawFields["description"],
 		Location:    event.RawFields["location"],
 		Address:     event.RawFields["locationInfo"],
-		Visibility:  event.RawFields["visibility"],
-		GuestLimit:  event.RawFields["guestLimit"],
+		Visibility:  projectEventVisibility(event.RawFields),
+		GuestLimit:  projectEventGuestLimit(event.RawFields),
 		Poster:      event.RawFields["image"],
 		Links:       event.RawFields["customFields"],
 	}, pretty)
+}
+
+// projectEventVisibility reports the same private/public choice that
+// events.create accepts. Create expresses it as isPublic; the raw "visibility"
+// field is always sent as "public" by the web client and the CLI, so it does
+// not distinguish private events.
+func projectEventVisibility(raw map[string]json.RawMessage) any {
+	var isPublic bool
+	if document, ok := raw["isPublic"]; ok && json.Unmarshal(document, &isPublic) == nil && isPublic {
+		return "public"
+	}
+	return "private"
+}
+
+// projectEventGuestLimit reports the capacity that events.create writes as
+// maxCapacity, falling back to it when no guestLimit field is present.
+func projectEventGuestLimit(raw map[string]json.RawMessage) any {
+	if document, ok := raw["guestLimit"]; ok && string(document) != "null" {
+		return document
+	}
+	return raw["maxCapacity"]
 }
 
 func parseEventID(
