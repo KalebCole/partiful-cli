@@ -78,9 +78,9 @@ not a claim that the server provides pagination.
 - Whether cache validators or storage-generation headers retain their current
   behavior.
 
-These unknowns do not require a runtime fallback. The implementation remains
-gated until this evidence and contract revision receive owner approval and are
-merged. Under the fail-closed boundary above, S1 can close without guessing:
+These unknowns do not require a runtime fallback. The current call change
+process is documented in [Architecture](../ARCHITECTURE.md).
+Under the fail-closed boundary above, S1 can close without guessing:
 the implementation accepts only the observed `200` representation, maps only
 local no-response/network failures to `remote.unavailable`, and treats every
 received unrecognized status or malformed success body as a protocol change.
