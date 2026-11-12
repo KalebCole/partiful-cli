@@ -32,7 +32,7 @@
     "meta": {
       "cliVersion": "3.0.1",
       "command": "schema",
-      "productContractRevision": "2026-08-12.7",
+      "productContractRevision": "2026-11-12.1",
       "remoteContractRevision": "2026-08-12.7",
       "warnings": []
     },
@@ -111,7 +111,7 @@
       "meta": {
         "cliVersion": "3.0.1",
         "command": "schema",
-        "productContractRevision": "2026-08-12.7",
+        "productContractRevision": "2026-11-12.1",
         "remoteContractRevision": "2026-08-12.7",
         "warnings": []
       },
@@ -185,7 +185,7 @@
       "meta": {
         "cliVersion": "3.0.1",
         "command": "schema",
-        "productContractRevision": "2026-08-12.7",
+        "productContractRevision": "2026-11-12.1",
         "remoteContractRevision": "2026-08-12.7",
         "warnings": []
       },
@@ -262,7 +262,7 @@
       "meta": {
         "cliVersion": "3.0.1",
         "command": "schema",
-        "productContractRevision": "2026-08-12.7",
+        "productContractRevision": "2026-11-12.1",
         "remoteContractRevision": "2026-08-12.7",
         "warnings": []
       },
@@ -516,7 +516,7 @@
       "meta": {
         "cliVersion": "3.0.1",
         "command": "schema",
-        "productContractRevision": "2026-08-12.7",
+        "productContractRevision": "2026-11-12.1",
         "remoteContractRevision": "2026-08-12.7",
         "warnings": []
       },
@@ -686,7 +686,7 @@
       "meta": {
         "cliVersion": "3.0.1",
         "command": "schema",
-        "productContractRevision": "2026-08-12.7",
+        "productContractRevision": "2026-11-12.1",
         "remoteContractRevision": "2026-08-12.7",
         "warnings": []
       },
@@ -829,7 +829,7 @@
       "meta": {
         "cliVersion": "3.0.1",
         "command": "schema",
-        "productContractRevision": "2026-08-12.7",
+        "productContractRevision": "2026-11-12.1",
         "remoteContractRevision": "2026-08-12.7",
         "warnings": []
       },
@@ -973,7 +973,7 @@
       "meta": {
         "cliVersion": "3.0.1",
         "command": "schema",
-        "productContractRevision": "2026-08-12.7",
+        "productContractRevision": "2026-11-12.1",
         "remoteContractRevision": "2026-08-12.7",
         "warnings": []
       },
@@ -1144,7 +1144,7 @@
       "meta": {
         "cliVersion": "3.0.1",
         "command": "schema",
-        "productContractRevision": "2026-08-12.7",
+        "productContractRevision": "2026-11-12.1",
         "remoteContractRevision": "2026-08-12.7",
         "warnings": []
       },
@@ -1315,7 +1315,7 @@
       "meta": {
         "cliVersion": "3.0.1",
         "command": "schema",
-        "productContractRevision": "2026-08-12.7",
+        "productContractRevision": "2026-11-12.1",
         "remoteContractRevision": "2026-08-12.7",
         "warnings": []
       },
@@ -1460,7 +1460,7 @@
       "meta": {
         "cliVersion": "3.0.1",
         "command": "schema",
-        "productContractRevision": "2026-08-12.7",
+        "productContractRevision": "2026-11-12.1",
         "remoteContractRevision": "2026-08-12.7",
         "warnings": []
       },
@@ -1551,7 +1551,7 @@
       "meta": {
         "cliVersion": "3.0.1",
         "command": "schema",
-        "productContractRevision": "2026-08-12.7",
+        "productContractRevision": "2026-11-12.1",
         "remoteContractRevision": "2026-08-12.7",
         "warnings": []
       },
@@ -1739,7 +1739,7 @@
       "meta": {
         "cliVersion": "3.0.1",
         "command": "schema",
-        "productContractRevision": "2026-08-12.7",
+        "productContractRevision": "2026-11-12.1",
         "remoteContractRevision": "2026-08-12.7",
         "warnings": []
       },
@@ -2089,7 +2089,7 @@
       "meta": {
         "cliVersion": "3.0.1",
         "command": "schema",
-        "productContractRevision": "2026-08-12.7",
+        "productContractRevision": "2026-11-12.1",
         "remoteContractRevision": "2026-08-12.7",
         "warnings": []
       },
@@ -2225,7 +2225,7 @@
       "meta": {
         "cliVersion": "3.0.1",
         "command": "schema",
-        "productContractRevision": "2026-08-12.7",
+        "productContractRevision": "2026-11-12.1",
         "remoteContractRevision": "2026-08-12.7",
         "warnings": []
       },
@@ -2401,7 +2401,7 @@
       "meta": {
         "cliVersion": "3.0.1",
         "command": "schema",
-        "productContractRevision": "2026-08-12.7",
+        "productContractRevision": "2026-11-12.1",
         "remoteContractRevision": "2026-08-12.7",
         "warnings": []
       },
@@ -2635,7 +2635,7 @@
       "meta": {
         "cliVersion": "3.0.1",
         "command": "schema",
-        "productContractRevision": "2026-08-12.7",
+        "productContractRevision": "2026-11-12.1",
         "remoteContractRevision": "2026-08-12.7",
         "warnings": []
       },
@@ -2939,7 +2939,7 @@
       "meta": {
         "cliVersion": "3.0.1",
         "command": "schema",
-        "productContractRevision": "2026-08-12.7",
+        "productContractRevision": "2026-11-12.1",
         "remoteContractRevision": "2026-08-12.7",
         "warnings": []
       },
@@ -3118,7 +3118,7 @@
       "meta": {
         "cliVersion": "3.0.1",
         "command": "schema",
-        "productContractRevision": "2026-08-12.7",
+        "productContractRevision": "2026-11-12.1",
         "remoteContractRevision": "2026-08-12.7",
         "warnings": []
       },
@@ -3295,7 +3295,7 @@
       "meta": {
         "cliVersion": "3.0.1",
         "command": "schema",
-        "productContractRevision": "2026-08-12.7",
+        "productContractRevision": "2026-11-12.1",
         "remoteContractRevision": "2026-08-12.7",
         "warnings": []
       },
@@ -3464,7 +3464,7 @@
       "meta": {
         "cliVersion": "3.0.1",
         "command": "schema",
-        "productContractRevision": "2026-08-12.7",
+        "productContractRevision": "2026-11-12.1",
         "remoteContractRevision": "2026-08-12.7",
         "warnings": []
       },
@@ -3646,7 +3646,7 @@
       "meta": {
         "cliVersion": "3.0.1",
         "command": "schema",
-        "productContractRevision": "2026-08-12.7",
+        "productContractRevision": "2026-11-12.1",
         "remoteContractRevision": "2026-08-12.7",
         "warnings": []
       },
@@ -3750,7 +3750,7 @@
       "meta": {
         "cliVersion": "3.0.1",
         "command": "schema",
-        "productContractRevision": "2026-08-12.7",
+        "productContractRevision": "2026-11-12.1",
         "remoteContractRevision": "2026-08-12.7",
         "warnings": []
       },
@@ -4355,7 +4355,7 @@
       "meta": {
         "cliVersion": "3.0.1",
         "command": "schema",
-        "productContractRevision": "2026-08-12.7",
+        "productContractRevision": "2026-11-12.1",
         "remoteContractRevision": "2026-08-12.7",
         "warnings": []
       },
@@ -4522,7 +4522,7 @@
       "meta": {
         "cliVersion": "3.0.1",
         "command": "schema",
-        "productContractRevision": "2026-08-12.7",
+        "productContractRevision": "2026-11-12.1",
         "remoteContractRevision": "2026-08-12.7",
         "warnings": []
       },
@@ -4585,7 +4585,7 @@
       "meta": {
         "cliVersion": "3.0.1",
         "command": "schema",
-        "productContractRevision": "2026-08-12.7",
+        "productContractRevision": "2026-11-12.1",
         "remoteContractRevision": "2026-08-12.7",
         "warnings": []
       },
