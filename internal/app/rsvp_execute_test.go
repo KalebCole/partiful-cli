@@ -78,7 +78,7 @@ func TestExecuteRSVPGetReturnsExplicitNoRSVPAndFailsClosedOnOtherVariants(t *tes
 				return jsonResponse(http.StatusOK, testCase.body), nil
 			}}
 
-			result := app.Execute(context.Background(), app.Request{
+			result := executeChecked(t, context.Background(), app.Request{
 				Argv: []string{"rsvp", "get", "event-example"},
 			}, dependencies)
 
@@ -108,7 +108,7 @@ func TestExecuteRSVPCommandsRequireAuthenticationBeforeRemoteAccess(t *testing.T
 	} {
 		t.Run(strings.Join(argv[:2], " "), func(t *testing.T) {
 			httpCalled := false
-			result := app.Execute(
+			result := executeChecked(t,
 				context.Background(),
 				app.Request{Argv: argv},
 				app.Dependencies{
@@ -178,7 +178,7 @@ func TestExecuteRSVPSetDryRunsNormalizedGoingCreateWithoutMutation(t *testing.T)
 		}
 	}}
 
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv: []string{
 			"rsvp", "set", "event-example",
 			"--status", "going",
@@ -299,7 +299,7 @@ func TestExecuteRSVPSetDryRunRefreshesInMemoryWithoutPersistingCredentials(t *te
 		}
 	}}
 
-	result := app.Execute(context.Background(), app.Request{Argv: []string{
+	result := executeChecked(t, context.Background(), app.Request{Argv: []string{
 		"rsvp", "set", "event-example", "--status", "interested", "--dry-run",
 	}}, dependencies)
 	if result.ExitCode != 0 || call != 3 {
@@ -382,7 +382,7 @@ func TestExecuteRSVPSetUpdatesReviewedGuestOnceAndReturnsOnlySubmittedIntent(t *
 		`{"questionnaireVersion":1,"answers":{"question-example":"Answer"}}`,
 	}
 
-	preview := app.Execute(
+	preview := executeChecked(t,
 		context.Background(),
 		app.Request{Argv: append(append([]string{}, argv...), "--dry-run")},
 		dependencies,
@@ -395,7 +395,7 @@ func TestExecuteRSVPSetUpdatesReviewedGuestOnceAndReturnsOnlySubmittedIntent(t *
 	if strings.Contains(preview.Stdout+preview.Stderr, privateGuestID) {
 		t.Fatal("public preview exposed the private guest ID")
 	}
-	applied := app.Execute(
+	applied := executeChecked(t,
 		context.Background(),
 		app.Request{Argv: argv},
 		dependencies,
@@ -468,7 +468,7 @@ func TestExecuteRSVPSetSubmitsInterestWithoutDisplayNameOrSource(t *testing.T) {
 		"--status", "interested",
 	}
 
-	preview := app.Execute(context.Background(), app.Request{Argv: append(append([]string{}, argv...), "--dry-run")}, dependencies)
+	preview := executeChecked(t, context.Background(), app.Request{Argv: append(append([]string{}, argv...), "--dry-run")}, dependencies)
 	if preview.ExitCode != 0 ||
 		!strings.Contains(preview.Stdout, `"operation":"markEventInterest"`) ||
 		!strings.Contains(preview.Stdout, `"input":{"status":"interested"}`) ||
@@ -476,7 +476,7 @@ func TestExecuteRSVPSetSubmitsInterestWithoutDisplayNameOrSource(t *testing.T) {
 		strings.Contains(preview.Stdout, "source") {
 		t.Fatalf("preview = %#v, want narrow direct-interest request", preview)
 	}
-	applied := app.Execute(context.Background(), app.Request{
+	applied := executeChecked(t, context.Background(), app.Request{
 		Argv: argv,
 	}, dependencies)
 	if applied.ExitCode != 0 ||
@@ -529,7 +529,7 @@ func TestExecuteRSVPSetAcceptsStructuredDeclineAndRequiresNoCompletionFields(t *
 	}}
 	argv := []string{"rsvp", "set", "event-example", "--input", "-"}
 
-	preview := app.Execute(context.Background(), app.Request{
+	preview := executeChecked(t, context.Background(), app.Request{
 		Argv:  append(append([]string{}, argv...), "--dry-run"),
 		Stdin: strings.NewReader(input),
 	}, dependencies)
@@ -540,7 +540,7 @@ func TestExecuteRSVPSetAcceptsStructuredDeclineAndRequiresNoCompletionFields(t *
 		strings.Contains(preview.Stdout, "questionnaireVersion") {
 		t.Fatalf("preview = %#v, want normalized decline", preview)
 	}
-	applied := app.Execute(context.Background(), app.Request{
+	applied := executeChecked(t, context.Background(), app.Request{
 		Argv:  argv,
 		Stdin: strings.NewReader(input),
 	}, dependencies)
@@ -697,7 +697,7 @@ func TestExecuteRSVPSetRejectsInvalidNormalizedInputBeforeAuthenticationOrReads(
 	for _, testCase := range cases {
 		t.Run(testCase.name, func(t *testing.T) {
 			httpCalled := false
-			result := app.Execute(context.Background(), app.Request{
+			result := executeChecked(t, context.Background(), app.Request{
 				Argv:  testCase.argv,
 				Stdin: strings.NewReader(testCase.stdin),
 			}, app.Dependencies{
@@ -934,7 +934,7 @@ func TestExecuteRSVPSetEnforcesReviewedEventAndGuestCompatibility(t *testing.T) 
 				argv = going
 			}
 
-			result := app.Execute(
+			result := executeChecked(t,
 				context.Background(),
 				app.Request{Argv: argv},
 				dependencies,
@@ -1017,7 +1017,7 @@ func TestExecuteRSVPSetMakesOneAttemptOnUncertainOrMalformedCompletion(t *testin
 					return nil, nil
 				}
 			}}
-			applied := app.Execute(
+			applied := executeChecked(t,
 				context.Background(),
 				app.Request{Argv: argv},
 				dependencies,
@@ -1072,7 +1072,7 @@ func TestExecuteSchemaPublishesCompleteRSVPSurfaceAndSafety(t *testing.T) {
 			} `json:"safety"`
 		} `json:"data"`
 	}
-	getResult := app.Execute(context.Background(), app.Request{
+	getResult := executeChecked(t, context.Background(), app.Request{
 		Argv: []string{"schema", "rsvp.get"},
 	}, app.Dependencies{})
 	if getResult.ExitCode != 0 ||
@@ -1083,7 +1083,7 @@ func TestExecuteSchemaPublishesCompleteRSVPSurfaceAndSafety(t *testing.T) {
 		t.Fatalf("get schema = %#v, want private-ID-free reviewed RSVP read", getResult)
 	}
 
-	setResult := app.Execute(context.Background(), app.Request{
+	setResult := executeChecked(t, context.Background(), app.Request{
 		Argv: []string{"schema", "rsvp.set"},
 	}, app.Dependencies{})
 	var set schemaEnvelope
@@ -1113,6 +1113,8 @@ func TestExecuteSchemaPublishesCompleteRSVPSurfaceAndSafety(t *testing.T) {
 		"--dry-run",
 		"--force",
 		"--no-input",
+		"--pretty",
+		"--non-interactive",
 	}) {
 		t.Fatalf("set flags = %v, want complete RSVP invocation", flags)
 	}

@@ -11,9 +11,10 @@ upload, and poster operations the CLI may call, including known request,
 response, and failure behavior. It records verified remote facts; it does not
 define CLI commands.
 
-**CLI product contract**:  
+**CLI product rules**:
 The reviewed command, input, JSON output, failure, and mutation-safety behavior
-that `partiful` promises to users and agents.
+that `partiful` promises to users and agents, enforced by command definitions,
+Go tests, and reviewed schema snapshots.
 
 **Research evidence**:  
 Information that can support or challenge remote facts but is not authoritative
@@ -42,8 +43,8 @@ A mutation that contacts a person, removes access, exposes access, or cancels
 an event. Destructive actions require an interactive confirmation or `--force`.
 
 **Implementation**:  
-The Go code that is subordinate to the CLI product contract and remote API
-contract. Implementation behavior does not silently redefine either contract.
+The Go code checked against executable product tests and the remote API
+contract. Public behavior changes require deliberate test and snapshot review.
 
 **Cutover**:  
 The point when the greenfield Go CLI replaces the TypeScript project and Node
