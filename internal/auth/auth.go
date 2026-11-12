@@ -19,6 +19,7 @@ var (
 	ErrExpired               = errors.New("authentication has expired")
 	ErrHumanRequired         = errors.New("a private terminal is required")
 	ErrInputInvalid          = errors.New("authentication input is invalid")
+	ErrPhoneInvalid          = errors.New("phone number must include a country code")
 	ErrPersistence           = errors.New("credential persistence failed")
 	ErrAuthCodeRejected      = errors.New("authentication code rejected")
 	ErrRemoteTokenExpired    = errors.New("remote authentication token expired")
@@ -80,9 +81,9 @@ func Login(
 	if err != nil {
 		return State{}, ErrUnavailable
 	}
-	phoneNumber = strings.TrimSpace(phoneNumber)
-	if phoneNumber == "" {
-		return State{}, ErrInputInvalid
+	phoneNumber, err = normalizeLoginPhone(phoneNumber)
+	if err != nil {
+		return State{}, err
 	}
 
 	deviceBytes := make([]byte, 16)
@@ -398,4 +399,45 @@ func tokenUserID(token string) string {
 
 func missingState() State {
 	return State{Authenticated: false, TokenState: "missing", ExpiresAt: nil}
+}
+
+func normalizeLoginPhone(value string) (string, error) {
+	trimmed := strings.TrimSpace(value)
+	if trimmed == "" {
+		return "", ErrInputInvalid
+	}
+	compact := strings.Map(func(r rune) rune {
+		switch r {
+		case ' ', '-', '(', ')', '.':
+			return -1
+		default:
+			return r
+		}
+	}, trimmed)
+	if compact == "" {
+		return "", ErrInputInvalid
+	}
+	digits := compact
+	prefixed := strings.HasPrefix(digits, "+")
+	if prefixed {
+		digits = digits[1:]
+	}
+	if digits == "" || strings.IndexFunc(digits, func(r rune) bool {
+		return r < '0' || r > '9'
+	}) >= 0 {
+		return "", ErrPhoneInvalid
+	}
+	switch {
+	case prefixed:
+		if len(digits) < 8 || len(digits) > 15 {
+			return "", ErrPhoneInvalid
+		}
+		return "+" + digits, nil
+	case len(digits) == 10:
+		return "+1" + digits, nil
+	case len(digits) == 11 && digits[0] == '1':
+		return "+" + digits, nil
+	default:
+		return "", ErrPhoneInvalid
+	}
 }

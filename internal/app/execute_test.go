@@ -2482,6 +2482,63 @@ func TestExecuteAuthLoginRejectsEmptyPrivateInputBeforeHTTP(t *testing.T) {
 	}
 }
 
+func TestExecuteAuthLoginNormalizesUSPhoneNumbersBeforeTheAuthRequest(t *testing.T) {
+	cases := []struct {
+		name    string
+		phone   string
+		want    string
+		message string
+	}{
+		{name: "ten digits", phone: "5555550123", want: "+15555550123"},
+		{name: "formatted ten digits", phone: "(555) 555-0123", want: "+15555550123"},
+		{name: "leading country digit", phone: "15555550123", want: "+15555550123"},
+		{
+			name:    "too short",
+			phone:   "555555",
+			message: "Enter a phone number with its country code, such as +1 followed by 10 digits.",
+		},
+	}
+	for _, testCase := range cases {
+		t.Run(testCase.name, func(t *testing.T) {
+			var sent string
+			httpCalls := 0
+			result := app.Execute(context.Background(), app.Request{
+				Argv: []string{"auth", "login"},
+			}, app.Dependencies{
+				Files:           &memoryFilesystem{files: map[string][]byte{}},
+				CredentialsPath: "/config/partiful/credentials.json",
+				Terminal:        &scriptedPrivateTerminal{values: []string{testCase.phone}},
+				AuthRandom:      strings.NewReader("0123456789abcdef"),
+				Now: func() time.Time {
+					return time.Date(2026, time.August, 11, 0, 0, 0, 0, time.UTC)
+				},
+				HTTP: scriptedHTTP{do: func(request *http.Request) (*http.Response, error) {
+					httpCalls++
+					body, err := io.ReadAll(request.Body)
+					if err != nil {
+						t.Fatalf("read auth request: %v", err)
+					}
+					sent = string(body)
+					return jsonResponse(http.StatusBadGateway, `{"error":"unavailable"}`), nil
+				}},
+			})
+			if testCase.message != "" {
+				if result.ExitCode != 2 ||
+					!strings.Contains(result.Stdout, `"code":"AUTH_INPUT_INVALID"`) ||
+					!strings.Contains(result.Stdout, testCase.message) ||
+					httpCalls != 0 ||
+					strings.Contains(result.Stdout+result.Stderr, testCase.phone) {
+					t.Fatalf("result = %#v, calls = %d, want a phone input error", result, httpCalls)
+				}
+				return
+			}
+			if httpCalls != 1 || !strings.Contains(sent, `"phoneNumber":"`+testCase.want+`"`) {
+				t.Fatalf("calls = %d, sent = %s, want normalized %s", httpCalls, sent, testCase.want)
+			}
+		})
+	}
+}
+
 type scriptedPrivateTerminal struct {
 	values  []string
 	prompts []string

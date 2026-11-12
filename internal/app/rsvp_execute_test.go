@@ -746,6 +746,8 @@ func TestExecuteRSVPSetEnforcesReviewedEventAndGuestCompatibility(t *testing.T) 
 		argv        []string
 		failureType string
 		code        string
+		message     string
+		property    string
 	}{
 		{
 			name: "RSVP disabled",
@@ -754,6 +756,8 @@ func TestExecuteRSVPSetEnforcesReviewedEventAndGuestCompatibility(t *testing.T) 
 			},
 			failureType: "state.conflict",
 			code:        "RSVP_EVENT_UNSUPPORTED",
+			message:     "The event has rsvpsEnabled turned off.",
+			property:    "rsvpsEnabled",
 		},
 		{
 			name: "required capacity flag missing",
@@ -770,6 +774,8 @@ func TestExecuteRSVPSetEnforcesReviewedEventAndGuestCompatibility(t *testing.T) 
 			},
 			failureType: "state.conflict",
 			code:        "RSVP_EVENT_UNSUPPORTED",
+			message:     "The event guestAction does not support a direct RSVP.",
+			property:    "guestAction",
 		},
 		{
 			name: "ticketed event",
@@ -778,6 +784,39 @@ func TestExecuteRSVPSetEnforcesReviewedEventAndGuestCompatibility(t *testing.T) 
 			},
 			failureType: "state.conflict",
 			code:        "RSVP_EVENT_UNSUPPORTED",
+			message:     "The event uses ticketing.",
+			property:    "ticketing",
+		},
+		{
+			name: "standard ticket sale",
+			change: func(event map[string]any) {
+				event["ticketing"] = map[string]any{
+					"type":     "standard",
+					"mode":     "optional",
+					"price":    5,
+					"currency": "USD",
+				}
+			},
+			failureType: "state.conflict",
+			code:        "RSVP_EVENT_UNSUPPORTED",
+			message:     "The event uses ticketing.",
+			property:    "ticketing",
+		},
+		{
+			name: "required chip-in",
+			change: func(event map[string]any) {
+				event["ticketing"] = map[string]any{
+					"type":     "chip_in",
+					"mode":     "required",
+					"price":    5,
+					"currency": "USD",
+					"payment":  map[string]any{"venmoUsername": "private-venmo-handle"},
+				}
+			},
+			failureType: "state.conflict",
+			code:        "RSVP_EVENT_UNSUPPORTED",
+			message:     "The event requires a chip-in payment.",
+			property:    "ticketing",
 		},
 		{
 			name: "unobserved null password",
@@ -794,6 +833,8 @@ func TestExecuteRSVPSetEnforcesReviewedEventAndGuestCompatibility(t *testing.T) 
 			},
 			failureType: "state.conflict",
 			code:        "RSVP_EVENT_UNSUPPORTED",
+			message:     "The event is password protected.",
+			property:    "passwordProtected",
 		},
 		{
 			name: "at capacity does not invent waitlist",
@@ -803,6 +844,8 @@ func TestExecuteRSVPSetEnforcesReviewedEventAndGuestCompatibility(t *testing.T) 
 			},
 			failureType: "state.conflict",
 			code:        "RSVP_EVENT_UNSUPPORTED",
+			message:     "The event is at capacity.",
+			property:    "atCapacity",
 		},
 		{
 			name: "party maximum",
@@ -812,6 +855,8 @@ func TestExecuteRSVPSetEnforcesReviewedEventAndGuestCompatibility(t *testing.T) 
 			argv:        partyTwo,
 			failureType: "state.conflict",
 			code:        "RSVP_EVENT_UNSUPPORTED",
+			message:     "The party is larger than maxCountPerGuest.",
+			property:    "maxCountPerGuest",
 		},
 		{
 			name: "invalid party maximum evidence",
@@ -828,6 +873,8 @@ func TestExecuteRSVPSetEnforcesReviewedEventAndGuestCompatibility(t *testing.T) 
 			},
 			failureType: "state.conflict",
 			code:        "RSVP_EVENT_UNSUPPORTED",
+			message:     "The event has maxCapacity without remainingCapacity.",
+			property:    "remainingCapacity",
 		},
 		{
 			name: "insufficient capacity",
@@ -836,6 +883,8 @@ func TestExecuteRSVPSetEnforcesReviewedEventAndGuestCompatibility(t *testing.T) 
 			},
 			failureType: "state.conflict",
 			code:        "RSVP_EVENT_UNSUPPORTED",
+			message:     "The event does not have enough remainingCapacity.",
+			property:    "remainingCapacity",
 		},
 		{
 			name: "declined current guest does not reduce going capacity delta",
@@ -848,12 +897,28 @@ func TestExecuteRSVPSetEnforcesReviewedEventAndGuestCompatibility(t *testing.T) 
 			argv:        partyTwo,
 			failureType: "state.conflict",
 			code:        "RSVP_EVENT_UNSUPPORTED",
+			message:     "The event does not have enough remainingCapacity.",
+			property:    "remainingCapacity",
 		},
 		{
 			name: "questionnaire required",
 			change: func(event map[string]any) {
 				event["questionnaireEnabled"] = true
 				event["questionnaireVersions"] = []any{map[string]any{}}
+			},
+			failureType: "input.invalid",
+			code:        "QUESTIONNAIRE_RESPONSE_INVALID",
+		},
+		{
+			name: "optional chip-in does not hide a missing questionnaire",
+			change: func(event map[string]any) {
+				event["questionnaireEnabled"] = true
+				event["questionnaireVersions"] = []any{map[string]any{}}
+				event["ticketing"] = map[string]any{
+					"type":  "chip_in",
+					"mode":  "optional",
+					"price": 5,
+				}
 			},
 			failureType: "input.invalid",
 			code:        "QUESTIONNAIRE_RESPONSE_INVALID",
@@ -867,6 +932,8 @@ func TestExecuteRSVPSetEnforcesReviewedEventAndGuestCompatibility(t *testing.T) 
 			argv:        withQuestionnaire,
 			failureType: "state.conflict",
 			code:        "RSVP_EVENT_UNSUPPORTED",
+			message:     "The event questionnaireVersions are unavailable.",
+			property:    "questionnaireVersions",
 		},
 		{
 			name: "questionnaire latest version",
@@ -942,16 +1009,182 @@ func TestExecuteRSVPSetEnforcesReviewedEventAndGuestCompatibility(t *testing.T) 
 
 			if result.ExitCode == 0 ||
 				!strings.Contains(result.Stdout, `"type":"`+testCase.failureType+`"`) ||
-				!strings.Contains(result.Stdout, `"code":"`+testCase.code+`"`) {
+				!strings.Contains(result.Stdout, `"code":"`+testCase.code+`"`) ||
+				testCase.message != "" && !strings.Contains(result.Stdout, `"message":"`+testCase.message+`"`) ||
+				testCase.property != "" && !strings.Contains(result.Stdout, `"property":"`+testCase.property+`"`) {
 				t.Fatalf(
-					"result = %#v, want %s/%s",
+					"result = %#v, want %s/%s %s",
 					result,
 					testCase.failureType,
 					testCase.code,
+					testCase.message,
 				)
+			}
+			if strings.Contains(result.Stdout+result.Stderr, "private-venmo-handle") {
+				t.Fatal("output exposed a payment handle")
 			}
 			if files.atomicWrites != 0 {
 				t.Fatalf("atomic writes = %d, want no writes for incompatible event", files.atomicWrites)
+			}
+		})
+	}
+}
+
+func TestExecuteRSVPSetAllowsOptionalChipInWithoutPaymentOrTickets(t *testing.T) {
+	const privateHandle = "private-venmo-handle"
+	going := []string{
+		"rsvp", "set", "event-example",
+		"--status", "going",
+		"--display-name", "Example",
+		"--party-size", "1",
+		"--timezone", "America/Los_Angeles",
+		"--dry-run",
+	}
+	notGoing := []string{
+		"rsvp", "set", "event-example",
+		"--status", "not-going",
+		"--display-name", "Example",
+		"--party-size", "1",
+		"--timezone", "America/Los_Angeles",
+		"--dry-run",
+	}
+	cases := []struct {
+		name   string
+		event  map[string]any
+		argv   []string
+		status string
+	}{
+		{
+			name: "typed optional chip-in",
+			event: rsvpEventWith("ticketing", map[string]any{
+				"type":     "chip_in",
+				"mode":     "optional",
+				"price":    5,
+				"currency": "USD",
+				"payment":  map[string]any{"venmoUsername": privateHandle},
+			}),
+			argv:   going,
+			status: "GOING",
+		},
+		{
+			name: "untyped suggested donation",
+			event: rsvpEventWith("ticketing", map[string]any{
+				"mode":     "optional",
+				"price":    5,
+				"currency": "USD",
+				"payment":  map[string]any{"venmoUsername": privateHandle},
+			}),
+			argv:   going,
+			status: "GOING",
+		},
+		{
+			name: "optional chip-in decline omits ticketPaid",
+			event: rsvpEventWith("ticketing", map[string]any{
+				"type":     "chip_in",
+				"mode":     "optional",
+				"price":    5,
+				"currency": "USD",
+				"payment":  map[string]any{"venmoUsername": privateHandle},
+			}),
+			argv:   notGoing,
+			status: "DECLINED",
+		},
+		{
+			name: "required chip-in still allows a decline",
+			event: rsvpEventWith("ticketing", map[string]any{
+				"type":    "chip_in",
+				"mode":    "required",
+				"price":   10,
+				"payment": map[string]any{"venmoUsername": privateHandle},
+			}),
+			argv:   notGoing,
+			status: "DECLINED",
+		},
+	}
+	for _, testCase := range cases {
+		t.Run(testCase.name, func(t *testing.T) {
+			files := &memoryFilesystem{files: map[string][]byte{
+				rsvpCredentialsPath: []byte(rsvpCredentials),
+			}}
+			dependencies := rsvpTestDependencies(files)
+			calls := 0
+			dependencies.HTTP = scriptedHTTP{do: func(request *http.Request) (*http.Response, error) {
+				calls++
+				switch calls {
+				case 1:
+					return jsonResponse(http.StatusOK, rsvpEventResponse(t, testCase.event)), nil
+				case 2:
+					return jsonResponse(http.StatusOK, `{"result":{"data":{"currentGuest":{"id":"private-guest","status":"SENT","count":1,"name":"Example"}}}}`), nil
+				default:
+					t.Fatalf("dry-run dispatched %s", request.URL)
+					return nil, nil
+				}
+			}}
+			result := app.Execute(context.Background(), app.Request{Argv: testCase.argv}, dependencies)
+			if result.ExitCode != 0 || calls != 2 {
+				t.Fatalf("result = %#v, calls = %d, want optional chip-in preview", result, calls)
+			}
+			decoder := json.NewDecoder(strings.NewReader(result.Stdout))
+			var envelope map[string]any
+			if err := decoder.Decode(&envelope); err != nil {
+				t.Fatalf("decode stdout: %v\n%s", err, result.Stdout)
+			}
+			var extra any
+			if err := decoder.Decode(&extra); err != io.EOF {
+				t.Fatalf("stdout has extra JSON data: %v %v", err, extra)
+			}
+			ticketPaid := strings.Contains(result.Stdout, `"ticketPaid":true`)
+			if !strings.Contains(result.Stdout, `"operation":"addGuest"`) ||
+				!strings.Contains(result.Stdout, `"status":"`+testCase.status+`"`) ||
+				strings.Contains(result.Stdout+result.Stderr, privateHandle) ||
+				strings.Contains(result.Stdout, "venmo") ||
+				strings.Contains(result.Stdout, "private-guest") ||
+				ticketPaid != (testCase.status == "GOING") {
+				t.Fatalf("preview = %s, want honor-system ticketPaid only on going", result.Stdout)
+			}
+			wire := ""
+			intent := ""
+			switch testCase.name {
+			case "typed optional chip-in":
+				intent = "going"
+				wire = `{"data":{"params":{"eventId":"event-example","rsvp":{"name":"Example","count":1,"plusOnes":[],"status":"GOING","guestId":"private-guest","timezone":"America/Los_Angeles","shouldFollowOrgs":false,"ticketPaid":true}},"amplitudeDeviceId":"MDEyMzQ1Njc4OWFiY2RlZg"}}`
+			case "optional chip-in decline omits ticketPaid", "required chip-in still allows a decline":
+				intent = "not-going"
+				wire = `{"data":{"params":{"eventId":"event-example","rsvp":{"name":"Example","count":1,"plusOnes":[],"status":"DECLINED","guestId":"private-guest","timezone":"America/Los_Angeles","shouldFollowOrgs":false}},"amplitudeDeviceId":"MDEyMzQ1Njc4OWFiY2RlZg"}}`
+			default:
+				return
+			}
+			appliedCalls := 0
+			dependencies.HTTP = scriptedHTTP{do: func(request *http.Request) (*http.Response, error) {
+				appliedCalls++
+				switch appliedCalls {
+				case 1:
+					return jsonResponse(http.StatusOK, rsvpEventResponse(t, testCase.event)), nil
+				case 2:
+					return jsonResponse(http.StatusOK, `{"result":{"data":{"currentGuest":{"id":"private-guest","status":"SENT","count":1,"name":"Example"}}}}`), nil
+				case 3:
+					assertRSVPRequest(t, request, "addGuest", wire)
+					return jsonResponse(http.StatusOK, `{"result":{"data":{}}}`), nil
+				default:
+					t.Fatalf("unexpected request %d", appliedCalls)
+					return nil, nil
+				}
+			}}
+			appliedArgv := append([]string{}, testCase.argv...)
+			appliedArgv = appliedArgv[:len(appliedArgv)-1]
+			applied := app.Execute(context.Background(), app.Request{Argv: appliedArgv}, dependencies)
+			if applied.ExitCode != 0 || appliedCalls != 3 ||
+				!strings.Contains(applied.Stdout, `"data":{"eventId":"event-example","intent":"`+intent+`","submitted":true}`) ||
+				strings.Contains(applied.Stdout+applied.Stderr, privateHandle) ||
+				strings.Contains(applied.Stdout, "ticketPaid") {
+				t.Fatalf("applied = %#v, calls = %d, want one submission without payment data", applied, appliedCalls)
+			}
+			appliedDecoder := json.NewDecoder(strings.NewReader(applied.Stdout))
+			if err := appliedDecoder.Decode(&envelope); err != nil {
+				t.Fatalf("decode applied stdout: %v\n%s", err, applied.Stdout)
+			}
+			if err := appliedDecoder.Decode(&extra); err != io.EOF {
+				t.Fatalf("applied stdout has extra JSON data: %v", err)
 			}
 		})
 	}
