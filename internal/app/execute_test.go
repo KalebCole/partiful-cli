@@ -2502,7 +2502,7 @@ func TestExecuteAuthLoginNormalizesUSPhoneNumbersBeforeTheAuthRequest(t *testing
 		t.Run(testCase.name, func(t *testing.T) {
 			var sent string
 			httpCalls := 0
-			result := app.Execute(context.Background(), app.Request{
+			result := executeChecked(t, context.Background(), app.Request{
 				Argv: []string{"auth", "login"},
 			}, app.Dependencies{
 				Files:           &memoryFilesystem{files: map[string][]byte{}},

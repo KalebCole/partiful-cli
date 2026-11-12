@@ -296,8 +296,8 @@
         ],
         "x-evidence": {
           "status": "observed",
-          "date": "2026-08-12",
-          "source": "Request: typescript-derived-inference (spec/research/historical-27-operation-draft.json#/paths/~1getEventInfo/post). Response: dated-live-observation (docs/research/2026-08-11-event-contacts-read-observation.md#event-detail-observations). Status: dated-live-observation (docs/research/2026-08-11-event-contacts-read-observation.md#event-detail-observations). Safeguards: docs/research/2026-08-12-rsvp-read-observation.md (330 details; no universal presence claim)."
+          "date": "2026-11-12",
+          "source": "Request: typescript-derived-inference (spec/research/historical-27-operation-draft.json#/paths/~1getEventInfo/post). Response: dated-live-observation (docs/research/2026-08-11-event-contacts-read-observation.md#event-detail-observations). Status: dated-live-observation (docs/research/2026-08-11-event-contacts-read-observation.md#event-detail-observations). Safeguards: docs/research/2026-08-12-rsvp-read-observation.md (330 details; no universal presence claim). PR #245 reports inspection of public event payloads and the first-party RSVP flow: optional chip-in (mode optional, type chip_in or absent) uses addGuest, with ticketPaid true for GOING even when external payment is skipped; DECLINED omits ticketPaid, including required chip-in. This provenance note records that report during the 2026-11-12 review, not a new live observation. Offline chip-in fixtures cover these mappings. Live persisted RSVP state, external payment, questionnaire handling on the reported event, and getCurrentGuest returning an invited guest still require real Partiful verification. Standard ticket sales remain unsupported."
         }
       }
     },
@@ -1443,8 +1443,8 @@
         ],
         "x-evidence": {
           "status": "observed",
-          "date": "2026-08-12",
-          "source": "Request: current-first-party-public-asset-research (docs/research/2026-08-12-rsvp-mapping-public-assets.md#addguest-request). Response: current-first-party-public-asset-research (docs/research/2026-08-12-rsvp-mapping-public-assets.md#addguest-completion). Status: official-protocol-specification (docs/research/2026-08-10-contract-evidence-sources.md#official-firebase-callable-protocol). Client completion or protocol evidence does not establish persisted business state, delivery, or unobserved failure mappings."
+          "date": "2026-11-12",
+          "source": "Request: current-first-party-public-asset-research (docs/research/2026-08-12-rsvp-mapping-public-assets.md#addguest-request). Response: current-first-party-public-asset-research (docs/research/2026-08-12-rsvp-mapping-public-assets.md#addguest-completion). Status: official-protocol-specification (docs/research/2026-08-10-contract-evidence-sources.md#official-firebase-callable-protocol). Client completion or protocol evidence does not establish persisted business state, delivery, or unobserved failure mappings. PR #245 reports inspection of public event payloads and the first-party RSVP flow: optional chip-in (mode optional, type chip_in or absent) uses addGuest, with ticketPaid true for GOING even when external payment is skipped; DECLINED omits ticketPaid, including required chip-in. This provenance note records that report during the 2026-11-12 review, not a new live observation. Offline chip-in fixtures cover these mappings. Live persisted RSVP state, external payment, questionnaire handling on the reported event, and getCurrentGuest returning an invited guest still require real Partiful verification. Standard ticket sales remain unsupported."
         }
       }
     },
@@ -2759,6 +2759,11 @@
           "shouldFollowOrgs": {
             "type": "boolean",
             "const": false
+          },
+          "ticketPaid": {
+            "type": "boolean",
+            "const": true,
+            "description": "Honor-system confirmation from the first-party chip-in flow. The CLI sends true only for GOING on optional chip-in / suggested donation events; omitted for ordinary events and DECLINED. This does not make a payment or buy a ticket."
           }
         },
         "additionalProperties": false
@@ -3568,10 +3573,7 @@
             "items": {}
           },
           "ticketing": {
-            "type": [
-              "object",
-              "null"
-            ]
+            "$ref": "#/components/schemas/EventTicketing"
           },
           "guestAction": {
             "type": "string",
@@ -4299,6 +4301,48 @@
                 "const": "NOT_FOUND"
               }
             },
+            "additionalProperties": true
+          }
+        },
+        "additionalProperties": true
+      },
+      "EventTicketing": {
+        "type": [
+          "object",
+          "null"
+        ],
+        "description": "Selected first-party ticketing fields reported in PR #245. Optional chip-in has mode optional and type chip_in or absent/null; mode required blocks going but permits decline. Other shapes remain unsupported; unknown fields do not establish payment support.",
+        "properties": {
+          "type": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "mode": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "price": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "currency": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "payment": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "description": "External payment handle object. Never projected to CLI output or used to execute a payment.",
             "additionalProperties": true
           }
         },

@@ -4131,6 +4131,9 @@
                               ],
                               "type": "string"
                             },
+                            "ticketPaid": {
+                              "type": "boolean"
+                            },
                             "timezone": {
                               "minLength": 1,
                               "type": "string"

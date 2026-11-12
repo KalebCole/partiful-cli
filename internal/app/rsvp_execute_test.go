@@ -1120,7 +1120,7 @@ func TestExecuteRSVPSetAllowsOptionalChipInWithoutPaymentOrTickets(t *testing.T)
 					return nil, nil
 				}
 			}}
-			result := app.Execute(context.Background(), app.Request{Argv: testCase.argv}, dependencies)
+			result := executeChecked(t, context.Background(), app.Request{Argv: testCase.argv}, dependencies)
 			if result.ExitCode != 0 || calls != 2 {
 				t.Fatalf("result = %#v, calls = %d, want optional chip-in preview", result, calls)
 			}
@@ -1172,7 +1172,7 @@ func TestExecuteRSVPSetAllowsOptionalChipInWithoutPaymentOrTickets(t *testing.T)
 			}}
 			appliedArgv := append([]string{}, testCase.argv...)
 			appliedArgv = appliedArgv[:len(appliedArgv)-1]
-			applied := app.Execute(context.Background(), app.Request{Argv: appliedArgv}, dependencies)
+			applied := executeChecked(t, context.Background(), app.Request{Argv: appliedArgv}, dependencies)
 			if applied.ExitCode != 0 || appliedCalls != 3 ||
 				!strings.Contains(applied.Stdout, `"data":{"eventId":"event-example","intent":"`+intent+`","submitted":true}`) ||
 				strings.Contains(applied.Stdout+applied.Stderr, privateHandle) ||
