@@ -28,7 +28,7 @@ func TestMutationSchemaUsesDryRunFlagsWithoutPlanLifecycle(t *testing.T) {
 	}
 	for command, destructive := range commands {
 		t.Run(command, func(t *testing.T) {
-			result := app.Execute(context.Background(), app.Request{Argv: []string{"schema", command}}, app.Dependencies{})
+			result := executeChecked(t, context.Background(), app.Request{Argv: []string{"schema", command}}, app.Dependencies{})
 			if result.ExitCode != 0 {
 				t.Fatalf("schema result = %#v", result)
 			}
@@ -84,7 +84,7 @@ func TestMutationHelpFindsSafetyFlagsAnywhere(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			argv := append([]string{"--dry-run"}, command...)
 			argv = append(argv, "--force", "--help", "--no-input")
-			result := app.Execute(context.Background(), app.Request{Argv: argv}, app.Dependencies{})
+			result := executeChecked(t, context.Background(), app.Request{Argv: argv}, app.Dependencies{})
 			if result.ExitCode != 0 {
 				t.Fatalf("help result = %#v", result)
 			}
@@ -202,7 +202,7 @@ func TestDestructiveMutationConfirmationSafety(t *testing.T) {
 
 			argv := append([]string{}, test.flags...)
 			argv = append(argv, "events", "cancel", "event-example")
-			result := app.Execute(context.Background(), app.Request{Argv: argv}, dependencies)
+			result := executeChecked(t, context.Background(), app.Request{Argv: argv}, dependencies)
 			if result.ExitCode != test.wantExitCode {
 				t.Fatalf("result = %#v, want exit %d", result, test.wantExitCode)
 			}
@@ -243,7 +243,7 @@ func TestDestructiveCommandsPromptWithCurrentRemoteTitleAndRefuseWithoutMutation
 			declining := &recordingConfirmer{terminal: true}
 			dependencies.Confirmer = declining
 
-			result := app.Execute(context.Background(), app.Request{Argv: test.argv}, dependencies)
+			result := executeChecked(t, context.Background(), app.Request{Argv: test.argv}, dependencies)
 			if result.ExitCode != 7 || declining.calls != 1 {
 				t.Fatalf("declined result = %#v, confirmations = %d", result, declining.calls)
 			}
@@ -258,7 +258,7 @@ func TestDestructiveCommandsPromptWithCurrentRemoteTitleAndRefuseWithoutMutation
 			nonTerminalDependencies := destructiveCommandDependencies(t, test.argv, title, &writes)
 			nonTerminal := &recordingConfirmer{}
 			nonTerminalDependencies.Confirmer = nonTerminal
-			result = app.Execute(context.Background(), app.Request{Argv: test.argv}, nonTerminalDependencies)
+			result = executeChecked(t, context.Background(), app.Request{Argv: test.argv}, nonTerminalDependencies)
 			if result.ExitCode != 7 || nonTerminal.calls != 0 || writes != 0 {
 				t.Fatalf("non-terminal result = %#v, confirmations = %d, mutations = %d", result, nonTerminal.calls, writes)
 			}

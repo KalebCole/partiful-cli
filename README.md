@@ -27,7 +27,8 @@ partiful doctor
 ## Development
 
 Repository runtime, development, CI, verification, and release flow are
-Go-only.
+Go-only. See [Architecture](docs/ARCHITECTURE.md) for the auth flow and contract
+checks; [the OpenAPI spec](spec/partiful.openapi.json) defines every remote call.
 
 ```bash
 go mod verify
@@ -77,6 +78,8 @@ partiful cohosts link revoke <event-id>
 
 All command results are JSON. Use `partiful schema <command.path>` for the
 exact input, success, failure, and safety contract for any approved command.
+Go tests and a reviewed [schema snapshot](internal/app/testdata/schema.golden.json)
+enforce this surface; [Architecture](docs/ARCHITECTURE.md#why-these-product-rules-exist) explains the rationale.
 
 ## Mutation safety
 

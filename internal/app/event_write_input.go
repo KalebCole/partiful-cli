@@ -614,7 +614,7 @@ func requiredTimezone(document map[string]json.RawMessage, field string) (string
 
 func optionalVisibility(document map[string]json.RawMessage) (string, bool) {
 	raw, ok := document["visibility"]
-	if !ok {
+	if !ok || string(raw) == "null" {
 		return "private", true
 	}
 	var value string
@@ -719,7 +719,7 @@ func decodeTimezone(raw json.RawMessage) (string, bool) {
 		return "", false
 	}
 	value = strings.TrimSpace(value)
-	if value == "" {
+	if value == "" || value == "Local" {
 		return "", false
 	}
 	if _, err := time.LoadLocation(value); err != nil {

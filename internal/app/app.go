@@ -1847,10 +1847,20 @@ func findDefinition(path string) (commandDefinition, bool) {
 }
 
 func projectSchema(definition commandDefinition) commandSchema {
+	flags := append([]flagDefinition{}, definition.flags...)
+	for _, global := range []flagDefinition{
+		{Name: "--pretty", Description: "Indent the JSON result."},
+		{Name: "--non-interactive", Description: "Disable terminal prompts."},
+		{Name: "--no-input", Description: "Disable terminal prompts; alias of --non-interactive."},
+	} {
+		if !slices.ContainsFunc(flags, func(flag flagDefinition) bool { return flag.Name == global.Name }) {
+			flags = append(flags, global)
+		}
+	}
 	return commandSchema{
 		Command:       definition.path,
 		Positionals:   definition.positionals,
-		Flags:         definition.flags,
+		Flags:         flags,
 		InputSchema:   definition.inputSchema,
 		SuccessSchema: definition.successSchema,
 		FailureTypes:  declaredFailureTypes(definition),

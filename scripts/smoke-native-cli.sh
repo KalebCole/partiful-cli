@@ -22,14 +22,23 @@ doctor_json="${smoke_root}/doctor.json"
 
 "${binary_path}" --version > "${version_json}"
 "${binary_path}" schema > "${schema_json}"
-XDG_CONFIG_HOME="${config_root}" "${binary_path}" doctor > "${doctor_json}"
+doctor_config_unavailable=false
+if [[ "$(uname -s)" == "Darwin" ]]; then
+  # Go ignores XDG_CONFIG_HOME on macOS. Without HOME, doctor checks the
+  # missing configuration directory without reading the user's credentials.
+  env -u HOME "${binary_path}" doctor > "${doctor_json}"
+  doctor_config_unavailable=true
+else
+  # Go uses APPDATA on Windows and XDG_CONFIG_HOME on other Unix systems.
+  APPDATA="${config_root}" XDG_CONFIG_HOME="${config_root}" "${binary_path}" doctor > "${doctor_json}"
+fi
 
-python3 - "${version_json}" "${schema_json}" "${doctor_json}" "${expected_version}" <<'PY'
+python3 - "${version_json}" "${schema_json}" "${doctor_json}" "${expected_version}" "${doctor_config_unavailable}" <<'PY'
 import json
 import sys
 from pathlib import Path
 
-version_path, schema_path, doctor_path, expected_version = sys.argv[1:5]
+version_path, schema_path, doctor_path, expected_version, config_unavailable = sys.argv[1:6]
 version = json.loads(Path(version_path).read_text())
 schema = json.loads(Path(schema_path).read_text())
 doctor = json.loads(Path(doctor_path).read_text())
@@ -80,11 +89,15 @@ if doctor.get("ok") is not True or doctor["meta"]["command"] != "doctor":
 checks = doctor["data"].get("checks", [])
 if doctor["data"].get("healthy") is not False:
     raise SystemExit("doctor should report unhealthy without credentials")
-if checks != [{
+expected_check = {
     "name": "credentials",
     "status": "fail",
     "message": "Authentication credentials are missing.",
     "remediation": "Establish authentication before using commands that require it.",
-}]:
+}
+if config_unavailable == "true":
+    expected_check["message"] = "Configuration directory is unavailable."
+    expected_check["remediation"] = "Set a usable user configuration directory."
+if checks != [expected_check]:
     raise SystemExit("doctor output drifted")
 PY

@@ -915,10 +915,24 @@ func eventSubmissionUnavailableFailure(command, message string, pretty bool) Res
 
 func exitCodeForType(failureType string) int {
 	switch failureType {
+	case "usage.invalid", "input.invalid", "match.ambiguous":
+		return 2
+	case "auth.required", "auth.expired", "auth.human_required":
+		return 3
+	case "permission.denied":
+		return 4
+	case "resource.not_found":
+		return 5
+	case "state.conflict":
+		return 6
 	case "safety.confirmation_required":
 		return 7
+	case "remote.unavailable", "remote.rate_limited":
+		return 8
+	case "contract.protocol_changed":
+		return 9
 	default:
-		return 2
+		return 10
 	}
 }
 

@@ -101,7 +101,7 @@ func TestExecuteBlastSendDryRunsAndDispatchesPrivacySafeAllGuests(t *testing.T) 
 	}}
 
 	argv := []string{"blasts", "send", "event-example", "--audience", "all-guests", "--message-file", "message.txt", "--show-on-event-page"}
-	preview := app.Execute(context.Background(), app.Request{Argv: append(append([]string{}, argv...), "--dry-run")}, dependencies)
+	preview := executeChecked(t, context.Background(), app.Request{Argv: append(append([]string{}, argv...), "--dry-run")}, dependencies)
 	if preview.ExitCode != 0 || preview.Stderr != "" {
 		t.Fatalf("preview = %#v, want success", preview)
 	}
@@ -140,7 +140,7 @@ func TestExecuteBlastSendDryRunsAndDispatchesPrivacySafeAllGuests(t *testing.T) 
 		t.Fatal("preview output exposed private message text")
 	}
 
-	applied := app.Execute(context.Background(), app.Request{Argv: argv}, dependencies)
+	applied := executeChecked(t, context.Background(), app.Request{Argv: argv}, dependencies)
 	if applied.ExitCode != 0 || applied.Stderr != "" || strings.Contains(applied.Stdout, messageText) {
 		t.Fatalf("applied = %#v, want private submitted result", applied)
 	}
@@ -179,12 +179,12 @@ func TestExecuteBlastSendSupportsStdinAndRejectsArgvMessage(t *testing.T) {
 		}
 	}}
 
-	result := app.Execute(context.Background(), app.Request{Argv: []string{"blasts", "send", "event-example", "--message", "bad"}}, dependencies)
+	result := executeChecked(t, context.Background(), app.Request{Argv: []string{"blasts", "send", "event-example", "--message", "bad"}}, dependencies)
 	if result.ExitCode != 2 || !strings.Contains(result.Stdout, `"code":"FLAG_UNKNOWN"`) {
 		t.Fatalf("argv message result = %#v, want unknown flag", result)
 	}
 
-	stdinPreview := app.Execute(context.Background(), app.Request{Argv: []string{"blasts", "send", "event-example", "--audience", "all-guests", "--message-file", "-", "--dry-run"}, Stdin: strings.NewReader("stdin secret")}, dependencies)
+	stdinPreview := executeChecked(t, context.Background(), app.Request{Argv: []string{"blasts", "send", "event-example", "--audience", "all-guests", "--message-file", "-", "--dry-run"}, Stdin: strings.NewReader("stdin secret")}, dependencies)
 	if stdinPreview.ExitCode != 0 || strings.Contains(stdinPreview.Stdout, "stdin secret") || !strings.Contains(stdinPreview.Stdout, `"to":["invited","APPROVED"]`) {
 		t.Fatalf("stdin preview = %#v, want stdin-based blast preview", stdinPreview)
 	}
@@ -223,7 +223,7 @@ func TestExecuteBlastSendRejectsTheEleventhBlast(t *testing.T) {
 		}
 	}}
 
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv: []string{"blasts", "send", "event-example", "--audience", "all-guests", "--message-file", "message.txt"},
 	}, dependencies)
 	if result.ExitCode != 6 || !strings.Contains(result.Stdout, `"code":"EVENT_PRECONDITION_FAILED"`) {
@@ -282,7 +282,7 @@ func TestExecuteBlastSendFailsClosedOnProtocolAndSubmissionUncertainty(t *testin
 				}
 			}}
 			argv := []string{"blasts", "send", "event-example", "--audience", "all-guests", "--message-file", "message.txt"}
-			result := app.Execute(context.Background(), app.Request{Argv: argv}, deps)
+			result := executeChecked(t, context.Background(), app.Request{Argv: argv}, deps)
 			if result.ExitCode != testCase.exitCode || !strings.Contains(result.Stdout, testCase.contains) {
 				t.Fatalf("result = %#v, want exit %d containing %q", result, testCase.exitCode, testCase.contains)
 			}

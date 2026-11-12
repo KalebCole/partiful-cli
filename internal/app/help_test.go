@@ -64,7 +64,7 @@ func TestExecuteConventionalHelp(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			result := app.Execute(context.Background(), app.Request{Argv: test.argv}, app.Dependencies{HTTP: noNetwork})
+			result := executeChecked(t, context.Background(), app.Request{Argv: test.argv}, app.Dependencies{HTTP: noNetwork})
 			if result.ExitCode != 0 || result.Stderr != "" {
 				t.Fatalf("result = %#v, want successful local help", result)
 			}
@@ -78,7 +78,7 @@ func TestExecuteConventionalHelp(t *testing.T) {
 }
 
 func TestExecuteHelpRetainsUnknownFlagFailure(t *testing.T) {
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv: []string{"events", "create", "--unknown"},
 	}, app.Dependencies{})
 	if result.ExitCode != 2 || !strings.Contains(result.Stdout, `"code":"FLAG_UNKNOWN"`) {
@@ -87,7 +87,7 @@ func TestExecuteHelpRetainsUnknownFlagFailure(t *testing.T) {
 }
 
 func TestExecuteHelpCoversEverySchemaCommandWithoutDependencies(t *testing.T) {
-	catalog := app.Execute(context.Background(), app.Request{Argv: []string{"schema"}}, app.Dependencies{})
+	catalog := executeChecked(t, context.Background(), app.Request{Argv: []string{"schema"}}, app.Dependencies{})
 	var envelope struct {
 		Data struct {
 			Commands []string `json:"commands"`
@@ -108,7 +108,7 @@ func TestExecuteHelpCoversEverySchemaCommandWithoutDependencies(t *testing.T) {
 				path = []string{"--version"}
 			}
 			argv := append([]string{"help"}, path...)
-			result := app.Execute(context.Background(), app.Request{Argv: argv}, app.Dependencies{HTTP: noNetwork})
+			result := executeChecked(t, context.Background(), app.Request{Argv: argv}, app.Dependencies{HTTP: noNetwork})
 			if result.ExitCode != 0 || !strings.Contains(result.Stdout, "Purpose:") {
 				t.Fatalf("help %s = %#v, want local leaf help", command, result)
 			}

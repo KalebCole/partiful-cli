@@ -106,7 +106,7 @@ func TestExecuteEventCreateDryRunReturnsExactNormalizedRequestAndDefaultPoster(t
 		return jsonResponse(http.StatusOK, `[{"id":"Let's Party","url":"https://assets.getpartiful.com/posters/Let's%20Party","name":"Let's Party","tags":["party"],"categories":["party"],"contentType":"image/jpeg","height":2000,"width":2000}]`), nil
 	}}
 
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv: []string{
 			"events", "create",
 			"--title", "  Example event  ",
@@ -229,7 +229,7 @@ func TestExecuteEventCreateParsesCurrentCompletionAndReturnsCreatedEventID(t *te
 		"--timezone", "America/Los_Angeles",
 		"--poster-id", "birthdaycake.png",
 	}
-	applied := app.Execute(context.Background(), app.Request{Argv: argv}, dependencies)
+	applied := executeChecked(t, context.Background(), app.Request{Argv: argv}, dependencies)
 	if applied.ExitCode != 0 ||
 		!strings.Contains(applied.Stdout, `"data":{"eventId":"event-created-fixture","submitted":true}`) ||
 		applied.Stderr != "" {
@@ -263,7 +263,7 @@ func TestExecuteEventCreateFailsClosedOnMalformedCompletion(t *testing.T) {
 		}
 	}}
 	argv := []string{"events", "create", "--title", "Example event", "--start", "2026-09-12T19:00:00-07:00", "--timezone", "America/Los_Angeles", "--poster-id", "birthdaycake.png"}
-	applied := app.Execute(context.Background(), app.Request{Argv: argv}, dependencies)
+	applied := executeChecked(t, context.Background(), app.Request{Argv: argv}, dependencies)
 	if applied.ExitCode != 9 || !strings.Contains(applied.Stdout, `"type":"contract.protocol_changed"`) {
 		t.Fatalf("applied = %#v, want protocol-changed failure", applied)
 	}
@@ -296,7 +296,7 @@ func TestExecuteEventUpdateDryRunReturnsSortedFirestorePatch(t *testing.T) {
 		"--start", "2026-09-12T20:00:00Z",
 		"--timezone", "America/Los_Angeles",
 	}
-	preview := app.Execute(context.Background(), app.Request{Argv: append(argv, "--dry-run")}, dependencies)
+	preview := executeChecked(t, context.Background(), app.Request{Argv: append(argv, "--dry-run")}, dependencies)
 	if preview.ExitCode != 0 || !strings.Contains(preview.Stdout, `"fields":["start","timezone","title"]`) {
 		t.Fatalf("preview = %#v, want sorted update fields", preview)
 	}
@@ -336,11 +336,11 @@ func TestExecuteEventUpdateAppliesExactFirestorePatchAndReturnsSubmittedFields(t
 		}
 	}}
 	argv := []string{"events", "update", "event-example", "--title", "Updated title", "--description", "Updated description"}
-	preview := app.Execute(context.Background(), app.Request{Argv: append(append([]string{}, argv...), "--dry-run")}, dependencies)
+	preview := executeChecked(t, context.Background(), app.Request{Argv: append(append([]string{}, argv...), "--dry-run")}, dependencies)
 	if preview.ExitCode != 0 || strings.Contains(preview.Stdout, "private-account") {
 		t.Fatalf("preview = %#v, want redacted update preview", preview)
 	}
-	applied := app.Execute(context.Background(), app.Request{Argv: argv}, dependencies)
+	applied := executeChecked(t, context.Background(), app.Request{Argv: argv}, dependencies)
 	if applied.ExitCode != 0 ||
 		!strings.Contains(applied.Stdout, `"data":{"eventId":"event-example","fields":["description","title"],"submitted":true}`) ||
 		applied.Stderr != "" {
@@ -368,7 +368,7 @@ func TestExecuteEventUpdateFailsClosedOnMalformedPatchCompletion(t *testing.T) {
 		}
 	}}
 	argv := []string{"events", "update", "event-example", "--title", "Updated title"}
-	applied := app.Execute(context.Background(), app.Request{Argv: argv}, dependencies)
+	applied := executeChecked(t, context.Background(), app.Request{Argv: argv}, dependencies)
 	if applied.ExitCode != 9 || !strings.Contains(applied.Stdout, `"type":"contract.protocol_changed"`) {
 		t.Fatalf("applied = %#v, want protocol-changed failure", applied)
 	}
@@ -385,7 +385,7 @@ func TestExecuteEventUpdateRejectsDisallowedFieldsAndInvertedMergedRange(t *test
 	dependencies.HTTP = scriptedHTTP{do: func(*http.Request) (*http.Response, error) {
 		return nil, errors.New("must not call HTTP")
 	}}
-	badFlag := app.Execute(context.Background(), app.Request{Argv: []string{"events", "update", "event-example", "--location", "Elsewhere"}}, dependencies)
+	badFlag := executeChecked(t, context.Background(), app.Request{Argv: []string{"events", "update", "event-example", "--location", "Elsewhere"}}, dependencies)
 	if badFlag.ExitCode != 2 || !strings.Contains(badFlag.Stdout, `"type":"input.invalid"`) {
 		t.Fatalf("bad flag = %#v, want input error", badFlag)
 	}
@@ -395,7 +395,7 @@ func TestExecuteEventUpdateRejectsDisallowedFieldsAndInvertedMergedRange(t *test
 		assertEventCallableRequest(t, request, "getEventInfo", `{"data":{"params":{"eventId":"event-example"},"amplitudeDeviceId":"MDEyMzQ1Njc4OWFiY2RlZg"}}`)
 		return jsonResponse(http.StatusOK, eventResponse(t, compatibleUpdateEvent())), nil
 	}}
-	inverted := app.Execute(context.Background(), app.Request{Argv: []string{"events", "update", "event-example", "--end", "2026-09-12T18:00:00Z"}}, dependencies)
+	inverted := executeChecked(t, context.Background(), app.Request{Argv: []string{"events", "update", "event-example", "--end", "2026-09-12T18:00:00Z"}}, dependencies)
 	if inverted.ExitCode != 2 || !strings.Contains(inverted.Stdout, `"code":"EVENT_RANGE_INVALID"`) {
 		t.Fatalf("inverted = %#v, want merged range failure", inverted)
 	}
@@ -407,7 +407,7 @@ func TestExecuteEventWriteRejectsMalformedLinkFlag(t *testing.T) {
 		return nil, errors.New("must not call HTTP")
 	}}
 
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv: []string{"events", "create", "--link", "missing-separator"},
 	}, dependencies)
 	if result.ExitCode != 2 || !strings.Contains(result.Stdout, `"code":"LINKS_INVALID"`) {
@@ -427,7 +427,7 @@ func TestExecuteEventUpdateFailsClosedWhenMergedRangeNeedsMissingStart(t *testin
 		return jsonResponse(http.StatusOK, eventResponse(t, event)), nil
 	}}
 
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv: []string{"events", "update", "event-example", "--end", "2026-09-12T23:00:00Z"},
 	}, dependencies)
 	if result.ExitCode != 9 || !strings.Contains(result.Stdout, `"type":"contract.protocol_changed"`) {
@@ -449,7 +449,7 @@ func TestExecuteEventUpdateDryRunAcceptsAbsentCustomFields(t *testing.T) {
 	}}
 	argv := []string{"events", "update", "event-example", "--link", "Tickets=https://example.test/tickets"}
 
-	preview := app.Execute(context.Background(), app.Request{Argv: append(argv, "--dry-run")}, dependencies)
+	preview := executeChecked(t, context.Background(), app.Request{Argv: append(argv, "--dry-run")}, dependencies)
 	if preview.ExitCode != 0 {
 		t.Fatalf("preview = %#v, want absent target field accepted", preview)
 	}
@@ -470,7 +470,7 @@ func TestExecuteEventUpdateAllowsIrrelevantNullGuestCount(t *testing.T) {
 		return jsonResponse(http.StatusOK, eventResponse(t, event)), nil
 	}}
 
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv: []string{"events", "update", "event-example", "--title", "Updated title", "--dry-run"},
 	}, dependencies)
 	if result.ExitCode != 0 {
@@ -499,7 +499,7 @@ func TestExecuteEventCancelDryRunsAndForceDispatches(t *testing.T) {
 		}
 	}}
 	argv := []string{"events", "cancel", "event-example", "--message", "See you next time", "--notify-guests", "false"}
-	preview := app.Execute(context.Background(), app.Request{Argv: append(append([]string{}, argv...), "--dry-run")}, dependencies)
+	preview := executeChecked(t, context.Background(), app.Request{Argv: append(append([]string{}, argv...), "--dry-run")}, dependencies)
 	if preview.ExitCode != 0 ||
 		!strings.Contains(preview.Stdout, `"eventId":"event-example"`) ||
 		!strings.Contains(preview.Stdout, `"notifyGuests":false`) ||
@@ -507,11 +507,11 @@ func TestExecuteEventCancelDryRunsAndForceDispatches(t *testing.T) {
 		strings.Contains(preview.Stdout, "See you next time") {
 		t.Fatalf("preview = %#v, want consequential cancel preview", preview)
 	}
-	missingConfirm := app.Execute(context.Background(), app.Request{Argv: argv}, dependencies)
+	missingConfirm := executeChecked(t, context.Background(), app.Request{Argv: argv}, dependencies)
 	if missingConfirm.ExitCode != 7 || !strings.Contains(missingConfirm.Stdout, `"type":"safety.confirmation_required"`) {
 		t.Fatalf("missing confirm = %#v, want confirmation-required failure", missingConfirm)
 	}
-	applied := app.Execute(context.Background(), app.Request{Argv: append(append([]string{}, argv...), "--force")}, dependencies)
+	applied := executeChecked(t, context.Background(), app.Request{Argv: append(append([]string{}, argv...), "--force")}, dependencies)
 	if applied.ExitCode != 0 ||
 		!strings.Contains(applied.Stdout, `"data":{"eventId":"event-example","notifyGuests":false,"submitted":true}`) ||
 		applied.Stderr != "" {
@@ -562,7 +562,7 @@ func TestExecuteEventCancelFailsClosedOnMalformedFactsAndSubmissionUncertainty(t
 				}
 			}}
 			argv := []string{"events", "cancel", "event-example", "--force"}
-			result := app.Execute(context.Background(), app.Request{Argv: argv}, dependencies)
+			result := executeChecked(t, context.Background(), app.Request{Argv: argv}, dependencies)
 			if result.ExitCode != testCase.exitCode || !strings.Contains(result.Stdout, testCase.contains) {
 				t.Fatalf("result = %#v, want exit %d containing %q", result, testCase.exitCode, testCase.contains)
 			}
@@ -585,7 +585,7 @@ func TestExecuteEventCancelPreservesPrettyFailureMetadata(t *testing.T) {
 		return jsonResponse(http.StatusOK, eventResponse(t, event)), nil
 	}}
 
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv: []string{"--pretty", "events", "cancel", "event-example", "--force"},
 	}, dependencies)
 	if result.ExitCode != 9 ||
@@ -617,7 +617,7 @@ func TestExecuteEventDeleteDryRunsAndForceDispatches(t *testing.T) {
 		}
 	}}
 	argv := []string{"events", "delete", "event-example"}
-	preview := app.Execute(context.Background(), app.Request{Argv: append(append([]string{}, argv...), "--dry-run")}, dependencies)
+	preview := executeChecked(t, context.Background(), app.Request{Argv: append(append([]string{}, argv...), "--dry-run")}, dependencies)
 	if preview.ExitCode != 0 ||
 		!strings.Contains(preview.Stdout, `"operation":"deleteEvent"`) ||
 		!strings.Contains(preview.Stdout, `"request":{"eventId":"event-example"}`) ||
@@ -628,11 +628,11 @@ func TestExecuteEventDeleteDryRunsAndForceDispatches(t *testing.T) {
 	if call != 1 {
 		t.Fatalf("request count after dry-run = %d, want one read and no dispatch", call)
 	}
-	missingConfirm := app.Execute(context.Background(), app.Request{Argv: argv}, dependencies)
+	missingConfirm := executeChecked(t, context.Background(), app.Request{Argv: argv}, dependencies)
 	if missingConfirm.ExitCode != 7 || !strings.Contains(missingConfirm.Stdout, `"type":"safety.confirmation_required"`) {
 		t.Fatalf("missing confirm = %#v, want confirmation-required failure", missingConfirm)
 	}
-	applied := app.Execute(context.Background(), app.Request{Argv: append(append([]string{}, argv...), "--force")}, dependencies)
+	applied := executeChecked(t, context.Background(), app.Request{Argv: append(append([]string{}, argv...), "--force")}, dependencies)
 	if applied.ExitCode != 0 ||
 		!strings.Contains(applied.Stdout, `"data":{"eventId":"event-example","submitted":true}`) ||
 		applied.Stderr != "" {
@@ -702,7 +702,7 @@ func TestExecuteEventDeleteEnforcesPreconditionsAndFailsClosed(t *testing.T) {
 					return nil, nil
 				}
 			}}
-			result := app.Execute(context.Background(), app.Request{Argv: []string{"events", "delete", "event-example", "--force"}}, dependencies)
+			result := executeChecked(t, context.Background(), app.Request{Argv: []string{"events", "delete", "event-example", "--force"}}, dependencies)
 			if result.ExitCode != testCase.exitCode {
 				t.Fatalf("result = %#v, want exit %d", result, testCase.exitCode)
 			}
@@ -719,7 +719,7 @@ func TestExecuteEventDeleteEnforcesPreconditionsAndFailsClosed(t *testing.T) {
 }
 
 func TestExecuteSchemaIncludesEventWriteCommands(t *testing.T) {
-	result := app.Execute(context.Background(), app.Request{Argv: []string{"schema"}}, app.Dependencies{})
+	result := executeChecked(t, context.Background(), app.Request{Argv: []string{"schema"}}, app.Dependencies{})
 	var envelope struct {
 		Data struct {
 			Commands []string `json:"commands"`
