@@ -41,8 +41,12 @@ Run the full native release rehearsal, including GoReleaser snapshot archives,
 checksum verification, and local `version/schema/doctor` smoke tests:
 
 ```bash
-GOTOOLCHAIN=go1.22.12 go install github.com/goreleaser/goreleaser/v2@v2.2.0
-./scripts/verify-native-release.sh
+(
+  export GOBIN="$(mktemp -d)"
+  trap 'rm -rf "${GOBIN}"' EXIT
+  GOTOOLCHAIN=go1.25.5 go install github.com/goreleaser/goreleaser/v2@v2.13.3
+  PATH="${GOBIN}:${PATH}" ./scripts/verify-native-release.sh
+)
 ```
 
 ## Approved command catalog
@@ -76,6 +80,52 @@ partiful cohosts link revoke <event-id>
 
 All command results are JSON. Use `partiful schema <command.path>` for the
 exact input, success, failure, and safety contract for any approved command.
+
+## MCP stdio server
+
+Start the API-derived MCP server from the same installed binary:
+
+```bash
+partiful mcp
+```
+
+It exposes all implemented event, guest, RSVP, contact, cohost, blast, and
+poster tools by default, including writes. Tool calls use the CLI's validation,
+authentication, transport, privacy projection, dry-run, and single-attempt
+mutation behavior. Interactive authentication remains CLI-only: run
+`partiful auth login` before protected MCP calls.
+
+Narrow the startup surface only when desired:
+
+```bash
+partiful mcp --read-only
+partiful mcp --allow-tool 'events_*,posters_list'
+partiful mcp --list-tools --read-only
+```
+
+`--allow-tool` accepts exact names or a trailing `*`, may be repeated or
+comma-separated, and rejects empty or unknown selections. MCP tool inputs never
+include CLI-only `force` or `no-input`; destructive tool calls do not wait for a
+TTY confirmation. Mutation tools accept `dryRun` for redacted, no-write previews.
+Protocol mode reserves stdout for MCP messages.
+
+Runtime safeguards are configurable:
+
+```bash
+partiful mcp \
+  --timeout 30s \
+  --max-concurrency 4 \
+  --max-output-bytes 262144 \
+  --max-items 100 \
+  --request-interval 100ms
+```
+
+Those values are the defaults. The server starts at most one outbound HTTP
+request per request interval and runs at most the configured number of tool
+calls concurrently. Safe collection limits return `meta.page.truncated`,
+`meta.page.truncationReason`, and a continuation cursor when more data remains.
+Responses that cannot fit the byte limit fail with `MCP_OUTPUT_LIMIT` instead
+of returning incomplete JSON.
 
 ## Mutation safety
 

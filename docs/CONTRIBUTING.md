@@ -20,8 +20,12 @@ Use the native release verification script when you change build metadata,
 release packaging, command contracts, or archive contents:
 
 ```bash
-GOTOOLCHAIN=go1.22.12 go install github.com/goreleaser/goreleaser/v2@v2.2.0
-./scripts/verify-native-release.sh
+(
+  export GOBIN="$(mktemp -d)"
+  trap 'rm -rf "${GOBIN}"' EXIT
+  GOTOOLCHAIN=go1.25.5 go install github.com/goreleaser/goreleaser/v2@v2.13.3
+  PATH="${GOBIN}:${PATH}" ./scripts/verify-native-release.sh
+)
 ```
 
 ## Safe smoke checks
