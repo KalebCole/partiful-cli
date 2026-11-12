@@ -1,0 +1,314 @@
+{
+  "AUDIENCE_REQUIRED": {
+    "type": "input.invalid",
+    "exit": 2
+  },
+  "AUTHENTICATION_REQUIRED": {
+    "type": "auth.required",
+    "exit": 3
+  },
+  "AUTH_CODE_REJECTED": {
+    "type": "input.invalid",
+    "exit": 2
+  },
+  "AUTH_INPUT_INVALID": {
+    "type": "input.invalid",
+    "exit": 2
+  },
+  "AUTH_PROTOCOL_CHANGED": {
+    "type": "contract.protocol_changed",
+    "exit": 9
+  },
+  "AUTH_SERVICE_UNAVAILABLE": {
+    "type": "remote.unavailable",
+    "exit": 8
+  },
+  "COHOST_PRECONDITION_FAILED": {
+    "type": "state.conflict",
+    "exit": 6
+  },
+  "COHOST_PROTOCOL_CHANGED": {
+    "type": "contract.protocol_changed",
+    "exit": 9
+  },
+  "COMMAND_NOT_FOUND": {
+    "type": "usage.invalid",
+    "exit": 2
+  },
+  "COMMAND_SCHEMA_NOT_FOUND": {
+    "type": "usage.invalid",
+    "exit": 2
+  },
+  "CONFIG_DIRECTORY_UNAVAILABLE": {
+    "type": "internal.failure",
+    "exit": 10
+  },
+  "CONFIRMATION_REQUIRED": {
+    "type": "safety.confirmation_required",
+    "exit": 7
+  },
+  "CONTACTS_PROTOCOL_CHANGED": {
+    "type": "contract.protocol_changed",
+    "exit": 9
+  },
+  "CONTACTS_UNAVAILABLE": {
+    "type": "remote.unavailable",
+    "exit": 8
+  },
+  "CONTACT_AMBIGUOUS": {
+    "type": "match.ambiguous",
+    "exit": 2
+  },
+  "CONTACT_NOT_FOUND": {
+    "type": "resource.not_found",
+    "exit": 5
+  },
+  "CONTACT_REQUIRED": {
+    "type": "input.invalid",
+    "exit": 2
+  },
+  "CREATE_EVENT_PROTOCOL_CHANGED": {
+    "type": "contract.protocol_changed",
+    "exit": 9
+  },
+  "CREDENTIALS_INVALID": {
+    "type": "internal.failure",
+    "exit": 10
+  },
+  "CREDENTIAL_STORE_UNAVAILABLE": {
+    "type": "internal.failure",
+    "exit": 10
+  },
+  "CURSOR_FILTER_MISMATCH": {
+    "type": "input.invalid",
+    "exit": 2
+  },
+  "CURSOR_INVALID": {
+    "type": "input.invalid",
+    "exit": 2
+  },
+  "CURSOR_SNAPSHOT_CHANGED": {
+    "type": "state.conflict",
+    "exit": 6
+  },
+  "DISPLAY_NAME_INVALID": {
+    "type": "input.invalid",
+    "exit": 2
+  },
+  "END_INVALID": {
+    "type": "input.invalid",
+    "exit": 2
+  },
+  "EVENT_CANCEL_PROTOCOL_CHANGED": {
+    "type": "contract.protocol_changed",
+    "exit": 9
+  },
+  "EVENT_ID_REQUIRED": {
+    "type": "input.invalid",
+    "exit": 2
+  },
+  "EVENT_LIST_BOUND_EXCEEDED": {
+    "type": "contract.protocol_changed",
+    "exit": 9
+  },
+  "EVENT_LIST_PROTOCOL_CHANGED": {
+    "type": "contract.protocol_changed",
+    "exit": 9
+  },
+  "EVENT_LIST_UNAVAILABLE": {
+    "type": "remote.unavailable",
+    "exit": 8
+  },
+  "EVENT_NOT_FOUND": {
+    "type": "resource.not_found",
+    "exit": 5
+  },
+  "EVENT_PRECONDITION_FAILED": {
+    "type": "state.conflict",
+    "exit": 6
+  },
+  "EVENT_PROTOCOL_CHANGED": {
+    "type": "contract.protocol_changed",
+    "exit": 9
+  },
+  "EVENT_RANGE_INVALID": {
+    "type": "input.invalid",
+    "exit": 2
+  },
+  "EVENT_SUBMISSION_UNCERTAIN": {
+    "type": "remote.unavailable",
+    "exit": 8
+  },
+  "EVENT_UNAVAILABLE": {
+    "type": "remote.unavailable",
+    "exit": 8
+  },
+  "EVENT_UPDATE_PROTOCOL_CHANGED": {
+    "type": "contract.protocol_changed",
+    "exit": 9
+  },
+  "FLAG_REPEATED": {
+    "type": "input.invalid",
+    "exit": 2
+  },
+  "FLAG_UNKNOWN": {
+    "type": "input.invalid",
+    "exit": 2
+  },
+  "GUESTS_INVITE_PROTOCOL_CHANGED": {
+    "type": "contract.protocol_changed",
+    "exit": 9
+  },
+  "GUESTS_PROTOCOL_CHANGED": {
+    "type": "contract.protocol_changed",
+    "exit": 9
+  },
+  "GUESTS_UNAVAILABLE": {
+    "type": "remote.unavailable",
+    "exit": 8
+  },
+  "HOST_PERMISSION_REQUIRED": {
+    "type": "permission.denied",
+    "exit": 4
+  },
+  "INPUT_DOCUMENT_INVALID": {
+    "type": "input.invalid",
+    "exit": 2
+  },
+  "INPUT_FIELD_UNKNOWN": {
+    "type": "input.invalid",
+    "exit": 2
+  },
+  "INPUT_SOURCE_CONFLICT": {
+    "type": "input.invalid",
+    "exit": 2
+  },
+  "INTEREST_INPUT_INVALID": {
+    "type": "input.invalid",
+    "exit": 2
+  },
+  "INVALID_CUSTOM_TOKEN": {
+    "type": "auth.expired",
+    "exit": 3
+  },
+  "INVALID_REFRESH_TOKEN": {
+    "type": "auth.expired",
+    "exit": 3
+  },
+  "LIMIT_INVALID": {
+    "type": "input.invalid",
+    "exit": 2
+  },
+  "LIMIT_WITH_ALL": {
+    "type": "input.invalid",
+    "exit": 2
+  },
+  "LINKS_INVALID": {
+    "type": "input.invalid",
+    "exit": 2
+  },
+  "LOCAL_OPERATION_FAILED": {
+    "type": "internal.failure",
+    "exit": 10
+  },
+  "MAX_ITEMS_INVALID": {
+    "type": "input.invalid",
+    "exit": 2
+  },
+  "MAX_ITEMS_REQUIRED": {
+    "type": "input.invalid",
+    "exit": 2
+  },
+  "MESSAGE_INVALID": {
+    "type": "input.invalid",
+    "exit": 2
+  },
+  "PARTY_SIZE_INVALID": {
+    "type": "input.invalid",
+    "exit": 2
+  },
+  "PARTY_SIZE_MISMATCH": {
+    "type": "input.invalid",
+    "exit": 2
+  },
+  "PLUS_ONES_INVALID": {
+    "type": "input.invalid",
+    "exit": 2
+  },
+  "POSITIONAL_INVALID": {
+    "type": "input.invalid",
+    "exit": 2
+  },
+  "POSTER_CATALOG_PROTOCOL_CHANGED": {
+    "type": "contract.protocol_changed",
+    "exit": 9
+  },
+  "POSTER_CATALOG_UNAVAILABLE": {
+    "type": "remote.unavailable",
+    "exit": 8
+  },
+  "POSTER_NOT_FOUND": {
+    "type": "resource.not_found",
+    "exit": 5
+  },
+  "PRIVATE_TERMINAL_REQUIRED": {
+    "type": "auth.human_required",
+    "exit": 3
+  },
+  "QUERY_REQUIRED": {
+    "type": "input.invalid",
+    "exit": 2
+  },
+  "QUESTIONNAIRE_RESPONSE_INVALID": {
+    "type": "input.invalid",
+    "exit": 2
+  },
+  "REMOTE_SESSION_UNAUTHENTICATED": {
+    "type": "auth.expired",
+    "exit": 3
+  },
+  "RSVP_EVENT_UNSUPPORTED": {
+    "type": "state.conflict",
+    "exit": 6
+  },
+  "RSVP_PROTOCOL_CHANGED": {
+    "type": "contract.protocol_changed",
+    "exit": 9
+  },
+  "RSVP_STATUS_INVALID": {
+    "type": "input.invalid",
+    "exit": 2
+  },
+  "RSVP_SUBMISSION_UNCERTAIN": {
+    "type": "remote.unavailable",
+    "exit": 8
+  },
+  "RSVP_UNAVAILABLE": {
+    "type": "remote.unavailable",
+    "exit": 8
+  },
+  "START_INVALID": {
+    "type": "input.invalid",
+    "exit": 2
+  },
+  "TEXT_BLAST_PROTOCOL_CHANGED": {
+    "type": "contract.protocol_changed",
+    "exit": 9
+  },
+  "TEXT_BLAST_SUBMISSION_UNCERTAIN": {
+    "type": "remote.unavailable",
+    "exit": 8
+  },
+  "TIMEZONE_INVALID": {
+    "type": "input.invalid",
+    "exit": 2
+  },
+  "UPDATE_FIELD_REQUIRED": {
+    "type": "input.invalid",
+    "exit": 2
+  },
+  "WHEN_INVALID": {
+    "type": "input.invalid",
+    "exit": 2
+  }
+}

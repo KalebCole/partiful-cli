@@ -4,7 +4,8 @@ Use the Go CLI in `cmd/partiful` and `internal/`.
 
 When adding or correcting remote calls, edit `spec/partiful.openapi.json`
 and add a focused Go test. Read [Architecture](docs/ARCHITECTURE.md) for the
-auth flow, evidence notes, and contract checks.
+auth flow, evidence notes, and contract checks. Public behavior changes must pass
+the Go product tests; deliberately review updates to `internal/app/testdata` goldens.
 
 ## Release and validation
 

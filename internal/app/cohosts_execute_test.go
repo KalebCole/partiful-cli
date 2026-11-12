@@ -99,7 +99,7 @@ func TestExecuteCohostInviteDryRunsAndDispatchesOnce(t *testing.T) {
 	}}
 
 	argv := []string{"cohosts", "invite", "event-example", "--contact", "  Example Contact  "}
-	preview := app.Execute(context.Background(), app.Request{Argv: append(append([]string{}, argv...), "--dry-run")}, dependencies)
+	preview := executeChecked(t, context.Background(), app.Request{Argv: append(append([]string{}, argv...), "--dry-run")}, dependencies)
 	if preview.ExitCode != 0 || preview.Stderr != "" {
 		t.Fatalf("preview = %#v, want cohost invite preview", preview)
 	}
@@ -108,7 +108,7 @@ func TestExecuteCohostInviteDryRunsAndDispatchesOnce(t *testing.T) {
 		!strings.Contains(preview.Stdout, `"cohostState":"bound"`) {
 		t.Fatalf("preview stdout = %s, want redacted cohost invite preview", preview.Stdout)
 	}
-	applied := app.Execute(context.Background(), app.Request{
+	applied := executeChecked(t, context.Background(), app.Request{
 		Argv: argv,
 	}, dependencies)
 	if applied.ExitCode != 0 ||
@@ -200,11 +200,11 @@ func TestExecuteCohostRevokeInviteAndRemoveDryRunThenForce(t *testing.T) {
 				}
 			}}
 
-			preview := app.Execute(context.Background(), app.Request{Argv: append(append([]string{}, testCase.argv...), "--dry-run")}, dependencies)
+			preview := executeChecked(t, context.Background(), app.Request{Argv: append(append([]string{}, testCase.argv...), "--dry-run")}, dependencies)
 			if preview.ExitCode != 0 || !strings.Contains(preview.Stdout, `"operation":"`+testCase.operation+`"`) {
 				t.Fatalf("preview = %#v, want %s preview", preview, testCase.operation)
 			}
-			applied := app.Execute(context.Background(), app.Request{
+			applied := executeChecked(t, context.Background(), app.Request{
 				Argv: append(append([]string{}, testCase.argv...), "--force"),
 			}, dependencies)
 			if applied.ExitCode != 0 || !strings.Contains(applied.Stdout, `"status":"`+testCase.successStatus+`"`) {
@@ -286,7 +286,7 @@ func TestExecuteCohostLinkCreateAndRevokeReturnDocumentedState(t *testing.T) {
 				}
 			}}
 
-			preview := app.Execute(context.Background(), app.Request{Argv: append(append([]string{}, testCase.argv...), "--dry-run")}, dependencies)
+			preview := executeChecked(t, context.Background(), app.Request{Argv: append(append([]string{}, testCase.argv...), "--dry-run")}, dependencies)
 			if preview.ExitCode != 0 || !strings.Contains(preview.Stdout, `"operation":"`+testCase.operation+`"`) {
 				t.Fatalf("preview = %#v, want %s preview", preview, testCase.operation)
 			}
@@ -294,7 +294,7 @@ func TestExecuteCohostLinkCreateAndRevokeReturnDocumentedState(t *testing.T) {
 			if testCase.operation == "revokeEventCohostLink" {
 				executionArgv = append(executionArgv, "--force")
 			}
-			applied := app.Execute(context.Background(), app.Request{
+			applied := executeChecked(t, context.Background(), app.Request{
 				Argv: executionArgv,
 			}, dependencies)
 			if applied.ExitCode != 0 || !strings.Contains(applied.Stdout, testCase.successContains) {
@@ -326,7 +326,7 @@ func TestExecuteCohostLinkCreateFailsClosedWithoutLeakingExistingURL(t *testing.
 		}
 	}}
 
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv: []string{"cohosts", "link", "create", "event-example"},
 	}, dependencies)
 	if result.ExitCode != 6 || !strings.Contains(result.Stdout, `"type":"state.conflict"`) {
@@ -367,7 +367,7 @@ func TestExecuteCohostInviteAcceptsNullCompletion(t *testing.T) {
 	}}
 	argv := []string{"cohosts", "invite", "event-example", "--contact", "Alex Example"}
 
-	applied := app.Execute(context.Background(), app.Request{
+	applied := executeChecked(t, context.Background(), app.Request{
 		Argv: argv,
 	}, dependencies)
 	if applied.ExitCode != 0 || !strings.Contains(applied.Stdout, `"status":"invited"`) {
@@ -398,7 +398,7 @@ func TestExecuteCohostActionsFailClosedWhenOwnerIDsAreMissing(t *testing.T) {
 				return jsonResponse(http.StatusOK, eventResponse(t, event)), nil
 			}}
 
-			result := app.Execute(context.Background(), app.Request{Argv: testCase.argv}, dependencies)
+			result := executeChecked(t, context.Background(), app.Request{Argv: testCase.argv}, dependencies)
 			if result.ExitCode != 9 ||
 				!strings.Contains(result.Stdout, `"type":"contract.protocol_changed"`) {
 				t.Fatalf("result = %#v, want missing owner protocol failure", result)
