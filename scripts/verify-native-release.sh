@@ -11,6 +11,12 @@ cleanup() {
 }
 trap cleanup EXIT
 
+# Check remote-call definitions and provenance from the OpenAPI source before packaging.
+(
+  cd "${repo_root}"
+  go test ./internal/app ./internal/remote -run 'Test(OpenAPI|RemoteCallsMatch|ContractRevisions)'
+)
+
 source_version="$(sed -n 's/^[[:space:]]*Version[[:space:]]*=[[:space:]]*"\([^"]*\)".*/\1/p' "${repo_root}/internal/app/buildinfo.go")"
 if [[ -z "${source_version}" ]]; then
   echo "could not read source version" >&2

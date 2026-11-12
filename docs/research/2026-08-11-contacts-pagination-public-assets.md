@@ -132,7 +132,7 @@ the separate authenticated response observation.
 
 Sources:
 `spec/partiful.openapi.json#/paths/~1getContacts/post`;
-`spec/partiful.api-evidence.json#/operationClaims/getContacts`.
+`spec/partiful.openapi.json#/paths/~1getContacts/post/x-evidence`.
 
 ## Facts not established by public assets
 

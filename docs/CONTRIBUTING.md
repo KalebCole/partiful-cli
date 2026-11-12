@@ -3,8 +3,8 @@
 ## Source of truth
 
 The shipped CLI is the Go program in `cmd/partiful` and `internal/`.
-Reviewed transport evidence lives under `docs/research/`, `spec/`, and
-`spec/research/`.
+Remote calls and their evidence are defined in [`spec/partiful.openapi.json`](../spec/partiful.openapi.json).
+Read [Architecture](ARCHITECTURE.md) when adding or correcting a call.
 
 ## Core commands
 
@@ -39,7 +39,8 @@ They do not require live Partiful credentials or remote mutations.
 ## Public contract
 
 - `docs/CLI-PRODUCT-CONTRACT.md` is the user-facing command authority.
-- `docs/REMOTE-API-CONTRACT.md` is the reviewed transport authority.
+- [`spec/partiful.openapi.json`](../spec/partiful.openapi.json) is the remote transport authority.
+- [Architecture](ARCHITECTURE.md) explains authentication and contract checks.
 - `partiful schema [command.path]` is the machine-readable command catalog.
 - `partiful --version` returns the CLI version plus product and remote contract revisions.
 

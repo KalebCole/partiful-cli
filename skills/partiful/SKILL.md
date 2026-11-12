@@ -8,6 +8,10 @@ description: Use when the user wants to inspect Partiful events, RSVP, create or
 Operate Partiful through the JSON-first `partiful` CLI. Load only the
 reference needed for the current task.
 
+For CLI implementation changes to remote calls, read
+[Architecture](../../docs/ARCHITECTURE.md); the
+[OpenAPI spec](../../spec/partiful.openapi.json) defines transport and evidence.
+
 ## Start Here
 
 1. Run `partiful doctor` before assuming authentication works.
