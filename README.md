@@ -77,6 +77,8 @@ partiful cohosts link revoke <event-id>
 
 All command results are JSON. Use `partiful schema <command.path>` for the
 exact input, success, failure, and safety contract for any approved command.
+Go tests and a reviewed [schema snapshot](internal/app/testdata/schema.golden.json)
+enforce this surface; [Architecture](docs/ARCHITECTURE.md#why-these-product-rules-exist) explains the rationale.
 
 ## Mutation safety
 

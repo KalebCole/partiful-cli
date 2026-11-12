@@ -11,6 +11,7 @@ reference needed for the current task.
 For CLI implementation changes to remote calls, read
 [Architecture](../../docs/ARCHITECTURE.md); the
 [OpenAPI spec](../../spec/partiful.openapi.json) defines transport and evidence.
+Command definitions, Go tests, and reviewed schema goldens enforce public behavior.
 
 ## Start Here
 

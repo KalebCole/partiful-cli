@@ -4,7 +4,6 @@ import (
 	encodingjson "encoding/json"
 	"os"
 	"path/filepath"
-	"strings"
 	"testing"
 
 	"github.com/KalebCole/partiful-cli/internal/app"
@@ -34,16 +33,8 @@ func readRepoFile(t *testing.T, root, rel string) string {
 	return string(data)
 }
 
-func TestContractRevisionsStayInSyncAcrossDocsAndSpecs(t *testing.T) {
+func TestRemoteContractRevisionMatchesOpenAPI(t *testing.T) {
 	root := repoRoot(t)
-	productDoc := readRepoFile(t, root, "docs/CLI-PRODUCT-CONTRACT.md")
-	if !strings.Contains(productDoc, "**Product contract revision:** `"+app.ProductContractRevision+"`") {
-		t.Fatalf("product contract doc does not publish revision %q", app.ProductContractRevision)
-	}
-	if !strings.Contains(productDoc, "**Remote API contract revision:** `"+app.RemoteContractRevision+"`") {
-		t.Fatalf("product contract doc does not publish remote revision %q", app.RemoteContractRevision)
-	}
-
 	var openapi openAPIDocument
 	if err := encodingjson.Unmarshal([]byte(readRepoFile(t, root, "spec/partiful.openapi.json")), &openapi); err != nil {
 		t.Fatalf("decode spec/partiful.openapi.json: %v", err)

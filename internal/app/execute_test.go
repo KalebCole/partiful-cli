@@ -82,7 +82,7 @@ func TestExecuteEventsListProjectsReviewedUpcomingEventWithoutPrompting(t *testi
 	)
 	terminal := &scriptedPrivateTerminal{values: []string{"must-not-be-read"}}
 	requestCount := 0
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv:  []string{"events", "list", "--when", "upcoming"},
 		Stdin: strings.NewReader("must-not-be-read"),
 	}, app.Dependencies{
@@ -153,7 +153,7 @@ func TestExecuteEventsListRefreshesAndUsesTokenIdentityWithoutPrompting(t *testi
 	}}
 	terminal := &scriptedPrivateTerminal{values: []string{"must-not-be-read"}}
 	call := 0
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv: []string{"events", "list", "--when", "upcoming"},
 	}, app.Dependencies{
 		Files:           files,
@@ -264,7 +264,7 @@ func TestExecuteProtectedEventSessionSerializesRefresh(t *testing.T) {
 		group.Add(1)
 		go func() {
 			defer group.Done()
-			results <- app.Execute(context.Background(), app.Request{
+			results <- executeChecked(t, context.Background(), app.Request{
 				Argv: []string{"events", "list", "--when", "upcoming"},
 			}, dependencies)
 		}()
@@ -294,7 +294,7 @@ func TestExecuteProtectedEventSessionSerializesRefresh(t *testing.T) {
 func TestExecuteEventsListMapsInvalidCredentialStorageWithoutPrompting(t *testing.T) {
 	const privateCredential = "private-invalid-credential"
 	terminal := &scriptedPrivateTerminal{values: []string{"must-not-be-read"}}
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv: []string{"events", "list", "--when", "upcoming"},
 	}, app.Dependencies{
 		Files: fakeFilesystem{
@@ -329,7 +329,7 @@ func TestExecuteProtectedEventReadsRequireAuthenticationWithoutPrompting(t *test
 		{"events", "list", "--when", "upcoming"},
 		{"events", "get", "event-example"},
 	} {
-		result := app.Execute(context.Background(), app.Request{
+		result := executeChecked(t, context.Background(), app.Request{
 			Argv: argv,
 		}, app.Dependencies{
 			Files: fakeFilesystem{
@@ -422,7 +422,7 @@ func TestExecuteEventsListProjectsPastRolesAndEveryReviewedRSVP(t *testing.T) {
 		`{"id":"event-none","ownerIds":["private-other-owner"]}`,
 	)
 	terminal := &scriptedPrivateTerminal{values: []string{"must-not-be-read"}}
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv: []string{
 			"events",
 			"list",
@@ -528,7 +528,7 @@ func TestExecuteEventsListProjectsPastRolesAndEveryReviewedRSVP(t *testing.T) {
 
 func TestExecuteEventsListRejectsUnmappedStatusOutsideRequestedPage(t *testing.T) {
 	const privateDraftTitle = "private draft event"
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv: []string{"events", "list", "--when", "upcoming", "--limit", "1"},
 	}, withTestCursorCrypto(app.Dependencies{
 		Files: fakeFilesystem{
@@ -591,7 +591,7 @@ func TestExecuteEventsListUsesDigestAndFilterBoundLocalCursor(t *testing.T) {
 			return jsonResponse(http.StatusOK, changedBody), nil
 		}},
 	})
-	first := app.Execute(context.Background(), app.Request{
+	first := executeChecked(t, context.Background(), app.Request{
 		Argv: []string{"events", "list", "--when", "upcoming", "--limit", "1"},
 	}, dependencies)
 	var firstEnvelope struct {
@@ -617,7 +617,7 @@ func TestExecuteEventsListUsesDigestAndFilterBoundLocalCursor(t *testing.T) {
 	}
 	cursor := *firstEnvelope.Meta.Page.NextCursor
 
-	second := app.Execute(context.Background(), app.Request{
+	second := executeChecked(t, context.Background(), app.Request{
 		Argv: []string{
 			"events", "list", "--when", "upcoming", "--limit", "1", "--cursor", cursor,
 		},
@@ -628,7 +628,7 @@ func TestExecuteEventsListUsesDigestAndFilterBoundLocalCursor(t *testing.T) {
 		t.Fatalf("second result = %#v, want exact local resume", second)
 	}
 
-	filterMismatch := app.Execute(context.Background(), app.Request{
+	filterMismatch := executeChecked(t, context.Background(), app.Request{
 		Argv: []string{
 			"events", "list", "--when", "past", "--limit", "1", "--cursor", cursor,
 		},
@@ -641,7 +641,7 @@ func TestExecuteEventsListUsesDigestAndFilterBoundLocalCursor(t *testing.T) {
 		t.Fatalf("request count after filter mismatch = %d, want no mismatched refetch", call)
 	}
 
-	changed := app.Execute(context.Background(), app.Request{
+	changed := executeChecked(t, context.Background(), app.Request{
 		Argv: []string{
 			"events", "list", "--when", "upcoming", "--limit", "1", "--cursor", cursor,
 		},
@@ -682,7 +682,7 @@ func TestExecuteEventsListFailsClosedInsteadOfTruncatingLocalBounds(t *testing.T
 	}
 	for _, testCase := range cases {
 		t.Run(testCase.name, func(t *testing.T) {
-			result := app.Execute(context.Background(), app.Request{
+			result := executeChecked(t, context.Background(), app.Request{
 				Argv: []string{"events", "list", "--when", "upcoming", "--all", "--max-items", "1000"},
 			}, app.Dependencies{
 				Files: fakeFilesystem{
@@ -715,7 +715,7 @@ func TestExecuteEventsListFailsClosedInsteadOfTruncatingLocalBounds(t *testing.T
 func TestExecuteEventsGetProjectsPopulatedSupportedDetails(t *testing.T) {
 	const credentials = `{"accessToken":"private-access-token","expiresAt":"2026-08-12T02:00:00Z"}`
 	terminal := &scriptedPrivateTerminal{values: []string{"must-not-be-read"}}
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv: []string{"events", "get", "event-example"},
 	}, app.Dependencies{
 		Files: fakeFilesystem{
@@ -764,7 +764,7 @@ func TestExecuteEventsGetProjectsPopulatedSupportedDetails(t *testing.T) {
 func TestExecuteEventsGetProjectsPopulatedSupportedDetailsFromCreateFields(t *testing.T) {
 	const credentials = `{"accessToken":"private-access-token","expiresAt":"2026-08-12T02:00:00Z"}`
 	terminal := &scriptedPrivateTerminal{values: []string{"must-not-be-read"}}
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv: []string{"events", "get", "event-example"},
 	}, app.Dependencies{
 		Files: fakeFilesystem{
@@ -813,7 +813,7 @@ func TestExecuteEventsGetProjectsPopulatedSupportedDetailsFromCreateFields(t *te
 func TestExecuteEventsGetProjectsPopulatedSupportedDetailsFromPublicCreateFields(t *testing.T) {
 	const credentials = `{"accessToken":"private-access-token","expiresAt":"2026-08-12T02:00:00Z"}`
 	terminal := &scriptedPrivateTerminal{values: []string{"must-not-be-read"}}
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv: []string{"events", "get", "event-example"},
 	}, app.Dependencies{
 		Files: fakeFilesystem{
@@ -927,7 +927,7 @@ func TestExecuteEventsGetMapsOnlyReviewedFailuresAndObjectVariants(t *testing.T)
 	}
 	for _, testCase := range cases {
 		t.Run(testCase.name, func(t *testing.T) {
-			result := app.Execute(context.Background(), app.Request{
+			result := executeChecked(t, context.Background(), app.Request{
 				Argv: []string{"events", "get", "event-example"},
 			}, app.Dependencies{
 				Files: fakeFilesystem{
@@ -982,7 +982,7 @@ func TestExecuteRSVPGetProjectsReviewedGuestWithoutPrivateIdentifiers(t *testing
 		privateName    = "Private Guest Name"
 	)
 	requestCount := 0
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv: []string{"rsvp", "get", "event-example"},
 	}, app.Dependencies{
 		Files: fakeFilesystem{
@@ -1075,7 +1075,7 @@ func TestExecuteSchemaProjectsCompleteEventReadDefinitions(t *testing.T) {
 		} `json:"data"`
 	}
 
-	listResult := app.Execute(context.Background(), app.Request{
+	listResult := executeChecked(t, context.Background(), app.Request{
 		Argv: []string{"schema", "events.list"},
 	}, app.Dependencies{})
 	var list schemaEnvelope
@@ -1100,6 +1100,9 @@ func TestExecuteSchemaProjectsCompleteEventReadDefinitions(t *testing.T) {
 		"--cursor:false",
 		"--all:false",
 		"--max-items:false",
+		"--pretty:false",
+		"--non-interactive:false",
+		"--no-input:false",
 	}) {
 		t.Fatalf("list flags = %v, want event collection flags", listFlags)
 	}
@@ -1110,7 +1113,7 @@ func TestExecuteSchemaProjectsCompleteEventReadDefinitions(t *testing.T) {
 		t.Fatalf("summary fields = %v, want %v", got, wantSummaryFields)
 	}
 
-	getResult := app.Execute(context.Background(), app.Request{
+	getResult := executeChecked(t, context.Background(), app.Request{
 		Argv: []string{"schema", "events.get"},
 	}, app.Dependencies{})
 	var get schemaEnvelope
@@ -1121,7 +1124,7 @@ func TestExecuteSchemaProjectsCompleteEventReadDefinitions(t *testing.T) {
 		len(get.Data.Positionals) != 1 ||
 		get.Data.Positionals[0].Name != "event-id" ||
 		!get.Data.Positionals[0].Required ||
-		len(get.Data.Flags) != 0 ||
+		len(get.Data.Flags) != 3 ||
 		!reflect.DeepEqual(get.Data.InputSchema.Required, []string{"eventId"}) ||
 		get.Data.InputSchema.Properties["eventId"].MinLength == nil ||
 		*get.Data.InputSchema.Properties["eventId"].MinLength != 1 {
@@ -1198,7 +1201,7 @@ func TestExecutePostersListReturnsFirstLocalPage(t *testing.T) {
 		{"id":"duplicate","name":"Duplicate","url":"https://example.invalid/duplicate.gif","contentType":"image/gif","width":null,"height":null,"tags":["dance"],"categories":[]},
 		{"id":"duplicate","name":"Duplicate Again","url":"https://example.invalid/duplicate-2.gif","contentType":"image/gif","width":640,"height":480,"tags":[],"categories":["night"]}
 	]`
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv:  []string{"posters", "list"},
 		Stdin: strings.NewReader(""),
 	}, withTestCursorCrypto(app.Dependencies{
@@ -1229,7 +1232,7 @@ func TestExecutePostersListHonorsLimitAndReturnsOpaqueCursor(t *testing.T) {
 		{"id":"second","name":"Second","url":"https://example.invalid/second.png","contentType":"image/png","width":1200,"height":630,"tags":[],"categories":[]},
 		{"id":"third","name":"Third","url":"https://example.invalid/third.png","contentType":"image/png","width":1200,"height":630,"tags":[],"categories":[]}
 	]`
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv:  []string{"posters", "list", "--limit", "2"},
 		Stdin: strings.NewReader(""),
 	}, withTestCursorCrypto(app.Dependencies{
@@ -1298,7 +1301,7 @@ func TestExecutePostersListResumesFromOpaqueCursor(t *testing.T) {
 			}, nil
 		}},
 	})
-	first := app.Execute(context.Background(), app.Request{
+	first := executeChecked(t, context.Background(), app.Request{
 		Argv:  []string{"posters", "list", "--limit", "2"},
 		Stdin: strings.NewReader(""),
 	}, dependencies)
@@ -1316,7 +1319,7 @@ func TestExecutePostersListResumesFromOpaqueCursor(t *testing.T) {
 		t.Fatal("first page cursor is nil")
 	}
 
-	second := app.Execute(context.Background(), app.Request{
+	second := executeChecked(t, context.Background(), app.Request{
 		Argv: []string{
 			"posters", "list",
 			"--limit", "2",
@@ -1366,7 +1369,7 @@ func TestExecutePostersListRejectsTamperedAuthenticatedCursor(t *testing.T) {
 			}, nil
 		}},
 	})
-	first := app.Execute(context.Background(), app.Request{
+	first := executeChecked(t, context.Background(), app.Request{
 		Argv:  []string{"posters", "list", "--limit", "1"},
 		Stdin: strings.NewReader(""),
 	}, dependencies)
@@ -1389,7 +1392,7 @@ func TestExecutePostersListRejectsTamperedAuthenticatedCursor(t *testing.T) {
 		tamperedCursor[last] = 'A'
 	}
 
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv:  []string{"posters", "list", "--cursor", string(tamperedCursor)},
 		Stdin: strings.NewReader(""),
 	}, dependencies)
@@ -1406,7 +1409,7 @@ func TestExecutePostersSearchFiltersCaseInsensitivelyInCatalogOrder(t *testing.T
 		{"id":"name-match","name":"DANCE Party","url":"https://example.invalid/third.png","contentType":"image/png","width":1200,"height":630,"tags":[],"categories":[]},
 		{"id":"category-match","name":"Fourth","url":"https://example.invalid/fourth.png","contentType":"image/png","width":1200,"height":630,"tags":[],"categories":["social dance"]}
 	]`
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv:  []string{"posters", "search", "--query", "  dance  "},
 		Stdin: strings.NewReader(""),
 	}, withTestCursorCrypto(app.Dependencies{
@@ -1464,7 +1467,7 @@ func TestExecutePostersListAllStopsAtMaxItems(t *testing.T) {
 		{"id":"four","name":"Four","url":"https://example.invalid/four.png","contentType":"image/png","width":1,"height":1,"tags":[],"categories":[]},
 		{"id":"five","name":"Five","url":"https://example.invalid/five.png","contentType":"image/png","width":1,"height":1,"tags":[],"categories":[]}
 	]`
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv:  []string{"posters", "list", "--all", "--max-items", "3"},
 		Stdin: strings.NewReader(""),
 	}, withTestCursorCrypto(app.Dependencies{
@@ -1522,7 +1525,7 @@ func TestExecutePostersListAllResumesFromReturnedCursor(t *testing.T) {
 			}, nil
 		}},
 	})
-	first := app.Execute(context.Background(), app.Request{
+	first := executeChecked(t, context.Background(), app.Request{
 		Argv:  []string{"posters", "list", "--all", "--max-items", "2"},
 		Stdin: strings.NewReader(""),
 	}, dependencies)
@@ -1537,7 +1540,7 @@ func TestExecutePostersListAllResumesFromReturnedCursor(t *testing.T) {
 		t.Fatalf("decode first stdout: %v", err)
 	}
 
-	second := app.Execute(context.Background(), app.Request{
+	second := executeChecked(t, context.Background(), app.Request{
 		Argv: []string{
 			"posters", "list",
 			"--all", "--max-items", "2",
@@ -1597,7 +1600,7 @@ func TestExecutePostersListRejectsCursorWhenPayloadChanges(t *testing.T) {
 			}, nil
 		}},
 	})
-	first := app.Execute(context.Background(), app.Request{
+	first := executeChecked(t, context.Background(), app.Request{
 		Argv:  []string{"posters", "list", "--limit", "2"},
 		Stdin: strings.NewReader(""),
 	}, dependencies)
@@ -1612,7 +1615,7 @@ func TestExecutePostersListRejectsCursorWhenPayloadChanges(t *testing.T) {
 		t.Fatalf("decode first stdout: %v", err)
 	}
 
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv:  []string{"posters", "list", "--cursor", firstEnvelope.Meta.Page.NextCursor},
 		Stdin: strings.NewReader(""),
 	}, dependencies)
@@ -1630,7 +1633,7 @@ func TestExecutePostersListRejectsCursorWhenPayloadChanges(t *testing.T) {
 }
 
 func TestExecuteSchemaProjectsPosterSearchDefinition(t *testing.T) {
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv:  []string{"schema", "posters.search"},
 		Stdin: strings.NewReader(""),
 	}, app.Dependencies{})
@@ -1687,7 +1690,7 @@ func TestExecuteSchemaProjectsPosterSearchDefinition(t *testing.T) {
 	for _, flag := range envelope.Data.Flags {
 		gotFlags = append(gotFlags, fmt.Sprintf("%s:%t", flag.Name, flag.Required))
 	}
-	wantFlags := []string{"--query:true", "--limit:false", "--cursor:false", "--all:false", "--max-items:false"}
+	wantFlags := []string{"--query:true", "--limit:false", "--cursor:false", "--all:false", "--max-items:false", "--pretty:false", "--non-interactive:false", "--no-input:false"}
 	if !reflect.DeepEqual(gotFlags, wantFlags) {
 		t.Fatalf("flags = %#v, want %#v", gotFlags, wantFlags)
 	}
@@ -1747,7 +1750,7 @@ func TestExecuteSchemaProjectsPosterSearchDefinition(t *testing.T) {
 
 func TestExecutePostersListRejectsUnexpectedSuccessContentType(t *testing.T) {
 	const privateBody = `[{"id":"private-value","name":"Private","url":"https://example.invalid/private.png","contentType":"image/png","width":1,"height":1,"tags":[],"categories":[]}]`
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv:  []string{"posters", "list"},
 		Stdin: strings.NewReader(""),
 	}, app.Dependencies{
@@ -1777,7 +1780,7 @@ func TestExecutePostersListRejectsUnexpectedSuccessContentType(t *testing.T) {
 }
 
 func TestExecutePostersListRejectsMalformedCursorBeforeRemoteFailure(t *testing.T) {
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv:  []string{"posters", "list", "--cursor", "not-an-opaque-cursor"},
 		Stdin: strings.NewReader(""),
 	}, withTestCursorCrypto(app.Dependencies{
@@ -1817,7 +1820,7 @@ func TestExecutePostersSearchRejectsCursorWithDifferentNormalizedFilter(t *testi
 			}, nil
 		}},
 	})
-	first := app.Execute(context.Background(), app.Request{
+	first := executeChecked(t, context.Background(), app.Request{
 		Argv:  []string{"posters", "search", "--query", "a", "--limit", "1"},
 		Stdin: strings.NewReader(""),
 	}, dependencies)
@@ -1832,7 +1835,7 @@ func TestExecutePostersSearchRejectsCursorWithDifferentNormalizedFilter(t *testi
 		t.Fatalf("decode first stdout: %v", err)
 	}
 
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv: []string{
 			"posters", "search",
 			"--query", "different",
@@ -1855,7 +1858,7 @@ func TestExecutePostersSearchRejectsCursorWithDifferentNormalizedFilter(t *testi
 
 func TestExecutePostersListMapsNetworkFailureToRemoteUnavailable(t *testing.T) {
 	const privateError = "private endpoint failure details"
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv:  []string{"posters", "list"},
 		Stdin: strings.NewReader(""),
 	}, app.Dependencies{
@@ -1881,7 +1884,7 @@ func TestExecutePostersListMapsNetworkFailureToRemoteUnavailable(t *testing.T) {
 }
 
 func TestExecutePostersListFailsClosedOnReceivedNon200(t *testing.T) {
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv:  []string{"posters", "list"},
 		Stdin: strings.NewReader(""),
 	}, app.Dependencies{
@@ -1912,7 +1915,7 @@ func TestExecutePostersListFailsClosedOnReceivedNon200(t *testing.T) {
 }
 
 func TestExecutePostersListProductionHTTPDoesNotFollowRedirects(t *testing.T) {
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv:  []string{"posters", "list"},
 		Stdin: strings.NewReader(""),
 	}, app.Dependencies{
@@ -1939,7 +1942,7 @@ func TestExecutePostersListRejectsBodyAboveFiniteCeiling(t *testing.T) {
 		strings.NewReader("[]"),
 		strings.NewReader(strings.Repeat(" ", 8<<20)),
 	)
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv:  []string{"posters", "list"},
 		Stdin: strings.NewReader(""),
 	}, app.Dependencies{
@@ -1959,7 +1962,7 @@ func TestExecutePostersListRejectsBodyAboveFiniteCeiling(t *testing.T) {
 
 func TestExecutePostersListFailsClosedOnMalformed200Body(t *testing.T) {
 	const malformedBody = `[{"id":"private-id","name":"Missing categories","url":"https://example.invalid/poster.png","contentType":"image/png","width":1,"height":1,"tags":[]}]`
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv:  []string{"posters", "list"},
 		Stdin: strings.NewReader(""),
 	}, app.Dependencies{
@@ -1986,7 +1989,7 @@ func TestExecutePostersListFailsClosedOnMalformed200Body(t *testing.T) {
 
 func TestExecutePostersListRejectsMalformedOptionalBlurHash(t *testing.T) {
 	const malformedBody = `[{"id":"poster","name":"Poster","url":"https://example.invalid/poster.png","blurHash":42,"contentType":"image/png","width":1,"height":1,"tags":[],"categories":[]}]`
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv:  []string{"posters", "list"},
 		Stdin: strings.NewReader(""),
 	}, app.Dependencies{
@@ -2013,7 +2016,7 @@ func TestExecutePostersListRejectsMalformedUTF8(t *testing.T) {
 		body,
 		[]byte(`","url":"https://example.invalid/poster.png","contentType":"image/png","width":1,"height":1,"tags":[],"categories":[]}]`)...,
 	)
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv:  []string{"posters", "list"},
 		Stdin: strings.NewReader(""),
 	}, app.Dependencies{
@@ -2032,7 +2035,7 @@ func TestExecutePostersListRejectsMalformedUTF8(t *testing.T) {
 }
 
 func TestExecutePostersListRequiresMaxItemsWithAll(t *testing.T) {
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv:  []string{"posters", "list", "--all"},
 		Stdin: strings.NewReader(""),
 	}, app.Dependencies{})
@@ -2050,7 +2053,7 @@ func TestExecutePostersListRequiresMaxItemsWithAll(t *testing.T) {
 }
 
 func TestExecutePostersListRejectsLimitWithAll(t *testing.T) {
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv: []string{
 			"posters", "list",
 			"--limit", "10",
@@ -2072,7 +2075,7 @@ func TestExecutePostersListRejectsLimitWithAll(t *testing.T) {
 }
 
 func TestExecutePostersListRejectsLimitAboveMaximum(t *testing.T) {
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv:  []string{"posters", "list", "--limit", "101"},
 		Stdin: strings.NewReader(""),
 	}, app.Dependencies{})
@@ -2087,7 +2090,7 @@ func TestExecutePostersListRejectsLimitAboveMaximum(t *testing.T) {
 }
 
 func TestExecutePostersListRejectsEmptyCursor(t *testing.T) {
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv:  []string{"posters", "list", "--cursor", ""},
 		Stdin: strings.NewReader(""),
 	}, app.Dependencies{})
@@ -2105,7 +2108,7 @@ func TestExecutePostersListRejectsEmptyCursor(t *testing.T) {
 }
 
 func TestExecutePostersSearchRequiresNonEmptyQuery(t *testing.T) {
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv:  []string{"posters", "search", "--query", "   "},
 		Stdin: strings.NewReader(""),
 	}, app.Dependencies{})
@@ -2120,7 +2123,7 @@ func TestExecutePostersSearchRequiresNonEmptyQuery(t *testing.T) {
 }
 
 func TestExecuteVersion(t *testing.T) {
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv:  []string{"--version"},
 		Stdin: strings.NewReader(""),
 	}, app.Dependencies{})
@@ -2138,7 +2141,7 @@ func TestExecuteVersion(t *testing.T) {
 }
 
 func TestExecuteEventsListRequiresWhen(t *testing.T) {
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv:  []string{"events", "list"},
 		Stdin: strings.NewReader(""),
 	}, app.Dependencies{})
@@ -2156,7 +2159,7 @@ func TestExecuteEventsListRequiresWhen(t *testing.T) {
 }
 
 func TestExecutePrettyPrintsOneCompleteEnvelope(t *testing.T) {
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv:  []string{"--pretty", "--version"},
 		Stdin: strings.NewReader(""),
 	}, app.Dependencies{})
@@ -2189,7 +2192,7 @@ func TestExecutePrettyPrintsOneCompleteEnvelope(t *testing.T) {
 }
 
 func TestExecuteAcceptsNonInteractiveGlobalFlag(t *testing.T) {
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv:  []string{"--version", "--non-interactive"},
 		Stdin: strings.NewReader(""),
 	}, app.Dependencies{})
@@ -2207,7 +2210,7 @@ func TestExecuteAcceptsNonInteractiveGlobalFlag(t *testing.T) {
 }
 
 func TestExecuteRejectsRepeatedScalarFlag(t *testing.T) {
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv:  []string{"--pretty", "--version", "--pretty"},
 		Stdin: strings.NewReader(""),
 	}, app.Dependencies{})
@@ -2243,7 +2246,7 @@ func TestExecuteRejectsRepeatedScalarFlag(t *testing.T) {
 }
 
 func TestExecuteSchemaListsOnlyCompletedCatalog(t *testing.T) {
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv:  []string{"schema"},
 		Stdin: strings.NewReader(""),
 	}, app.Dependencies{})
@@ -2261,12 +2264,12 @@ func TestExecuteSchemaListsOnlyCompletedCatalog(t *testing.T) {
 }
 
 func TestExecuteSchemaProjectsExecutableDefinition(t *testing.T) {
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv:  []string{"schema", "auth.status"},
 		Stdin: strings.NewReader(""),
 	}, app.Dependencies{})
 
-	const want = `{"ok":true,"data":{"command":"auth.status","positionals":[],"flags":[],"inputSchema":{"type":"object","additionalProperties":false},"successSchema":{"type":"object","additionalProperties":false,"required":["authenticated","tokenState","expiresAt"],"properties":{"authenticated":{"type":"boolean"},"expiresAt":{"type":["string","null"],"format":"date-time"},"tokenState":{"type":"string","enum":["healthy","expiring","expired","missing"]}}},"failureTypes":["usage.invalid","input.invalid","auth.expired","remote.unavailable","contract.protocol_changed","internal.failure"],"safety":{"kind":"local-mutation","destructive":false}},"meta":{"command":"schema","cliVersion":"3.0.1","productContractRevision":"2026-08-12.7","remoteContractRevision":"2026-08-12.7","warnings":[]}}` + "\n"
+	const want = `{"ok":true,"data":{"command":"auth.status","positionals":[],"flags":[{"name":"--pretty","required":false,"description":"Indent the JSON result."},{"name":"--non-interactive","required":false,"description":"Disable terminal prompts."},{"name":"--no-input","required":false,"description":"Disable terminal prompts; alias of --non-interactive."}],"inputSchema":{"type":"object","additionalProperties":false},"successSchema":{"type":"object","additionalProperties":false,"required":["authenticated","tokenState","expiresAt"],"properties":{"authenticated":{"type":"boolean"},"expiresAt":{"type":["string","null"],"format":"date-time"},"tokenState":{"type":"string","enum":["healthy","expiring","expired","missing"]}}},"failureTypes":["usage.invalid","input.invalid","auth.expired","remote.unavailable","contract.protocol_changed","internal.failure"],"safety":{"kind":"local-mutation","destructive":false}},"meta":{"command":"schema","cliVersion":"3.0.1","productContractRevision":"2026-08-12.7","remoteContractRevision":"2026-08-12.7","warnings":[]}}` + "\n"
 	if result.ExitCode != 0 {
 		t.Fatalf("exit code = %d, want 0", result.ExitCode)
 	}
@@ -2279,7 +2282,7 @@ func TestExecuteSchemaProjectsExecutableDefinition(t *testing.T) {
 }
 
 func TestExecuteSchemaProjectsCompleteAuthLoginDefinition(t *testing.T) {
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv: []string{"schema", "auth.login"},
 	}, app.Dependencies{})
 
@@ -2317,7 +2320,7 @@ func TestExecuteSchemaProjectsCompleteAuthLoginDefinition(t *testing.T) {
 	for _, flag := range envelope.Data.Flags {
 		flagNames = append(flagNames, flag.Name)
 	}
-	if !reflect.DeepEqual(flagNames, []string{"--non-interactive", "--no-input"}) {
+	if !reflect.DeepEqual(flagNames, []string{"--non-interactive", "--no-input", "--pretty"}) {
 		t.Fatalf("flags = %v, want both no-input aliases", flagNames)
 	}
 	if envelope.Data.Safety.Kind != "local-mutation" ||
@@ -2327,7 +2330,7 @@ func TestExecuteSchemaProjectsCompleteAuthLoginDefinition(t *testing.T) {
 }
 
 func TestExecuteRejectsUnknownSchemaPathWithoutEchoingInput(t *testing.T) {
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv:  []string{"schema", "secret-private-value"},
 		Stdin: strings.NewReader(""),
 	}, app.Dependencies{})
@@ -2348,7 +2351,7 @@ func TestExecuteRejectsUnknownSchemaPathWithoutEchoingInput(t *testing.T) {
 }
 
 func TestExecuteAuthStatusWhenCredentialsAreMissing(t *testing.T) {
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv:  []string{"auth", "status"},
 		Stdin: strings.NewReader(""),
 	}, app.Dependencies{
@@ -2376,7 +2379,7 @@ func TestExecuteAuthStatusWhenCredentialsAreMissing(t *testing.T) {
 }
 
 func TestExecuteAuthLoginRequiresPrivateTerminal(t *testing.T) {
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv:  []string{"auth", "login"},
 		Stdin: strings.NewReader("private-stdin-value"),
 	}, app.Dependencies{})
@@ -2418,7 +2421,7 @@ func TestExecuteAuthLoginNoInputAliasesNeverStartAuthentication(t *testing.T) {
 			random := &countingReader{}
 			files := &memoryFilesystem{files: map[string][]byte{}}
 			httpCalls := 0
-			result := app.Execute(context.Background(), app.Request{
+			result := executeChecked(t, context.Background(), app.Request{
 				Argv: test.argv,
 			}, app.Dependencies{
 				Files:           files,
@@ -2454,7 +2457,7 @@ func TestExecuteAuthLoginNoInputAliasesNeverStartAuthentication(t *testing.T) {
 
 func TestExecuteAuthLoginRejectsEmptyPrivateInputBeforeHTTP(t *testing.T) {
 	httpCalled := false
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv: []string{"auth", "login"},
 	}, app.Dependencies{
 		Files:           &memoryFilesystem{files: map[string][]byte{}},
@@ -2503,7 +2506,7 @@ func (terminal failingPrivateTerminal) ReadSecret(string) (string, error) {
 }
 
 func TestExecuteAuthLoginPreservesPrivateTerminalValidationFailure(t *testing.T) {
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv: []string{"auth", "login"},
 	}, app.Dependencies{
 		Files:           &memoryFilesystem{files: map[string][]byte{}},
@@ -2532,7 +2535,7 @@ func TestExecuteAuthLoginPersistsReviewedSessionWithoutRevealingPrivateValues(t 
 	files := &memoryFilesystem{files: map[string][]byte{}}
 	call := 0
 	clockCalls := 0
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv:  []string{"auth", "login"},
 		Stdin: strings.NewReader("ordinary-private-input"),
 	}, app.Dependencies{
@@ -2644,7 +2647,7 @@ func TestExecuteAuthLoginPersistsReviewedSessionWithoutRevealingPrivateValues(t 
 		}
 	}
 
-	status := app.Execute(context.Background(), app.Request{
+	status := executeChecked(t, context.Background(), app.Request{
 		Argv:  []string{"auth", "status"},
 		Stdin: strings.NewReader(""),
 	}, app.Dependencies{
@@ -2663,7 +2666,7 @@ func TestExecuteAuthLoginMapsReviewedWrongCodeWithoutEchoingIt(t *testing.T) {
 	const privateCode = "654321"
 	terminal := &scriptedPrivateTerminal{values: []string{"+15555550123", privateCode}}
 	call := 0
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv: []string{"auth", "login"},
 	}, app.Dependencies{
 		Files:           &memoryFilesystem{files: map[string][]byte{}},
@@ -2704,7 +2707,7 @@ func TestExecuteAuthLoginMapsReviewedWrongCodeWithoutEchoingIt(t *testing.T) {
 func TestExecuteAuthLoginPreservesErrorResponseReadFailure(t *testing.T) {
 	const privateReadError = "private response read failure"
 	call := 0
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv: []string{"auth", "login"},
 	}, app.Dependencies{
 		Files:           &memoryFilesystem{files: map[string][]byte{}},
@@ -2737,7 +2740,7 @@ func TestExecuteAuthLoginPreservesErrorResponseReadFailure(t *testing.T) {
 
 func TestExecuteAuthLoginRejectsInvalidOptionalCallableErrorField(t *testing.T) {
 	call := 0
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv: []string{"auth", "login"},
 	}, app.Dependencies{
 		Files:           &memoryFilesystem{files: map[string][]byte{}},
@@ -2765,7 +2768,7 @@ func TestExecuteAuthLoginRejectsInvalidOptionalCallableErrorField(t *testing.T) 
 }
 
 func TestExecuteAuthLoginRejectsOversizedSendAcknowledgement(t *testing.T) {
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv: []string{"auth", "login"},
 	}, app.Dependencies{
 		Files:           &memoryFilesystem{files: map[string][]byte{}},
@@ -2797,7 +2800,7 @@ func TestExecuteAuthLoginRejectsOversizedSendAcknowledgement(t *testing.T) {
 func TestExecuteAuthLoginMapsRejectedCustomTokenToExpired(t *testing.T) {
 	terminal := &scriptedPrivateTerminal{values: []string{"+15555550123", "123456"}}
 	call := 0
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv: []string{"auth", "login"},
 	}, app.Dependencies{
 		Files:           &memoryFilesystem{files: map[string][]byte{}},
@@ -2838,7 +2841,7 @@ func TestExecuteAuthLoginMapsRejectedCustomTokenToExpired(t *testing.T) {
 
 func TestExecuteAuthLoginRejectsInvalidOptionalFirebaseSuccessField(t *testing.T) {
 	call := 0
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv: []string{"auth", "login"},
 	}, app.Dependencies{
 		Files:           &memoryFilesystem{files: map[string][]byte{}},
@@ -2874,7 +2877,7 @@ func TestExecuteAuthLoginRejectsInvalidOptionalFirebaseSuccessField(t *testing.T
 
 func TestExecuteAuthLoginRejectsTokenInsideRefreshWindow(t *testing.T) {
 	call := 0
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv: []string{"auth", "login"},
 	}, app.Dependencies{
 		Files:           &memoryFilesystem{files: map[string][]byte{}},
@@ -2910,7 +2913,7 @@ func TestExecuteAuthLoginRejectsTokenInsideRefreshWindow(t *testing.T) {
 
 func TestExecuteAuthLoginAllowsUndeclaredFirebaseErrorStatus(t *testing.T) {
 	call := 0
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv: []string{"auth", "login"},
 	}, app.Dependencies{
 		Files:           &memoryFilesystem{files: map[string][]byte{}},
@@ -2946,7 +2949,7 @@ func TestExecuteAuthLoginAllowsUndeclaredFirebaseErrorStatus(t *testing.T) {
 
 func TestExecuteAuthLoginRejectsInvalidOptionalFirebaseValidationErrors(t *testing.T) {
 	call := 0
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv: []string{"auth", "login"},
 	}, app.Dependencies{
 		Files:           &memoryFilesystem{files: map[string][]byte{}},
@@ -2984,7 +2987,7 @@ func TestExecuteAuthLoginFailsClosedOnMalformedReviewedSuccess(t *testing.T) {
 	const privateBodyValue = "private-access-token"
 	terminal := &scriptedPrivateTerminal{values: []string{"+15555550123", "123456"}}
 	call := 0
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv: []string{"auth", "login"},
 	}, app.Dependencies{
 		Files:           &memoryFilesystem{files: map[string][]byte{}},
@@ -3026,7 +3029,7 @@ func TestExecuteAuthLoginFailsClosedOnMalformedReviewedSuccess(t *testing.T) {
 func TestExecuteAuthLoginRejectsMissingFirebaseResponse(t *testing.T) {
 	terminal := &scriptedPrivateTerminal{values: []string{"+15555550123", "123456"}}
 	call := 0
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv: []string{"auth", "login"},
 	}, app.Dependencies{
 		Files:           &memoryFilesystem{files: map[string][]byte{}},
@@ -3061,7 +3064,7 @@ func TestExecuteAuthLoginRejectsMissingFirebaseResponse(t *testing.T) {
 func TestExecuteAuthLoginRejectsMalformedWrongCodeMapping(t *testing.T) {
 	terminal := &scriptedPrivateTerminal{values: []string{"+15555550123", "123456"}}
 	call := 0
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv: []string{"auth", "login"},
 	}, app.Dependencies{
 		Files:           &memoryFilesystem{files: map[string][]byte{}},
@@ -3095,7 +3098,7 @@ func TestExecuteAuthLoginRejectsMalformedWrongCodeMapping(t *testing.T) {
 
 func TestExecuteAuthLoginMapsNoResponseWithoutLeakingTransportError(t *testing.T) {
 	const privateTransportValue = "private transport detail"
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv: []string{"auth", "login"},
 	}, app.Dependencies{
 		Files:           &memoryFilesystem{files: map[string][]byte{}},
@@ -3160,7 +3163,7 @@ func TestExecuteAuthLoginAtomicPersistenceFailurePreservesExistingCredentials(t 
 			}
 		}},
 	}
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv: []string{"auth", "login"},
 	}, dependencies)
 
@@ -3172,7 +3175,7 @@ func TestExecuteAuthLoginAtomicPersistenceFailurePreservesExistingCredentials(t 
 		t.Fatal("persistence failure exposed a private filesystem value")
 	}
 
-	status := app.Execute(context.Background(), app.Request{
+	status := executeChecked(t, context.Background(), app.Request{
 		Argv: []string{"auth", "status"},
 	}, dependencies)
 	if !strings.Contains(status.Stdout, `"authenticated":true,"tokenState":"healthy"`) {
@@ -3228,7 +3231,7 @@ func TestExecuteContactsListTraversesReviewedPagesAndReturnsOnlyPublicFields(t *
 		privateCursor = "private-remote-cursor"
 	)
 	requestCount := 0
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv:  []string{"contacts", "list"},
 		Stdin: strings.NewReader(""),
 	}, app.Dependencies{
@@ -3303,7 +3306,7 @@ func TestExecuteContactsListFiltersLocallyAfterFirstIdentityOccurrenceWins(t *te
 		`{"result":{"data":[],"paging":{}}}`,
 	}
 	call := 0
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv:  []string{"contacts", "list", "--query", "  ALICE  "},
 		Stdin: strings.NewReader(""),
 	}, app.Dependencies{
@@ -3376,7 +3379,7 @@ func TestExecuteContactsListReturnsOpaqueResumableLocalCursor(t *testing.T) {
 			return jsonResponse(http.StatusOK, terminal), nil
 		}},
 	})
-	first := app.Execute(context.Background(), app.Request{
+	first := executeChecked(t, context.Background(), app.Request{
 		Argv:  []string{"contacts", "list", "--limit", "2"},
 		Stdin: strings.NewReader(""),
 	}, dependencies)
@@ -3407,7 +3410,7 @@ func TestExecuteContactsListReturnsOpaqueResumableLocalCursor(t *testing.T) {
 		}
 	}
 
-	second := app.Execute(context.Background(), app.Request{
+	second := executeChecked(t, context.Background(), app.Request{
 		Argv:  []string{"contacts", "list", "--limit", "2", "--cursor", cursor},
 		Stdin: strings.NewReader(""),
 	}, dependencies)
@@ -3447,7 +3450,7 @@ func TestExecuteContactsListFailsClosedOnRepeatedRemoteCursor(t *testing.T) {
 		privateLoop = "private-repeated-cursor"
 	)
 	call := 0
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv:  []string{"contacts", "list"},
 		Stdin: strings.NewReader(""),
 	}, app.Dependencies{
@@ -3490,7 +3493,7 @@ func TestExecuteContactsListFailsClosedOnRepeatedRemoteCursor(t *testing.T) {
 func TestExecuteContactsListFailsClosedBeyondReviewedTraversalBound(t *testing.T) {
 	const credentials = `{"accessToken":"private-access-token","expiresAt":"2026-08-11T02:00:00Z"}`
 	call := 0
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv:  []string{"contacts", "list", "--all", "--max-items", "1000"},
 		Stdin: strings.NewReader(""),
 	}, app.Dependencies{
@@ -3539,7 +3542,7 @@ func TestExecuteContactsListFailsClosedWhenPrivateIdentityIsMissing(t *testing.T
 		privateName = "Private Name"
 	)
 	call := 0
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv:  []string{"contacts", "list"},
 		Stdin: strings.NewReader(""),
 	}, app.Dependencies{
@@ -3579,7 +3582,7 @@ func TestExecuteContactsListFailsClosedWhenPrivateIdentityIsMissing(t *testing.T
 
 func TestExecuteContactsListFailsClosedWhenTerminalPagingIsMissing(t *testing.T) {
 	const credentials = `{"accessToken":"private-access-token","expiresAt":"2026-08-11T02:00:00Z"}`
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv:  []string{"contacts", "list"},
 		Stdin: strings.NewReader(""),
 	}, app.Dependencies{
@@ -3612,7 +3615,7 @@ func TestExecuteContactsListAcceptsOpenReviewedResponseFields(t *testing.T) {
 		privateEnvelopeValue = "private-unknown-envelope-value"
 	)
 	call := 0
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv:  []string{"contacts", "list"},
 		Stdin: strings.NewReader(""),
 	}, app.Dependencies{
@@ -3666,7 +3669,7 @@ func TestExecuteContactsListRejectsTrailingSuccessJSON(t *testing.T) {
 		credentials  = `{"accessToken":"private-access-token","expiresAt":"2026-08-11T02:00:00Z"}`
 		privateValue = "private-trailing-json-value"
 	)
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv:  []string{"contacts", "list"},
 		Stdin: strings.NewReader(""),
 	}, app.Dependencies{
@@ -3699,7 +3702,7 @@ func TestExecuteContactsListRejectsTrailingSuccessJSON(t *testing.T) {
 
 func TestExecuteContactsListFailsClosedOnNullRemoteCursor(t *testing.T) {
 	const credentials = `{"accessToken":"private-access-token","expiresAt":"2026-08-11T02:00:00Z"}`
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv:  []string{"contacts", "list"},
 		Stdin: strings.NewReader(""),
 	}, app.Dependencies{
@@ -3732,7 +3735,7 @@ func TestExecuteContactsListAcceptsUnknownUnauthenticatedErrorFields(t *testing.
 		credentials  = `{"accessToken":"private-access-token","expiresAt":"2026-08-11T02:00:00Z"}`
 		privateValue = "private-remote-detail"
 	)
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv:  []string{"contacts", "list"},
 		Stdin: strings.NewReader(""),
 	}, app.Dependencies{
@@ -3765,7 +3768,7 @@ func TestExecuteContactsListAcceptsUnknownUnauthenticatedErrorFields(t *testing.
 
 func TestExecuteContactsListMapsReviewedUnauthenticatedResponseToExpired(t *testing.T) {
 	const credentials = `{"accessToken":"private-access-token","expiresAt":"2026-08-11T02:00:00Z"}`
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv:  []string{"contacts", "list"},
 		Stdin: strings.NewReader(""),
 	}, app.Dependencies{
@@ -3805,7 +3808,7 @@ func TestExecuteContactsListRefreshesExpiringSessionBeforeProtectedRead(t *testi
 			`","refreshToken":"private-old-refresh","expiresAt":"2026-08-11T00:04:00Z"}`,
 	)
 	call := 0
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv:  []string{"contacts", "list"},
 		Stdin: strings.NewReader(""),
 	}, app.Dependencies{
@@ -3903,7 +3906,7 @@ func TestExecuteContactsListRejectsCursorWhenContactCatalogChanges(t *testing.T)
 			}
 		}},
 	})
-	first := app.Execute(context.Background(), app.Request{
+	first := executeChecked(t, context.Background(), app.Request{
 		Argv:  []string{"contacts", "list", "--limit", "1"},
 		Stdin: strings.NewReader(""),
 	}, dependencies)
@@ -3918,7 +3921,7 @@ func TestExecuteContactsListRejectsCursorWhenContactCatalogChanges(t *testing.T)
 		t.Fatalf("decode first result: %v", err)
 	}
 
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv:  []string{"contacts", "list", "--cursor", envelope.Meta.Page.NextCursor},
 		Stdin: strings.NewReader(""),
 	}, dependencies)
@@ -3935,7 +3938,7 @@ func TestExecuteContactsListRejectsCursorWhenContactCatalogChanges(t *testing.T)
 }
 
 func TestExecuteSchemaProjectsCompleteContactsListDefinition(t *testing.T) {
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv:  []string{"schema", "contacts.list"},
 		Stdin: strings.NewReader(""),
 	}, app.Dependencies{})
@@ -3988,6 +3991,9 @@ func TestExecuteSchemaProjectsCompleteContactsListDefinition(t *testing.T) {
 		"--cursor:false",
 		"--all:false",
 		"--max-items:false",
+		"--pretty:false",
+		"--non-interactive:false",
+		"--no-input:false",
 	}
 	if !reflect.DeepEqual(flags, wantFlags) {
 		t.Fatalf("flags = %v, want %v", flags, wantFlags)
@@ -4037,7 +4043,7 @@ func TestExecuteSchemaProjectsCompleteContactsListDefinition(t *testing.T) {
 func TestExecuteContactsListMapsRejectedRefreshWithoutAttemptingRead(t *testing.T) {
 	const privateRefresh = "private-rejected-refresh"
 	call := 0
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv:  []string{"contacts", "list"},
 		Stdin: strings.NewReader(""),
 	}, app.Dependencies{
@@ -4081,7 +4087,7 @@ func TestExecuteContactsListMapsRejectedRefreshWithoutAttemptingRead(t *testing.
 
 func TestExecuteContactsListPreservesUnauthenticatedBodyReadFailureAsUnavailable(t *testing.T) {
 	const privateReadError = "private unauthenticated response read failure"
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv:  []string{"contacts", "list"},
 		Stdin: strings.NewReader(""),
 	}, app.Dependencies{
@@ -4117,7 +4123,7 @@ func TestExecuteContactsListPreservesUnauthenticatedBodyReadFailureAsUnavailable
 
 func TestExecuteContactsListReportsUnavailableConfigurationBeforeProtectedRead(t *testing.T) {
 	const privateConfigurationError = "private configuration path failure"
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv:  []string{"contacts", "list"},
 		Stdin: strings.NewReader(""),
 	}, app.Dependencies{
@@ -4138,7 +4144,7 @@ func TestExecuteContactsListReportsUnavailableConfigurationBeforeProtectedRead(t
 }
 
 func TestExecuteContactsListRequiresAuthenticationWithoutRemoteCall(t *testing.T) {
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv:  []string{"contacts", "list"},
 		Stdin: strings.NewReader(""),
 	}, app.Dependencies{
@@ -4166,7 +4172,7 @@ func TestExecuteContactsListRequiresAuthenticationWithoutRemoteCall(t *testing.T
 func TestExecuteContactsListPreservesAmbiguousDisplayNamesWithoutIdentity(t *testing.T) {
 	const ambiguousName = "Same Display Name"
 	call := 0
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv:  []string{"contacts", "list", "--query", "same display"},
 		Stdin: strings.NewReader(""),
 	}, app.Dependencies{
@@ -4218,7 +4224,7 @@ func TestExecuteContactsListPreservesAmbiguousDisplayNamesWithoutIdentity(t *tes
 
 func TestExecuteContactsListFailsClosedOnUnsupportedStatus(t *testing.T) {
 	const privateBody = "private unsupported response"
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv:  []string{"contacts", "list"},
 		Stdin: strings.NewReader(""),
 	}, app.Dependencies{
@@ -4257,7 +4263,7 @@ func TestExecuteContactsListFailsClosedOnUnexpectedTerminalData(t *testing.T) {
 		privateID   = "private-terminal-identity"
 		privateName = "Private Terminal Name"
 	)
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv:  []string{"contacts", "list"},
 		Stdin: strings.NewReader(""),
 	}, app.Dependencies{
@@ -4293,7 +4299,7 @@ func TestExecuteContactsListFailsClosedOnUnexpectedTerminalData(t *testing.T) {
 
 func TestExecuteAuthStatusRedactsHealthyCredentials(t *testing.T) {
 	const credentials = `{"accessToken":"secret-token-value","refreshToken":"secret-refresh-value","userId":"private-user-value","expiresAt":"2026-08-11T02:00:00Z"}`
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv:  []string{"auth", "status"},
 		Stdin: strings.NewReader(""),
 	}, app.Dependencies{
@@ -4327,7 +4333,7 @@ func TestExecuteAuthStatusRedactsHealthyCredentials(t *testing.T) {
 
 func TestExecuteAuthStatusReportsExpiringToken(t *testing.T) {
 	const credentials = `{"accessToken":"secret-token-value","expiresAt":"2026-08-11T00:04:00Z"}`
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv:  []string{"auth", "status"},
 		Stdin: strings.NewReader(""),
 	}, app.Dependencies{
@@ -4414,7 +4420,7 @@ func TestExecuteAuthStatusDeterministicallyRefreshesExpiringSession(t *testing.T
 		}},
 	}
 
-	first := app.Execute(context.Background(), app.Request{
+	first := executeChecked(t, context.Background(), app.Request{
 		Argv: []string{"auth", "status"},
 	}, dependencies)
 	const want = `{"ok":true,"data":{"authenticated":true,"tokenState":"healthy","expiresAt":"2026-08-11T01:10:00Z"},"meta":{"command":"auth.status","cliVersion":"3.0.1","productContractRevision":"2026-08-12.7","remoteContractRevision":"2026-08-12.7","warnings":[]}}` + "\n"
@@ -4444,7 +4450,7 @@ func TestExecuteAuthStatusDeterministicallyRefreshesExpiringSession(t *testing.T
 		}
 	}
 
-	second := app.Execute(context.Background(), app.Request{
+	second := executeChecked(t, context.Background(), app.Request{
 		Argv: []string{"auth", "status"},
 	}, dependencies)
 	if second.ExitCode != 0 || second.Stdout != want {
@@ -4482,7 +4488,7 @@ func TestExecuteAuthLogoutCannotBeUndoneByConcurrentRefresh(t *testing.T) {
 
 	statusResult := make(chan app.Result, 1)
 	go func() {
-		statusResult <- app.Execute(context.Background(), app.Request{
+		statusResult <- executeChecked(t, context.Background(), app.Request{
 			Argv: []string{"auth", "status"},
 		}, dependencies)
 	}()
@@ -4490,7 +4496,7 @@ func TestExecuteAuthLogoutCannotBeUndoneByConcurrentRefresh(t *testing.T) {
 
 	logoutResult := make(chan app.Result, 1)
 	go func() {
-		logoutResult <- app.Execute(context.Background(), app.Request{
+		logoutResult <- executeChecked(t, context.Background(), app.Request{
 			Argv: []string{"auth", "logout"},
 		}, dependencies)
 	}()
@@ -4508,7 +4514,7 @@ func TestExecuteAuthLogoutCannotBeUndoneByConcurrentRefresh(t *testing.T) {
 	if result := <-logoutResult; result.ExitCode != 0 {
 		t.Fatalf("serialized logout = %#v, want success", result)
 	}
-	final := app.Execute(context.Background(), app.Request{
+	final := executeChecked(t, context.Background(), app.Request{
 		Argv: []string{"auth", "status"},
 	}, dependencies)
 	if final.ExitCode != 0 ||
@@ -4527,7 +4533,7 @@ func TestExecuteAuthStatusAtomicallyReplacesProductionCredentials(t *testing.T) 
 		t.Fatalf("write initial credentials: %v", err)
 	}
 
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv: []string{"auth", "status"},
 	}, app.Dependencies{
 		Files:           auth.OSFileSystem{},
@@ -4567,7 +4573,7 @@ func TestExecuteAuthStatusMapsReviewedInvalidRefreshTokenToExpired(t *testing.T)
 		privateRefreshValue = "expired-private-refresh-value"
 		privateRemoteValue  = "private invalid refresh"
 	)
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv: []string{"auth", "status"},
 	}, app.Dependencies{
 		Files: fakeFilesystem{
@@ -4605,7 +4611,7 @@ func TestExecuteAuthStatusMapsReviewedInvalidRefreshTokenToExpired(t *testing.T)
 }
 
 func TestExecuteAuthStatusRejectsInvalidOptionalRefreshField(t *testing.T) {
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv: []string{"auth", "status"},
 	}, app.Dependencies{
 		Files: fakeFilesystem{
@@ -4633,7 +4639,7 @@ func TestExecuteAuthStatusRejectsInvalidOptionalRefreshField(t *testing.T) {
 }
 
 func TestExecuteAuthStatusRejectsRefreshedTokenInsideRefreshWindow(t *testing.T) {
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv: []string{"auth", "status"},
 	}, app.Dependencies{
 		Files: fakeFilesystem{
@@ -4662,7 +4668,7 @@ func TestExecuteAuthStatusRejectsRefreshedTokenInsideRefreshWindow(t *testing.T)
 
 func TestExecuteAuthStatusFailsClosedOnMalformedRefreshSuccess(t *testing.T) {
 	const privateValue = "private-refreshed-id-token"
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv: []string{"auth", "status"},
 	}, app.Dependencies{
 		Files: fakeFilesystem{
@@ -4695,7 +4701,7 @@ func TestExecuteAuthStatusFailsClosedOnMalformedRefreshSuccess(t *testing.T) {
 
 func TestExecuteAuthStatusReportsExpiredToken(t *testing.T) {
 	const credentials = `{"accessToken":"secret-token-value","expiresAt":"2026-08-10T23:59:00Z"}`
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv:  []string{"auth", "status"},
 		Stdin: strings.NewReader(""),
 	}, app.Dependencies{
@@ -4724,7 +4730,7 @@ func TestExecuteAuthStatusReportsExpiredToken(t *testing.T) {
 
 func TestExecuteAuthStatusFailureDoesNotRevealCredentialContents(t *testing.T) {
 	const privateContents = "secret-token-content private-user-identifier"
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv:  []string{"auth", "status"},
 		Stdin: strings.NewReader(""),
 	}, app.Dependencies{
@@ -4770,7 +4776,7 @@ func TestExecuteAuthLogoutAtomicallyRemovesCredentials(t *testing.T) {
 		},
 	}
 
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv:  []string{"auth", "logout"},
 		Stdin: strings.NewReader(""),
 	}, dependencies)
@@ -4786,7 +4792,7 @@ func TestExecuteAuthLogoutAtomicallyRemovesCredentials(t *testing.T) {
 		t.Fatalf("stderr = %q, want empty", result.Stderr)
 	}
 
-	status := app.Execute(context.Background(), app.Request{
+	status := executeChecked(t, context.Background(), app.Request{
 		Argv:  []string{"auth", "status"},
 		Stdin: strings.NewReader(""),
 	}, dependencies)
@@ -4849,7 +4855,7 @@ func TestExecuteAuthLogoutFailureLeavesCredentialsAvailableAndRedactsError(t *te
 		},
 	}
 
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv:  []string{"auth", "logout"},
 		Stdin: strings.NewReader(""),
 	}, dependencies)
@@ -4865,7 +4871,7 @@ func TestExecuteAuthLogoutFailureLeavesCredentialsAvailableAndRedactsError(t *te
 		t.Fatal("logout failure output revealed a private identifier")
 	}
 
-	status := app.Execute(context.Background(), app.Request{
+	status := executeChecked(t, context.Background(), app.Request{
 		Argv:  []string{"auth", "status"},
 		Stdin: strings.NewReader(""),
 	}, dependencies)
@@ -4876,7 +4882,7 @@ func TestExecuteAuthLogoutFailureLeavesCredentialsAvailableAndRedactsError(t *te
 
 func TestExecuteDoctorReportsHealthyCredentialsWithoutPrivateData(t *testing.T) {
 	const credentials = `{"accessToken":"secret-token-value","userId":"private-user-identifier","expiresAt":"2026-08-11T02:00:00Z"}`
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv:  []string{"doctor"},
 		Stdin: strings.NewReader(""),
 	}, app.Dependencies{
@@ -4909,7 +4915,7 @@ func TestExecuteDoctorReportsHealthyCredentialsWithoutPrivateData(t *testing.T) 
 }
 
 func TestExecuteDoctorReportsMissingCredentialsAsARedactedCheck(t *testing.T) {
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv:  []string{"doctor"},
 		Stdin: strings.NewReader(""),
 	}, app.Dependencies{
@@ -4938,7 +4944,7 @@ func TestExecuteDoctorReportsMissingCredentialsAsARedactedCheck(t *testing.T) {
 
 func TestExecuteDoctorWarnsWhenCredentialsExpireSoon(t *testing.T) {
 	const credentials = `{"accessToken":"secret-token-value","expiresAt":"2026-08-11T00:04:00Z"}`
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv:  []string{"doctor"},
 		Stdin: strings.NewReader(""),
 	}, app.Dependencies{
@@ -4967,7 +4973,7 @@ func TestExecuteDoctorWarnsWhenCredentialsExpireSoon(t *testing.T) {
 
 func TestExecuteDoctorFailsExpiredCredentialsCheck(t *testing.T) {
 	const credentials = `{"accessToken":"secret-token-value","expiresAt":"2026-08-10T23:59:00Z"}`
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv:  []string{"doctor"},
 		Stdin: strings.NewReader(""),
 	}, app.Dependencies{
@@ -4996,7 +5002,7 @@ func TestExecuteDoctorFailsExpiredCredentialsCheck(t *testing.T) {
 
 func TestExecuteDoctorRedactsInvalidCredentialFile(t *testing.T) {
 	const privateContents = "secret-token-content private-user-identifier"
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv:  []string{"doctor"},
 		Stdin: strings.NewReader(""),
 	}, app.Dependencies{
@@ -5028,7 +5034,7 @@ func TestExecuteDoctorRedactsInvalidCredentialFile(t *testing.T) {
 
 func TestExecuteDoctorRedactsCredentialStorageFailure(t *testing.T) {
 	const privateError = "permission failure for private-user-identifier"
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv:  []string{"doctor"},
 		Stdin: strings.NewReader(""),
 	}, app.Dependencies{
@@ -5059,7 +5065,7 @@ func TestExecuteDoctorRedactsCredentialStorageFailure(t *testing.T) {
 }
 
 func TestExecuteSchemaDescribesBothDiscoveryResultShapes(t *testing.T) {
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv:  []string{"schema", "schema"},
 		Stdin: strings.NewReader(""),
 	}, app.Dependencies{})
@@ -5145,7 +5151,7 @@ func TestExecuteSchemaDescribesBothDiscoveryResultShapes(t *testing.T) {
 }
 
 func TestExecuteUsesDefinitionForFlagFailureCommandMetadata(t *testing.T) {
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv:  []string{"auth", "status", "--non-interactive", "--non-interactive"},
 		Stdin: strings.NewReader(""),
 	}, app.Dependencies{})
@@ -5163,7 +5169,7 @@ func TestExecuteUsesDefinitionForFlagFailureCommandMetadata(t *testing.T) {
 }
 
 func TestExecutePrettyAppliesWhenItFollowsInvalidGlobalFlag(t *testing.T) {
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv: []string{
 			"auth",
 			"status",
@@ -5189,7 +5195,7 @@ func TestExecutePrettyAppliesWhenItFollowsInvalidGlobalFlag(t *testing.T) {
 }
 
 func TestExecuteUsesKnownCommandMetadataForInvalidArity(t *testing.T) {
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv:  []string{"schema", "auth.status", "extra-private-value"},
 		Stdin: strings.NewReader(""),
 	}, app.Dependencies{})
@@ -5208,7 +5214,7 @@ func TestExecuteUsesKnownCommandMetadataForInvalidArity(t *testing.T) {
 
 func TestExecuteAuthStatusReportsConfigurationDirectoryFailure(t *testing.T) {
 	const privateError = "configuration error containing private-user-identifier"
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv:  []string{"auth", "status"},
 		Stdin: strings.NewReader(""),
 	}, app.Dependencies{
@@ -5233,7 +5239,7 @@ func TestExecuteAuthStatusReportsConfigurationDirectoryFailure(t *testing.T) {
 
 func TestExecuteDoctorDiagnosesConfigurationDirectoryFailure(t *testing.T) {
 	const privateError = "configuration error containing private-user-identifier"
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv:  []string{"doctor"},
 		Stdin: strings.NewReader(""),
 	}, app.Dependencies{

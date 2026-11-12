@@ -68,7 +68,7 @@ func TestExecuteGuestsListPaginatesHostGuestsAndKeepsOutputPrivacySafe(t *testin
 		}},
 	})
 
-	first := app.Execute(context.Background(), app.Request{
+	first := executeChecked(t, context.Background(), app.Request{
 		Argv: []string{"guests", "list", "event-example", "--limit", "1"},
 	}, dependencies)
 	if first.ExitCode != 0 || first.Stderr != "" {
@@ -109,7 +109,7 @@ func TestExecuteGuestsListPaginatesHostGuestsAndKeepsOutputPrivacySafe(t *testin
 		}
 	}
 
-	second := app.Execute(context.Background(), app.Request{
+	second := executeChecked(t, context.Background(), app.Request{
 		Argv: []string{"guests", "list", "event-example", "--cursor", *firstEnvelope.Meta.Page.NextCursor},
 	}, dependencies)
 	if second.ExitCode != 0 || second.Stderr != "" {
@@ -153,7 +153,7 @@ func TestExecuteGuestsListReturnsPermissionDeniedForAttendee(t *testing.T) {
 		credentials   = `{"accessToken":"private-access-token","userId":"` + currentUserID + `","expiresAt":"2026-08-12T02:00:00Z"}`
 	)
 	call := 0
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv: []string{"guests", "list", "event-example"},
 	}, app.Dependencies{
 		Files: fakeFilesystem{
@@ -188,7 +188,7 @@ func TestExecuteGuestsListReturnsPermissionDeniedForAttendee(t *testing.T) {
 }
 
 func TestExecuteGuestsListRejectsMissingEventID(t *testing.T) {
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv: []string{"guests", "list"},
 	}, app.Dependencies{})
 	if result.ExitCode != 2 ||
@@ -201,7 +201,7 @@ func TestExecuteGuestsListRejectsMissingEventID(t *testing.T) {
 func TestExecuteGuestsListReturnsEmptyCollectionForHost(t *testing.T) {
 	const credentials = `{"accessToken":"private-access-token","userId":"private-host","expiresAt":"2026-08-12T02:00:00Z"}`
 	call := 0
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv: []string{"guests", "list", "event-example"},
 	}, app.Dependencies{
 		Files: fakeFilesystem{
@@ -261,7 +261,7 @@ func TestExecuteGuestsInviteDryRunsAndDispatchesResolvedContact(t *testing.T) {
 	}}
 
 	argv := []string{"guests", "invite", "event-example", "--contact", "Alex Example"}
-	preview := app.Execute(context.Background(), app.Request{Argv: append(append([]string{}, argv...), "--dry-run")}, dependencies)
+	preview := executeChecked(t, context.Background(), app.Request{Argv: append(append([]string{}, argv...), "--dry-run")}, dependencies)
 	if preview.ExitCode != 0 || strings.Contains(preview.Stdout, "private-contact-1") {
 		t.Fatalf("preview = %#v, want redacted guest invite preview", preview)
 	}
@@ -271,7 +271,7 @@ func TestExecuteGuestsInviteDryRunsAndDispatchesResolvedContact(t *testing.T) {
 		t.Fatalf("preview = %s, want reviewed guest invite preview", preview.Stdout)
 	}
 
-	applied := app.Execute(context.Background(), app.Request{
+	applied := executeChecked(t, context.Background(), app.Request{
 		Argv: argv,
 	}, dependencies)
 	const want = `{"ok":true,"data":{"eventId":"event-example","submitted":true},"meta":{"command":"guests.invite","cliVersion":"3.0.1","productContractRevision":"2026-08-12.7","remoteContractRevision":"2026-08-12.7","warnings":[]}}` + "\n"
@@ -308,7 +308,7 @@ func TestExecuteGuestsInviteReturnsPublicAmbiguity(t *testing.T) {
 			}
 		}}
 
-		result := app.Execute(context.Background(), app.Request{
+		result := executeChecked(t, context.Background(), app.Request{
 			Argv: []string{"guests", "invite", "event-example", "--contact", "Alex Example"},
 		}, dependencies)
 		if result.ExitCode != 2 ||
@@ -335,7 +335,7 @@ type guestOutput struct {
 }
 
 func TestExecuteSchemaProjectsGuestCommands(t *testing.T) {
-	list := app.Execute(context.Background(), app.Request{
+	list := executeChecked(t, context.Background(), app.Request{
 		Argv: []string{"schema", "guests.list"},
 	}, app.Dependencies{})
 	if list.ExitCode != 0 ||
@@ -346,7 +346,7 @@ func TestExecuteSchemaProjectsGuestCommands(t *testing.T) {
 		t.Fatalf("list schema = %#v, want guests.list projection", list)
 	}
 
-	invite := app.Execute(context.Background(), app.Request{
+	invite := executeChecked(t, context.Background(), app.Request{
 		Argv: []string{"schema", "guests.invite"},
 	}, app.Dependencies{})
 	if invite.ExitCode != 0 ||
