@@ -11,6 +11,15 @@ partiful events get <event-id>
 List results include the authenticated user's `myRsvp` and `userRole` when the
 reviewed remote data supports them.
 
+Use `--all --max-items 1000` for a bounded collection and check
+`meta.page.hasMore` before claiming the list is complete. `sent` is an
+unanswered invite; a hosted event may have `myRsvp: null`. A `start` value of
+`TBD` is not a timestamp. Display dated events in their event timezone.
+
+`events get` includes `visibility` and `guestLimit` when available. Its
+`myRsvp` and `userRole` are null; use the list row for role and the list row
+or `rsvp get` for RSVP status. Event URLs are `https://partiful.com/e/<event-id>`.
+
 ## Create
 
 ```bash
@@ -24,6 +33,14 @@ Approved create fields are `--title`, `--start`, `--end`, `--timezone`,
 `--description`, `--location`, `--visibility`, `--guest-limit`, repeatable
 `--link label=url`, and `--poster-id`. Use `--input <file-or->` for structured
 JSON instead of field flags.
+
+Successful creation returns `data.eventId` and `data.submitted: true`,
+including when Partiful answers with a `result.data` event ID. Read the
+normalized CLI `data.eventId`; do not expect a `result` envelope on stdout.
+Use that ID for `events get`. If a create submission is uncertain and no ID
+is returned, list upcoming events with `--all --max-items 1000`, continue
+pagination as needed, and match the exact title and normalized start. Require
+one match before reading it back; avoid creating a duplicate.
 
 ## Update
 
@@ -55,8 +72,11 @@ partiful events delete <event-id>
 Deletion is destructive and applies only to an owned, published event with
 zero guests. An event with guests returns `EVENT_PRECONDITION_FAILED`; use
 `events cancel` for it instead. Add `--dry-run` to preview. Normal execution
-prompts only on a TTY. Use `--force` only after approval, or `--no-input` to
-fail rather than prompt.
+asks `Delete event "<title>"? [y/N]` on a TTY; the default is no. Use `--force`
+only after approval. `--force --no-input` permits an approved unattended
+deletion; `--no-input` alone fails with `CONFIRMATION_REQUIRED` (exit 7).
+`--dry-run` checks preconditions and returns a preview without prompting or
+deleting. Success returns `data.eventId` and `data.submitted: true`.
 
 ## Verify
 

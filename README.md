@@ -2,7 +2,7 @@
 
 # partiful-cli
 
-JSON-first native Go CLI for reviewed Partiful event workflows. Agent skill: [use-partiful](skills/use-partiful/SKILL.md).
+JSON-first native Go CLI for reviewed Partiful event workflows. Agent skill: [partiful](skills/partiful/SKILL.md).
 
 The first native-only release line starts at `v3.0.0`. The install command
 below becomes available after the coordinated cutover release is published.

@@ -7,11 +7,27 @@ expected.
 
 ```bash
 partiful guests list <event-id>
+partiful guests list <event-id> --limit 100
+partiful guests list <event-id> --all --max-items 1000
 partiful contacts list --query "Alex"
 ```
 
 Contacts return display names and shared-event counts. They do not expose email
 addresses or phone numbers.
+
+Host guest lists work even when Partiful's initial guest-list view rejects
+the host. The CLI handles that automatically. Results contain `displayName`,
+`rsvpStatus`, `partySize`, and `cohost`, with no guest or account IDs.
+Use `meta.page.nextCursor` with `--cursor` while `meta.page.hasMore` is true;
+`--all --max-items` caps the returned items and can still leave more pages.
+
+Guest reads also have an internal safety cap of 10,000 records. The host
+fallback stops at 10 pages of up to 1,000 records each. Exceeding that cap,
+repeated remote page tokens, or an unexpected guest shape returns
+`GUESTS_PROTOCOL_CHANGED`, rather than a partial successful list. Reducing
+`--limit` or `--max-items` does not bypass this read cap. Report the error
+without claiming the event has no guests or retrying indefinitely. Non-hosts
+still receive `HOST_PERMISSION_REQUIRED`.
 
 ## Invite a guest
 
