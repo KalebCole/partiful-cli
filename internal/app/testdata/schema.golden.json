@@ -30,7 +30,7 @@
       ]
     },
     "meta": {
-      "cliVersion": "3.0.1",
+      "cliVersion": "3.1.0",
       "command": "schema",
       "productContractRevision": "2026-11-12.3",
       "remoteContractRevision": "2026-08-12.7",
@@ -109,7 +109,7 @@
         }
       },
       "meta": {
-        "cliVersion": "3.0.1",
+        "cliVersion": "3.1.0",
         "command": "schema",
         "productContractRevision": "2026-11-12.3",
         "remoteContractRevision": "2026-08-12.7",
@@ -183,7 +183,7 @@
         }
       },
       "meta": {
-        "cliVersion": "3.0.1",
+        "cliVersion": "3.1.0",
         "command": "schema",
         "productContractRevision": "2026-11-12.3",
         "remoteContractRevision": "2026-08-12.7",
@@ -260,7 +260,7 @@
         }
       },
       "meta": {
-        "cliVersion": "3.0.1",
+        "cliVersion": "3.1.0",
         "command": "schema",
         "productContractRevision": "2026-11-12.3",
         "remoteContractRevision": "2026-08-12.7",
@@ -514,7 +514,7 @@
         }
       },
       "meta": {
-        "cliVersion": "3.0.1",
+        "cliVersion": "3.1.0",
         "command": "schema",
         "productContractRevision": "2026-11-12.3",
         "remoteContractRevision": "2026-08-12.7",
@@ -684,7 +684,7 @@
         }
       },
       "meta": {
-        "cliVersion": "3.0.1",
+        "cliVersion": "3.1.0",
         "command": "schema",
         "productContractRevision": "2026-11-12.3",
         "remoteContractRevision": "2026-08-12.7",
@@ -827,7 +827,7 @@
         }
       },
       "meta": {
-        "cliVersion": "3.0.1",
+        "cliVersion": "3.1.0",
         "command": "schema",
         "productContractRevision": "2026-11-12.3",
         "remoteContractRevision": "2026-08-12.7",
@@ -971,7 +971,7 @@
         }
       },
       "meta": {
-        "cliVersion": "3.0.1",
+        "cliVersion": "3.1.0",
         "command": "schema",
         "productContractRevision": "2026-11-12.3",
         "remoteContractRevision": "2026-08-12.7",
@@ -1142,7 +1142,7 @@
         }
       },
       "meta": {
-        "cliVersion": "3.0.1",
+        "cliVersion": "3.1.0",
         "command": "schema",
         "productContractRevision": "2026-11-12.3",
         "remoteContractRevision": "2026-08-12.7",
@@ -1313,7 +1313,7 @@
         }
       },
       "meta": {
-        "cliVersion": "3.0.1",
+        "cliVersion": "3.1.0",
         "command": "schema",
         "productContractRevision": "2026-11-12.3",
         "remoteContractRevision": "2026-08-12.7",
@@ -1458,7 +1458,7 @@
         }
       },
       "meta": {
-        "cliVersion": "3.0.1",
+        "cliVersion": "3.1.0",
         "command": "schema",
         "productContractRevision": "2026-11-12.3",
         "remoteContractRevision": "2026-08-12.7",
@@ -1549,7 +1549,7 @@
         }
       },
       "meta": {
-        "cliVersion": "3.0.1",
+        "cliVersion": "3.1.0",
         "command": "schema",
         "productContractRevision": "2026-11-12.3",
         "remoteContractRevision": "2026-08-12.7",
@@ -1737,7 +1737,7 @@
         }
       },
       "meta": {
-        "cliVersion": "3.0.1",
+        "cliVersion": "3.1.0",
         "command": "schema",
         "productContractRevision": "2026-11-12.3",
         "remoteContractRevision": "2026-08-12.7",
@@ -2087,7 +2087,7 @@
         }
       },
       "meta": {
-        "cliVersion": "3.0.1",
+        "cliVersion": "3.1.0",
         "command": "schema",
         "productContractRevision": "2026-11-12.3",
         "remoteContractRevision": "2026-08-12.7",
@@ -2223,7 +2223,7 @@
         }
       },
       "meta": {
-        "cliVersion": "3.0.1",
+        "cliVersion": "3.1.0",
         "command": "schema",
         "productContractRevision": "2026-11-12.3",
         "remoteContractRevision": "2026-08-12.7",
@@ -2399,7 +2399,7 @@
         }
       },
       "meta": {
-        "cliVersion": "3.0.1",
+        "cliVersion": "3.1.0",
         "command": "schema",
         "productContractRevision": "2026-11-12.3",
         "remoteContractRevision": "2026-08-12.7",
@@ -2633,7 +2633,7 @@
         }
       },
       "meta": {
-        "cliVersion": "3.0.1",
+        "cliVersion": "3.1.0",
         "command": "schema",
         "productContractRevision": "2026-11-12.3",
         "remoteContractRevision": "2026-08-12.7",
@@ -2937,7 +2937,7 @@
         }
       },
       "meta": {
-        "cliVersion": "3.0.1",
+        "cliVersion": "3.1.0",
         "command": "schema",
         "productContractRevision": "2026-11-12.3",
         "remoteContractRevision": "2026-08-12.7",
@@ -3116,7 +3116,7 @@
         }
       },
       "meta": {
-        "cliVersion": "3.0.1",
+        "cliVersion": "3.1.0",
         "command": "schema",
         "productContractRevision": "2026-11-12.3",
         "remoteContractRevision": "2026-08-12.7",
@@ -3293,7 +3293,7 @@
         }
       },
       "meta": {
-        "cliVersion": "3.0.1",
+        "cliVersion": "3.1.0",
         "command": "schema",
         "productContractRevision": "2026-11-12.3",
         "remoteContractRevision": "2026-08-12.7",
@@ -3462,7 +3462,7 @@
         }
       },
       "meta": {
-        "cliVersion": "3.0.1",
+        "cliVersion": "3.1.0",
         "command": "schema",
         "productContractRevision": "2026-11-12.3",
         "remoteContractRevision": "2026-08-12.7",
@@ -3644,7 +3644,7 @@
         }
       },
       "meta": {
-        "cliVersion": "3.0.1",
+        "cliVersion": "3.1.0",
         "command": "schema",
         "productContractRevision": "2026-11-12.3",
         "remoteContractRevision": "2026-08-12.7",
@@ -3748,7 +3748,7 @@
         }
       },
       "meta": {
-        "cliVersion": "3.0.1",
+        "cliVersion": "3.1.0",
         "command": "schema",
         "productContractRevision": "2026-11-12.3",
         "remoteContractRevision": "2026-08-12.7",
@@ -4356,7 +4356,7 @@
         }
       },
       "meta": {
-        "cliVersion": "3.0.1",
+        "cliVersion": "3.1.0",
         "command": "schema",
         "productContractRevision": "2026-11-12.3",
         "remoteContractRevision": "2026-08-12.7",
@@ -4523,7 +4523,7 @@
         }
       },
       "meta": {
-        "cliVersion": "3.0.1",
+        "cliVersion": "3.1.0",
         "command": "schema",
         "productContractRevision": "2026-11-12.3",
         "remoteContractRevision": "2026-08-12.7",
@@ -4586,7 +4586,7 @@
         }
       },
       "meta": {
-        "cliVersion": "3.0.1",
+        "cliVersion": "3.1.0",
         "command": "schema",
         "productContractRevision": "2026-11-12.3",
         "remoteContractRevision": "2026-08-12.7",
