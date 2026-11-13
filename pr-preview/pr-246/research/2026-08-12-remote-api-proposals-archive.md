@@ -1,31 +1,9 @@
-# Remote API contract
+# Remote API proposals archive
 
-`spec/partiful.openapi.json` is owner-reviewed revision `2026-08-12.7` of the
-remote transport snapshot. Its owner-reviewed baseline is `2026-08-12.6`,
-which is based on owner-reviewed revision `2026-08-12.3`. It describes only
-network operations and wire shapes. It does not prescribe commands, output,
-credentials, mutation safeguards, or implementation architecture.
-
-The Go CLI ships remote contract revision `2026-08-12.7`.
-
-## Authority and change process
-
-Live, privacy-safe observations can initiate a correction but do not authorize
-implementation by themselves. A proposed change must receive owner or
-delegated orchestrator approval, update the contract and
-`spec/partiful.api-evidence.json`, then run the Go black-box contract suite and release checks:
-`go test ./...` and `./scripts/verify-native-release.sh`. TypeScript,
-historical drafts, tests, and endpoint notes are research evidence, never
-automatic authority.
-The CLI product contract is separate and remains the authority for user-facing
-behavior.
-
-The evidence ledger records the classification and source for each operation,
-each request/response claim, and each component schema. `explicit-unknown`
-means the contract intentionally declines to claim precision. Never replace it
-with guessed fields, captured credentials, real identifiers, or personal data.
-`docs/research/2026-08-10-partiful-api-contract-evidence-ledger.md` is the
-human-readable companion to the machine-readable ledger.
+Historical notes through 2026-08-12; not an active contract or change process.
+Use [the architecture guide](../ARCHITECTURE.md) and
+[the OpenAPI spec](../../spec/partiful.openapi.json) for current behavior.
+Research citations below are repository-relative paths.
 
 ## Owner-reviewed read evidence baseline
 
