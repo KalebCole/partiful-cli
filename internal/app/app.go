@@ -1171,6 +1171,9 @@ func Execute(ctx context.Context, request Request, dependencies Dependencies) Re
 					if errors.Is(err, auth.ErrHumanRequired) {
 						return privateTerminalRequiredFailure(definition.path, pretty)
 					}
+					if errors.Is(err, auth.ErrPhoneInvalid) {
+						return authenticationPhoneInvalidFailure(definition.path, pretty)
+					}
 					if errors.Is(err, auth.ErrInputInvalid) {
 						return authenticationInputInvalidFailure(definition.path, pretty)
 					}
@@ -1965,6 +1968,18 @@ func privateTerminalRequiredFailure(command string, pretty bool) Result {
 		Details:   map[string]any{},
 	}, pretty)
 	result.Stderr = "partiful: private terminal required\n"
+	return result
+}
+
+func authenticationPhoneInvalidFailure(command string, pretty bool) Result {
+	result := failure(command, 2, errorBody{
+		Type:      "input.invalid",
+		Code:      "AUTH_INPUT_INVALID",
+		Message:   "Enter a phone number with its country code, such as +1 followed by 10 digits.",
+		Retryable: false,
+		Details:   map[string]any{},
+	}, pretty)
+	result.Stderr = "partiful: authentication input invalid\n"
 	return result
 }
 

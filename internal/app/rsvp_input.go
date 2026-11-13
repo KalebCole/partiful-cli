@@ -626,6 +626,7 @@ func rsvpSetSuccessSchema() jsonSchema {
 			"timezone":              {Type: "string", MinLength: &one},
 			"questionnaireResponse": questionnaire,
 			"shouldFollowOrgs":      {Type: "boolean", Const: false},
+			"ticketPaid":            {Type: "boolean"},
 		},
 	)
 	addGuestRequest := objectSchema(

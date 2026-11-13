@@ -66,25 +66,38 @@ type PresenceField struct {
 	State FieldState `json:"state"`
 }
 
+const (
+	TicketingOptionalChipIn = "optional-chip-in"
+	TicketingRequiredChipIn = "required-chip-in"
+	TicketingSale           = "sale"
+)
+
+// TicketingField keeps payment handles and prices out of the snapshot. Class
+// distinguishes a skippable suggested donation from a ticket sale.
+type TicketingField struct {
+	State FieldState `json:"state"`
+	Class string     `json:"class,omitempty"`
+}
+
 type ArrayField struct {
 	State  FieldState `json:"state"`
 	Length int        `json:"length,omitempty"`
 }
 
 type EventSafeguards struct {
-	RSVPsEnabled          BooleanField  `json:"rsvpsEnabled"`
-	AtCapacity            BooleanField  `json:"atCapacity"`
-	PlusOneNamesRequired  BooleanField  `json:"plusOneNamesRequired"`
-	GuestAction           StringField   `json:"guestAction"`
-	Ticketing             PresenceField `json:"ticketing"`
-	Password              PresenceField `json:"password"`
-	PasswordProtected     PresenceField `json:"passwordProtected"`
-	QuestionnaireEnabled  BooleanField  `json:"questionnaireEnabled"`
-	QuestionnaireVersions ArrayField    `json:"questionnaireVersions"`
-	MaxCountPerGuest      IntegerField  `json:"maxCountPerGuest"`
-	MaxCapacity           IntegerField  `json:"maxCapacity"`
-	RemainingCapacity     IntegerField  `json:"remainingCapacity"`
-	EnableWaitlist        BooleanField  `json:"enableWaitlist"`
+	RSVPsEnabled          BooleanField   `json:"rsvpsEnabled"`
+	AtCapacity            BooleanField   `json:"atCapacity"`
+	PlusOneNamesRequired  BooleanField   `json:"plusOneNamesRequired"`
+	GuestAction           StringField    `json:"guestAction"`
+	Ticketing             TicketingField `json:"ticketing"`
+	Password              PresenceField  `json:"password"`
+	PasswordProtected     PresenceField  `json:"passwordProtected"`
+	QuestionnaireEnabled  BooleanField   `json:"questionnaireEnabled"`
+	QuestionnaireVersions ArrayField     `json:"questionnaireVersions"`
+	MaxCountPerGuest      IntegerField   `json:"maxCountPerGuest"`
+	MaxCapacity           IntegerField   `json:"maxCapacity"`
+	RemainingCapacity     IntegerField   `json:"remainingCapacity"`
+	EnableWaitlist        BooleanField   `json:"enableWaitlist"`
 }
 
 type EventCatalog struct {
@@ -490,7 +503,7 @@ func decodeEventSafeguards(
 			guestAction.Value != "RSVP" {
 		return EventSafeguards{}, errors.New("guest action is invalid")
 	}
-	ticketing, err := eventObjectPresence(object, "ticketing")
+	ticketing, err := eventTicketingField(object)
 	if err != nil {
 		return EventSafeguards{}, err
 	}
@@ -585,21 +598,88 @@ func eventStringSafeguard(
 	return StringField{State: FieldValue, Value: *value}, nil
 }
 
-func eventObjectPresence(
+func eventTicketingField(
 	object map[string]json.RawMessage,
-	name string,
-) (PresenceField, error) {
-	raw, ok := object[name]
+) (TicketingField, error) {
+	raw, ok := object["ticketing"]
 	if !ok {
-		return PresenceField{State: FieldAbsent}, nil
+		return TicketingField{State: FieldAbsent}, nil
 	}
 	if bytes.Equal(bytes.TrimSpace(raw), []byte("null")) {
-		return PresenceField{State: FieldNull}, nil
+		return TicketingField{State: FieldNull}, nil
 	}
-	if _, err := decodeEventObject(raw); err != nil {
-		return PresenceField{}, err
+	parsed, err := decodeEventObject(raw)
+	if err != nil {
+		return TicketingField{}, err
 	}
-	return PresenceField{State: FieldValue}, nil
+	kind, kindPresent, err := eventStringField(parsed, "type", true)
+	if err != nil {
+		return TicketingField{}, err
+	}
+	mode, modePresent, err := eventStringField(parsed, "mode", true)
+	if err != nil {
+		return TicketingField{}, err
+	}
+	if err := eventOptionalNumber(parsed, "price"); err != nil {
+		return TicketingField{}, err
+	}
+	if err := eventOptionalString(parsed, "currency"); err != nil {
+		return TicketingField{}, err
+	}
+	if err := eventOptionalObject(parsed, "payment"); err != nil {
+		return TicketingField{}, err
+	}
+	return TicketingField{
+		State: FieldValue,
+		Class: classifyTicketing(kind, kindPresent, mode, modePresent),
+	}, nil
+}
+
+func classifyTicketing(
+	kind *string,
+	kindPresent bool,
+	mode *string,
+	modePresent bool,
+) string {
+	chipIn := !kindPresent || kind == nil || *kind == "chip_in"
+	if chipIn && modePresent && mode != nil && *mode == "optional" {
+		return TicketingOptionalChipIn
+	}
+	if chipIn && modePresent && mode != nil && *mode == "required" {
+		return TicketingRequiredChipIn
+	}
+	return TicketingSale
+}
+
+func eventOptionalNumber(object map[string]json.RawMessage, name string) error {
+	raw, ok := object[name]
+	if !ok || bytes.Equal(bytes.TrimSpace(raw), []byte("null")) {
+		return nil
+	}
+	decoder := json.NewDecoder(bytes.NewReader(raw))
+	decoder.UseNumber()
+	var value any
+	if decoder.Decode(&value) != nil {
+		return errors.New("number is invalid")
+	}
+	if _, ok := value.(json.Number); !ok {
+		return errors.New("number is invalid")
+	}
+	return nil
+}
+
+func eventOptionalString(object map[string]json.RawMessage, name string) error {
+	_, _, err := eventStringField(object, name, true)
+	return err
+}
+
+func eventOptionalObject(object map[string]json.RawMessage, name string) error {
+	raw, ok := object[name]
+	if !ok || bytes.Equal(bytes.TrimSpace(raw), []byte("null")) {
+		return nil
+	}
+	_, err := decodeEventObject(raw)
+	return err
 }
 
 func eventUntypedPresence(
