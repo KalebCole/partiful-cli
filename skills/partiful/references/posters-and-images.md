@@ -1,6 +1,6 @@
 # Posters and Images
 
-The approved Go CLI exposes the built-in poster catalog.
+The CLI exposes the built-in poster catalog.
 
 ## Browse posters
 
@@ -23,6 +23,5 @@ poster request without sending a write.
 
 ## Limits
 
-Custom image upload is not part of the approved public Go command catalog.
-If the user needs a custom upload path, stop and explain that the current native
-CLI does not ship it as a reviewed public command.
+Custom image upload is unavailable through the CLI. If the user supplies an
+image, explain that limitation instead of substituting an unrelated poster.
