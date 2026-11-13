@@ -91,6 +91,14 @@ write.
 `--force` skips only that prompt. `--no-input` or `--non-interactive` disables
 prompting and fails safely unless `--force` is also present.
 
+## Payments are out of scope
+
+The CLI never pays. Chip-ins and suggested donations are external handles
+(for example Venmo) that Partiful only displays. Pay those in the payment app.
+Stripe ticket purchases (`ticketing.type` `standard`) are not supported, and
+RSVP going on them returns `RSVP_EVENT_UNSUPPORTED`. RSVP going on an optional
+chip-in sends `ticketPaid: true` as an honor-system flag, not a charge.
+
 ## Release notes
 
 - GoReleaser injects the tagged release version with ldflags.
