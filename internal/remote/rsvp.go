@@ -53,6 +53,10 @@ type RSVPDraft struct {
 	Timezone              string                 `json:"timezone"`
 	QuestionnaireResponse *QuestionnaireResponse `json:"questionnaireResponse,omitempty"`
 	ShouldFollowOrgs      bool                   `json:"shouldFollowOrgs"`
+	// TicketPaid is the web client's honor-system flag. Suggested donations
+	// send true even when the guest skips the external payment. Stripe ticket
+	// sales never set it.
+	TicketPaid bool `json:"ticketPaid,omitempty"`
 }
 
 type AddGuestParams struct {

@@ -82,7 +82,7 @@ func TestExecuteEventsListProjectsReviewedUpcomingEventWithoutPrompting(t *testi
 	)
 	terminal := &scriptedPrivateTerminal{values: []string{"must-not-be-read"}}
 	requestCount := 0
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv:  []string{"events", "list", "--when", "upcoming"},
 		Stdin: strings.NewReader("must-not-be-read"),
 	}, app.Dependencies{
@@ -121,7 +121,7 @@ func TestExecuteEventsListProjectsReviewedUpcomingEventWithoutPrompting(t *testi
 		}},
 	})
 
-	const want = `{"ok":true,"data":{"items":[{"eventId":"event-example","title":"Example event","start":"2026-09-12T19:00:00-07:00","end":null,"timezone":"America/Los_Angeles","state":"active","userRole":"host","myRsvp":"going"}]},"meta":{"command":"events.list","cliVersion":"3.0.1","productContractRevision":"2026-08-12.7","remoteContractRevision":"2026-08-12.7","warnings":[],"page":{"limit":25,"nextCursor":null,"hasMore":false}}}` + "\n"
+	const want = `{"ok":true,"data":{"items":[{"eventId":"event-example","title":"Example event","start":"2026-09-12T19:00:00-07:00","end":null,"timezone":"America/Los_Angeles","state":"active","userRole":"host","myRsvp":"going"}]},"meta":{"command":"events.list","cliVersion":"3.0.1","productContractRevision":"2026-11-12.3","remoteContractRevision":"2026-08-12.7","warnings":[],"page":{"limit":25,"nextCursor":null,"hasMore":false}}}` + "\n"
 	if result.ExitCode != 0 || result.Stdout != want || result.Stderr != "" {
 		t.Fatalf("result = %#v, want reviewed upcoming event projection", result)
 	}
@@ -153,7 +153,7 @@ func TestExecuteEventsListRefreshesAndUsesTokenIdentityWithoutPrompting(t *testi
 	}}
 	terminal := &scriptedPrivateTerminal{values: []string{"must-not-be-read"}}
 	call := 0
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv: []string{"events", "list", "--when", "upcoming"},
 	}, app.Dependencies{
 		Files:           files,
@@ -193,7 +193,7 @@ func TestExecuteEventsListRefreshesAndUsesTokenIdentityWithoutPrompting(t *testi
 		}},
 	})
 
-	const want = `{"ok":true,"data":{"items":[{"eventId":"event-example","title":null,"start":null,"end":null,"timezone":null,"state":null,"userRole":"host","myRsvp":null}]},"meta":{"command":"events.list","cliVersion":"3.0.1","productContractRevision":"2026-08-12.7","remoteContractRevision":"2026-08-12.7","warnings":[],"page":{"limit":25,"nextCursor":null,"hasMore":false}}}` + "\n"
+	const want = `{"ok":true,"data":{"items":[{"eventId":"event-example","title":null,"start":null,"end":null,"timezone":null,"state":null,"userRole":"host","myRsvp":null}]},"meta":{"command":"events.list","cliVersion":"3.0.1","productContractRevision":"2026-11-12.3","remoteContractRevision":"2026-08-12.7","warnings":[],"page":{"limit":25,"nextCursor":null,"hasMore":false}}}` + "\n"
 	if result.ExitCode != 0 || result.Stdout != want || result.Stderr != "" {
 		t.Fatalf("result = %#v, want refreshed identity projection", result)
 	}
@@ -264,7 +264,7 @@ func TestExecuteProtectedEventSessionSerializesRefresh(t *testing.T) {
 		group.Add(1)
 		go func() {
 			defer group.Done()
-			results <- app.Execute(context.Background(), app.Request{
+			results <- executeChecked(t, context.Background(), app.Request{
 				Argv: []string{"events", "list", "--when", "upcoming"},
 			}, dependencies)
 		}()
@@ -294,7 +294,7 @@ func TestExecuteProtectedEventSessionSerializesRefresh(t *testing.T) {
 func TestExecuteEventsListMapsInvalidCredentialStorageWithoutPrompting(t *testing.T) {
 	const privateCredential = "private-invalid-credential"
 	terminal := &scriptedPrivateTerminal{values: []string{"must-not-be-read"}}
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv: []string{"events", "list", "--when", "upcoming"},
 	}, app.Dependencies{
 		Files: fakeFilesystem{
@@ -329,7 +329,7 @@ func TestExecuteProtectedEventReadsRequireAuthenticationWithoutPrompting(t *test
 		{"events", "list", "--when", "upcoming"},
 		{"events", "get", "event-example"},
 	} {
-		result := app.Execute(context.Background(), app.Request{
+		result := executeChecked(t, context.Background(), app.Request{
 			Argv: argv,
 		}, app.Dependencies{
 			Files: fakeFilesystem{
@@ -422,7 +422,7 @@ func TestExecuteEventsListProjectsPastRolesAndEveryReviewedRSVP(t *testing.T) {
 		`{"id":"event-none","ownerIds":["private-other-owner"]}`,
 	)
 	terminal := &scriptedPrivateTerminal{values: []string{"must-not-be-read"}}
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv: []string{
 			"events",
 			"list",
@@ -528,7 +528,7 @@ func TestExecuteEventsListProjectsPastRolesAndEveryReviewedRSVP(t *testing.T) {
 
 func TestExecuteEventsListRejectsUnmappedStatusOutsideRequestedPage(t *testing.T) {
 	const privateDraftTitle = "private draft event"
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv: []string{"events", "list", "--when", "upcoming", "--limit", "1"},
 	}, withTestCursorCrypto(app.Dependencies{
 		Files: fakeFilesystem{
@@ -591,7 +591,7 @@ func TestExecuteEventsListUsesDigestAndFilterBoundLocalCursor(t *testing.T) {
 			return jsonResponse(http.StatusOK, changedBody), nil
 		}},
 	})
-	first := app.Execute(context.Background(), app.Request{
+	first := executeChecked(t, context.Background(), app.Request{
 		Argv: []string{"events", "list", "--when", "upcoming", "--limit", "1"},
 	}, dependencies)
 	var firstEnvelope struct {
@@ -617,7 +617,7 @@ func TestExecuteEventsListUsesDigestAndFilterBoundLocalCursor(t *testing.T) {
 	}
 	cursor := *firstEnvelope.Meta.Page.NextCursor
 
-	second := app.Execute(context.Background(), app.Request{
+	second := executeChecked(t, context.Background(), app.Request{
 		Argv: []string{
 			"events", "list", "--when", "upcoming", "--limit", "1", "--cursor", cursor,
 		},
@@ -628,7 +628,7 @@ func TestExecuteEventsListUsesDigestAndFilterBoundLocalCursor(t *testing.T) {
 		t.Fatalf("second result = %#v, want exact local resume", second)
 	}
 
-	filterMismatch := app.Execute(context.Background(), app.Request{
+	filterMismatch := executeChecked(t, context.Background(), app.Request{
 		Argv: []string{
 			"events", "list", "--when", "past", "--limit", "1", "--cursor", cursor,
 		},
@@ -641,7 +641,7 @@ func TestExecuteEventsListUsesDigestAndFilterBoundLocalCursor(t *testing.T) {
 		t.Fatalf("request count after filter mismatch = %d, want no mismatched refetch", call)
 	}
 
-	changed := app.Execute(context.Background(), app.Request{
+	changed := executeChecked(t, context.Background(), app.Request{
 		Argv: []string{
 			"events", "list", "--when", "upcoming", "--limit", "1", "--cursor", cursor,
 		},
@@ -682,7 +682,7 @@ func TestExecuteEventsListFailsClosedInsteadOfTruncatingLocalBounds(t *testing.T
 	}
 	for _, testCase := range cases {
 		t.Run(testCase.name, func(t *testing.T) {
-			result := app.Execute(context.Background(), app.Request{
+			result := executeChecked(t, context.Background(), app.Request{
 				Argv: []string{"events", "list", "--when", "upcoming", "--all", "--max-items", "1000"},
 			}, app.Dependencies{
 				Files: fakeFilesystem{
@@ -715,7 +715,7 @@ func TestExecuteEventsListFailsClosedInsteadOfTruncatingLocalBounds(t *testing.T
 func TestExecuteEventsGetProjectsPopulatedSupportedDetails(t *testing.T) {
 	const credentials = `{"accessToken":"private-access-token","expiresAt":"2026-08-12T02:00:00Z"}`
 	terminal := &scriptedPrivateTerminal{values: []string{"must-not-be-read"}}
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv: []string{"events", "get", "event-example"},
 	}, app.Dependencies{
 		Files: fakeFilesystem{
@@ -752,7 +752,105 @@ func TestExecuteEventsGetProjectsPopulatedSupportedDetails(t *testing.T) {
 		}},
 	})
 
-	const want = `{"ok":true,"data":{"eventId":"event-example","title":"Example event","start":"2026-09-12T19:00:00-07:00","end":"2026-09-12T22:00:00-07:00","timezone":"America/Los_Angeles","state":"cancelled","userRole":null,"myRsvp":null,"description":"Bring snacks","location":"The courtyard","address":{"type":"freeform","value":"123 Example Street"},"visibility":"private","guestLimit":12,"poster":{"source":"partiful_posters","url":"https://example.invalid/poster.png"},"links":[{"icon":"link","value":"Tickets","url":"https://example.invalid/tickets"}]},"meta":{"command":"events.get","cliVersion":"3.0.1","productContractRevision":"2026-08-12.7","remoteContractRevision":"2026-08-12.7","warnings":[]}}` + "\n"
+	const want = `{"ok":true,"data":{"eventId":"event-example","title":"Example event","start":"2026-09-12T19:00:00-07:00","end":"2026-09-12T22:00:00-07:00","timezone":"America/Los_Angeles","state":"cancelled","userRole":null,"myRsvp":null,"description":"Bring snacks","location":"The courtyard","address":{"type":"freeform","value":"123 Example Street"},"visibility":"private","guestLimit":12,"poster":{"source":"partiful_posters","url":"https://example.invalid/poster.png"},"links":[{"icon":"link","value":"Tickets","url":"https://example.invalid/tickets"}]},"meta":{"command":"events.get","cliVersion":"3.0.1","productContractRevision":"2026-11-12.3","remoteContractRevision":"2026-08-12.7","warnings":[]}}` + "\n"
+	if result.ExitCode != 0 || result.Stdout != want || result.Stderr != "" {
+		t.Fatalf("result = %#v, want populated event detail", result)
+	}
+	if len(terminal.prompts) != 0 {
+		t.Fatalf("protected command prompted: %#v", terminal.prompts)
+	}
+}
+
+func TestExecuteEventsGetProjectsPopulatedSupportedDetailsFromCreateFields(t *testing.T) {
+	const credentials = `{"accessToken":"private-access-token","expiresAt":"2026-08-12T02:00:00Z"}`
+	terminal := &scriptedPrivateTerminal{values: []string{"must-not-be-read"}}
+	result := executeChecked(t, context.Background(), app.Request{
+		Argv: []string{"events", "get", "event-example"},
+	}, app.Dependencies{
+		Files: fakeFilesystem{
+			readFile: func(string) ([]byte, error) {
+				return []byte(credentials), nil
+			},
+		},
+		CredentialsPath: "/config/partiful/credentials.json",
+		Now: func() time.Time {
+			return time.Date(2026, time.August, 12, 0, 0, 0, 0, time.UTC)
+		},
+		AuthRandom: strings.NewReader("0123456789abcdef"),
+		Terminal:   terminal,
+		HTTP: scriptedHTTP{do: func(request *http.Request) (*http.Response, error) {
+			if request.Method != http.MethodPost ||
+				request.URL.String() != "https://api.partiful.com/getEventInfo" {
+				t.Fatalf("request = %s %s, want reviewed event detail operation", request.Method, request.URL)
+			}
+			if got := request.Header.Get("Authorization"); got != "Bearer private-access-token" {
+				t.Fatalf("authorization = %q, want bearer credential", got)
+			}
+			body, err := io.ReadAll(request.Body)
+			if err != nil {
+				t.Fatalf("read request body: %v", err)
+			}
+			const wantBody = `{"data":{"params":{"eventId":"event-example"},"amplitudeDeviceId":"MDEyMzQ1Njc4OWFiY2RlZg"}}`
+			if string(body) != wantBody {
+				t.Fatalf("request body = %s, want %s", body, wantBody)
+			}
+			return jsonResponse(
+				http.StatusOK,
+				`{"result":{"data":{"event":{"id":"remote-event","title":"Example event","startDate":"2026-09-12T19:00:00-07:00","endDate":"2026-09-12T22:00:00-07:00","timezone":"America/Los_Angeles","status":"CANCELED","description":"Bring snacks","location":"The courtyard","locationInfo":{"type":"freeform","value":"123 Example Street"},"visibility":"public","maxCapacity":2,"image":{"source":"partiful_posters","url":"https://example.invalid/poster.png"},"customFields":[{"icon":"link","value":"Tickets","url":"https://example.invalid/tickets"}]}}}}`,
+			), nil
+		}},
+	})
+
+	const want = `{"ok":true,"data":{"eventId":"event-example","title":"Example event","start":"2026-09-12T19:00:00-07:00","end":"2026-09-12T22:00:00-07:00","timezone":"America/Los_Angeles","state":"cancelled","userRole":null,"myRsvp":null,"description":"Bring snacks","location":"The courtyard","address":{"type":"freeform","value":"123 Example Street"},"visibility":"private","guestLimit":2,"poster":{"source":"partiful_posters","url":"https://example.invalid/poster.png"},"links":[{"icon":"link","value":"Tickets","url":"https://example.invalid/tickets"}]},"meta":{"command":"events.get","cliVersion":"3.0.1","productContractRevision":"2026-11-12.3","remoteContractRevision":"2026-08-12.7","warnings":[]}}` + "\n"
+	if result.ExitCode != 0 || result.Stdout != want || result.Stderr != "" {
+		t.Fatalf("result = %#v, want populated event detail", result)
+	}
+	if len(terminal.prompts) != 0 {
+		t.Fatalf("protected command prompted: %#v", terminal.prompts)
+	}
+}
+
+func TestExecuteEventsGetProjectsPopulatedSupportedDetailsFromPublicCreateFields(t *testing.T) {
+	const credentials = `{"accessToken":"private-access-token","expiresAt":"2026-08-12T02:00:00Z"}`
+	terminal := &scriptedPrivateTerminal{values: []string{"must-not-be-read"}}
+	result := executeChecked(t, context.Background(), app.Request{
+		Argv: []string{"events", "get", "event-example"},
+	}, app.Dependencies{
+		Files: fakeFilesystem{
+			readFile: func(string) ([]byte, error) {
+				return []byte(credentials), nil
+			},
+		},
+		CredentialsPath: "/config/partiful/credentials.json",
+		Now: func() time.Time {
+			return time.Date(2026, time.August, 12, 0, 0, 0, 0, time.UTC)
+		},
+		AuthRandom: strings.NewReader("0123456789abcdef"),
+		Terminal:   terminal,
+		HTTP: scriptedHTTP{do: func(request *http.Request) (*http.Response, error) {
+			if request.Method != http.MethodPost ||
+				request.URL.String() != "https://api.partiful.com/getEventInfo" {
+				t.Fatalf("request = %s %s, want reviewed event detail operation", request.Method, request.URL)
+			}
+			if got := request.Header.Get("Authorization"); got != "Bearer private-access-token" {
+				t.Fatalf("authorization = %q, want bearer credential", got)
+			}
+			body, err := io.ReadAll(request.Body)
+			if err != nil {
+				t.Fatalf("read request body: %v", err)
+			}
+			const wantBody = `{"data":{"params":{"eventId":"event-example"},"amplitudeDeviceId":"MDEyMzQ1Njc4OWFiY2RlZg"}}`
+			if string(body) != wantBody {
+				t.Fatalf("request body = %s, want %s", body, wantBody)
+			}
+			return jsonResponse(
+				http.StatusOK,
+				`{"result":{"data":{"event":{"id":"remote-event","title":"Example event","startDate":"2026-09-12T19:00:00-07:00","endDate":"2026-09-12T22:00:00-07:00","timezone":"America/Los_Angeles","status":"CANCELED","description":"Bring snacks","location":"The courtyard","locationInfo":{"type":"freeform","value":"123 Example Street"},"visibility":"public","isPublic":true,"maxCapacity":2,"image":{"source":"partiful_posters","url":"https://example.invalid/poster.png"},"customFields":[{"icon":"link","value":"Tickets","url":"https://example.invalid/tickets"}]}}}}`,
+			), nil
+		}},
+	})
+
+	const want = `{"ok":true,"data":{"eventId":"event-example","title":"Example event","start":"2026-09-12T19:00:00-07:00","end":"2026-09-12T22:00:00-07:00","timezone":"America/Los_Angeles","state":"cancelled","userRole":null,"myRsvp":null,"description":"Bring snacks","location":"The courtyard","address":{"type":"freeform","value":"123 Example Street"},"visibility":"public","guestLimit":2,"poster":{"source":"partiful_posters","url":"https://example.invalid/poster.png"},"links":[{"icon":"link","value":"Tickets","url":"https://example.invalid/tickets"}]},"meta":{"command":"events.get","cliVersion":"3.0.1","productContractRevision":"2026-11-12.3","remoteContractRevision":"2026-08-12.7","warnings":[]}}` + "\n"
 	if result.ExitCode != 0 || result.Stdout != want || result.Stderr != "" {
 		t.Fatalf("result = %#v, want populated event detail", result)
 	}
@@ -829,7 +927,7 @@ func TestExecuteEventsGetMapsOnlyReviewedFailuresAndObjectVariants(t *testing.T)
 	}
 	for _, testCase := range cases {
 		t.Run(testCase.name, func(t *testing.T) {
-			result := app.Execute(context.Background(), app.Request{
+			result := executeChecked(t, context.Background(), app.Request{
 				Argv: []string{"events", "get", "event-example"},
 			}, app.Dependencies{
 				Files: fakeFilesystem{
@@ -884,7 +982,7 @@ func TestExecuteRSVPGetProjectsReviewedGuestWithoutPrivateIdentifiers(t *testing
 		privateName    = "Private Guest Name"
 	)
 	requestCount := 0
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv: []string{"rsvp", "get", "event-example"},
 	}, app.Dependencies{
 		Files: fakeFilesystem{
@@ -977,7 +1075,7 @@ func TestExecuteSchemaProjectsCompleteEventReadDefinitions(t *testing.T) {
 		} `json:"data"`
 	}
 
-	listResult := app.Execute(context.Background(), app.Request{
+	listResult := executeChecked(t, context.Background(), app.Request{
 		Argv: []string{"schema", "events.list"},
 	}, app.Dependencies{})
 	var list schemaEnvelope
@@ -1002,6 +1100,9 @@ func TestExecuteSchemaProjectsCompleteEventReadDefinitions(t *testing.T) {
 		"--cursor:false",
 		"--all:false",
 		"--max-items:false",
+		"--pretty:false",
+		"--non-interactive:false",
+		"--no-input:false",
 	}) {
 		t.Fatalf("list flags = %v, want event collection flags", listFlags)
 	}
@@ -1012,7 +1113,7 @@ func TestExecuteSchemaProjectsCompleteEventReadDefinitions(t *testing.T) {
 		t.Fatalf("summary fields = %v, want %v", got, wantSummaryFields)
 	}
 
-	getResult := app.Execute(context.Background(), app.Request{
+	getResult := executeChecked(t, context.Background(), app.Request{
 		Argv: []string{"schema", "events.get"},
 	}, app.Dependencies{})
 	var get schemaEnvelope
@@ -1023,7 +1124,7 @@ func TestExecuteSchemaProjectsCompleteEventReadDefinitions(t *testing.T) {
 		len(get.Data.Positionals) != 1 ||
 		get.Data.Positionals[0].Name != "event-id" ||
 		!get.Data.Positionals[0].Required ||
-		len(get.Data.Flags) != 0 ||
+		len(get.Data.Flags) != 3 ||
 		!reflect.DeepEqual(get.Data.InputSchema.Required, []string{"eventId"}) ||
 		get.Data.InputSchema.Properties["eventId"].MinLength == nil ||
 		*get.Data.InputSchema.Properties["eventId"].MinLength != 1 {
@@ -1100,7 +1201,7 @@ func TestExecutePostersListReturnsFirstLocalPage(t *testing.T) {
 		{"id":"duplicate","name":"Duplicate","url":"https://example.invalid/duplicate.gif","contentType":"image/gif","width":null,"height":null,"tags":["dance"],"categories":[]},
 		{"id":"duplicate","name":"Duplicate Again","url":"https://example.invalid/duplicate-2.gif","contentType":"image/gif","width":640,"height":480,"tags":[],"categories":["night"]}
 	]`
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv:  []string{"posters", "list"},
 		Stdin: strings.NewReader(""),
 	}, withTestCursorCrypto(app.Dependencies{
@@ -1113,7 +1214,7 @@ func TestExecutePostersListReturnsFirstLocalPage(t *testing.T) {
 		}},
 	}))
 
-	const want = `{"ok":true,"data":{"items":[{"posterId":"first","name":"First","url":"https://example.invalid/first.png","contentType":"image/png","width":1200,"height":630,"tags":["party"],"categories":["fun"]},{"posterId":"duplicate","name":"Duplicate","url":"https://example.invalid/duplicate.gif","contentType":"image/gif","width":null,"height":null,"tags":["dance"],"categories":[]},{"posterId":"duplicate","name":"Duplicate Again","url":"https://example.invalid/duplicate-2.gif","contentType":"image/gif","width":640,"height":480,"tags":[],"categories":["night"]}]},"meta":{"command":"posters.list","cliVersion":"3.0.1","productContractRevision":"2026-08-12.7","remoteContractRevision":"2026-08-12.7","warnings":[],"page":{"limit":25,"nextCursor":null,"hasMore":false}}}` + "\n"
+	const want = `{"ok":true,"data":{"items":[{"posterId":"first","name":"First","url":"https://example.invalid/first.png","contentType":"image/png","width":1200,"height":630,"tags":["party"],"categories":["fun"]},{"posterId":"duplicate","name":"Duplicate","url":"https://example.invalid/duplicate.gif","contentType":"image/gif","width":null,"height":null,"tags":["dance"],"categories":[]},{"posterId":"duplicate","name":"Duplicate Again","url":"https://example.invalid/duplicate-2.gif","contentType":"image/gif","width":640,"height":480,"tags":[],"categories":["night"]}]},"meta":{"command":"posters.list","cliVersion":"3.0.1","productContractRevision":"2026-11-12.3","remoteContractRevision":"2026-08-12.7","warnings":[],"page":{"limit":25,"nextCursor":null,"hasMore":false}}}` + "\n"
 	if result.ExitCode != 0 {
 		t.Fatalf("exit code = %d, want 0", result.ExitCode)
 	}
@@ -1131,7 +1232,7 @@ func TestExecutePostersListHonorsLimitAndReturnsOpaqueCursor(t *testing.T) {
 		{"id":"second","name":"Second","url":"https://example.invalid/second.png","contentType":"image/png","width":1200,"height":630,"tags":[],"categories":[]},
 		{"id":"third","name":"Third","url":"https://example.invalid/third.png","contentType":"image/png","width":1200,"height":630,"tags":[],"categories":[]}
 	]`
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv:  []string{"posters", "list", "--limit", "2"},
 		Stdin: strings.NewReader(""),
 	}, withTestCursorCrypto(app.Dependencies{
@@ -1200,7 +1301,7 @@ func TestExecutePostersListResumesFromOpaqueCursor(t *testing.T) {
 			}, nil
 		}},
 	})
-	first := app.Execute(context.Background(), app.Request{
+	first := executeChecked(t, context.Background(), app.Request{
 		Argv:  []string{"posters", "list", "--limit", "2"},
 		Stdin: strings.NewReader(""),
 	}, dependencies)
@@ -1218,7 +1319,7 @@ func TestExecutePostersListResumesFromOpaqueCursor(t *testing.T) {
 		t.Fatal("first page cursor is nil")
 	}
 
-	second := app.Execute(context.Background(), app.Request{
+	second := executeChecked(t, context.Background(), app.Request{
 		Argv: []string{
 			"posters", "list",
 			"--limit", "2",
@@ -1268,7 +1369,7 @@ func TestExecutePostersListRejectsTamperedAuthenticatedCursor(t *testing.T) {
 			}, nil
 		}},
 	})
-	first := app.Execute(context.Background(), app.Request{
+	first := executeChecked(t, context.Background(), app.Request{
 		Argv:  []string{"posters", "list", "--limit", "1"},
 		Stdin: strings.NewReader(""),
 	}, dependencies)
@@ -1291,7 +1392,7 @@ func TestExecutePostersListRejectsTamperedAuthenticatedCursor(t *testing.T) {
 		tamperedCursor[last] = 'A'
 	}
 
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv:  []string{"posters", "list", "--cursor", string(tamperedCursor)},
 		Stdin: strings.NewReader(""),
 	}, dependencies)
@@ -1308,7 +1409,7 @@ func TestExecutePostersSearchFiltersCaseInsensitivelyInCatalogOrder(t *testing.T
 		{"id":"name-match","name":"DANCE Party","url":"https://example.invalid/third.png","contentType":"image/png","width":1200,"height":630,"tags":[],"categories":[]},
 		{"id":"category-match","name":"Fourth","url":"https://example.invalid/fourth.png","contentType":"image/png","width":1200,"height":630,"tags":[],"categories":["social dance"]}
 	]`
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv:  []string{"posters", "search", "--query", "  dance  "},
 		Stdin: strings.NewReader(""),
 	}, withTestCursorCrypto(app.Dependencies{
@@ -1366,7 +1467,7 @@ func TestExecutePostersListAllStopsAtMaxItems(t *testing.T) {
 		{"id":"four","name":"Four","url":"https://example.invalid/four.png","contentType":"image/png","width":1,"height":1,"tags":[],"categories":[]},
 		{"id":"five","name":"Five","url":"https://example.invalid/five.png","contentType":"image/png","width":1,"height":1,"tags":[],"categories":[]}
 	]`
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv:  []string{"posters", "list", "--all", "--max-items", "3"},
 		Stdin: strings.NewReader(""),
 	}, withTestCursorCrypto(app.Dependencies{
@@ -1424,7 +1525,7 @@ func TestExecutePostersListAllResumesFromReturnedCursor(t *testing.T) {
 			}, nil
 		}},
 	})
-	first := app.Execute(context.Background(), app.Request{
+	first := executeChecked(t, context.Background(), app.Request{
 		Argv:  []string{"posters", "list", "--all", "--max-items", "2"},
 		Stdin: strings.NewReader(""),
 	}, dependencies)
@@ -1439,7 +1540,7 @@ func TestExecutePostersListAllResumesFromReturnedCursor(t *testing.T) {
 		t.Fatalf("decode first stdout: %v", err)
 	}
 
-	second := app.Execute(context.Background(), app.Request{
+	second := executeChecked(t, context.Background(), app.Request{
 		Argv: []string{
 			"posters", "list",
 			"--all", "--max-items", "2",
@@ -1499,7 +1600,7 @@ func TestExecutePostersListRejectsCursorWhenPayloadChanges(t *testing.T) {
 			}, nil
 		}},
 	})
-	first := app.Execute(context.Background(), app.Request{
+	first := executeChecked(t, context.Background(), app.Request{
 		Argv:  []string{"posters", "list", "--limit", "2"},
 		Stdin: strings.NewReader(""),
 	}, dependencies)
@@ -1514,12 +1615,12 @@ func TestExecutePostersListRejectsCursorWhenPayloadChanges(t *testing.T) {
 		t.Fatalf("decode first stdout: %v", err)
 	}
 
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv:  []string{"posters", "list", "--cursor", firstEnvelope.Meta.Page.NextCursor},
 		Stdin: strings.NewReader(""),
 	}, dependencies)
 
-	const want = `{"ok":false,"error":{"type":"state.conflict","code":"CURSOR_SNAPSHOT_CHANGED","message":"The poster catalog changed after this cursor was issued.","retryable":false,"details":{}},"meta":{"command":"posters.list","cliVersion":"3.0.1","productContractRevision":"2026-08-12.7","remoteContractRevision":"2026-08-12.7"}}` + "\n"
+	const want = `{"ok":false,"error":{"type":"state.conflict","code":"CURSOR_SNAPSHOT_CHANGED","message":"The poster catalog changed after this cursor was issued.","retryable":false,"details":{}},"meta":{"command":"posters.list","cliVersion":"3.0.1","productContractRevision":"2026-11-12.3","remoteContractRevision":"2026-08-12.7"}}` + "\n"
 	if result.ExitCode != 6 {
 		t.Fatalf("exit code = %d, want 6", result.ExitCode)
 	}
@@ -1532,7 +1633,7 @@ func TestExecutePostersListRejectsCursorWhenPayloadChanges(t *testing.T) {
 }
 
 func TestExecuteSchemaProjectsPosterSearchDefinition(t *testing.T) {
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv:  []string{"schema", "posters.search"},
 		Stdin: strings.NewReader(""),
 	}, app.Dependencies{})
@@ -1589,7 +1690,7 @@ func TestExecuteSchemaProjectsPosterSearchDefinition(t *testing.T) {
 	for _, flag := range envelope.Data.Flags {
 		gotFlags = append(gotFlags, fmt.Sprintf("%s:%t", flag.Name, flag.Required))
 	}
-	wantFlags := []string{"--query:true", "--limit:false", "--cursor:false", "--all:false", "--max-items:false"}
+	wantFlags := []string{"--query:true", "--limit:false", "--cursor:false", "--all:false", "--max-items:false", "--pretty:false", "--non-interactive:false", "--no-input:false"}
 	if !reflect.DeepEqual(gotFlags, wantFlags) {
 		t.Fatalf("flags = %#v, want %#v", gotFlags, wantFlags)
 	}
@@ -1649,7 +1750,7 @@ func TestExecuteSchemaProjectsPosterSearchDefinition(t *testing.T) {
 
 func TestExecutePostersListRejectsUnexpectedSuccessContentType(t *testing.T) {
 	const privateBody = `[{"id":"private-value","name":"Private","url":"https://example.invalid/private.png","contentType":"image/png","width":1,"height":1,"tags":[],"categories":[]}]`
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv:  []string{"posters", "list"},
 		Stdin: strings.NewReader(""),
 	}, app.Dependencies{
@@ -1662,7 +1763,7 @@ func TestExecutePostersListRejectsUnexpectedSuccessContentType(t *testing.T) {
 		}},
 	})
 
-	const wantStdout = `{"ok":false,"error":{"type":"contract.protocol_changed","code":"POSTER_CATALOG_PROTOCOL_CHANGED","message":"The poster catalog no longer matches the reviewed remote contract.","retryable":false,"details":{}},"meta":{"command":"posters.list","cliVersion":"3.0.1","productContractRevision":"2026-08-12.7","remoteContractRevision":"2026-08-12.7"}}` + "\n"
+	const wantStdout = `{"ok":false,"error":{"type":"contract.protocol_changed","code":"POSTER_CATALOG_PROTOCOL_CHANGED","message":"The poster catalog no longer matches the reviewed remote contract.","retryable":false,"details":{}},"meta":{"command":"posters.list","cliVersion":"3.0.1","productContractRevision":"2026-11-12.3","remoteContractRevision":"2026-08-12.7"}}` + "\n"
 	const wantStderr = "partiful: poster catalog protocol changed\n"
 	if result.ExitCode != 9 {
 		t.Fatalf("exit code = %d, want 9", result.ExitCode)
@@ -1679,7 +1780,7 @@ func TestExecutePostersListRejectsUnexpectedSuccessContentType(t *testing.T) {
 }
 
 func TestExecutePostersListRejectsMalformedCursorBeforeRemoteFailure(t *testing.T) {
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv:  []string{"posters", "list", "--cursor", "not-an-opaque-cursor"},
 		Stdin: strings.NewReader(""),
 	}, withTestCursorCrypto(app.Dependencies{
@@ -1688,7 +1789,7 @@ func TestExecutePostersListRejectsMalformedCursorBeforeRemoteFailure(t *testing.
 		}},
 	}))
 
-	const want = `{"ok":false,"error":{"type":"input.invalid","code":"CURSOR_INVALID","message":"The cursor is malformed.","retryable":false,"details":{}},"meta":{"command":"posters.list","cliVersion":"3.0.1","productContractRevision":"2026-08-12.7","remoteContractRevision":"2026-08-12.7"}}` + "\n"
+	const want = `{"ok":false,"error":{"type":"input.invalid","code":"CURSOR_INVALID","message":"The cursor is malformed.","retryable":false,"details":{}},"meta":{"command":"posters.list","cliVersion":"3.0.1","productContractRevision":"2026-11-12.3","remoteContractRevision":"2026-08-12.7"}}` + "\n"
 	if result.ExitCode != 2 {
 		t.Fatalf("exit code = %d, want 2", result.ExitCode)
 	}
@@ -1719,7 +1820,7 @@ func TestExecutePostersSearchRejectsCursorWithDifferentNormalizedFilter(t *testi
 			}, nil
 		}},
 	})
-	first := app.Execute(context.Background(), app.Request{
+	first := executeChecked(t, context.Background(), app.Request{
 		Argv:  []string{"posters", "search", "--query", "a", "--limit", "1"},
 		Stdin: strings.NewReader(""),
 	}, dependencies)
@@ -1734,7 +1835,7 @@ func TestExecutePostersSearchRejectsCursorWithDifferentNormalizedFilter(t *testi
 		t.Fatalf("decode first stdout: %v", err)
 	}
 
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv: []string{
 			"posters", "search",
 			"--query", "different",
@@ -1743,7 +1844,7 @@ func TestExecutePostersSearchRejectsCursorWithDifferentNormalizedFilter(t *testi
 		Stdin: strings.NewReader(""),
 	}, dependencies)
 
-	const want = `{"ok":false,"error":{"type":"input.invalid","code":"CURSOR_FILTER_MISMATCH","message":"The cursor does not match this command and filters.","retryable":false,"details":{}},"meta":{"command":"posters.search","cliVersion":"3.0.1","productContractRevision":"2026-08-12.7","remoteContractRevision":"2026-08-12.7"}}` + "\n"
+	const want = `{"ok":false,"error":{"type":"input.invalid","code":"CURSOR_FILTER_MISMATCH","message":"The cursor does not match this command and filters.","retryable":false,"details":{}},"meta":{"command":"posters.search","cliVersion":"3.0.1","productContractRevision":"2026-11-12.3","remoteContractRevision":"2026-08-12.7"}}` + "\n"
 	if result.ExitCode != 2 {
 		t.Fatalf("exit code = %d, want 2", result.ExitCode)
 	}
@@ -1757,7 +1858,7 @@ func TestExecutePostersSearchRejectsCursorWithDifferentNormalizedFilter(t *testi
 
 func TestExecutePostersListMapsNetworkFailureToRemoteUnavailable(t *testing.T) {
 	const privateError = "private endpoint failure details"
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv:  []string{"posters", "list"},
 		Stdin: strings.NewReader(""),
 	}, app.Dependencies{
@@ -1766,7 +1867,7 @@ func TestExecutePostersListMapsNetworkFailureToRemoteUnavailable(t *testing.T) {
 		}},
 	})
 
-	const wantStdout = `{"ok":false,"error":{"type":"remote.unavailable","code":"POSTER_CATALOG_UNAVAILABLE","message":"The poster catalog is unavailable.","retryable":true,"details":{}},"meta":{"command":"posters.list","cliVersion":"3.0.1","productContractRevision":"2026-08-12.7","remoteContractRevision":"2026-08-12.7"}}` + "\n"
+	const wantStdout = `{"ok":false,"error":{"type":"remote.unavailable","code":"POSTER_CATALOG_UNAVAILABLE","message":"The poster catalog is unavailable.","retryable":true,"details":{}},"meta":{"command":"posters.list","cliVersion":"3.0.1","productContractRevision":"2026-11-12.3","remoteContractRevision":"2026-08-12.7"}}` + "\n"
 	const wantStderr = "partiful: poster catalog unavailable\n"
 	if result.ExitCode != 8 {
 		t.Fatalf("exit code = %d, want 8", result.ExitCode)
@@ -1783,7 +1884,7 @@ func TestExecutePostersListMapsNetworkFailureToRemoteUnavailable(t *testing.T) {
 }
 
 func TestExecutePostersListFailsClosedOnReceivedNon200(t *testing.T) {
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv:  []string{"posters", "list"},
 		Stdin: strings.NewReader(""),
 	}, app.Dependencies{
@@ -1796,7 +1897,7 @@ func TestExecutePostersListFailsClosedOnReceivedNon200(t *testing.T) {
 		}},
 	})
 
-	const wantStdout = `{"ok":false,"error":{"type":"contract.protocol_changed","code":"POSTER_CATALOG_PROTOCOL_CHANGED","message":"The poster catalog no longer matches the reviewed remote contract.","retryable":false,"details":{}},"meta":{"command":"posters.list","cliVersion":"3.0.1","productContractRevision":"2026-08-12.7","remoteContractRevision":"2026-08-12.7"}}` + "\n"
+	const wantStdout = `{"ok":false,"error":{"type":"contract.protocol_changed","code":"POSTER_CATALOG_PROTOCOL_CHANGED","message":"The poster catalog no longer matches the reviewed remote contract.","retryable":false,"details":{}},"meta":{"command":"posters.list","cliVersion":"3.0.1","productContractRevision":"2026-11-12.3","remoteContractRevision":"2026-08-12.7"}}` + "\n"
 	const wantStderr = "partiful: poster catalog protocol changed\n"
 	if result.ExitCode != 9 {
 		t.Fatalf("exit code = %d, want 9", result.ExitCode)
@@ -1814,7 +1915,7 @@ func TestExecutePostersListFailsClosedOnReceivedNon200(t *testing.T) {
 }
 
 func TestExecutePostersListProductionHTTPDoesNotFollowRedirects(t *testing.T) {
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv:  []string{"posters", "list"},
 		Stdin: strings.NewReader(""),
 	}, app.Dependencies{
@@ -1841,7 +1942,7 @@ func TestExecutePostersListRejectsBodyAboveFiniteCeiling(t *testing.T) {
 		strings.NewReader("[]"),
 		strings.NewReader(strings.Repeat(" ", 8<<20)),
 	)
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv:  []string{"posters", "list"},
 		Stdin: strings.NewReader(""),
 	}, app.Dependencies{
@@ -1861,7 +1962,7 @@ func TestExecutePostersListRejectsBodyAboveFiniteCeiling(t *testing.T) {
 
 func TestExecutePostersListFailsClosedOnMalformed200Body(t *testing.T) {
 	const malformedBody = `[{"id":"private-id","name":"Missing categories","url":"https://example.invalid/poster.png","contentType":"image/png","width":1,"height":1,"tags":[]}]`
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv:  []string{"posters", "list"},
 		Stdin: strings.NewReader(""),
 	}, app.Dependencies{
@@ -1874,7 +1975,7 @@ func TestExecutePostersListFailsClosedOnMalformed200Body(t *testing.T) {
 		}},
 	})
 
-	const wantStdout = `{"ok":false,"error":{"type":"contract.protocol_changed","code":"POSTER_CATALOG_PROTOCOL_CHANGED","message":"The poster catalog no longer matches the reviewed remote contract.","retryable":false,"details":{}},"meta":{"command":"posters.list","cliVersion":"3.0.1","productContractRevision":"2026-08-12.7","remoteContractRevision":"2026-08-12.7"}}` + "\n"
+	const wantStdout = `{"ok":false,"error":{"type":"contract.protocol_changed","code":"POSTER_CATALOG_PROTOCOL_CHANGED","message":"The poster catalog no longer matches the reviewed remote contract.","retryable":false,"details":{}},"meta":{"command":"posters.list","cliVersion":"3.0.1","productContractRevision":"2026-11-12.3","remoteContractRevision":"2026-08-12.7"}}` + "\n"
 	if result.ExitCode != 9 {
 		t.Fatalf("exit code = %d, want 9", result.ExitCode)
 	}
@@ -1888,7 +1989,7 @@ func TestExecutePostersListFailsClosedOnMalformed200Body(t *testing.T) {
 
 func TestExecutePostersListRejectsMalformedOptionalBlurHash(t *testing.T) {
 	const malformedBody = `[{"id":"poster","name":"Poster","url":"https://example.invalid/poster.png","blurHash":42,"contentType":"image/png","width":1,"height":1,"tags":[],"categories":[]}]`
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv:  []string{"posters", "list"},
 		Stdin: strings.NewReader(""),
 	}, app.Dependencies{
@@ -1915,7 +2016,7 @@ func TestExecutePostersListRejectsMalformedUTF8(t *testing.T) {
 		body,
 		[]byte(`","url":"https://example.invalid/poster.png","contentType":"image/png","width":1,"height":1,"tags":[],"categories":[]}]`)...,
 	)
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv:  []string{"posters", "list"},
 		Stdin: strings.NewReader(""),
 	}, app.Dependencies{
@@ -1934,12 +2035,12 @@ func TestExecutePostersListRejectsMalformedUTF8(t *testing.T) {
 }
 
 func TestExecutePostersListRequiresMaxItemsWithAll(t *testing.T) {
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv:  []string{"posters", "list", "--all"},
 		Stdin: strings.NewReader(""),
 	}, app.Dependencies{})
 
-	const want = `{"ok":false,"error":{"type":"input.invalid","code":"MAX_ITEMS_REQUIRED","message":"--all requires --max-items.","retryable":false,"details":{}},"meta":{"command":"posters.list","cliVersion":"3.0.1","productContractRevision":"2026-08-12.7","remoteContractRevision":"2026-08-12.7"}}` + "\n"
+	const want = `{"ok":false,"error":{"type":"input.invalid","code":"MAX_ITEMS_REQUIRED","message":"--all requires --max-items.","retryable":false,"details":{}},"meta":{"command":"posters.list","cliVersion":"3.0.1","productContractRevision":"2026-11-12.3","remoteContractRevision":"2026-08-12.7"}}` + "\n"
 	if result.ExitCode != 2 {
 		t.Fatalf("exit code = %d, want 2", result.ExitCode)
 	}
@@ -1952,7 +2053,7 @@ func TestExecutePostersListRequiresMaxItemsWithAll(t *testing.T) {
 }
 
 func TestExecutePostersListRejectsLimitWithAll(t *testing.T) {
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv: []string{
 			"posters", "list",
 			"--limit", "10",
@@ -1961,7 +2062,7 @@ func TestExecutePostersListRejectsLimitWithAll(t *testing.T) {
 		Stdin: strings.NewReader(""),
 	}, app.Dependencies{})
 
-	const want = `{"ok":false,"error":{"type":"input.invalid","code":"LIMIT_WITH_ALL","message":"--limit cannot be combined with --all.","retryable":false,"details":{}},"meta":{"command":"posters.list","cliVersion":"3.0.1","productContractRevision":"2026-08-12.7","remoteContractRevision":"2026-08-12.7"}}` + "\n"
+	const want = `{"ok":false,"error":{"type":"input.invalid","code":"LIMIT_WITH_ALL","message":"--limit cannot be combined with --all.","retryable":false,"details":{}},"meta":{"command":"posters.list","cliVersion":"3.0.1","productContractRevision":"2026-11-12.3","remoteContractRevision":"2026-08-12.7"}}` + "\n"
 	if result.ExitCode != 2 {
 		t.Fatalf("exit code = %d, want 2", result.ExitCode)
 	}
@@ -1974,12 +2075,12 @@ func TestExecutePostersListRejectsLimitWithAll(t *testing.T) {
 }
 
 func TestExecutePostersListRejectsLimitAboveMaximum(t *testing.T) {
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv:  []string{"posters", "list", "--limit", "101"},
 		Stdin: strings.NewReader(""),
 	}, app.Dependencies{})
 
-	const want = `{"ok":false,"error":{"type":"input.invalid","code":"LIMIT_INVALID","message":"Limit must be an integer from 1 to 100.","retryable":false,"details":{}},"meta":{"command":"posters.list","cliVersion":"3.0.1","productContractRevision":"2026-08-12.7","remoteContractRevision":"2026-08-12.7"}}` + "\n"
+	const want = `{"ok":false,"error":{"type":"input.invalid","code":"LIMIT_INVALID","message":"Limit must be an integer from 1 to 100.","retryable":false,"details":{}},"meta":{"command":"posters.list","cliVersion":"3.0.1","productContractRevision":"2026-11-12.3","remoteContractRevision":"2026-08-12.7"}}` + "\n"
 	if result.ExitCode != 2 {
 		t.Fatalf("exit code = %d, want 2", result.ExitCode)
 	}
@@ -1989,12 +2090,12 @@ func TestExecutePostersListRejectsLimitAboveMaximum(t *testing.T) {
 }
 
 func TestExecutePostersListRejectsEmptyCursor(t *testing.T) {
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv:  []string{"posters", "list", "--cursor", ""},
 		Stdin: strings.NewReader(""),
 	}, app.Dependencies{})
 
-	const want = `{"ok":false,"error":{"type":"input.invalid","code":"CURSOR_INVALID","message":"The cursor is malformed.","retryable":false,"details":{}},"meta":{"command":"posters.list","cliVersion":"3.0.1","productContractRevision":"2026-08-12.7","remoteContractRevision":"2026-08-12.7"}}` + "\n"
+	const want = `{"ok":false,"error":{"type":"input.invalid","code":"CURSOR_INVALID","message":"The cursor is malformed.","retryable":false,"details":{}},"meta":{"command":"posters.list","cliVersion":"3.0.1","productContractRevision":"2026-11-12.3","remoteContractRevision":"2026-08-12.7"}}` + "\n"
 	if result.ExitCode != 2 {
 		t.Fatalf("exit code = %d, want 2", result.ExitCode)
 	}
@@ -2007,12 +2108,12 @@ func TestExecutePostersListRejectsEmptyCursor(t *testing.T) {
 }
 
 func TestExecutePostersSearchRequiresNonEmptyQuery(t *testing.T) {
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv:  []string{"posters", "search", "--query", "   "},
 		Stdin: strings.NewReader(""),
 	}, app.Dependencies{})
 
-	const want = `{"ok":false,"error":{"type":"input.invalid","code":"QUERY_REQUIRED","message":"Search query must not be empty.","retryable":false,"details":{}},"meta":{"command":"posters.search","cliVersion":"3.0.1","productContractRevision":"2026-08-12.7","remoteContractRevision":"2026-08-12.7"}}` + "\n"
+	const want = `{"ok":false,"error":{"type":"input.invalid","code":"QUERY_REQUIRED","message":"Search query must not be empty.","retryable":false,"details":{}},"meta":{"command":"posters.search","cliVersion":"3.0.1","productContractRevision":"2026-11-12.3","remoteContractRevision":"2026-08-12.7"}}` + "\n"
 	if result.ExitCode != 2 {
 		t.Fatalf("exit code = %d, want 2", result.ExitCode)
 	}
@@ -2022,12 +2123,12 @@ func TestExecutePostersSearchRequiresNonEmptyQuery(t *testing.T) {
 }
 
 func TestExecuteVersion(t *testing.T) {
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv:  []string{"--version"},
 		Stdin: strings.NewReader(""),
 	}, app.Dependencies{})
 
-	const want = `{"ok":true,"data":{"version":"3.0.1","productContractRevision":"2026-08-12.7","remoteContractRevision":"2026-08-12.7"},"meta":{"command":"version","cliVersion":"3.0.1","productContractRevision":"2026-08-12.7","remoteContractRevision":"2026-08-12.7","warnings":[]}}` + "\n"
+	const want = `{"ok":true,"data":{"version":"3.0.1","productContractRevision":"2026-11-12.3","remoteContractRevision":"2026-08-12.7"},"meta":{"command":"version","cliVersion":"3.0.1","productContractRevision":"2026-11-12.3","remoteContractRevision":"2026-08-12.7","warnings":[]}}` + "\n"
 	if result.ExitCode != 0 {
 		t.Fatalf("exit code = %d, want 0", result.ExitCode)
 	}
@@ -2040,12 +2141,12 @@ func TestExecuteVersion(t *testing.T) {
 }
 
 func TestExecuteEventsListRequiresWhen(t *testing.T) {
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv:  []string{"events", "list"},
 		Stdin: strings.NewReader(""),
 	}, app.Dependencies{})
 
-	const want = `{"ok":false,"error":{"type":"input.invalid","code":"WHEN_INVALID","message":"--when must be upcoming or past.","retryable":false,"details":{}},"meta":{"command":"events.list","cliVersion":"3.0.1","productContractRevision":"2026-08-12.7","remoteContractRevision":"2026-08-12.7"}}` + "\n"
+	const want = `{"ok":false,"error":{"type":"input.invalid","code":"WHEN_INVALID","message":"--when must be upcoming or past.","retryable":false,"details":{}},"meta":{"command":"events.list","cliVersion":"3.0.1","productContractRevision":"2026-11-12.3","remoteContractRevision":"2026-08-12.7"}}` + "\n"
 	if result.ExitCode != 2 {
 		t.Fatalf("exit code = %d, want 2", result.ExitCode)
 	}
@@ -2058,7 +2159,7 @@ func TestExecuteEventsListRequiresWhen(t *testing.T) {
 }
 
 func TestExecutePrettyPrintsOneCompleteEnvelope(t *testing.T) {
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv:  []string{"--pretty", "--version"},
 		Stdin: strings.NewReader(""),
 	}, app.Dependencies{})
@@ -2067,13 +2168,13 @@ func TestExecutePrettyPrintsOneCompleteEnvelope(t *testing.T) {
   "ok": true,
   "data": {
     "version": "3.0.1",
-    "productContractRevision": "2026-08-12.7",
+    "productContractRevision": "2026-11-12.3",
     "remoteContractRevision": "2026-08-12.7"
   },
   "meta": {
     "command": "version",
     "cliVersion": "3.0.1",
-    "productContractRevision": "2026-08-12.7",
+    "productContractRevision": "2026-11-12.3",
     "remoteContractRevision": "2026-08-12.7",
     "warnings": []
   }
@@ -2091,12 +2192,12 @@ func TestExecutePrettyPrintsOneCompleteEnvelope(t *testing.T) {
 }
 
 func TestExecuteAcceptsNonInteractiveGlobalFlag(t *testing.T) {
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv:  []string{"--version", "--non-interactive"},
 		Stdin: strings.NewReader(""),
 	}, app.Dependencies{})
 
-	const want = `{"ok":true,"data":{"version":"3.0.1","productContractRevision":"2026-08-12.7","remoteContractRevision":"2026-08-12.7"},"meta":{"command":"version","cliVersion":"3.0.1","productContractRevision":"2026-08-12.7","remoteContractRevision":"2026-08-12.7","warnings":[]}}` + "\n"
+	const want = `{"ok":true,"data":{"version":"3.0.1","productContractRevision":"2026-11-12.3","remoteContractRevision":"2026-08-12.7"},"meta":{"command":"version","cliVersion":"3.0.1","productContractRevision":"2026-11-12.3","remoteContractRevision":"2026-08-12.7","warnings":[]}}` + "\n"
 	if result.ExitCode != 0 {
 		t.Fatalf("exit code = %d, want 0", result.ExitCode)
 	}
@@ -2109,7 +2210,7 @@ func TestExecuteAcceptsNonInteractiveGlobalFlag(t *testing.T) {
 }
 
 func TestExecuteRejectsRepeatedScalarFlag(t *testing.T) {
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv:  []string{"--pretty", "--version", "--pretty"},
 		Stdin: strings.NewReader(""),
 	}, app.Dependencies{})
@@ -2128,7 +2229,7 @@ func TestExecuteRejectsRepeatedScalarFlag(t *testing.T) {
   "meta": {
     "command": "version",
     "cliVersion": "3.0.1",
-    "productContractRevision": "2026-08-12.7",
+    "productContractRevision": "2026-11-12.3",
     "remoteContractRevision": "2026-08-12.7"
   }
 }
@@ -2145,12 +2246,12 @@ func TestExecuteRejectsRepeatedScalarFlag(t *testing.T) {
 }
 
 func TestExecuteSchemaListsOnlyCompletedCatalog(t *testing.T) {
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv:  []string{"schema"},
 		Stdin: strings.NewReader(""),
 	}, app.Dependencies{})
 
-	const want = `{"ok":true,"data":{"commands":["auth.login","auth.logout","auth.status","blasts.send","cohosts.invite","cohosts.link.create","cohosts.link.revoke","cohosts.remove","cohosts.revoke-invite","contacts.list","doctor","events.cancel","events.create","events.get","events.list","events.update","guests.invite","guests.list","posters.list","posters.search","rsvp.get","rsvp.set","schema","version"]},"meta":{"command":"schema","cliVersion":"3.0.1","productContractRevision":"2026-08-12.7","remoteContractRevision":"2026-08-12.7","warnings":[]}}` + "\n"
+	const want = `{"ok":true,"data":{"commands":["auth.login","auth.logout","auth.status","blasts.send","cohosts.invite","cohosts.link.create","cohosts.link.revoke","cohosts.remove","cohosts.revoke-invite","contacts.list","doctor","events.cancel","events.create","events.delete","events.get","events.list","events.update","guests.invite","guests.list","posters.list","posters.search","rsvp.get","rsvp.set","schema","version"]},"meta":{"command":"schema","cliVersion":"3.0.1","productContractRevision":"2026-11-12.3","remoteContractRevision":"2026-08-12.7","warnings":[]}}` + "\n"
 	if result.ExitCode != 0 {
 		t.Fatalf("exit code = %d, want 0", result.ExitCode)
 	}
@@ -2163,12 +2264,12 @@ func TestExecuteSchemaListsOnlyCompletedCatalog(t *testing.T) {
 }
 
 func TestExecuteSchemaProjectsExecutableDefinition(t *testing.T) {
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv:  []string{"schema", "auth.status"},
 		Stdin: strings.NewReader(""),
 	}, app.Dependencies{})
 
-	const want = `{"ok":true,"data":{"command":"auth.status","positionals":[],"flags":[],"inputSchema":{"type":"object","additionalProperties":false},"successSchema":{"type":"object","additionalProperties":false,"required":["authenticated","tokenState","expiresAt"],"properties":{"authenticated":{"type":"boolean"},"expiresAt":{"type":["string","null"],"format":"date-time"},"tokenState":{"type":"string","enum":["healthy","expiring","expired","missing"]}}},"failureTypes":["usage.invalid","input.invalid","auth.expired","remote.unavailable","contract.protocol_changed","internal.failure"],"safety":{"kind":"local-mutation","destructive":false}},"meta":{"command":"schema","cliVersion":"3.0.1","productContractRevision":"2026-08-12.7","remoteContractRevision":"2026-08-12.7","warnings":[]}}` + "\n"
+	const want = `{"ok":true,"data":{"command":"auth.status","positionals":[],"flags":[{"name":"--pretty","required":false,"description":"Indent the JSON result."},{"name":"--non-interactive","required":false,"description":"Disable terminal prompts."},{"name":"--no-input","required":false,"description":"Disable terminal prompts; alias of --non-interactive."}],"inputSchema":{"type":"object","additionalProperties":false},"successSchema":{"type":"object","additionalProperties":false,"required":["authenticated","tokenState","expiresAt"],"properties":{"authenticated":{"type":"boolean"},"expiresAt":{"type":["string","null"],"format":"date-time"},"tokenState":{"type":"string","enum":["healthy","expiring","expired","missing"]}}},"failureTypes":["usage.invalid","input.invalid","auth.expired","remote.unavailable","contract.protocol_changed","internal.failure"],"safety":{"kind":"local-mutation","destructive":false}},"meta":{"command":"schema","cliVersion":"3.0.1","productContractRevision":"2026-11-12.3","remoteContractRevision":"2026-08-12.7","warnings":[]}}` + "\n"
 	if result.ExitCode != 0 {
 		t.Fatalf("exit code = %d, want 0", result.ExitCode)
 	}
@@ -2181,7 +2282,7 @@ func TestExecuteSchemaProjectsExecutableDefinition(t *testing.T) {
 }
 
 func TestExecuteSchemaProjectsCompleteAuthLoginDefinition(t *testing.T) {
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv: []string{"schema", "auth.login"},
 	}, app.Dependencies{})
 
@@ -2219,7 +2320,7 @@ func TestExecuteSchemaProjectsCompleteAuthLoginDefinition(t *testing.T) {
 	for _, flag := range envelope.Data.Flags {
 		flagNames = append(flagNames, flag.Name)
 	}
-	if !reflect.DeepEqual(flagNames, []string{"--non-interactive", "--no-input"}) {
+	if !reflect.DeepEqual(flagNames, []string{"--non-interactive", "--no-input", "--pretty"}) {
 		t.Fatalf("flags = %v, want both no-input aliases", flagNames)
 	}
 	if envelope.Data.Safety.Kind != "local-mutation" ||
@@ -2229,12 +2330,12 @@ func TestExecuteSchemaProjectsCompleteAuthLoginDefinition(t *testing.T) {
 }
 
 func TestExecuteRejectsUnknownSchemaPathWithoutEchoingInput(t *testing.T) {
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv:  []string{"schema", "secret-private-value"},
 		Stdin: strings.NewReader(""),
 	}, app.Dependencies{})
 
-	const want = `{"ok":false,"error":{"type":"usage.invalid","code":"COMMAND_SCHEMA_NOT_FOUND","message":"No completed command has that schema path.","retryable":false,"details":{}},"meta":{"command":"schema","cliVersion":"3.0.1","productContractRevision":"2026-08-12.7","remoteContractRevision":"2026-08-12.7"}}` + "\n"
+	const want = `{"ok":false,"error":{"type":"usage.invalid","code":"COMMAND_SCHEMA_NOT_FOUND","message":"No completed command has that schema path.","retryable":false,"details":{}},"meta":{"command":"schema","cliVersion":"3.0.1","productContractRevision":"2026-11-12.3","remoteContractRevision":"2026-08-12.7"}}` + "\n"
 	if result.ExitCode != 2 {
 		t.Fatalf("exit code = %d, want 2", result.ExitCode)
 	}
@@ -2250,7 +2351,7 @@ func TestExecuteRejectsUnknownSchemaPathWithoutEchoingInput(t *testing.T) {
 }
 
 func TestExecuteAuthStatusWhenCredentialsAreMissing(t *testing.T) {
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv:  []string{"auth", "status"},
 		Stdin: strings.NewReader(""),
 	}, app.Dependencies{
@@ -2265,7 +2366,7 @@ func TestExecuteAuthStatusWhenCredentialsAreMissing(t *testing.T) {
 		},
 	})
 
-	const want = `{"ok":true,"data":{"authenticated":false,"tokenState":"missing","expiresAt":null},"meta":{"command":"auth.status","cliVersion":"3.0.1","productContractRevision":"2026-08-12.7","remoteContractRevision":"2026-08-12.7","warnings":[]}}` + "\n"
+	const want = `{"ok":true,"data":{"authenticated":false,"tokenState":"missing","expiresAt":null},"meta":{"command":"auth.status","cliVersion":"3.0.1","productContractRevision":"2026-11-12.3","remoteContractRevision":"2026-08-12.7","warnings":[]}}` + "\n"
 	if result.ExitCode != 0 {
 		t.Fatalf("exit code = %d, want 0", result.ExitCode)
 	}
@@ -2278,12 +2379,12 @@ func TestExecuteAuthStatusWhenCredentialsAreMissing(t *testing.T) {
 }
 
 func TestExecuteAuthLoginRequiresPrivateTerminal(t *testing.T) {
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv:  []string{"auth", "login"},
 		Stdin: strings.NewReader("private-stdin-value"),
 	}, app.Dependencies{})
 
-	const wantStdout = `{"ok":false,"error":{"type":"auth.human_required","code":"PRIVATE_TERMINAL_REQUIRED","message":"Authentication login requires a private terminal.","retryable":false,"details":{}},"meta":{"command":"auth.login","cliVersion":"3.0.1","productContractRevision":"2026-08-12.7","remoteContractRevision":"2026-08-12.7"}}` + "\n"
+	const wantStdout = `{"ok":false,"error":{"type":"auth.human_required","code":"PRIVATE_TERMINAL_REQUIRED","message":"Authentication login requires a private terminal.","retryable":false,"details":{}},"meta":{"command":"auth.login","cliVersion":"3.0.1","productContractRevision":"2026-11-12.3","remoteContractRevision":"2026-08-12.7"}}` + "\n"
 	const wantStderr = "partiful: private terminal required\n"
 	if result.ExitCode != 3 {
 		t.Fatalf("exit code = %d, want 3", result.ExitCode)
@@ -2312,7 +2413,7 @@ func TestExecuteAuthLoginNoInputAliasesNeverStartAuthentication(t *testing.T) {
 		{name: "non-interactive after command", argv: []string{"auth", "login", "--non-interactive"}},
 	}
 
-	const wantStdout = `{"ok":false,"error":{"type":"auth.human_required","code":"PRIVATE_TERMINAL_REQUIRED","message":"Authentication login requires a private terminal.","retryable":false,"details":{}},"meta":{"command":"auth.login","cliVersion":"3.0.1","productContractRevision":"2026-08-12.7","remoteContractRevision":"2026-08-12.7"}}` + "\n"
+	const wantStdout = `{"ok":false,"error":{"type":"auth.human_required","code":"PRIVATE_TERMINAL_REQUIRED","message":"Authentication login requires a private terminal.","retryable":false,"details":{}},"meta":{"command":"auth.login","cliVersion":"3.0.1","productContractRevision":"2026-11-12.3","remoteContractRevision":"2026-08-12.7"}}` + "\n"
 	const wantStderr = "partiful: private terminal required\n"
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
@@ -2320,7 +2421,7 @@ func TestExecuteAuthLoginNoInputAliasesNeverStartAuthentication(t *testing.T) {
 			random := &countingReader{}
 			files := &memoryFilesystem{files: map[string][]byte{}}
 			httpCalls := 0
-			result := app.Execute(context.Background(), app.Request{
+			result := executeChecked(t, context.Background(), app.Request{
 				Argv: test.argv,
 			}, app.Dependencies{
 				Files:           files,
@@ -2356,7 +2457,7 @@ func TestExecuteAuthLoginNoInputAliasesNeverStartAuthentication(t *testing.T) {
 
 func TestExecuteAuthLoginRejectsEmptyPrivateInputBeforeHTTP(t *testing.T) {
 	httpCalled := false
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv: []string{"auth", "login"},
 	}, app.Dependencies{
 		Files:           &memoryFilesystem{files: map[string][]byte{}},
@@ -2372,12 +2473,69 @@ func TestExecuteAuthLoginRejectsEmptyPrivateInputBeforeHTTP(t *testing.T) {
 		}},
 	})
 
-	const wantStdout = `{"ok":false,"error":{"type":"input.invalid","code":"AUTH_INPUT_INVALID","message":"Authentication input is invalid.","retryable":false,"details":{}},"meta":{"command":"auth.login","cliVersion":"3.0.1","productContractRevision":"2026-08-12.7","remoteContractRevision":"2026-08-12.7"}}` + "\n"
+	const wantStdout = `{"ok":false,"error":{"type":"input.invalid","code":"AUTH_INPUT_INVALID","message":"Authentication input is invalid.","retryable":false,"details":{}},"meta":{"command":"auth.login","cliVersion":"3.0.1","productContractRevision":"2026-11-12.3","remoteContractRevision":"2026-08-12.7"}}` + "\n"
 	if result.ExitCode != 2 || result.Stdout != wantStdout {
 		t.Fatalf("result = %#v, want invalid private input failure", result)
 	}
 	if httpCalled {
 		t.Fatal("invalid private input reached HTTP")
+	}
+}
+
+func TestExecuteAuthLoginNormalizesUSPhoneNumbersBeforeTheAuthRequest(t *testing.T) {
+	cases := []struct {
+		name    string
+		phone   string
+		want    string
+		message string
+	}{
+		{name: "ten digits", phone: "5555550123", want: "+15555550123"},
+		{name: "formatted ten digits", phone: "(555) 555-0123", want: "+15555550123"},
+		{name: "leading country digit", phone: "15555550123", want: "+15555550123"},
+		{
+			name:    "too short",
+			phone:   "555555",
+			message: "Enter a phone number with its country code, such as +1 followed by 10 digits.",
+		},
+	}
+	for _, testCase := range cases {
+		t.Run(testCase.name, func(t *testing.T) {
+			var sent string
+			httpCalls := 0
+			result := executeChecked(t, context.Background(), app.Request{
+				Argv: []string{"auth", "login"},
+			}, app.Dependencies{
+				Files:           &memoryFilesystem{files: map[string][]byte{}},
+				CredentialsPath: "/config/partiful/credentials.json",
+				Terminal:        &scriptedPrivateTerminal{values: []string{testCase.phone}},
+				AuthRandom:      strings.NewReader("0123456789abcdef"),
+				Now: func() time.Time {
+					return time.Date(2026, time.August, 11, 0, 0, 0, 0, time.UTC)
+				},
+				HTTP: scriptedHTTP{do: func(request *http.Request) (*http.Response, error) {
+					httpCalls++
+					body, err := io.ReadAll(request.Body)
+					if err != nil {
+						t.Fatalf("read auth request: %v", err)
+					}
+					sent = string(body)
+					return jsonResponse(http.StatusBadGateway, `{"error":"unavailable"}`), nil
+				}},
+			})
+			if testCase.message != "" {
+				if result.ExitCode != 2 ||
+					!strings.Contains(result.Stdout, `"code":"AUTH_INPUT_INVALID"`) ||
+					!strings.Contains(result.Stdout, testCase.message) ||
+					httpCalls != 0 ||
+					strings.Contains(result.Stdout+result.Stderr, testCase.phone) {
+					t.Fatalf("result = %#v, calls = %d, want a phone input error", result, httpCalls)
+				}
+				return
+			}
+			if httpCalls != 1 || !strings.Contains(sent, `"phoneNumber":"`+testCase.want+`"`) {
+				t.Fatalf("calls = %d, sent = %s, want normalized %s", httpCalls, sent, testCase.want)
+			}
+		})
 	}
 }
 
@@ -2405,7 +2563,7 @@ func (terminal failingPrivateTerminal) ReadSecret(string) (string, error) {
 }
 
 func TestExecuteAuthLoginPreservesPrivateTerminalValidationFailure(t *testing.T) {
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv: []string{"auth", "login"},
 	}, app.Dependencies{
 		Files:           &memoryFilesystem{files: map[string][]byte{}},
@@ -2434,7 +2592,7 @@ func TestExecuteAuthLoginPersistsReviewedSessionWithoutRevealingPrivateValues(t 
 	files := &memoryFilesystem{files: map[string][]byte{}}
 	call := 0
 	clockCalls := 0
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv:  []string{"auth", "login"},
 		Stdin: strings.NewReader("ordinary-private-input"),
 	}, app.Dependencies{
@@ -2514,7 +2672,7 @@ func TestExecuteAuthLoginPersistsReviewedSessionWithoutRevealingPrivateValues(t 
 		}},
 	})
 
-	const want = `{"ok":true,"data":{"authenticated":true,"tokenState":"healthy","expiresAt":"2026-08-11T01:10:00Z"},"meta":{"command":"auth.login","cliVersion":"3.0.1","productContractRevision":"2026-08-12.7","remoteContractRevision":"2026-08-12.7","warnings":[]}}` + "\n"
+	const want = `{"ok":true,"data":{"authenticated":true,"tokenState":"healthy","expiresAt":"2026-08-11T01:10:00Z"},"meta":{"command":"auth.login","cliVersion":"3.0.1","productContractRevision":"2026-11-12.3","remoteContractRevision":"2026-08-12.7","warnings":[]}}` + "\n"
 	if result.ExitCode != 0 || result.Stdout != want || result.Stderr != "" {
 		t.Fatalf("result = %#v, want redacted login success", result)
 	}
@@ -2546,7 +2704,7 @@ func TestExecuteAuthLoginPersistsReviewedSessionWithoutRevealingPrivateValues(t 
 		}
 	}
 
-	status := app.Execute(context.Background(), app.Request{
+	status := executeChecked(t, context.Background(), app.Request{
 		Argv:  []string{"auth", "status"},
 		Stdin: strings.NewReader(""),
 	}, app.Dependencies{
@@ -2565,7 +2723,7 @@ func TestExecuteAuthLoginMapsReviewedWrongCodeWithoutEchoingIt(t *testing.T) {
 	const privateCode = "654321"
 	terminal := &scriptedPrivateTerminal{values: []string{"+15555550123", privateCode}}
 	call := 0
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv: []string{"auth", "login"},
 	}, app.Dependencies{
 		Files:           &memoryFilesystem{files: map[string][]byte{}},
@@ -2587,7 +2745,7 @@ func TestExecuteAuthLoginMapsReviewedWrongCodeWithoutEchoingIt(t *testing.T) {
 		}},
 	})
 
-	const wantStdout = `{"ok":false,"error":{"type":"input.invalid","code":"AUTH_CODE_REJECTED","message":"The verification code was rejected.","retryable":false,"details":{}},"meta":{"command":"auth.login","cliVersion":"3.0.1","productContractRevision":"2026-08-12.7","remoteContractRevision":"2026-08-12.7"}}` + "\n"
+	const wantStdout = `{"ok":false,"error":{"type":"input.invalid","code":"AUTH_CODE_REJECTED","message":"The verification code was rejected.","retryable":false,"details":{}},"meta":{"command":"auth.login","cliVersion":"3.0.1","productContractRevision":"2026-11-12.3","remoteContractRevision":"2026-08-12.7"}}` + "\n"
 	const wantStderr = "partiful: authentication code rejected\n"
 	if result.ExitCode != 2 || result.Stdout != wantStdout || result.Stderr != wantStderr {
 		t.Fatalf("result = %#v, want reviewed wrong-code failure", result)
@@ -2606,7 +2764,7 @@ func TestExecuteAuthLoginMapsReviewedWrongCodeWithoutEchoingIt(t *testing.T) {
 func TestExecuteAuthLoginPreservesErrorResponseReadFailure(t *testing.T) {
 	const privateReadError = "private response read failure"
 	call := 0
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv: []string{"auth", "login"},
 	}, app.Dependencies{
 		Files:           &memoryFilesystem{files: map[string][]byte{}},
@@ -2639,7 +2797,7 @@ func TestExecuteAuthLoginPreservesErrorResponseReadFailure(t *testing.T) {
 
 func TestExecuteAuthLoginRejectsInvalidOptionalCallableErrorField(t *testing.T) {
 	call := 0
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv: []string{"auth", "login"},
 	}, app.Dependencies{
 		Files:           &memoryFilesystem{files: map[string][]byte{}},
@@ -2667,7 +2825,7 @@ func TestExecuteAuthLoginRejectsInvalidOptionalCallableErrorField(t *testing.T) 
 }
 
 func TestExecuteAuthLoginRejectsOversizedSendAcknowledgement(t *testing.T) {
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv: []string{"auth", "login"},
 	}, app.Dependencies{
 		Files:           &memoryFilesystem{files: map[string][]byte{}},
@@ -2699,7 +2857,7 @@ func TestExecuteAuthLoginRejectsOversizedSendAcknowledgement(t *testing.T) {
 func TestExecuteAuthLoginMapsRejectedCustomTokenToExpired(t *testing.T) {
 	terminal := &scriptedPrivateTerminal{values: []string{"+15555550123", "123456"}}
 	call := 0
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv: []string{"auth", "login"},
 	}, app.Dependencies{
 		Files:           &memoryFilesystem{files: map[string][]byte{}},
@@ -2728,7 +2886,7 @@ func TestExecuteAuthLoginMapsRejectedCustomTokenToExpired(t *testing.T) {
 		}},
 	})
 
-	const wantStdout = `{"ok":false,"error":{"type":"auth.expired","code":"INVALID_CUSTOM_TOKEN","message":"Authentication expired during login. Start login again.","retryable":false,"details":{}},"meta":{"command":"auth.login","cliVersion":"3.0.1","productContractRevision":"2026-08-12.7","remoteContractRevision":"2026-08-12.7"}}` + "\n"
+	const wantStdout = `{"ok":false,"error":{"type":"auth.expired","code":"INVALID_CUSTOM_TOKEN","message":"Authentication expired during login. Start login again.","retryable":false,"details":{}},"meta":{"command":"auth.login","cliVersion":"3.0.1","productContractRevision":"2026-11-12.3","remoteContractRevision":"2026-08-12.7"}}` + "\n"
 	const wantStderr = "partiful: authentication expired\n"
 	if result.ExitCode != 3 || result.Stdout != wantStdout || result.Stderr != wantStderr {
 		t.Fatalf("result = %#v, want reviewed custom-token failure", result)
@@ -2740,7 +2898,7 @@ func TestExecuteAuthLoginMapsRejectedCustomTokenToExpired(t *testing.T) {
 
 func TestExecuteAuthLoginRejectsInvalidOptionalFirebaseSuccessField(t *testing.T) {
 	call := 0
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv: []string{"auth", "login"},
 	}, app.Dependencies{
 		Files:           &memoryFilesystem{files: map[string][]byte{}},
@@ -2776,7 +2934,7 @@ func TestExecuteAuthLoginRejectsInvalidOptionalFirebaseSuccessField(t *testing.T
 
 func TestExecuteAuthLoginRejectsTokenInsideRefreshWindow(t *testing.T) {
 	call := 0
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv: []string{"auth", "login"},
 	}, app.Dependencies{
 		Files:           &memoryFilesystem{files: map[string][]byte{}},
@@ -2812,7 +2970,7 @@ func TestExecuteAuthLoginRejectsTokenInsideRefreshWindow(t *testing.T) {
 
 func TestExecuteAuthLoginAllowsUndeclaredFirebaseErrorStatus(t *testing.T) {
 	call := 0
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv: []string{"auth", "login"},
 	}, app.Dependencies{
 		Files:           &memoryFilesystem{files: map[string][]byte{}},
@@ -2848,7 +3006,7 @@ func TestExecuteAuthLoginAllowsUndeclaredFirebaseErrorStatus(t *testing.T) {
 
 func TestExecuteAuthLoginRejectsInvalidOptionalFirebaseValidationErrors(t *testing.T) {
 	call := 0
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv: []string{"auth", "login"},
 	}, app.Dependencies{
 		Files:           &memoryFilesystem{files: map[string][]byte{}},
@@ -2886,7 +3044,7 @@ func TestExecuteAuthLoginFailsClosedOnMalformedReviewedSuccess(t *testing.T) {
 	const privateBodyValue = "private-access-token"
 	terminal := &scriptedPrivateTerminal{values: []string{"+15555550123", "123456"}}
 	call := 0
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv: []string{"auth", "login"},
 	}, app.Dependencies{
 		Files:           &memoryFilesystem{files: map[string][]byte{}},
@@ -2915,7 +3073,7 @@ func TestExecuteAuthLoginFailsClosedOnMalformedReviewedSuccess(t *testing.T) {
 		}},
 	})
 
-	const wantStdout = `{"ok":false,"error":{"type":"contract.protocol_changed","code":"AUTH_PROTOCOL_CHANGED","message":"Authentication no longer matches the reviewed remote contract.","retryable":false,"details":{}},"meta":{"command":"auth.login","cliVersion":"3.0.1","productContractRevision":"2026-08-12.7","remoteContractRevision":"2026-08-12.7"}}` + "\n"
+	const wantStdout = `{"ok":false,"error":{"type":"contract.protocol_changed","code":"AUTH_PROTOCOL_CHANGED","message":"Authentication no longer matches the reviewed remote contract.","retryable":false,"details":{}},"meta":{"command":"auth.login","cliVersion":"3.0.1","productContractRevision":"2026-11-12.3","remoteContractRevision":"2026-08-12.7"}}` + "\n"
 	const wantStderr = "partiful: authentication protocol changed\n"
 	if result.ExitCode != 9 || result.Stdout != wantStdout || result.Stderr != wantStderr {
 		t.Fatalf("result = %#v, want protocol drift failure", result)
@@ -2928,7 +3086,7 @@ func TestExecuteAuthLoginFailsClosedOnMalformedReviewedSuccess(t *testing.T) {
 func TestExecuteAuthLoginRejectsMissingFirebaseResponse(t *testing.T) {
 	terminal := &scriptedPrivateTerminal{values: []string{"+15555550123", "123456"}}
 	call := 0
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv: []string{"auth", "login"},
 	}, app.Dependencies{
 		Files:           &memoryFilesystem{files: map[string][]byte{}},
@@ -2963,7 +3121,7 @@ func TestExecuteAuthLoginRejectsMissingFirebaseResponse(t *testing.T) {
 func TestExecuteAuthLoginRejectsMalformedWrongCodeMapping(t *testing.T) {
 	terminal := &scriptedPrivateTerminal{values: []string{"+15555550123", "123456"}}
 	call := 0
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv: []string{"auth", "login"},
 	}, app.Dependencies{
 		Files:           &memoryFilesystem{files: map[string][]byte{}},
@@ -2997,7 +3155,7 @@ func TestExecuteAuthLoginRejectsMalformedWrongCodeMapping(t *testing.T) {
 
 func TestExecuteAuthLoginMapsNoResponseWithoutLeakingTransportError(t *testing.T) {
 	const privateTransportValue = "private transport detail"
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv: []string{"auth", "login"},
 	}, app.Dependencies{
 		Files:           &memoryFilesystem{files: map[string][]byte{}},
@@ -3012,7 +3170,7 @@ func TestExecuteAuthLoginMapsNoResponseWithoutLeakingTransportError(t *testing.T
 		}},
 	})
 
-	const wantStdout = `{"ok":false,"error":{"type":"remote.unavailable","code":"AUTH_SERVICE_UNAVAILABLE","message":"The authentication service is unavailable.","retryable":true,"details":{}},"meta":{"command":"auth.login","cliVersion":"3.0.1","productContractRevision":"2026-08-12.7","remoteContractRevision":"2026-08-12.7"}}` + "\n"
+	const wantStdout = `{"ok":false,"error":{"type":"remote.unavailable","code":"AUTH_SERVICE_UNAVAILABLE","message":"The authentication service is unavailable.","retryable":true,"details":{}},"meta":{"command":"auth.login","cliVersion":"3.0.1","productContractRevision":"2026-11-12.3","remoteContractRevision":"2026-08-12.7"}}` + "\n"
 	const wantStderr = "partiful: authentication service unavailable\n"
 	if result.ExitCode != 8 || result.Stdout != wantStdout || result.Stderr != wantStderr {
 		t.Fatalf("result = %#v, want auth unavailable failure", result)
@@ -3062,11 +3220,11 @@ func TestExecuteAuthLoginAtomicPersistenceFailurePreservesExistingCredentials(t 
 			}
 		}},
 	}
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv: []string{"auth", "login"},
 	}, dependencies)
 
-	const wantStdout = `{"ok":false,"error":{"type":"internal.failure","code":"CREDENTIAL_STORE_UNAVAILABLE","message":"Local credential storage is unavailable.","retryable":false,"details":{}},"meta":{"command":"auth.login","cliVersion":"3.0.1","productContractRevision":"2026-08-12.7","remoteContractRevision":"2026-08-12.7"}}` + "\n"
+	const wantStdout = `{"ok":false,"error":{"type":"internal.failure","code":"CREDENTIAL_STORE_UNAVAILABLE","message":"Local credential storage is unavailable.","retryable":false,"details":{}},"meta":{"command":"auth.login","cliVersion":"3.0.1","productContractRevision":"2026-11-12.3","remoteContractRevision":"2026-08-12.7"}}` + "\n"
 	if result.ExitCode != 10 || result.Stdout != wantStdout {
 		t.Fatalf("result = %#v, want atomic persistence failure", result)
 	}
@@ -3074,7 +3232,7 @@ func TestExecuteAuthLoginAtomicPersistenceFailurePreservesExistingCredentials(t 
 		t.Fatal("persistence failure exposed a private filesystem value")
 	}
 
-	status := app.Execute(context.Background(), app.Request{
+	status := executeChecked(t, context.Background(), app.Request{
 		Argv: []string{"auth", "status"},
 	}, dependencies)
 	if !strings.Contains(status.Stdout, `"authenticated":true,"tokenState":"healthy"`) {
@@ -3130,7 +3288,7 @@ func TestExecuteContactsListTraversesReviewedPagesAndReturnsOnlyPublicFields(t *
 		privateCursor = "private-remote-cursor"
 	)
 	requestCount := 0
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv:  []string{"contacts", "list"},
 		Stdin: strings.NewReader(""),
 	}, app.Dependencies{
@@ -3178,7 +3336,7 @@ func TestExecuteContactsListTraversesReviewedPagesAndReturnsOnlyPublicFields(t *
 		}},
 	})
 
-	const want = `{"ok":true,"data":{"items":[{"displayName":"Alice Example","sharedEventCount":2}]},"meta":{"command":"contacts.list","cliVersion":"3.0.1","productContractRevision":"2026-08-12.7","remoteContractRevision":"2026-08-12.7","warnings":[],"page":{"limit":25,"nextCursor":null,"hasMore":false}}}` + "\n"
+	const want = `{"ok":true,"data":{"items":[{"displayName":"Alice Example","sharedEventCount":2}]},"meta":{"command":"contacts.list","cliVersion":"3.0.1","productContractRevision":"2026-11-12.3","remoteContractRevision":"2026-08-12.7","warnings":[],"page":{"limit":25,"nextCursor":null,"hasMore":false}}}` + "\n"
 	if result.ExitCode != 0 || result.Stdout != want || result.Stderr != "" {
 		t.Fatalf("result = %#v, want reviewed public contact collection", result)
 	}
@@ -3205,7 +3363,7 @@ func TestExecuteContactsListFiltersLocallyAfterFirstIdentityOccurrenceWins(t *te
 		`{"result":{"data":[],"paging":{}}}`,
 	}
 	call := 0
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv:  []string{"contacts", "list", "--query", "  ALICE  "},
 		Stdin: strings.NewReader(""),
 	}, app.Dependencies{
@@ -3233,7 +3391,7 @@ func TestExecuteContactsListFiltersLocallyAfterFirstIdentityOccurrenceWins(t *te
 		}},
 	})
 
-	const want = `{"ok":true,"data":{"items":[{"displayName":"Alice First","sharedEventCount":1},{"displayName":"Second ALICE","sharedEventCount":3}]},"meta":{"command":"contacts.list","cliVersion":"3.0.1","productContractRevision":"2026-08-12.7","remoteContractRevision":"2026-08-12.7","warnings":[],"page":{"limit":25,"nextCursor":null,"hasMore":false}}}` + "\n"
+	const want = `{"ok":true,"data":{"items":[{"displayName":"Alice First","sharedEventCount":1},{"displayName":"Second ALICE","sharedEventCount":3}]},"meta":{"command":"contacts.list","cliVersion":"3.0.1","productContractRevision":"2026-11-12.3","remoteContractRevision":"2026-08-12.7","warnings":[],"page":{"limit":25,"nextCursor":null,"hasMore":false}}}` + "\n"
 	if result.ExitCode != 0 || result.Stdout != want || result.Stderr != "" {
 		t.Fatalf("result = %#v, want locally filtered first-occurrence contacts", result)
 	}
@@ -3278,7 +3436,7 @@ func TestExecuteContactsListReturnsOpaqueResumableLocalCursor(t *testing.T) {
 			return jsonResponse(http.StatusOK, terminal), nil
 		}},
 	})
-	first := app.Execute(context.Background(), app.Request{
+	first := executeChecked(t, context.Background(), app.Request{
 		Argv:  []string{"contacts", "list", "--limit", "2"},
 		Stdin: strings.NewReader(""),
 	}, dependencies)
@@ -3309,7 +3467,7 @@ func TestExecuteContactsListReturnsOpaqueResumableLocalCursor(t *testing.T) {
 		}
 	}
 
-	second := app.Execute(context.Background(), app.Request{
+	second := executeChecked(t, context.Background(), app.Request{
 		Argv:  []string{"contacts", "list", "--limit", "2", "--cursor", cursor},
 		Stdin: strings.NewReader(""),
 	}, dependencies)
@@ -3349,7 +3507,7 @@ func TestExecuteContactsListFailsClosedOnRepeatedRemoteCursor(t *testing.T) {
 		privateLoop = "private-repeated-cursor"
 	)
 	call := 0
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv:  []string{"contacts", "list"},
 		Stdin: strings.NewReader(""),
 	}, app.Dependencies{
@@ -3392,7 +3550,7 @@ func TestExecuteContactsListFailsClosedOnRepeatedRemoteCursor(t *testing.T) {
 func TestExecuteContactsListFailsClosedBeyondReviewedTraversalBound(t *testing.T) {
 	const credentials = `{"accessToken":"private-access-token","expiresAt":"2026-08-11T02:00:00Z"}`
 	call := 0
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv:  []string{"contacts", "list", "--all", "--max-items", "1000"},
 		Stdin: strings.NewReader(""),
 	}, app.Dependencies{
@@ -3441,7 +3599,7 @@ func TestExecuteContactsListFailsClosedWhenPrivateIdentityIsMissing(t *testing.T
 		privateName = "Private Name"
 	)
 	call := 0
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv:  []string{"contacts", "list"},
 		Stdin: strings.NewReader(""),
 	}, app.Dependencies{
@@ -3481,7 +3639,7 @@ func TestExecuteContactsListFailsClosedWhenPrivateIdentityIsMissing(t *testing.T
 
 func TestExecuteContactsListFailsClosedWhenTerminalPagingIsMissing(t *testing.T) {
 	const credentials = `{"accessToken":"private-access-token","expiresAt":"2026-08-11T02:00:00Z"}`
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv:  []string{"contacts", "list"},
 		Stdin: strings.NewReader(""),
 	}, app.Dependencies{
@@ -3514,7 +3672,7 @@ func TestExecuteContactsListAcceptsOpenReviewedResponseFields(t *testing.T) {
 		privateEnvelopeValue = "private-unknown-envelope-value"
 	)
 	call := 0
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv:  []string{"contacts", "list"},
 		Stdin: strings.NewReader(""),
 	}, app.Dependencies{
@@ -3543,7 +3701,7 @@ func TestExecuteContactsListAcceptsOpenReviewedResponseFields(t *testing.T) {
 		}},
 	})
 
-	const want = `{"ok":true,"data":{"items":[{"displayName":"Open Contact","sharedEventCount":4}]},"meta":{"command":"contacts.list","cliVersion":"3.0.1","productContractRevision":"2026-08-12.7","remoteContractRevision":"2026-08-12.7","warnings":[],"page":{"limit":25,"nextCursor":null,"hasMore":false}}}` + "\n"
+	const want = `{"ok":true,"data":{"items":[{"displayName":"Open Contact","sharedEventCount":4}]},"meta":{"command":"contacts.list","cliVersion":"3.0.1","productContractRevision":"2026-11-12.3","remoteContractRevision":"2026-08-12.7","warnings":[],"page":{"limit":25,"nextCursor":null,"hasMore":false}}}` + "\n"
 	if result.ExitCode != 0 || result.Stdout != want || result.Stderr != "" {
 		t.Fatalf("result = %#v, want reviewed open response traversal", result)
 	}
@@ -3568,7 +3726,7 @@ func TestExecuteContactsListRejectsTrailingSuccessJSON(t *testing.T) {
 		credentials  = `{"accessToken":"private-access-token","expiresAt":"2026-08-11T02:00:00Z"}`
 		privateValue = "private-trailing-json-value"
 	)
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv:  []string{"contacts", "list"},
 		Stdin: strings.NewReader(""),
 	}, app.Dependencies{
@@ -3601,7 +3759,7 @@ func TestExecuteContactsListRejectsTrailingSuccessJSON(t *testing.T) {
 
 func TestExecuteContactsListFailsClosedOnNullRemoteCursor(t *testing.T) {
 	const credentials = `{"accessToken":"private-access-token","expiresAt":"2026-08-11T02:00:00Z"}`
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv:  []string{"contacts", "list"},
 		Stdin: strings.NewReader(""),
 	}, app.Dependencies{
@@ -3634,7 +3792,7 @@ func TestExecuteContactsListAcceptsUnknownUnauthenticatedErrorFields(t *testing.
 		credentials  = `{"accessToken":"private-access-token","expiresAt":"2026-08-11T02:00:00Z"}`
 		privateValue = "private-remote-detail"
 	)
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv:  []string{"contacts", "list"},
 		Stdin: strings.NewReader(""),
 	}, app.Dependencies{
@@ -3656,7 +3814,7 @@ func TestExecuteContactsListAcceptsUnknownUnauthenticatedErrorFields(t *testing.
 		}},
 	})
 
-	const wantStdout = `{"ok":false,"error":{"type":"auth.expired","code":"REMOTE_SESSION_UNAUTHENTICATED","message":"Stored authentication is no longer accepted. Log in again.","retryable":false,"details":{}},"meta":{"command":"contacts.list","cliVersion":"3.0.1","productContractRevision":"2026-08-12.7","remoteContractRevision":"2026-08-12.7"}}` + "\n"
+	const wantStdout = `{"ok":false,"error":{"type":"auth.expired","code":"REMOTE_SESSION_UNAUTHENTICATED","message":"Stored authentication is no longer accepted. Log in again.","retryable":false,"details":{}},"meta":{"command":"contacts.list","cliVersion":"3.0.1","productContractRevision":"2026-11-12.3","remoteContractRevision":"2026-08-12.7"}}` + "\n"
 	if result.ExitCode != 3 || result.Stdout != wantStdout {
 		t.Fatalf("result = %#v, want reviewed unauthenticated mapping", result)
 	}
@@ -3667,7 +3825,7 @@ func TestExecuteContactsListAcceptsUnknownUnauthenticatedErrorFields(t *testing.
 
 func TestExecuteContactsListMapsReviewedUnauthenticatedResponseToExpired(t *testing.T) {
 	const credentials = `{"accessToken":"private-access-token","expiresAt":"2026-08-11T02:00:00Z"}`
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv:  []string{"contacts", "list"},
 		Stdin: strings.NewReader(""),
 	}, app.Dependencies{
@@ -3689,7 +3847,7 @@ func TestExecuteContactsListMapsReviewedUnauthenticatedResponseToExpired(t *test
 		}},
 	})
 
-	const wantStdout = `{"ok":false,"error":{"type":"auth.expired","code":"REMOTE_SESSION_UNAUTHENTICATED","message":"Stored authentication is no longer accepted. Log in again.","retryable":false,"details":{}},"meta":{"command":"contacts.list","cliVersion":"3.0.1","productContractRevision":"2026-08-12.7","remoteContractRevision":"2026-08-12.7"}}` + "\n"
+	const wantStdout = `{"ok":false,"error":{"type":"auth.expired","code":"REMOTE_SESSION_UNAUTHENTICATED","message":"Stored authentication is no longer accepted. Log in again.","retryable":false,"details":{}},"meta":{"command":"contacts.list","cliVersion":"3.0.1","productContractRevision":"2026-11-12.3","remoteContractRevision":"2026-08-12.7"}}` + "\n"
 	if result.ExitCode != 3 || result.Stdout != wantStdout {
 		t.Fatalf("result = %#v, want reviewed unauthenticated mapping", result)
 	}
@@ -3707,7 +3865,7 @@ func TestExecuteContactsListRefreshesExpiringSessionBeforeProtectedRead(t *testi
 			`","refreshToken":"private-old-refresh","expiresAt":"2026-08-11T00:04:00Z"}`,
 	)
 	call := 0
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv:  []string{"contacts", "list"},
 		Stdin: strings.NewReader(""),
 	}, app.Dependencies{
@@ -3805,7 +3963,7 @@ func TestExecuteContactsListRejectsCursorWhenContactCatalogChanges(t *testing.T)
 			}
 		}},
 	})
-	first := app.Execute(context.Background(), app.Request{
+	first := executeChecked(t, context.Background(), app.Request{
 		Argv:  []string{"contacts", "list", "--limit", "1"},
 		Stdin: strings.NewReader(""),
 	}, dependencies)
@@ -3820,12 +3978,12 @@ func TestExecuteContactsListRejectsCursorWhenContactCatalogChanges(t *testing.T)
 		t.Fatalf("decode first result: %v", err)
 	}
 
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv:  []string{"contacts", "list", "--cursor", envelope.Meta.Page.NextCursor},
 		Stdin: strings.NewReader(""),
 	}, dependencies)
 
-	const want = `{"ok":false,"error":{"type":"state.conflict","code":"CURSOR_SNAPSHOT_CHANGED","message":"The contact catalog changed after this cursor was issued.","retryable":false,"details":{}},"meta":{"command":"contacts.list","cliVersion":"3.0.1","productContractRevision":"2026-08-12.7","remoteContractRevision":"2026-08-12.7"}}` + "\n"
+	const want = `{"ok":false,"error":{"type":"state.conflict","code":"CURSOR_SNAPSHOT_CHANGED","message":"The contact catalog changed after this cursor was issued.","retryable":false,"details":{}},"meta":{"command":"contacts.list","cliVersion":"3.0.1","productContractRevision":"2026-11-12.3","remoteContractRevision":"2026-08-12.7"}}` + "\n"
 	if result.ExitCode != 6 || result.Stdout != want || result.Stderr != "" {
 		t.Fatalf("result = %#v, want contact snapshot conflict", result)
 	}
@@ -3837,7 +3995,7 @@ func TestExecuteContactsListRejectsCursorWhenContactCatalogChanges(t *testing.T)
 }
 
 func TestExecuteSchemaProjectsCompleteContactsListDefinition(t *testing.T) {
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv:  []string{"schema", "contacts.list"},
 		Stdin: strings.NewReader(""),
 	}, app.Dependencies{})
@@ -3890,6 +4048,9 @@ func TestExecuteSchemaProjectsCompleteContactsListDefinition(t *testing.T) {
 		"--cursor:false",
 		"--all:false",
 		"--max-items:false",
+		"--pretty:false",
+		"--non-interactive:false",
+		"--no-input:false",
 	}
 	if !reflect.DeepEqual(flags, wantFlags) {
 		t.Fatalf("flags = %v, want %v", flags, wantFlags)
@@ -3939,7 +4100,7 @@ func TestExecuteSchemaProjectsCompleteContactsListDefinition(t *testing.T) {
 func TestExecuteContactsListMapsRejectedRefreshWithoutAttemptingRead(t *testing.T) {
 	const privateRefresh = "private-rejected-refresh"
 	call := 0
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv:  []string{"contacts", "list"},
 		Stdin: strings.NewReader(""),
 	}, app.Dependencies{
@@ -3969,7 +4130,7 @@ func TestExecuteContactsListMapsRejectedRefreshWithoutAttemptingRead(t *testing.
 		}},
 	})
 
-	const wantStdout = `{"ok":false,"error":{"type":"auth.expired","code":"INVALID_REFRESH_TOKEN","message":"Stored authentication has expired. Log in again.","retryable":false,"details":{}},"meta":{"command":"contacts.list","cliVersion":"3.0.1","productContractRevision":"2026-08-12.7","remoteContractRevision":"2026-08-12.7"}}` + "\n"
+	const wantStdout = `{"ok":false,"error":{"type":"auth.expired","code":"INVALID_REFRESH_TOKEN","message":"Stored authentication has expired. Log in again.","retryable":false,"details":{}},"meta":{"command":"contacts.list","cliVersion":"3.0.1","productContractRevision":"2026-11-12.3","remoteContractRevision":"2026-08-12.7"}}` + "\n"
 	if result.ExitCode != 3 || result.Stdout != wantStdout {
 		t.Fatalf("result = %#v, want rejected refresh failure", result)
 	}
@@ -3983,7 +4144,7 @@ func TestExecuteContactsListMapsRejectedRefreshWithoutAttemptingRead(t *testing.
 
 func TestExecuteContactsListPreservesUnauthenticatedBodyReadFailureAsUnavailable(t *testing.T) {
 	const privateReadError = "private unauthenticated response read failure"
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv:  []string{"contacts", "list"},
 		Stdin: strings.NewReader(""),
 	}, app.Dependencies{
@@ -4019,7 +4180,7 @@ func TestExecuteContactsListPreservesUnauthenticatedBodyReadFailureAsUnavailable
 
 func TestExecuteContactsListReportsUnavailableConfigurationBeforeProtectedRead(t *testing.T) {
 	const privateConfigurationError = "private configuration path failure"
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv:  []string{"contacts", "list"},
 		Stdin: strings.NewReader(""),
 	}, app.Dependencies{
@@ -4030,7 +4191,7 @@ func TestExecuteContactsListReportsUnavailableConfigurationBeforeProtectedRead(t
 		}},
 	})
 
-	const wantStdout = `{"ok":false,"error":{"type":"internal.failure","code":"CONFIG_DIRECTORY_UNAVAILABLE","message":"Local configuration directory is unavailable.","retryable":false,"details":{}},"meta":{"command":"contacts.list","cliVersion":"3.0.1","productContractRevision":"2026-08-12.7","remoteContractRevision":"2026-08-12.7"}}` + "\n"
+	const wantStdout = `{"ok":false,"error":{"type":"internal.failure","code":"CONFIG_DIRECTORY_UNAVAILABLE","message":"Local configuration directory is unavailable.","retryable":false,"details":{}},"meta":{"command":"contacts.list","cliVersion":"3.0.1","productContractRevision":"2026-11-12.3","remoteContractRevision":"2026-08-12.7"}}` + "\n"
 	if result.ExitCode != 10 || result.Stdout != wantStdout {
 		t.Fatalf("result = %#v, want unavailable configuration failure", result)
 	}
@@ -4040,7 +4201,7 @@ func TestExecuteContactsListReportsUnavailableConfigurationBeforeProtectedRead(t
 }
 
 func TestExecuteContactsListRequiresAuthenticationWithoutRemoteCall(t *testing.T) {
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv:  []string{"contacts", "list"},
 		Stdin: strings.NewReader(""),
 	}, app.Dependencies{
@@ -4059,7 +4220,7 @@ func TestExecuteContactsListRequiresAuthenticationWithoutRemoteCall(t *testing.T
 		}},
 	})
 
-	const wantStdout = `{"ok":false,"error":{"type":"auth.required","code":"AUTHENTICATION_REQUIRED","message":"Authentication is required. Log in and try again.","retryable":false,"details":{}},"meta":{"command":"contacts.list","cliVersion":"3.0.1","productContractRevision":"2026-08-12.7","remoteContractRevision":"2026-08-12.7"}}` + "\n"
+	const wantStdout = `{"ok":false,"error":{"type":"auth.required","code":"AUTHENTICATION_REQUIRED","message":"Authentication is required. Log in and try again.","retryable":false,"details":{}},"meta":{"command":"contacts.list","cliVersion":"3.0.1","productContractRevision":"2026-11-12.3","remoteContractRevision":"2026-08-12.7"}}` + "\n"
 	if result.ExitCode != 3 || result.Stdout != wantStdout {
 		t.Fatalf("result = %#v, want authentication requirement", result)
 	}
@@ -4068,7 +4229,7 @@ func TestExecuteContactsListRequiresAuthenticationWithoutRemoteCall(t *testing.T
 func TestExecuteContactsListPreservesAmbiguousDisplayNamesWithoutIdentity(t *testing.T) {
 	const ambiguousName = "Same Display Name"
 	call := 0
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv:  []string{"contacts", "list", "--query", "same display"},
 		Stdin: strings.NewReader(""),
 	}, app.Dependencies{
@@ -4120,7 +4281,7 @@ func TestExecuteContactsListPreservesAmbiguousDisplayNamesWithoutIdentity(t *tes
 
 func TestExecuteContactsListFailsClosedOnUnsupportedStatus(t *testing.T) {
 	const privateBody = "private unsupported response"
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv:  []string{"contacts", "list"},
 		Stdin: strings.NewReader(""),
 	}, app.Dependencies{
@@ -4159,7 +4320,7 @@ func TestExecuteContactsListFailsClosedOnUnexpectedTerminalData(t *testing.T) {
 		privateID   = "private-terminal-identity"
 		privateName = "Private Terminal Name"
 	)
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv:  []string{"contacts", "list"},
 		Stdin: strings.NewReader(""),
 	}, app.Dependencies{
@@ -4195,7 +4356,7 @@ func TestExecuteContactsListFailsClosedOnUnexpectedTerminalData(t *testing.T) {
 
 func TestExecuteAuthStatusRedactsHealthyCredentials(t *testing.T) {
 	const credentials = `{"accessToken":"secret-token-value","refreshToken":"secret-refresh-value","userId":"private-user-value","expiresAt":"2026-08-11T02:00:00Z"}`
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv:  []string{"auth", "status"},
 		Stdin: strings.NewReader(""),
 	}, app.Dependencies{
@@ -4210,7 +4371,7 @@ func TestExecuteAuthStatusRedactsHealthyCredentials(t *testing.T) {
 		},
 	})
 
-	const want = `{"ok":true,"data":{"authenticated":true,"tokenState":"healthy","expiresAt":"2026-08-11T02:00:00Z"},"meta":{"command":"auth.status","cliVersion":"3.0.1","productContractRevision":"2026-08-12.7","remoteContractRevision":"2026-08-12.7","warnings":[]}}` + "\n"
+	const want = `{"ok":true,"data":{"authenticated":true,"tokenState":"healthy","expiresAt":"2026-08-11T02:00:00Z"},"meta":{"command":"auth.status","cliVersion":"3.0.1","productContractRevision":"2026-11-12.3","remoteContractRevision":"2026-08-12.7","warnings":[]}}` + "\n"
 	if result.ExitCode != 0 {
 		t.Fatalf("exit code = %d, want 0", result.ExitCode)
 	}
@@ -4229,7 +4390,7 @@ func TestExecuteAuthStatusRedactsHealthyCredentials(t *testing.T) {
 
 func TestExecuteAuthStatusReportsExpiringToken(t *testing.T) {
 	const credentials = `{"accessToken":"secret-token-value","expiresAt":"2026-08-11T00:04:00Z"}`
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv:  []string{"auth", "status"},
 		Stdin: strings.NewReader(""),
 	}, app.Dependencies{
@@ -4244,7 +4405,7 @@ func TestExecuteAuthStatusReportsExpiringToken(t *testing.T) {
 		},
 	})
 
-	const want = `{"ok":true,"data":{"authenticated":true,"tokenState":"expiring","expiresAt":"2026-08-11T00:04:00Z"},"meta":{"command":"auth.status","cliVersion":"3.0.1","productContractRevision":"2026-08-12.7","remoteContractRevision":"2026-08-12.7","warnings":[]}}` + "\n"
+	const want = `{"ok":true,"data":{"authenticated":true,"tokenState":"expiring","expiresAt":"2026-08-11T00:04:00Z"},"meta":{"command":"auth.status","cliVersion":"3.0.1","productContractRevision":"2026-11-12.3","remoteContractRevision":"2026-08-12.7","warnings":[]}}` + "\n"
 	if result.ExitCode != 0 {
 		t.Fatalf("exit code = %d, want 0", result.ExitCode)
 	}
@@ -4316,10 +4477,10 @@ func TestExecuteAuthStatusDeterministicallyRefreshesExpiringSession(t *testing.T
 		}},
 	}
 
-	first := app.Execute(context.Background(), app.Request{
+	first := executeChecked(t, context.Background(), app.Request{
 		Argv: []string{"auth", "status"},
 	}, dependencies)
-	const want = `{"ok":true,"data":{"authenticated":true,"tokenState":"healthy","expiresAt":"2026-08-11T01:10:00Z"},"meta":{"command":"auth.status","cliVersion":"3.0.1","productContractRevision":"2026-08-12.7","remoteContractRevision":"2026-08-12.7","warnings":[]}}` + "\n"
+	const want = `{"ok":true,"data":{"authenticated":true,"tokenState":"healthy","expiresAt":"2026-08-11T01:10:00Z"},"meta":{"command":"auth.status","cliVersion":"3.0.1","productContractRevision":"2026-11-12.3","remoteContractRevision":"2026-08-12.7","warnings":[]}}` + "\n"
 	if first.ExitCode != 0 || first.Stdout != want || first.Stderr != "" {
 		t.Fatalf("first status = %#v, want refreshed healthy session", first)
 	}
@@ -4346,7 +4507,7 @@ func TestExecuteAuthStatusDeterministicallyRefreshesExpiringSession(t *testing.T
 		}
 	}
 
-	second := app.Execute(context.Background(), app.Request{
+	second := executeChecked(t, context.Background(), app.Request{
 		Argv: []string{"auth", "status"},
 	}, dependencies)
 	if second.ExitCode != 0 || second.Stdout != want {
@@ -4384,7 +4545,7 @@ func TestExecuteAuthLogoutCannotBeUndoneByConcurrentRefresh(t *testing.T) {
 
 	statusResult := make(chan app.Result, 1)
 	go func() {
-		statusResult <- app.Execute(context.Background(), app.Request{
+		statusResult <- executeChecked(t, context.Background(), app.Request{
 			Argv: []string{"auth", "status"},
 		}, dependencies)
 	}()
@@ -4392,7 +4553,7 @@ func TestExecuteAuthLogoutCannotBeUndoneByConcurrentRefresh(t *testing.T) {
 
 	logoutResult := make(chan app.Result, 1)
 	go func() {
-		logoutResult <- app.Execute(context.Background(), app.Request{
+		logoutResult <- executeChecked(t, context.Background(), app.Request{
 			Argv: []string{"auth", "logout"},
 		}, dependencies)
 	}()
@@ -4410,7 +4571,7 @@ func TestExecuteAuthLogoutCannotBeUndoneByConcurrentRefresh(t *testing.T) {
 	if result := <-logoutResult; result.ExitCode != 0 {
 		t.Fatalf("serialized logout = %#v, want success", result)
 	}
-	final := app.Execute(context.Background(), app.Request{
+	final := executeChecked(t, context.Background(), app.Request{
 		Argv: []string{"auth", "status"},
 	}, dependencies)
 	if final.ExitCode != 0 ||
@@ -4429,7 +4590,7 @@ func TestExecuteAuthStatusAtomicallyReplacesProductionCredentials(t *testing.T) 
 		t.Fatalf("write initial credentials: %v", err)
 	}
 
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv: []string{"auth", "status"},
 	}, app.Dependencies{
 		Files:           auth.OSFileSystem{},
@@ -4469,7 +4630,7 @@ func TestExecuteAuthStatusMapsReviewedInvalidRefreshTokenToExpired(t *testing.T)
 		privateRefreshValue = "expired-private-refresh-value"
 		privateRemoteValue  = "private invalid refresh"
 	)
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv: []string{"auth", "status"},
 	}, app.Dependencies{
 		Files: fakeFilesystem{
@@ -4493,7 +4654,7 @@ func TestExecuteAuthStatusMapsReviewedInvalidRefreshTokenToExpired(t *testing.T)
 		}},
 	})
 
-	const wantStdout = `{"ok":false,"error":{"type":"auth.expired","code":"INVALID_REFRESH_TOKEN","message":"Stored authentication has expired. Log in again.","retryable":false,"details":{}},"meta":{"command":"auth.status","cliVersion":"3.0.1","productContractRevision":"2026-08-12.7","remoteContractRevision":"2026-08-12.7"}}` + "\n"
+	const wantStdout = `{"ok":false,"error":{"type":"auth.expired","code":"INVALID_REFRESH_TOKEN","message":"Stored authentication has expired. Log in again.","retryable":false,"details":{}},"meta":{"command":"auth.status","cliVersion":"3.0.1","productContractRevision":"2026-11-12.3","remoteContractRevision":"2026-08-12.7"}}` + "\n"
 	const wantStderr = "partiful: authentication expired\n"
 	if result.ExitCode != 3 || result.Stdout != wantStdout || result.Stderr != wantStderr {
 		t.Fatalf("result = %#v, want reviewed invalid-refresh failure", result)
@@ -4507,7 +4668,7 @@ func TestExecuteAuthStatusMapsReviewedInvalidRefreshTokenToExpired(t *testing.T)
 }
 
 func TestExecuteAuthStatusRejectsInvalidOptionalRefreshField(t *testing.T) {
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv: []string{"auth", "status"},
 	}, app.Dependencies{
 		Files: fakeFilesystem{
@@ -4535,7 +4696,7 @@ func TestExecuteAuthStatusRejectsInvalidOptionalRefreshField(t *testing.T) {
 }
 
 func TestExecuteAuthStatusRejectsRefreshedTokenInsideRefreshWindow(t *testing.T) {
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv: []string{"auth", "status"},
 	}, app.Dependencies{
 		Files: fakeFilesystem{
@@ -4564,7 +4725,7 @@ func TestExecuteAuthStatusRejectsRefreshedTokenInsideRefreshWindow(t *testing.T)
 
 func TestExecuteAuthStatusFailsClosedOnMalformedRefreshSuccess(t *testing.T) {
 	const privateValue = "private-refreshed-id-token"
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv: []string{"auth", "status"},
 	}, app.Dependencies{
 		Files: fakeFilesystem{
@@ -4597,7 +4758,7 @@ func TestExecuteAuthStatusFailsClosedOnMalformedRefreshSuccess(t *testing.T) {
 
 func TestExecuteAuthStatusReportsExpiredToken(t *testing.T) {
 	const credentials = `{"accessToken":"secret-token-value","expiresAt":"2026-08-10T23:59:00Z"}`
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv:  []string{"auth", "status"},
 		Stdin: strings.NewReader(""),
 	}, app.Dependencies{
@@ -4612,7 +4773,7 @@ func TestExecuteAuthStatusReportsExpiredToken(t *testing.T) {
 		},
 	})
 
-	const want = `{"ok":true,"data":{"authenticated":false,"tokenState":"expired","expiresAt":"2026-08-10T23:59:00Z"},"meta":{"command":"auth.status","cliVersion":"3.0.1","productContractRevision":"2026-08-12.7","remoteContractRevision":"2026-08-12.7","warnings":[]}}` + "\n"
+	const want = `{"ok":true,"data":{"authenticated":false,"tokenState":"expired","expiresAt":"2026-08-10T23:59:00Z"},"meta":{"command":"auth.status","cliVersion":"3.0.1","productContractRevision":"2026-11-12.3","remoteContractRevision":"2026-08-12.7","warnings":[]}}` + "\n"
 	if result.ExitCode != 0 {
 		t.Fatalf("exit code = %d, want 0", result.ExitCode)
 	}
@@ -4626,7 +4787,7 @@ func TestExecuteAuthStatusReportsExpiredToken(t *testing.T) {
 
 func TestExecuteAuthStatusFailureDoesNotRevealCredentialContents(t *testing.T) {
 	const privateContents = "secret-token-content private-user-identifier"
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv:  []string{"auth", "status"},
 		Stdin: strings.NewReader(""),
 	}, app.Dependencies{
@@ -4641,7 +4802,7 @@ func TestExecuteAuthStatusFailureDoesNotRevealCredentialContents(t *testing.T) {
 		},
 	})
 
-	const wantStdout = `{"ok":false,"error":{"type":"internal.failure","code":"CREDENTIALS_INVALID","message":"Local credentials are invalid.","retryable":false,"details":{}},"meta":{"command":"auth.status","cliVersion":"3.0.1","productContractRevision":"2026-08-12.7","remoteContractRevision":"2026-08-12.7"}}` + "\n"
+	const wantStdout = `{"ok":false,"error":{"type":"internal.failure","code":"CREDENTIALS_INVALID","message":"Local credentials are invalid.","retryable":false,"details":{}},"meta":{"command":"auth.status","cliVersion":"3.0.1","productContractRevision":"2026-11-12.3","remoteContractRevision":"2026-08-12.7"}}` + "\n"
 	const wantStderr = "partiful: local operation failed\n"
 	if result.ExitCode != 10 {
 		t.Fatalf("exit code = %d, want 10", result.ExitCode)
@@ -4672,12 +4833,12 @@ func TestExecuteAuthLogoutAtomicallyRemovesCredentials(t *testing.T) {
 		},
 	}
 
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv:  []string{"auth", "logout"},
 		Stdin: strings.NewReader(""),
 	}, dependencies)
 
-	const want = `{"ok":true,"data":{"authenticated":false,"tokenState":"missing","expiresAt":null},"meta":{"command":"auth.logout","cliVersion":"3.0.1","productContractRevision":"2026-08-12.7","remoteContractRevision":"2026-08-12.7","warnings":[]}}` + "\n"
+	const want = `{"ok":true,"data":{"authenticated":false,"tokenState":"missing","expiresAt":null},"meta":{"command":"auth.logout","cliVersion":"3.0.1","productContractRevision":"2026-11-12.3","remoteContractRevision":"2026-08-12.7","warnings":[]}}` + "\n"
 	if result.ExitCode != 0 {
 		t.Fatalf("exit code = %d, want 0", result.ExitCode)
 	}
@@ -4688,7 +4849,7 @@ func TestExecuteAuthLogoutAtomicallyRemovesCredentials(t *testing.T) {
 		t.Fatalf("stderr = %q, want empty", result.Stderr)
 	}
 
-	status := app.Execute(context.Background(), app.Request{
+	status := executeChecked(t, context.Background(), app.Request{
 		Argv:  []string{"auth", "status"},
 		Stdin: strings.NewReader(""),
 	}, dependencies)
@@ -4751,12 +4912,12 @@ func TestExecuteAuthLogoutFailureLeavesCredentialsAvailableAndRedactsError(t *te
 		},
 	}
 
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv:  []string{"auth", "logout"},
 		Stdin: strings.NewReader(""),
 	}, dependencies)
 
-	const wantStdout = `{"ok":false,"error":{"type":"internal.failure","code":"CREDENTIAL_STORE_UNAVAILABLE","message":"Local credential storage is unavailable.","retryable":false,"details":{}},"meta":{"command":"auth.logout","cliVersion":"3.0.1","productContractRevision":"2026-08-12.7","remoteContractRevision":"2026-08-12.7"}}` + "\n"
+	const wantStdout = `{"ok":false,"error":{"type":"internal.failure","code":"CREDENTIAL_STORE_UNAVAILABLE","message":"Local credential storage is unavailable.","retryable":false,"details":{}},"meta":{"command":"auth.logout","cliVersion":"3.0.1","productContractRevision":"2026-11-12.3","remoteContractRevision":"2026-08-12.7"}}` + "\n"
 	if result.ExitCode != 10 {
 		t.Fatalf("exit code = %d, want 10", result.ExitCode)
 	}
@@ -4767,7 +4928,7 @@ func TestExecuteAuthLogoutFailureLeavesCredentialsAvailableAndRedactsError(t *te
 		t.Fatal("logout failure output revealed a private identifier")
 	}
 
-	status := app.Execute(context.Background(), app.Request{
+	status := executeChecked(t, context.Background(), app.Request{
 		Argv:  []string{"auth", "status"},
 		Stdin: strings.NewReader(""),
 	}, dependencies)
@@ -4778,7 +4939,7 @@ func TestExecuteAuthLogoutFailureLeavesCredentialsAvailableAndRedactsError(t *te
 
 func TestExecuteDoctorReportsHealthyCredentialsWithoutPrivateData(t *testing.T) {
 	const credentials = `{"accessToken":"secret-token-value","userId":"private-user-identifier","expiresAt":"2026-08-11T02:00:00Z"}`
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv:  []string{"doctor"},
 		Stdin: strings.NewReader(""),
 	}, app.Dependencies{
@@ -4793,7 +4954,7 @@ func TestExecuteDoctorReportsHealthyCredentialsWithoutPrivateData(t *testing.T) 
 		},
 	})
 
-	const want = `{"ok":true,"data":{"healthy":true,"checks":[{"name":"credentials","status":"pass","message":"Authentication credentials are available.","remediation":null}]},"meta":{"command":"doctor","cliVersion":"3.0.1","productContractRevision":"2026-08-12.7","remoteContractRevision":"2026-08-12.7","warnings":[]}}` + "\n"
+	const want = `{"ok":true,"data":{"healthy":true,"checks":[{"name":"credentials","status":"pass","message":"Authentication credentials are available.","remediation":null}]},"meta":{"command":"doctor","cliVersion":"3.0.1","productContractRevision":"2026-11-12.3","remoteContractRevision":"2026-08-12.7","warnings":[]}}` + "\n"
 	if result.ExitCode != 0 {
 		t.Fatalf("exit code = %d, want 0", result.ExitCode)
 	}
@@ -4811,7 +4972,7 @@ func TestExecuteDoctorReportsHealthyCredentialsWithoutPrivateData(t *testing.T) 
 }
 
 func TestExecuteDoctorReportsMissingCredentialsAsARedactedCheck(t *testing.T) {
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv:  []string{"doctor"},
 		Stdin: strings.NewReader(""),
 	}, app.Dependencies{
@@ -4826,7 +4987,7 @@ func TestExecuteDoctorReportsMissingCredentialsAsARedactedCheck(t *testing.T) {
 		},
 	})
 
-	const want = `{"ok":true,"data":{"healthy":false,"checks":[{"name":"credentials","status":"fail","message":"Authentication credentials are missing.","remediation":"Establish authentication before using commands that require it."}]},"meta":{"command":"doctor","cliVersion":"3.0.1","productContractRevision":"2026-08-12.7","remoteContractRevision":"2026-08-12.7","warnings":[]}}` + "\n"
+	const want = `{"ok":true,"data":{"healthy":false,"checks":[{"name":"credentials","status":"fail","message":"Authentication credentials are missing.","remediation":"Establish authentication before using commands that require it."}]},"meta":{"command":"doctor","cliVersion":"3.0.1","productContractRevision":"2026-11-12.3","remoteContractRevision":"2026-08-12.7","warnings":[]}}` + "\n"
 	if result.ExitCode != 0 {
 		t.Fatalf("exit code = %d, want 0", result.ExitCode)
 	}
@@ -4840,7 +5001,7 @@ func TestExecuteDoctorReportsMissingCredentialsAsARedactedCheck(t *testing.T) {
 
 func TestExecuteDoctorWarnsWhenCredentialsExpireSoon(t *testing.T) {
 	const credentials = `{"accessToken":"secret-token-value","expiresAt":"2026-08-11T00:04:00Z"}`
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv:  []string{"doctor"},
 		Stdin: strings.NewReader(""),
 	}, app.Dependencies{
@@ -4855,7 +5016,7 @@ func TestExecuteDoctorWarnsWhenCredentialsExpireSoon(t *testing.T) {
 		},
 	})
 
-	const want = `{"ok":true,"data":{"healthy":true,"checks":[{"name":"credentials","status":"warn","message":"Authentication credentials expire soon.","remediation":"Refresh authentication before the credentials expire."}]},"meta":{"command":"doctor","cliVersion":"3.0.1","productContractRevision":"2026-08-12.7","remoteContractRevision":"2026-08-12.7","warnings":[]}}` + "\n"
+	const want = `{"ok":true,"data":{"healthy":true,"checks":[{"name":"credentials","status":"warn","message":"Authentication credentials expire soon.","remediation":"Refresh authentication before the credentials expire."}]},"meta":{"command":"doctor","cliVersion":"3.0.1","productContractRevision":"2026-11-12.3","remoteContractRevision":"2026-08-12.7","warnings":[]}}` + "\n"
 	if result.ExitCode != 0 {
 		t.Fatalf("exit code = %d, want 0", result.ExitCode)
 	}
@@ -4869,7 +5030,7 @@ func TestExecuteDoctorWarnsWhenCredentialsExpireSoon(t *testing.T) {
 
 func TestExecuteDoctorFailsExpiredCredentialsCheck(t *testing.T) {
 	const credentials = `{"accessToken":"secret-token-value","expiresAt":"2026-08-10T23:59:00Z"}`
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv:  []string{"doctor"},
 		Stdin: strings.NewReader(""),
 	}, app.Dependencies{
@@ -4884,7 +5045,7 @@ func TestExecuteDoctorFailsExpiredCredentialsCheck(t *testing.T) {
 		},
 	})
 
-	const want = `{"ok":true,"data":{"healthy":false,"checks":[{"name":"credentials","status":"fail","message":"Authentication credentials have expired.","remediation":"Re-establish authentication."}]},"meta":{"command":"doctor","cliVersion":"3.0.1","productContractRevision":"2026-08-12.7","remoteContractRevision":"2026-08-12.7","warnings":[]}}` + "\n"
+	const want = `{"ok":true,"data":{"healthy":false,"checks":[{"name":"credentials","status":"fail","message":"Authentication credentials have expired.","remediation":"Re-establish authentication."}]},"meta":{"command":"doctor","cliVersion":"3.0.1","productContractRevision":"2026-11-12.3","remoteContractRevision":"2026-08-12.7","warnings":[]}}` + "\n"
 	if result.ExitCode != 0 {
 		t.Fatalf("exit code = %d, want 0", result.ExitCode)
 	}
@@ -4898,7 +5059,7 @@ func TestExecuteDoctorFailsExpiredCredentialsCheck(t *testing.T) {
 
 func TestExecuteDoctorRedactsInvalidCredentialFile(t *testing.T) {
 	const privateContents = "secret-token-content private-user-identifier"
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv:  []string{"doctor"},
 		Stdin: strings.NewReader(""),
 	}, app.Dependencies{
@@ -4913,7 +5074,7 @@ func TestExecuteDoctorRedactsInvalidCredentialFile(t *testing.T) {
 		},
 	})
 
-	const want = `{"ok":true,"data":{"healthy":false,"checks":[{"name":"credentials","status":"fail","message":"Authentication credentials are invalid.","remediation":"Remove the invalid credentials and re-establish authentication."}]},"meta":{"command":"doctor","cliVersion":"3.0.1","productContractRevision":"2026-08-12.7","remoteContractRevision":"2026-08-12.7","warnings":[]}}` + "\n"
+	const want = `{"ok":true,"data":{"healthy":false,"checks":[{"name":"credentials","status":"fail","message":"Authentication credentials are invalid.","remediation":"Remove the invalid credentials and re-establish authentication."}]},"meta":{"command":"doctor","cliVersion":"3.0.1","productContractRevision":"2026-11-12.3","remoteContractRevision":"2026-08-12.7","warnings":[]}}` + "\n"
 	if result.ExitCode != 0 {
 		t.Fatalf("exit code = %d, want 0", result.ExitCode)
 	}
@@ -4930,7 +5091,7 @@ func TestExecuteDoctorRedactsInvalidCredentialFile(t *testing.T) {
 
 func TestExecuteDoctorRedactsCredentialStorageFailure(t *testing.T) {
 	const privateError = "permission failure for private-user-identifier"
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv:  []string{"doctor"},
 		Stdin: strings.NewReader(""),
 	}, app.Dependencies{
@@ -4945,7 +5106,7 @@ func TestExecuteDoctorRedactsCredentialStorageFailure(t *testing.T) {
 		},
 	})
 
-	const want = `{"ok":true,"data":{"healthy":false,"checks":[{"name":"credentials","status":"fail","message":"Credential storage is unavailable.","remediation":"Check local credential file permissions."}]},"meta":{"command":"doctor","cliVersion":"3.0.1","productContractRevision":"2026-08-12.7","remoteContractRevision":"2026-08-12.7","warnings":[]}}` + "\n"
+	const want = `{"ok":true,"data":{"healthy":false,"checks":[{"name":"credentials","status":"fail","message":"Credential storage is unavailable.","remediation":"Check local credential file permissions."}]},"meta":{"command":"doctor","cliVersion":"3.0.1","productContractRevision":"2026-11-12.3","remoteContractRevision":"2026-08-12.7","warnings":[]}}` + "\n"
 	if result.ExitCode != 0 {
 		t.Fatalf("exit code = %d, want 0", result.ExitCode)
 	}
@@ -4961,7 +5122,7 @@ func TestExecuteDoctorRedactsCredentialStorageFailure(t *testing.T) {
 }
 
 func TestExecuteSchemaDescribesBothDiscoveryResultShapes(t *testing.T) {
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv:  []string{"schema", "schema"},
 		Stdin: strings.NewReader(""),
 	}, app.Dependencies{})
@@ -5047,12 +5208,12 @@ func TestExecuteSchemaDescribesBothDiscoveryResultShapes(t *testing.T) {
 }
 
 func TestExecuteUsesDefinitionForFlagFailureCommandMetadata(t *testing.T) {
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv:  []string{"auth", "status", "--non-interactive", "--non-interactive"},
 		Stdin: strings.NewReader(""),
 	}, app.Dependencies{})
 
-	const want = `{"ok":false,"error":{"type":"input.invalid","code":"FLAG_REPEATED","message":"A scalar flag cannot be repeated.","retryable":false,"details":{"flag":"--non-interactive"}},"meta":{"command":"auth.status","cliVersion":"3.0.1","productContractRevision":"2026-08-12.7","remoteContractRevision":"2026-08-12.7"}}` + "\n"
+	const want = `{"ok":false,"error":{"type":"input.invalid","code":"FLAG_REPEATED","message":"A scalar flag cannot be repeated.","retryable":false,"details":{"flag":"--non-interactive"}},"meta":{"command":"auth.status","cliVersion":"3.0.1","productContractRevision":"2026-11-12.3","remoteContractRevision":"2026-08-12.7"}}` + "\n"
 	if result.ExitCode != 2 {
 		t.Fatalf("exit code = %d, want 2", result.ExitCode)
 	}
@@ -5065,7 +5226,7 @@ func TestExecuteUsesDefinitionForFlagFailureCommandMetadata(t *testing.T) {
 }
 
 func TestExecutePrettyAppliesWhenItFollowsInvalidGlobalFlag(t *testing.T) {
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv: []string{
 			"auth",
 			"status",
@@ -5091,12 +5252,12 @@ func TestExecutePrettyAppliesWhenItFollowsInvalidGlobalFlag(t *testing.T) {
 }
 
 func TestExecuteUsesKnownCommandMetadataForInvalidArity(t *testing.T) {
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv:  []string{"schema", "auth.status", "extra-private-value"},
 		Stdin: strings.NewReader(""),
 	}, app.Dependencies{})
 
-	const want = `{"ok":false,"error":{"type":"usage.invalid","code":"COMMAND_NOT_FOUND","message":"Unknown command.","retryable":false,"details":{}},"meta":{"command":"schema","cliVersion":"3.0.1","productContractRevision":"2026-08-12.7","remoteContractRevision":"2026-08-12.7"}}` + "\n"
+	const want = `{"ok":false,"error":{"type":"usage.invalid","code":"COMMAND_NOT_FOUND","message":"Unknown command.","retryable":false,"details":{}},"meta":{"command":"schema","cliVersion":"3.0.1","productContractRevision":"2026-11-12.3","remoteContractRevision":"2026-08-12.7"}}` + "\n"
 	if result.ExitCode != 2 {
 		t.Fatalf("exit code = %d, want 2", result.ExitCode)
 	}
@@ -5110,7 +5271,7 @@ func TestExecuteUsesKnownCommandMetadataForInvalidArity(t *testing.T) {
 
 func TestExecuteAuthStatusReportsConfigurationDirectoryFailure(t *testing.T) {
 	const privateError = "configuration error containing private-user-identifier"
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv:  []string{"auth", "status"},
 		Stdin: strings.NewReader(""),
 	}, app.Dependencies{
@@ -5121,7 +5282,7 @@ func TestExecuteAuthStatusReportsConfigurationDirectoryFailure(t *testing.T) {
 		},
 	})
 
-	const wantStdout = `{"ok":false,"error":{"type":"internal.failure","code":"CONFIG_DIRECTORY_UNAVAILABLE","message":"Local configuration directory is unavailable.","retryable":false,"details":{}},"meta":{"command":"auth.status","cliVersion":"3.0.1","productContractRevision":"2026-08-12.7","remoteContractRevision":"2026-08-12.7"}}` + "\n"
+	const wantStdout = `{"ok":false,"error":{"type":"internal.failure","code":"CONFIG_DIRECTORY_UNAVAILABLE","message":"Local configuration directory is unavailable.","retryable":false,"details":{}},"meta":{"command":"auth.status","cliVersion":"3.0.1","productContractRevision":"2026-11-12.3","remoteContractRevision":"2026-08-12.7"}}` + "\n"
 	if result.ExitCode != 10 {
 		t.Fatalf("exit code = %d, want 10", result.ExitCode)
 	}
@@ -5135,7 +5296,7 @@ func TestExecuteAuthStatusReportsConfigurationDirectoryFailure(t *testing.T) {
 
 func TestExecuteDoctorDiagnosesConfigurationDirectoryFailure(t *testing.T) {
 	const privateError = "configuration error containing private-user-identifier"
-	result := app.Execute(context.Background(), app.Request{
+	result := executeChecked(t, context.Background(), app.Request{
 		Argv:  []string{"doctor"},
 		Stdin: strings.NewReader(""),
 	}, app.Dependencies{
@@ -5146,7 +5307,7 @@ func TestExecuteDoctorDiagnosesConfigurationDirectoryFailure(t *testing.T) {
 		},
 	})
 
-	const want = `{"ok":true,"data":{"healthy":false,"checks":[{"name":"credentials","status":"fail","message":"Configuration directory is unavailable.","remediation":"Set a usable user configuration directory."}]},"meta":{"command":"doctor","cliVersion":"3.0.1","productContractRevision":"2026-08-12.7","remoteContractRevision":"2026-08-12.7","warnings":[]}}` + "\n"
+	const want = `{"ok":true,"data":{"healthy":false,"checks":[{"name":"credentials","status":"fail","message":"Configuration directory is unavailable.","remediation":"Set a usable user configuration directory."}]},"meta":{"command":"doctor","cliVersion":"3.0.1","productContractRevision":"2026-11-12.3","remoteContractRevision":"2026-08-12.7","warnings":[]}}` + "\n"
 	if result.ExitCode != 0 {
 		t.Fatalf("exit code = %d, want 0", result.ExitCode)
 	}

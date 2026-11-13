@@ -1,0 +1,4598 @@
+{
+  "catalog": {
+    "data": {
+      "commands": [
+        "auth.login",
+        "auth.logout",
+        "auth.status",
+        "blasts.send",
+        "cohosts.invite",
+        "cohosts.link.create",
+        "cohosts.link.revoke",
+        "cohosts.remove",
+        "cohosts.revoke-invite",
+        "contacts.list",
+        "doctor",
+        "events.cancel",
+        "events.create",
+        "events.delete",
+        "events.get",
+        "events.list",
+        "events.update",
+        "guests.invite",
+        "guests.list",
+        "posters.list",
+        "posters.search",
+        "rsvp.get",
+        "rsvp.set",
+        "schema",
+        "version"
+      ]
+    },
+    "meta": {
+      "cliVersion": "3.0.1",
+      "command": "schema",
+      "productContractRevision": "2026-11-12.3",
+      "remoteContractRevision": "2026-08-12.7",
+      "warnings": []
+    },
+    "ok": true
+  },
+  "definitions": {
+    "auth.login": {
+      "data": {
+        "command": "auth.login",
+        "failureTypes": [
+          "usage.invalid",
+          "input.invalid",
+          "auth.expired",
+          "auth.human_required",
+          "remote.unavailable",
+          "contract.protocol_changed",
+          "internal.failure"
+        ],
+        "flags": [
+          {
+            "description": "Disable terminal prompts; login requires human interaction.",
+            "name": "--non-interactive",
+            "required": false
+          },
+          {
+            "description": "Disable terminal prompts; alias of --non-interactive.",
+            "name": "--no-input",
+            "required": false
+          },
+          {
+            "description": "Indent the JSON result.",
+            "name": "--pretty",
+            "required": false
+          }
+        ],
+        "inputSchema": {
+          "additionalProperties": false,
+          "type": "object"
+        },
+        "positionals": [],
+        "safety": {
+          "destructive": false,
+          "kind": "local-mutation"
+        },
+        "successSchema": {
+          "additionalProperties": false,
+          "properties": {
+            "authenticated": {
+              "type": "boolean"
+            },
+            "expiresAt": {
+              "format": "date-time",
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "tokenState": {
+              "enum": [
+                "healthy",
+                "expiring",
+                "expired",
+                "missing"
+              ],
+              "type": "string"
+            }
+          },
+          "required": [
+            "authenticated",
+            "tokenState",
+            "expiresAt"
+          ],
+          "type": "object"
+        }
+      },
+      "meta": {
+        "cliVersion": "3.0.1",
+        "command": "schema",
+        "productContractRevision": "2026-11-12.3",
+        "remoteContractRevision": "2026-08-12.7",
+        "warnings": []
+      },
+      "ok": true
+    },
+    "auth.logout": {
+      "data": {
+        "command": "auth.logout",
+        "failureTypes": [
+          "usage.invalid",
+          "input.invalid",
+          "internal.failure"
+        ],
+        "flags": [
+          {
+            "description": "Indent the JSON result.",
+            "name": "--pretty",
+            "required": false
+          },
+          {
+            "description": "Disable terminal prompts.",
+            "name": "--non-interactive",
+            "required": false
+          },
+          {
+            "description": "Disable terminal prompts; alias of --non-interactive.",
+            "name": "--no-input",
+            "required": false
+          }
+        ],
+        "inputSchema": {
+          "additionalProperties": false,
+          "type": "object"
+        },
+        "positionals": [],
+        "safety": {
+          "destructive": false,
+          "kind": "local-mutation"
+        },
+        "successSchema": {
+          "additionalProperties": false,
+          "properties": {
+            "authenticated": {
+              "type": "boolean"
+            },
+            "expiresAt": {
+              "format": "date-time",
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "tokenState": {
+              "enum": [
+                "healthy",
+                "expiring",
+                "expired",
+                "missing"
+              ],
+              "type": "string"
+            }
+          },
+          "required": [
+            "authenticated",
+            "tokenState",
+            "expiresAt"
+          ],
+          "type": "object"
+        }
+      },
+      "meta": {
+        "cliVersion": "3.0.1",
+        "command": "schema",
+        "productContractRevision": "2026-11-12.3",
+        "remoteContractRevision": "2026-08-12.7",
+        "warnings": []
+      },
+      "ok": true
+    },
+    "auth.status": {
+      "data": {
+        "command": "auth.status",
+        "failureTypes": [
+          "usage.invalid",
+          "input.invalid",
+          "auth.expired",
+          "remote.unavailable",
+          "contract.protocol_changed",
+          "internal.failure"
+        ],
+        "flags": [
+          {
+            "description": "Indent the JSON result.",
+            "name": "--pretty",
+            "required": false
+          },
+          {
+            "description": "Disable terminal prompts.",
+            "name": "--non-interactive",
+            "required": false
+          },
+          {
+            "description": "Disable terminal prompts; alias of --non-interactive.",
+            "name": "--no-input",
+            "required": false
+          }
+        ],
+        "inputSchema": {
+          "additionalProperties": false,
+          "type": "object"
+        },
+        "positionals": [],
+        "safety": {
+          "destructive": false,
+          "kind": "local-mutation"
+        },
+        "successSchema": {
+          "additionalProperties": false,
+          "properties": {
+            "authenticated": {
+              "type": "boolean"
+            },
+            "expiresAt": {
+              "format": "date-time",
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "tokenState": {
+              "enum": [
+                "healthy",
+                "expiring",
+                "expired",
+                "missing"
+              ],
+              "type": "string"
+            }
+          },
+          "required": [
+            "authenticated",
+            "tokenState",
+            "expiresAt"
+          ],
+          "type": "object"
+        }
+      },
+      "meta": {
+        "cliVersion": "3.0.1",
+        "command": "schema",
+        "productContractRevision": "2026-11-12.3",
+        "remoteContractRevision": "2026-08-12.7",
+        "warnings": []
+      },
+      "ok": true
+    },
+    "blasts.send": {
+      "data": {
+        "command": "blasts.send",
+        "failureTypes": [
+          "usage.invalid",
+          "input.invalid",
+          "auth.required",
+          "auth.expired",
+          "permission.denied",
+          "resource.not_found",
+          "state.conflict",
+          "remote.unavailable",
+          "contract.protocol_changed",
+          "internal.failure"
+        ],
+        "flags": [
+          {
+            "description": "Only all-guests is supported.",
+            "name": "--audience",
+            "required": false
+          },
+          {
+            "description": "Read the private message from a file path or - for stdin.",
+            "name": "--message-file",
+            "required": false
+          },
+          {
+            "description": "Show the blast in the event activity feed.",
+            "name": "--show-on-event-page",
+            "required": false
+          },
+          {
+            "description": "Preview the validated mutation without dispatching it.",
+            "name": "--dry-run",
+            "required": false
+          },
+          {
+            "description": "Skip the confirmation prompt for a destructive command.",
+            "name": "--force",
+            "required": false
+          },
+          {
+            "description": "Never prompt; fail if confirmation is required.",
+            "name": "--no-input",
+            "required": false
+          },
+          {
+            "description": "Indent the JSON result.",
+            "name": "--pretty",
+            "required": false
+          },
+          {
+            "description": "Disable terminal prompts.",
+            "name": "--non-interactive",
+            "required": false
+          }
+        ],
+        "inputSchema": {
+          "additionalProperties": false,
+          "properties": {
+            "audience": {
+              "enum": [
+                "all-guests"
+              ],
+              "type": "string"
+            },
+            "messageFile": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "showOnEventPage": {
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "audience",
+            "messageFile"
+          ],
+          "type": "object"
+        },
+        "positionals": [
+          {
+            "description": "Event identifier.",
+            "name": "event-id",
+            "required": true
+          }
+        ],
+        "safety": {
+          "destructive": false,
+          "kind": "consequential-action"
+        },
+        "successSchema": {
+          "oneOf": [
+            {
+              "additionalProperties": false,
+              "properties": {
+                "effects": {
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                },
+                "eventId": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "input": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "audience": {
+                      "enum": [
+                        "all-guests"
+                      ],
+                      "type": "string"
+                    },
+                    "message": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "length": {
+                          "type": "integer"
+                        },
+                        "sha256": {
+                          "minLength": 1,
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "sha256",
+                        "length"
+                      ],
+                      "type": "object"
+                    },
+                    "showOnEventPage": {
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "audience",
+                    "showOnEventPage",
+                    "message"
+                  ],
+                  "type": "object"
+                },
+                "operation": {
+                  "enum": [
+                    "createTextBlast"
+                  ],
+                  "type": "string"
+                },
+                "preconditions": {
+                  "type": "object"
+                },
+                "request": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "eventId": {
+                      "minLength": 1,
+                      "type": "string"
+                    },
+                    "message": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "showOnEventPage": {
+                          "type": "boolean"
+                        },
+                        "textLength": {
+                          "type": "integer"
+                        },
+                        "textSha256": {
+                          "minLength": 1,
+                          "type": "string"
+                        },
+                        "to": {
+                          "items": {
+                            "type": "string"
+                          },
+                          "type": "array"
+                        }
+                      },
+                      "required": [
+                        "textSha256",
+                        "textLength",
+                        "to",
+                        "showOnEventPage"
+                      ],
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "eventId",
+                    "message"
+                  ],
+                  "type": "object"
+                }
+              },
+              "required": [
+                "operation",
+                "eventId",
+                "input",
+                "request",
+                "effects",
+                "preconditions"
+              ],
+              "type": "object"
+            },
+            {
+              "additionalProperties": false,
+              "properties": {
+                "audience": {
+                  "enum": [
+                    "all-guests"
+                  ],
+                  "type": "string"
+                },
+                "eventId": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "recipientStatus": {
+                  "enum": [
+                    "not-reported"
+                  ],
+                  "type": "string"
+                },
+                "showOnEventPage": {
+                  "type": "boolean"
+                },
+                "submitted": {
+                  "const": true,
+                  "type": "boolean"
+                }
+              },
+              "required": [
+                "eventId",
+                "submitted",
+                "audience",
+                "showOnEventPage",
+                "recipientStatus"
+              ],
+              "type": "object"
+            }
+          ],
+          "type": "object"
+        }
+      },
+      "meta": {
+        "cliVersion": "3.0.1",
+        "command": "schema",
+        "productContractRevision": "2026-11-12.3",
+        "remoteContractRevision": "2026-08-12.7",
+        "warnings": []
+      },
+      "ok": true
+    },
+    "cohosts.invite": {
+      "data": {
+        "command": "cohosts.invite",
+        "failureTypes": [
+          "usage.invalid",
+          "input.invalid",
+          "auth.required",
+          "auth.expired",
+          "permission.denied",
+          "resource.not_found",
+          "match.ambiguous",
+          "state.conflict",
+          "remote.unavailable",
+          "contract.protocol_changed",
+          "internal.failure"
+        ],
+        "flags": [
+          {
+            "description": "Resolvable contact display name.",
+            "name": "--contact",
+            "required": true
+          },
+          {
+            "description": "Preview the validated mutation without dispatching it.",
+            "name": "--dry-run",
+            "required": false
+          },
+          {
+            "description": "Skip the confirmation prompt for a destructive command.",
+            "name": "--force",
+            "required": false
+          },
+          {
+            "description": "Never prompt; fail if confirmation is required.",
+            "name": "--no-input",
+            "required": false
+          },
+          {
+            "description": "Indent the JSON result.",
+            "name": "--pretty",
+            "required": false
+          },
+          {
+            "description": "Disable terminal prompts.",
+            "name": "--non-interactive",
+            "required": false
+          }
+        ],
+        "inputSchema": {
+          "additionalProperties": false,
+          "properties": {
+            "contact": {
+              "minLength": 1,
+              "type": "string"
+            }
+          },
+          "required": [
+            "contact"
+          ],
+          "type": "object"
+        },
+        "positionals": [
+          {
+            "description": "Event identifier.",
+            "name": "event-id",
+            "required": true
+          }
+        ],
+        "safety": {
+          "destructive": false,
+          "kind": "consequential-action"
+        },
+        "successSchema": {
+          "oneOf": [
+            {
+              "additionalProperties": false,
+              "properties": {
+                "contact": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "displayName": {
+                      "minLength": 1,
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "displayName"
+                  ],
+                  "type": "object"
+                },
+                "effects": {
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                },
+                "eventId": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "operation": {
+                  "enum": [
+                    "createCohostRequest"
+                  ],
+                  "type": "string"
+                },
+                "preconditions": {
+                  "type": "object"
+                },
+                "request": {
+                  "type": "object"
+                }
+              },
+              "required": [
+                "operation",
+                "eventId",
+                "contact",
+                "request",
+                "effects",
+                "preconditions"
+              ],
+              "type": "object"
+            },
+            {
+              "additionalProperties": false,
+              "properties": {
+                "cohost": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "displayName": {
+                      "minLength": 1,
+                      "type": "string"
+                    },
+                    "status": {
+                      "enum": [
+                        "invited"
+                      ],
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "displayName",
+                    "status"
+                  ],
+                  "type": "object"
+                },
+                "eventId": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "eventId",
+                "cohost"
+              ],
+              "type": "object"
+            }
+          ],
+          "type": "object"
+        }
+      },
+      "meta": {
+        "cliVersion": "3.0.1",
+        "command": "schema",
+        "productContractRevision": "2026-11-12.3",
+        "remoteContractRevision": "2026-08-12.7",
+        "warnings": []
+      },
+      "ok": true
+    },
+    "cohosts.link.create": {
+      "data": {
+        "command": "cohosts.link.create",
+        "failureTypes": [
+          "usage.invalid",
+          "input.invalid",
+          "auth.required",
+          "auth.expired",
+          "permission.denied",
+          "resource.not_found",
+          "state.conflict",
+          "remote.unavailable",
+          "contract.protocol_changed",
+          "internal.failure"
+        ],
+        "flags": [
+          {
+            "description": "Preview the validated mutation without dispatching it.",
+            "name": "--dry-run",
+            "required": false
+          },
+          {
+            "description": "Skip the confirmation prompt for a destructive command.",
+            "name": "--force",
+            "required": false
+          },
+          {
+            "description": "Never prompt; fail if confirmation is required.",
+            "name": "--no-input",
+            "required": false
+          },
+          {
+            "description": "Indent the JSON result.",
+            "name": "--pretty",
+            "required": false
+          },
+          {
+            "description": "Disable terminal prompts.",
+            "name": "--non-interactive",
+            "required": false
+          }
+        ],
+        "inputSchema": {
+          "additionalProperties": false,
+          "type": "object"
+        },
+        "positionals": [
+          {
+            "description": "Event identifier.",
+            "name": "event-id",
+            "required": true
+          }
+        ],
+        "safety": {
+          "destructive": false,
+          "kind": "consequential-action"
+        },
+        "successSchema": {
+          "oneOf": [
+            {
+              "additionalProperties": false,
+              "properties": {
+                "effects": {
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                },
+                "eventId": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "operation": {
+                  "enum": [
+                    "generateEventCohostLink"
+                  ],
+                  "type": "string"
+                },
+                "preconditions": {
+                  "type": "object"
+                },
+                "request": {
+                  "type": "object"
+                }
+              },
+              "required": [
+                "operation",
+                "eventId",
+                "request",
+                "effects",
+                "preconditions"
+              ],
+              "type": "object"
+            },
+            {
+              "additionalProperties": false,
+              "properties": {
+                "eventId": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "link": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "state": {
+                      "enum": [
+                        "active"
+                      ],
+                      "type": "string"
+                    },
+                    "url": {
+                      "format": "uri",
+                      "type": [
+                        "string"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "url",
+                    "state"
+                  ],
+                  "type": "object"
+                }
+              },
+              "required": [
+                "eventId",
+                "link"
+              ],
+              "type": "object"
+            }
+          ],
+          "type": "object"
+        }
+      },
+      "meta": {
+        "cliVersion": "3.0.1",
+        "command": "schema",
+        "productContractRevision": "2026-11-12.3",
+        "remoteContractRevision": "2026-08-12.7",
+        "warnings": []
+      },
+      "ok": true
+    },
+    "cohosts.link.revoke": {
+      "data": {
+        "command": "cohosts.link.revoke",
+        "failureTypes": [
+          "usage.invalid",
+          "input.invalid",
+          "auth.required",
+          "auth.expired",
+          "permission.denied",
+          "resource.not_found",
+          "state.conflict",
+          "safety.confirmation_required",
+          "remote.unavailable",
+          "contract.protocol_changed",
+          "internal.failure"
+        ],
+        "flags": [
+          {
+            "description": "Preview the validated mutation without dispatching it.",
+            "name": "--dry-run",
+            "required": false
+          },
+          {
+            "description": "Skip the confirmation prompt for a destructive command.",
+            "name": "--force",
+            "required": false
+          },
+          {
+            "description": "Never prompt; fail if confirmation is required.",
+            "name": "--no-input",
+            "required": false
+          },
+          {
+            "description": "Indent the JSON result.",
+            "name": "--pretty",
+            "required": false
+          },
+          {
+            "description": "Disable terminal prompts.",
+            "name": "--non-interactive",
+            "required": false
+          }
+        ],
+        "inputSchema": {
+          "additionalProperties": false,
+          "type": "object"
+        },
+        "positionals": [
+          {
+            "description": "Event identifier.",
+            "name": "event-id",
+            "required": true
+          }
+        ],
+        "safety": {
+          "destructive": true,
+          "kind": "consequential-action"
+        },
+        "successSchema": {
+          "oneOf": [
+            {
+              "additionalProperties": false,
+              "properties": {
+                "effects": {
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                },
+                "eventId": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "operation": {
+                  "enum": [
+                    "revokeEventCohostLink"
+                  ],
+                  "type": "string"
+                },
+                "preconditions": {
+                  "type": "object"
+                },
+                "request": {
+                  "type": "object"
+                }
+              },
+              "required": [
+                "operation",
+                "eventId",
+                "request",
+                "effects",
+                "preconditions"
+              ],
+              "type": "object"
+            },
+            {
+              "additionalProperties": false,
+              "properties": {
+                "eventId": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "link": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "state": {
+                      "enum": [
+                        "revoked"
+                      ],
+                      "type": "string"
+                    },
+                    "url": {
+                      "format": "uri",
+                      "type": [
+                        "null"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "url",
+                    "state"
+                  ],
+                  "type": "object"
+                }
+              },
+              "required": [
+                "eventId",
+                "link"
+              ],
+              "type": "object"
+            }
+          ],
+          "type": "object"
+        }
+      },
+      "meta": {
+        "cliVersion": "3.0.1",
+        "command": "schema",
+        "productContractRevision": "2026-11-12.3",
+        "remoteContractRevision": "2026-08-12.7",
+        "warnings": []
+      },
+      "ok": true
+    },
+    "cohosts.remove": {
+      "data": {
+        "command": "cohosts.remove",
+        "failureTypes": [
+          "usage.invalid",
+          "input.invalid",
+          "auth.required",
+          "auth.expired",
+          "permission.denied",
+          "resource.not_found",
+          "match.ambiguous",
+          "state.conflict",
+          "safety.confirmation_required",
+          "remote.unavailable",
+          "contract.protocol_changed",
+          "internal.failure"
+        ],
+        "flags": [
+          {
+            "description": "Resolvable contact display name.",
+            "name": "--contact",
+            "required": true
+          },
+          {
+            "description": "Preview the validated mutation without dispatching it.",
+            "name": "--dry-run",
+            "required": false
+          },
+          {
+            "description": "Skip the confirmation prompt for a destructive command.",
+            "name": "--force",
+            "required": false
+          },
+          {
+            "description": "Never prompt; fail if confirmation is required.",
+            "name": "--no-input",
+            "required": false
+          },
+          {
+            "description": "Indent the JSON result.",
+            "name": "--pretty",
+            "required": false
+          },
+          {
+            "description": "Disable terminal prompts.",
+            "name": "--non-interactive",
+            "required": false
+          }
+        ],
+        "inputSchema": {
+          "additionalProperties": false,
+          "properties": {
+            "contact": {
+              "minLength": 1,
+              "type": "string"
+            }
+          },
+          "required": [
+            "contact"
+          ],
+          "type": "object"
+        },
+        "positionals": [
+          {
+            "description": "Event identifier.",
+            "name": "event-id",
+            "required": true
+          }
+        ],
+        "safety": {
+          "destructive": true,
+          "kind": "consequential-action"
+        },
+        "successSchema": {
+          "oneOf": [
+            {
+              "additionalProperties": false,
+              "properties": {
+                "contact": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "displayName": {
+                      "minLength": 1,
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "displayName"
+                  ],
+                  "type": "object"
+                },
+                "effects": {
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                },
+                "eventId": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "operation": {
+                  "enum": [
+                    "removeCohost"
+                  ],
+                  "type": "string"
+                },
+                "preconditions": {
+                  "type": "object"
+                },
+                "request": {
+                  "type": "object"
+                }
+              },
+              "required": [
+                "operation",
+                "eventId",
+                "contact",
+                "request",
+                "effects",
+                "preconditions"
+              ],
+              "type": "object"
+            },
+            {
+              "additionalProperties": false,
+              "properties": {
+                "cohost": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "displayName": {
+                      "minLength": 1,
+                      "type": "string"
+                    },
+                    "status": {
+                      "enum": [
+                        "removed"
+                      ],
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "displayName",
+                    "status"
+                  ],
+                  "type": "object"
+                },
+                "eventId": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "eventId",
+                "cohost"
+              ],
+              "type": "object"
+            }
+          ],
+          "type": "object"
+        }
+      },
+      "meta": {
+        "cliVersion": "3.0.1",
+        "command": "schema",
+        "productContractRevision": "2026-11-12.3",
+        "remoteContractRevision": "2026-08-12.7",
+        "warnings": []
+      },
+      "ok": true
+    },
+    "cohosts.revoke-invite": {
+      "data": {
+        "command": "cohosts.revoke-invite",
+        "failureTypes": [
+          "usage.invalid",
+          "input.invalid",
+          "auth.required",
+          "auth.expired",
+          "permission.denied",
+          "resource.not_found",
+          "match.ambiguous",
+          "state.conflict",
+          "safety.confirmation_required",
+          "remote.unavailable",
+          "contract.protocol_changed",
+          "internal.failure"
+        ],
+        "flags": [
+          {
+            "description": "Resolvable contact display name.",
+            "name": "--contact",
+            "required": true
+          },
+          {
+            "description": "Preview the validated mutation without dispatching it.",
+            "name": "--dry-run",
+            "required": false
+          },
+          {
+            "description": "Skip the confirmation prompt for a destructive command.",
+            "name": "--force",
+            "required": false
+          },
+          {
+            "description": "Never prompt; fail if confirmation is required.",
+            "name": "--no-input",
+            "required": false
+          },
+          {
+            "description": "Indent the JSON result.",
+            "name": "--pretty",
+            "required": false
+          },
+          {
+            "description": "Disable terminal prompts.",
+            "name": "--non-interactive",
+            "required": false
+          }
+        ],
+        "inputSchema": {
+          "additionalProperties": false,
+          "properties": {
+            "contact": {
+              "minLength": 1,
+              "type": "string"
+            }
+          },
+          "required": [
+            "contact"
+          ],
+          "type": "object"
+        },
+        "positionals": [
+          {
+            "description": "Event identifier.",
+            "name": "event-id",
+            "required": true
+          }
+        ],
+        "safety": {
+          "destructive": true,
+          "kind": "consequential-action"
+        },
+        "successSchema": {
+          "oneOf": [
+            {
+              "additionalProperties": false,
+              "properties": {
+                "contact": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "displayName": {
+                      "minLength": 1,
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "displayName"
+                  ],
+                  "type": "object"
+                },
+                "effects": {
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                },
+                "eventId": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "operation": {
+                  "enum": [
+                    "deleteCohostRequest"
+                  ],
+                  "type": "string"
+                },
+                "preconditions": {
+                  "type": "object"
+                },
+                "request": {
+                  "type": "object"
+                }
+              },
+              "required": [
+                "operation",
+                "eventId",
+                "contact",
+                "request",
+                "effects",
+                "preconditions"
+              ],
+              "type": "object"
+            },
+            {
+              "additionalProperties": false,
+              "properties": {
+                "cohost": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "displayName": {
+                      "minLength": 1,
+                      "type": "string"
+                    },
+                    "status": {
+                      "enum": [
+                        "revoked"
+                      ],
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "displayName",
+                    "status"
+                  ],
+                  "type": "object"
+                },
+                "eventId": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "eventId",
+                "cohost"
+              ],
+              "type": "object"
+            }
+          ],
+          "type": "object"
+        }
+      },
+      "meta": {
+        "cliVersion": "3.0.1",
+        "command": "schema",
+        "productContractRevision": "2026-11-12.3",
+        "remoteContractRevision": "2026-08-12.7",
+        "warnings": []
+      },
+      "ok": true
+    },
+    "contacts.list": {
+      "data": {
+        "command": "contacts.list",
+        "failureTypes": [
+          "usage.invalid",
+          "input.invalid",
+          "auth.required",
+          "auth.expired",
+          "state.conflict",
+          "remote.unavailable",
+          "contract.protocol_changed",
+          "internal.failure"
+        ],
+        "flags": [
+          {
+            "description": "Optional non-empty contact name filter.",
+            "name": "--query",
+            "required": false
+          },
+          {
+            "description": "Maximum items in this result.",
+            "name": "--limit",
+            "required": false
+          },
+          {
+            "description": "Opaque cursor from the same command and filters.",
+            "name": "--cursor",
+            "required": false
+          },
+          {
+            "description": "Return multiple pages up to --max-items.",
+            "name": "--all",
+            "required": false
+          },
+          {
+            "description": "Hard result limit for --all.",
+            "name": "--max-items",
+            "required": false
+          },
+          {
+            "description": "Indent the JSON result.",
+            "name": "--pretty",
+            "required": false
+          },
+          {
+            "description": "Disable terminal prompts.",
+            "name": "--non-interactive",
+            "required": false
+          },
+          {
+            "description": "Disable terminal prompts; alias of --non-interactive.",
+            "name": "--no-input",
+            "required": false
+          }
+        ],
+        "inputSchema": {
+          "additionalProperties": false,
+          "allOf": [
+            {
+              "not": {
+                "required": [
+                  "all",
+                  "limit"
+                ]
+              }
+            }
+          ],
+          "dependentRequired": {
+            "all": [
+              "maxItems"
+            ],
+            "maxItems": [
+              "all"
+            ]
+          },
+          "properties": {
+            "all": {
+              "type": "boolean"
+            },
+            "cursor": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "limit": {
+              "maximum": 100,
+              "minimum": 1,
+              "type": "integer"
+            },
+            "maxItems": {
+              "maximum": 1000,
+              "minimum": 1,
+              "type": "integer"
+            },
+            "query": {
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            }
+          },
+          "type": "object"
+        },
+        "positionals": [],
+        "safety": {
+          "destructive": false,
+          "kind": "read-only"
+        },
+        "successSchema": {
+          "additionalProperties": false,
+          "properties": {
+            "items": {
+              "items": {
+                "additionalProperties": false,
+                "properties": {
+                  "displayName": {
+                    "type": "string"
+                  },
+                  "sharedEventCount": {
+                    "minimum": 0,
+                    "type": "integer"
+                  }
+                },
+                "required": [
+                  "displayName",
+                  "sharedEventCount"
+                ],
+                "type": "object"
+              },
+              "type": "array"
+            }
+          },
+          "required": [
+            "items"
+          ],
+          "type": "object"
+        }
+      },
+      "meta": {
+        "cliVersion": "3.0.1",
+        "command": "schema",
+        "productContractRevision": "2026-11-12.3",
+        "remoteContractRevision": "2026-08-12.7",
+        "warnings": []
+      },
+      "ok": true
+    },
+    "doctor": {
+      "data": {
+        "command": "doctor",
+        "failureTypes": [
+          "usage.invalid",
+          "input.invalid"
+        ],
+        "flags": [
+          {
+            "description": "Indent the JSON result.",
+            "name": "--pretty",
+            "required": false
+          },
+          {
+            "description": "Disable terminal prompts.",
+            "name": "--non-interactive",
+            "required": false
+          },
+          {
+            "description": "Disable terminal prompts; alias of --non-interactive.",
+            "name": "--no-input",
+            "required": false
+          }
+        ],
+        "inputSchema": {
+          "additionalProperties": false,
+          "type": "object"
+        },
+        "positionals": [],
+        "safety": {
+          "destructive": false,
+          "kind": "read-only"
+        },
+        "successSchema": {
+          "additionalProperties": false,
+          "properties": {
+            "checks": {
+              "items": {
+                "additionalProperties": false,
+                "properties": {
+                  "message": {
+                    "type": "string"
+                  },
+                  "name": {
+                    "type": "string"
+                  },
+                  "remediation": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "status": {
+                    "enum": [
+                      "pass",
+                      "warn",
+                      "fail"
+                    ],
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "name",
+                  "status",
+                  "message",
+                  "remediation"
+                ],
+                "type": "object"
+              },
+              "type": "array"
+            },
+            "healthy": {
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "healthy",
+            "checks"
+          ],
+          "type": "object"
+        }
+      },
+      "meta": {
+        "cliVersion": "3.0.1",
+        "command": "schema",
+        "productContractRevision": "2026-11-12.3",
+        "remoteContractRevision": "2026-08-12.7",
+        "warnings": []
+      },
+      "ok": true
+    },
+    "events.cancel": {
+      "data": {
+        "command": "events.cancel",
+        "failureTypes": [
+          "usage.invalid",
+          "input.invalid",
+          "auth.required",
+          "auth.expired",
+          "permission.denied",
+          "resource.not_found",
+          "state.conflict",
+          "safety.confirmation_required",
+          "remote.unavailable",
+          "contract.protocol_changed",
+          "internal.failure"
+        ],
+        "flags": [
+          {
+            "description": "Read one structured JSON input object.",
+            "name": "--input",
+            "required": false
+          },
+          {
+            "description": "Optional cancellation message.",
+            "name": "--message",
+            "required": false
+          },
+          {
+            "description": "true or false.",
+            "name": "--notify-guests",
+            "required": false
+          },
+          {
+            "description": "Preview the validated mutation without dispatching it.",
+            "name": "--dry-run",
+            "required": false
+          },
+          {
+            "description": "Skip the confirmation prompt for a destructive command.",
+            "name": "--force",
+            "required": false
+          },
+          {
+            "description": "Never prompt; fail if confirmation is required.",
+            "name": "--no-input",
+            "required": false
+          },
+          {
+            "description": "Indent the JSON result.",
+            "name": "--pretty",
+            "required": false
+          },
+          {
+            "description": "Disable terminal prompts.",
+            "name": "--non-interactive",
+            "required": false
+          }
+        ],
+        "inputSchema": {
+          "additionalProperties": false,
+          "properties": {
+            "message": {
+              "type": "string"
+            },
+            "notifyGuests": {
+              "type": "boolean"
+            }
+          },
+          "type": "object"
+        },
+        "positionals": [
+          {
+            "description": "Event identifier.",
+            "name": "event-id",
+            "required": true
+          }
+        ],
+        "safety": {
+          "destructive": true,
+          "kind": "consequential-action"
+        },
+        "successSchema": {
+          "oneOf": [
+            {
+              "additionalProperties": false,
+              "properties": {
+                "effects": {
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                },
+                "eventId": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "input": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "messageProvided": {
+                      "type": "boolean"
+                    },
+                    "notifyGuests": {
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "messageProvided",
+                    "notifyGuests"
+                  ],
+                  "type": "object"
+                },
+                "operation": {
+                  "enum": [
+                    "cancelEvent"
+                  ],
+                  "type": "string"
+                },
+                "preconditions": {
+                  "type": "object"
+                },
+                "request": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "cancellationMessageProvided": {
+                      "type": "boolean"
+                    },
+                    "eventId": {
+                      "minLength": 1,
+                      "type": "string"
+                    },
+                    "shouldSkipNotifyGuests": {
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "eventId",
+                    "cancellationMessageProvided",
+                    "shouldSkipNotifyGuests"
+                  ],
+                  "type": "object"
+                }
+              },
+              "required": [
+                "operation",
+                "eventId",
+                "input",
+                "request",
+                "effects",
+                "preconditions"
+              ],
+              "type": "object"
+            },
+            {
+              "additionalProperties": false,
+              "properties": {
+                "eventId": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "notifyGuests": {
+                  "type": "boolean"
+                },
+                "submitted": {
+                  "const": true,
+                  "type": "boolean"
+                }
+              },
+              "required": [
+                "eventId",
+                "notifyGuests",
+                "submitted"
+              ],
+              "type": "object"
+            }
+          ],
+          "type": "object"
+        }
+      },
+      "meta": {
+        "cliVersion": "3.0.1",
+        "command": "schema",
+        "productContractRevision": "2026-11-12.3",
+        "remoteContractRevision": "2026-08-12.7",
+        "warnings": []
+      },
+      "ok": true
+    },
+    "events.create": {
+      "data": {
+        "command": "events.create",
+        "failureTypes": [
+          "usage.invalid",
+          "input.invalid",
+          "auth.required",
+          "auth.expired",
+          "resource.not_found",
+          "remote.unavailable",
+          "contract.protocol_changed",
+          "internal.failure"
+        ],
+        "flags": [
+          {
+            "description": "Read one structured JSON input object.",
+            "name": "--input",
+            "required": false
+          },
+          {
+            "description": "Event title.",
+            "name": "--title",
+            "required": false
+          },
+          {
+            "description": "RFC 3339 start time.",
+            "name": "--start",
+            "required": false
+          },
+          {
+            "description": "RFC 3339 end time.",
+            "name": "--end",
+            "required": false
+          },
+          {
+            "description": "IANA timezone.",
+            "name": "--timezone",
+            "required": false
+          },
+          {
+            "description": "Optional description.",
+            "name": "--description",
+            "required": false
+          },
+          {
+            "description": "Optional free-form location.",
+            "name": "--location",
+            "required": false
+          },
+          {
+            "description": "private or public.",
+            "name": "--visibility",
+            "required": false
+          },
+          {
+            "description": "Positive guest limit.",
+            "name": "--guest-limit",
+            "required": false
+          },
+          {
+            "description": "Link in label=url form; this flag can repeat.",
+            "name": "--link",
+            "required": false
+          },
+          {
+            "description": "Exact built-in poster ID.",
+            "name": "--poster-id",
+            "required": false
+          },
+          {
+            "description": "Preview the validated mutation without dispatching it.",
+            "name": "--dry-run",
+            "required": false
+          },
+          {
+            "description": "Skip the confirmation prompt for a destructive command.",
+            "name": "--force",
+            "required": false
+          },
+          {
+            "description": "Never prompt; fail if confirmation is required.",
+            "name": "--no-input",
+            "required": false
+          },
+          {
+            "description": "Indent the JSON result.",
+            "name": "--pretty",
+            "required": false
+          },
+          {
+            "description": "Disable terminal prompts.",
+            "name": "--non-interactive",
+            "required": false
+          }
+        ],
+        "inputSchema": {
+          "additionalProperties": false,
+          "properties": {
+            "description": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "end": {
+              "format": "date-time",
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "guestLimit": {
+              "type": [
+                "integer",
+                "null"
+              ]
+            },
+            "links": {
+              "items": {
+                "additionalProperties": false,
+                "properties": {
+                  "label": {
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  "url": {
+                    "format": "uri",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "label",
+                  "url"
+                ],
+                "type": "object"
+              },
+              "type": [
+                "array",
+                "null"
+              ]
+            },
+            "location": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "posterId": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "start": {
+              "format": "date-time",
+              "type": "string"
+            },
+            "timezone": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "title": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "visibility": {
+              "enum": [
+                "private",
+                "public"
+              ],
+              "type": "string"
+            }
+          },
+          "required": [
+            "title",
+            "start",
+            "timezone"
+          ],
+          "type": "object"
+        },
+        "positionals": [],
+        "safety": {
+          "destructive": false,
+          "kind": "standard-mutation"
+        },
+        "successSchema": {
+          "oneOf": [
+            {
+              "additionalProperties": false,
+              "properties": {
+                "input": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "description": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "end": {
+                      "format": "date-time",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "guestLimit": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ]
+                    },
+                    "links": {
+                      "items": {
+                        "additionalProperties": false,
+                        "properties": {
+                          "label": {
+                            "minLength": 1,
+                            "type": "string"
+                          },
+                          "url": {
+                            "format": "uri",
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "label",
+                          "url"
+                        ],
+                        "type": "object"
+                      },
+                      "type": [
+                        "array",
+                        "null"
+                      ]
+                    },
+                    "location": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "posterId": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "start": {
+                      "format": "date-time",
+                      "type": "string"
+                    },
+                    "timezone": {
+                      "minLength": 1,
+                      "type": "string"
+                    },
+                    "title": {
+                      "minLength": 1,
+                      "type": "string"
+                    },
+                    "visibility": {
+                      "enum": [
+                        "private",
+                        "public"
+                      ],
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "title",
+                    "start",
+                    "timezone"
+                  ],
+                  "type": "object"
+                },
+                "operation": {
+                  "enum": [
+                    "createEvent"
+                  ],
+                  "type": "string"
+                },
+                "preconditions": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "poster": {
+                      "enum": [
+                        "bound"
+                      ],
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "poster"
+                  ],
+                  "type": "object"
+                },
+                "request": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "cohostIds": {
+                      "items": {
+                        "type": "string"
+                      },
+                      "type": "array"
+                    },
+                    "event": {
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "event",
+                    "cohostIds"
+                  ],
+                  "type": "object"
+                }
+              },
+              "required": [
+                "operation",
+                "input",
+                "request",
+                "preconditions"
+              ],
+              "type": "object"
+            },
+            {
+              "additionalProperties": false,
+              "properties": {
+                "submitted": {
+                  "const": true,
+                  "type": "boolean"
+                }
+              },
+              "required": [
+                "submitted"
+              ],
+              "type": "object"
+            }
+          ],
+          "type": "object"
+        }
+      },
+      "meta": {
+        "cliVersion": "3.0.1",
+        "command": "schema",
+        "productContractRevision": "2026-11-12.3",
+        "remoteContractRevision": "2026-08-12.7",
+        "warnings": []
+      },
+      "ok": true
+    },
+    "events.delete": {
+      "data": {
+        "command": "events.delete",
+        "failureTypes": [
+          "usage.invalid",
+          "input.invalid",
+          "auth.required",
+          "auth.expired",
+          "permission.denied",
+          "resource.not_found",
+          "state.conflict",
+          "safety.confirmation_required",
+          "remote.unavailable",
+          "contract.protocol_changed",
+          "internal.failure"
+        ],
+        "flags": [
+          {
+            "description": "Preview the validated mutation without dispatching it.",
+            "name": "--dry-run",
+            "required": false
+          },
+          {
+            "description": "Skip the confirmation prompt for a destructive command.",
+            "name": "--force",
+            "required": false
+          },
+          {
+            "description": "Never prompt; fail if confirmation is required.",
+            "name": "--no-input",
+            "required": false
+          },
+          {
+            "description": "Indent the JSON result.",
+            "name": "--pretty",
+            "required": false
+          },
+          {
+            "description": "Disable terminal prompts.",
+            "name": "--non-interactive",
+            "required": false
+          }
+        ],
+        "inputSchema": {
+          "additionalProperties": false,
+          "type": "object"
+        },
+        "positionals": [
+          {
+            "description": "Event identifier.",
+            "name": "event-id",
+            "required": true
+          }
+        ],
+        "safety": {
+          "destructive": true,
+          "kind": "consequential-action"
+        },
+        "successSchema": {
+          "oneOf": [
+            {
+              "additionalProperties": false,
+              "properties": {
+                "effects": {
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                },
+                "eventId": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "operation": {
+                  "enum": [
+                    "deleteEvent"
+                  ],
+                  "type": "string"
+                },
+                "preconditions": {
+                  "type": "object"
+                },
+                "request": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "eventId": {
+                      "minLength": 1,
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "eventId"
+                  ],
+                  "type": "object"
+                }
+              },
+              "required": [
+                "operation",
+                "eventId",
+                "request",
+                "effects",
+                "preconditions"
+              ],
+              "type": "object"
+            },
+            {
+              "additionalProperties": false,
+              "properties": {
+                "eventId": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "submitted": {
+                  "const": true,
+                  "type": "boolean"
+                }
+              },
+              "required": [
+                "eventId",
+                "submitted"
+              ],
+              "type": "object"
+            }
+          ],
+          "type": "object"
+        }
+      },
+      "meta": {
+        "cliVersion": "3.0.1",
+        "command": "schema",
+        "productContractRevision": "2026-11-12.3",
+        "remoteContractRevision": "2026-08-12.7",
+        "warnings": []
+      },
+      "ok": true
+    },
+    "events.get": {
+      "data": {
+        "command": "events.get",
+        "failureTypes": [
+          "usage.invalid",
+          "input.invalid",
+          "auth.required",
+          "auth.expired",
+          "resource.not_found",
+          "remote.unavailable",
+          "contract.protocol_changed",
+          "internal.failure"
+        ],
+        "flags": [
+          {
+            "description": "Indent the JSON result.",
+            "name": "--pretty",
+            "required": false
+          },
+          {
+            "description": "Disable terminal prompts.",
+            "name": "--non-interactive",
+            "required": false
+          },
+          {
+            "description": "Disable terminal prompts; alias of --non-interactive.",
+            "name": "--no-input",
+            "required": false
+          }
+        ],
+        "inputSchema": {
+          "additionalProperties": false,
+          "properties": {
+            "eventId": {
+              "minLength": 1,
+              "type": "string"
+            }
+          },
+          "required": [
+            "eventId"
+          ],
+          "type": "object"
+        },
+        "positionals": [
+          {
+            "description": "Event identifier.",
+            "name": "event-id",
+            "required": true
+          }
+        ],
+        "safety": {
+          "destructive": false,
+          "kind": "read-only"
+        },
+        "successSchema": {
+          "additionalProperties": false,
+          "properties": {
+            "address": {
+              "type": [
+                "object",
+                "null"
+              ]
+            },
+            "description": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "end": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "eventId": {
+              "type": "string"
+            },
+            "guestLimit": {
+              "type": [
+                "integer",
+                "null"
+              ]
+            },
+            "links": {
+              "type": [
+                "array",
+                "null"
+              ]
+            },
+            "location": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "myRsvp": {
+              "type": "null"
+            },
+            "poster": {
+              "type": [
+                "object",
+                "null"
+              ]
+            },
+            "start": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "state": {
+              "oneOf": [
+                {
+                  "enum": [
+                    "active",
+                    "cancelled"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "timezone": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "title": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "userRole": {
+              "type": "null"
+            },
+            "visibility": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          },
+          "required": [
+            "eventId",
+            "title",
+            "start",
+            "end",
+            "timezone",
+            "state",
+            "userRole",
+            "myRsvp",
+            "description",
+            "location",
+            "address",
+            "visibility",
+            "guestLimit",
+            "poster",
+            "links"
+          ],
+          "type": "object"
+        }
+      },
+      "meta": {
+        "cliVersion": "3.0.1",
+        "command": "schema",
+        "productContractRevision": "2026-11-12.3",
+        "remoteContractRevision": "2026-08-12.7",
+        "warnings": []
+      },
+      "ok": true
+    },
+    "events.list": {
+      "data": {
+        "command": "events.list",
+        "failureTypes": [
+          "usage.invalid",
+          "input.invalid",
+          "auth.required",
+          "auth.expired",
+          "state.conflict",
+          "remote.unavailable",
+          "contract.protocol_changed",
+          "internal.failure"
+        ],
+        "flags": [
+          {
+            "description": "Select upcoming or past events.",
+            "name": "--when",
+            "required": true
+          },
+          {
+            "description": "Maximum items in this result.",
+            "name": "--limit",
+            "required": false
+          },
+          {
+            "description": "Opaque cursor from the same command and filters.",
+            "name": "--cursor",
+            "required": false
+          },
+          {
+            "description": "Return multiple pages up to --max-items.",
+            "name": "--all",
+            "required": false
+          },
+          {
+            "description": "Hard result limit for --all.",
+            "name": "--max-items",
+            "required": false
+          },
+          {
+            "description": "Indent the JSON result.",
+            "name": "--pretty",
+            "required": false
+          },
+          {
+            "description": "Disable terminal prompts.",
+            "name": "--non-interactive",
+            "required": false
+          },
+          {
+            "description": "Disable terminal prompts; alias of --non-interactive.",
+            "name": "--no-input",
+            "required": false
+          }
+        ],
+        "inputSchema": {
+          "additionalProperties": false,
+          "allOf": [
+            {
+              "not": {
+                "required": [
+                  "all",
+                  "limit"
+                ]
+              }
+            }
+          ],
+          "dependentRequired": {
+            "all": [
+              "maxItems"
+            ],
+            "maxItems": [
+              "all"
+            ]
+          },
+          "properties": {
+            "all": {
+              "type": "boolean"
+            },
+            "cursor": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "limit": {
+              "maximum": 100,
+              "minimum": 1,
+              "type": "integer"
+            },
+            "maxItems": {
+              "maximum": 1000,
+              "minimum": 1,
+              "type": "integer"
+            },
+            "when": {
+              "enum": [
+                "upcoming",
+                "past"
+              ],
+              "type": "string"
+            }
+          },
+          "required": [
+            "when"
+          ],
+          "type": "object"
+        },
+        "positionals": [],
+        "safety": {
+          "destructive": false,
+          "kind": "read-only"
+        },
+        "successSchema": {
+          "additionalProperties": false,
+          "properties": {
+            "items": {
+              "items": {
+                "additionalProperties": false,
+                "properties": {
+                  "end": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "eventId": {
+                    "type": "string"
+                  },
+                  "myRsvp": {
+                    "oneOf": [
+                      {
+                        "enum": [
+                          "ready-to-send",
+                          "sending",
+                          "send-error",
+                          "delivery-error",
+                          "sent",
+                          "interested",
+                          "waitlist",
+                          "maybe",
+                          "declined",
+                          "going",
+                          "pending-approval",
+                          "approved",
+                          "withdrawn",
+                          "waitlisted-for-approval",
+                          "rejected",
+                          "responded-to-find-a-time"
+                        ],
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "start": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "state": {
+                    "oneOf": [
+                      {
+                        "enum": [
+                          "active",
+                          "cancelled"
+                        ],
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "timezone": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "title": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "userRole": {
+                    "oneOf": [
+                      {
+                        "enum": [
+                          "host",
+                          "cohost",
+                          "attendee",
+                          "none"
+                        ],
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                },
+                "required": [
+                  "eventId",
+                  "title",
+                  "start",
+                  "end",
+                  "timezone",
+                  "state",
+                  "userRole",
+                  "myRsvp"
+                ],
+                "type": "object"
+              },
+              "type": "array"
+            }
+          },
+          "required": [
+            "items"
+          ],
+          "type": "object"
+        }
+      },
+      "meta": {
+        "cliVersion": "3.0.1",
+        "command": "schema",
+        "productContractRevision": "2026-11-12.3",
+        "remoteContractRevision": "2026-08-12.7",
+        "warnings": []
+      },
+      "ok": true
+    },
+    "events.update": {
+      "data": {
+        "command": "events.update",
+        "failureTypes": [
+          "usage.invalid",
+          "input.invalid",
+          "auth.required",
+          "auth.expired",
+          "permission.denied",
+          "resource.not_found",
+          "state.conflict",
+          "remote.unavailable",
+          "contract.protocol_changed",
+          "internal.failure"
+        ],
+        "flags": [
+          {
+            "description": "Read one structured JSON input object.",
+            "name": "--input",
+            "required": false
+          },
+          {
+            "description": "Event title.",
+            "name": "--title",
+            "required": false
+          },
+          {
+            "description": "Optional description.",
+            "name": "--description",
+            "required": false
+          },
+          {
+            "description": "RFC 3339 start time.",
+            "name": "--start",
+            "required": false
+          },
+          {
+            "description": "RFC 3339 end time or null in structured input.",
+            "name": "--end",
+            "required": false
+          },
+          {
+            "description": "IANA timezone.",
+            "name": "--timezone",
+            "required": false
+          },
+          {
+            "description": "Positive guest limit.",
+            "name": "--guest-limit",
+            "required": false
+          },
+          {
+            "description": "Link in label=url form; this flag can repeat.",
+            "name": "--link",
+            "required": false
+          },
+          {
+            "description": "Exact built-in poster ID.",
+            "name": "--poster-id",
+            "required": false
+          },
+          {
+            "description": "Preview the validated mutation without dispatching it.",
+            "name": "--dry-run",
+            "required": false
+          },
+          {
+            "description": "Skip the confirmation prompt for a destructive command.",
+            "name": "--force",
+            "required": false
+          },
+          {
+            "description": "Never prompt; fail if confirmation is required.",
+            "name": "--no-input",
+            "required": false
+          },
+          {
+            "description": "Indent the JSON result.",
+            "name": "--pretty",
+            "required": false
+          },
+          {
+            "description": "Disable terminal prompts.",
+            "name": "--non-interactive",
+            "required": false
+          }
+        ],
+        "inputSchema": {
+          "additionalProperties": false,
+          "properties": {
+            "description": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "end": {
+              "format": "date-time",
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "guestLimit": {
+              "type": [
+                "integer",
+                "null"
+              ]
+            },
+            "links": {
+              "items": {
+                "additionalProperties": false,
+                "properties": {
+                  "label": {
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  "url": {
+                    "format": "uri",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "label",
+                  "url"
+                ],
+                "type": "object"
+              },
+              "type": [
+                "array",
+                "null"
+              ]
+            },
+            "posterId": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "start": {
+              "format": "date-time",
+              "type": "string"
+            },
+            "timezone": {
+              "type": "string"
+            },
+            "title": {
+              "type": "string"
+            }
+          },
+          "type": "object"
+        },
+        "positionals": [
+          {
+            "description": "Event identifier.",
+            "name": "event-id",
+            "required": true
+          }
+        ],
+        "safety": {
+          "destructive": false,
+          "kind": "standard-mutation"
+        },
+        "successSchema": {
+          "oneOf": [
+            {
+              "additionalProperties": false,
+              "properties": {
+                "eventId": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "fields": {
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                },
+                "input": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "description": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "end": {
+                      "format": "date-time",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "guestLimit": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ]
+                    },
+                    "links": {
+                      "items": {
+                        "additionalProperties": false,
+                        "properties": {
+                          "label": {
+                            "minLength": 1,
+                            "type": "string"
+                          },
+                          "url": {
+                            "format": "uri",
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "label",
+                          "url"
+                        ],
+                        "type": "object"
+                      },
+                      "type": [
+                        "array",
+                        "null"
+                      ]
+                    },
+                    "posterId": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "start": {
+                      "format": "date-time",
+                      "type": "string"
+                    },
+                    "timezone": {
+                      "type": "string"
+                    },
+                    "title": {
+                      "type": "string"
+                    }
+                  },
+                  "type": "object"
+                },
+                "operation": {
+                  "enum": [
+                    "firestorePatchEvent"
+                  ],
+                  "type": "string"
+                },
+                "preconditions": {
+                  "type": "object"
+                },
+                "request": {
+                  "type": "object"
+                }
+              },
+              "required": [
+                "operation",
+                "eventId",
+                "fields",
+                "input",
+                "request",
+                "preconditions"
+              ],
+              "type": "object"
+            },
+            {
+              "additionalProperties": false,
+              "properties": {
+                "eventId": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "fields": {
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                },
+                "submitted": {
+                  "const": true,
+                  "type": "boolean"
+                }
+              },
+              "required": [
+                "eventId",
+                "fields",
+                "submitted"
+              ],
+              "type": "object"
+            }
+          ],
+          "type": "object"
+        }
+      },
+      "meta": {
+        "cliVersion": "3.0.1",
+        "command": "schema",
+        "productContractRevision": "2026-11-12.3",
+        "remoteContractRevision": "2026-08-12.7",
+        "warnings": []
+      },
+      "ok": true
+    },
+    "guests.invite": {
+      "data": {
+        "command": "guests.invite",
+        "failureTypes": [
+          "usage.invalid",
+          "input.invalid",
+          "auth.required",
+          "auth.expired",
+          "permission.denied",
+          "resource.not_found",
+          "match.ambiguous",
+          "remote.unavailable",
+          "contract.protocol_changed",
+          "internal.failure"
+        ],
+        "flags": [
+          {
+            "description": "Resolvable contact display name.",
+            "name": "--contact",
+            "required": true
+          },
+          {
+            "description": "Preview the validated mutation without dispatching it.",
+            "name": "--dry-run",
+            "required": false
+          },
+          {
+            "description": "Skip the confirmation prompt for a destructive command.",
+            "name": "--force",
+            "required": false
+          },
+          {
+            "description": "Never prompt; fail if confirmation is required.",
+            "name": "--no-input",
+            "required": false
+          },
+          {
+            "description": "Indent the JSON result.",
+            "name": "--pretty",
+            "required": false
+          },
+          {
+            "description": "Disable terminal prompts.",
+            "name": "--non-interactive",
+            "required": false
+          }
+        ],
+        "inputSchema": {
+          "additionalProperties": false,
+          "properties": {
+            "contact": {
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            "eventId": {
+              "minLength": 1,
+              "type": "string"
+            }
+          },
+          "required": [
+            "eventId",
+            "contact"
+          ],
+          "type": "object"
+        },
+        "positionals": [
+          {
+            "description": "Event identifier.",
+            "name": "event-id",
+            "required": true
+          }
+        ],
+        "safety": {
+          "destructive": false,
+          "kind": "consequential-action"
+        },
+        "successSchema": {
+          "oneOf": [
+            {
+              "additionalProperties": false,
+              "properties": {
+                "effects": {
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                },
+                "eventId": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "input": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "contact": {
+                      "minLength": 1,
+                      "pattern": "\\S",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "contact"
+                  ],
+                  "type": "object"
+                },
+                "operation": {
+                  "enum": [
+                    "addInvitedGuestsAsHost"
+                  ],
+                  "type": "string"
+                },
+                "preconditions": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "contact": {
+                      "enum": [
+                        "bound"
+                      ],
+                      "type": "string"
+                    },
+                    "ownership": {
+                      "enum": [
+                        "bound"
+                      ],
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "ownership",
+                    "contact"
+                  ],
+                  "type": "object"
+                },
+                "request": {
+                  "type": "object"
+                }
+              },
+              "required": [
+                "operation",
+                "eventId",
+                "input",
+                "request",
+                "effects",
+                "preconditions"
+              ],
+              "type": "object"
+            },
+            {
+              "additionalProperties": false,
+              "properties": {
+                "eventId": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "submitted": {
+                  "const": true,
+                  "type": "boolean"
+                }
+              },
+              "required": [
+                "eventId",
+                "submitted"
+              ],
+              "type": "object"
+            }
+          ],
+          "type": "object"
+        }
+      },
+      "meta": {
+        "cliVersion": "3.0.1",
+        "command": "schema",
+        "productContractRevision": "2026-11-12.3",
+        "remoteContractRevision": "2026-08-12.7",
+        "warnings": []
+      },
+      "ok": true
+    },
+    "guests.list": {
+      "data": {
+        "command": "guests.list",
+        "failureTypes": [
+          "usage.invalid",
+          "input.invalid",
+          "auth.required",
+          "auth.expired",
+          "permission.denied",
+          "resource.not_found",
+          "state.conflict",
+          "remote.unavailable",
+          "contract.protocol_changed",
+          "internal.failure"
+        ],
+        "flags": [
+          {
+            "description": "Maximum items in this result.",
+            "name": "--limit",
+            "required": false
+          },
+          {
+            "description": "Opaque cursor from the same command and filters.",
+            "name": "--cursor",
+            "required": false
+          },
+          {
+            "description": "Return multiple pages up to --max-items.",
+            "name": "--all",
+            "required": false
+          },
+          {
+            "description": "Hard result limit for --all.",
+            "name": "--max-items",
+            "required": false
+          },
+          {
+            "description": "Indent the JSON result.",
+            "name": "--pretty",
+            "required": false
+          },
+          {
+            "description": "Disable terminal prompts.",
+            "name": "--non-interactive",
+            "required": false
+          },
+          {
+            "description": "Disable terminal prompts; alias of --non-interactive.",
+            "name": "--no-input",
+            "required": false
+          }
+        ],
+        "inputSchema": {
+          "additionalProperties": false,
+          "allOf": [
+            {
+              "not": {
+                "required": [
+                  "all",
+                  "limit"
+                ]
+              }
+            }
+          ],
+          "dependentRequired": {
+            "all": [
+              "maxItems"
+            ],
+            "maxItems": [
+              "all"
+            ]
+          },
+          "properties": {
+            "all": {
+              "type": "boolean"
+            },
+            "cursor": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "eventId": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "limit": {
+              "maximum": 100,
+              "minimum": 1,
+              "type": "integer"
+            },
+            "maxItems": {
+              "maximum": 1000,
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          "required": [
+            "eventId"
+          ],
+          "type": "object"
+        },
+        "positionals": [
+          {
+            "description": "Event identifier.",
+            "name": "event-id",
+            "required": true
+          }
+        ],
+        "safety": {
+          "destructive": false,
+          "kind": "read-only"
+        },
+        "successSchema": {
+          "additionalProperties": false,
+          "properties": {
+            "items": {
+              "items": {
+                "additionalProperties": false,
+                "properties": {
+                  "cohost": {
+                    "type": "boolean"
+                  },
+                  "displayName": {
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  "partySize": {
+                    "minimum": 0,
+                    "type": "integer"
+                  },
+                  "rsvpStatus": {
+                    "enum": [
+                      "ready-to-send",
+                      "sending",
+                      "send-error",
+                      "delivery-error",
+                      "sent",
+                      "interested",
+                      "waitlist",
+                      "maybe",
+                      "declined",
+                      "going",
+                      "pending-approval",
+                      "approved",
+                      "withdrawn",
+                      "waitlisted-for-approval",
+                      "rejected",
+                      "responded-to-find-a-time"
+                    ],
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "displayName",
+                  "rsvpStatus",
+                  "partySize",
+                  "cohost"
+                ],
+                "type": "object"
+              },
+              "type": "array"
+            }
+          },
+          "required": [
+            "items"
+          ],
+          "type": "object"
+        }
+      },
+      "meta": {
+        "cliVersion": "3.0.1",
+        "command": "schema",
+        "productContractRevision": "2026-11-12.3",
+        "remoteContractRevision": "2026-08-12.7",
+        "warnings": []
+      },
+      "ok": true
+    },
+    "posters.list": {
+      "data": {
+        "command": "posters.list",
+        "failureTypes": [
+          "usage.invalid",
+          "input.invalid",
+          "state.conflict",
+          "remote.unavailable",
+          "contract.protocol_changed",
+          "internal.failure"
+        ],
+        "flags": [
+          {
+            "description": "Maximum items in this result.",
+            "name": "--limit",
+            "required": false
+          },
+          {
+            "description": "Opaque cursor from the same command and filters.",
+            "name": "--cursor",
+            "required": false
+          },
+          {
+            "description": "Return multiple pages up to --max-items.",
+            "name": "--all",
+            "required": false
+          },
+          {
+            "description": "Hard result limit for --all.",
+            "name": "--max-items",
+            "required": false
+          },
+          {
+            "description": "Indent the JSON result.",
+            "name": "--pretty",
+            "required": false
+          },
+          {
+            "description": "Disable terminal prompts.",
+            "name": "--non-interactive",
+            "required": false
+          },
+          {
+            "description": "Disable terminal prompts; alias of --non-interactive.",
+            "name": "--no-input",
+            "required": false
+          }
+        ],
+        "inputSchema": {
+          "additionalProperties": false,
+          "allOf": [
+            {
+              "not": {
+                "required": [
+                  "all",
+                  "limit"
+                ]
+              }
+            }
+          ],
+          "dependentRequired": {
+            "all": [
+              "maxItems"
+            ],
+            "maxItems": [
+              "all"
+            ]
+          },
+          "properties": {
+            "all": {
+              "type": "boolean"
+            },
+            "cursor": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "limit": {
+              "maximum": 100,
+              "minimum": 1,
+              "type": "integer"
+            },
+            "maxItems": {
+              "maximum": 1000,
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          "type": "object"
+        },
+        "positionals": [],
+        "safety": {
+          "destructive": false,
+          "kind": "read-only"
+        },
+        "successSchema": {
+          "additionalProperties": false,
+          "properties": {
+            "items": {
+              "items": {
+                "additionalProperties": false,
+                "properties": {
+                  "categories": {
+                    "items": {
+                      "type": "string"
+                    },
+                    "type": "array"
+                  },
+                  "contentType": {
+                    "type": "string"
+                  },
+                  "height": {
+                    "type": [
+                      "integer",
+                      "null"
+                    ]
+                  },
+                  "name": {
+                    "type": "string"
+                  },
+                  "posterId": {
+                    "type": "string"
+                  },
+                  "tags": {
+                    "items": {
+                      "type": "string"
+                    },
+                    "type": "array"
+                  },
+                  "url": {
+                    "format": "uri",
+                    "type": "string"
+                  },
+                  "width": {
+                    "type": [
+                      "integer",
+                      "null"
+                    ]
+                  }
+                },
+                "required": [
+                  "posterId",
+                  "name",
+                  "url",
+                  "contentType",
+                  "width",
+                  "height",
+                  "tags",
+                  "categories"
+                ],
+                "type": "object"
+              },
+              "type": "array"
+            }
+          },
+          "required": [
+            "items"
+          ],
+          "type": "object"
+        }
+      },
+      "meta": {
+        "cliVersion": "3.0.1",
+        "command": "schema",
+        "productContractRevision": "2026-11-12.3",
+        "remoteContractRevision": "2026-08-12.7",
+        "warnings": []
+      },
+      "ok": true
+    },
+    "posters.search": {
+      "data": {
+        "command": "posters.search",
+        "failureTypes": [
+          "usage.invalid",
+          "input.invalid",
+          "state.conflict",
+          "remote.unavailable",
+          "contract.protocol_changed",
+          "internal.failure"
+        ],
+        "flags": [
+          {
+            "description": "Non-empty poster search text.",
+            "name": "--query",
+            "required": true
+          },
+          {
+            "description": "Maximum items in this result.",
+            "name": "--limit",
+            "required": false
+          },
+          {
+            "description": "Opaque cursor from the same command and filters.",
+            "name": "--cursor",
+            "required": false
+          },
+          {
+            "description": "Return multiple pages up to --max-items.",
+            "name": "--all",
+            "required": false
+          },
+          {
+            "description": "Hard result limit for --all.",
+            "name": "--max-items",
+            "required": false
+          },
+          {
+            "description": "Indent the JSON result.",
+            "name": "--pretty",
+            "required": false
+          },
+          {
+            "description": "Disable terminal prompts.",
+            "name": "--non-interactive",
+            "required": false
+          },
+          {
+            "description": "Disable terminal prompts; alias of --non-interactive.",
+            "name": "--no-input",
+            "required": false
+          }
+        ],
+        "inputSchema": {
+          "additionalProperties": false,
+          "allOf": [
+            {
+              "not": {
+                "required": [
+                  "all",
+                  "limit"
+                ]
+              }
+            }
+          ],
+          "dependentRequired": {
+            "all": [
+              "maxItems"
+            ],
+            "maxItems": [
+              "all"
+            ]
+          },
+          "properties": {
+            "all": {
+              "type": "boolean"
+            },
+            "cursor": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "limit": {
+              "maximum": 100,
+              "minimum": 1,
+              "type": "integer"
+            },
+            "maxItems": {
+              "maximum": 1000,
+              "minimum": 1,
+              "type": "integer"
+            },
+            "query": {
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            }
+          },
+          "required": [
+            "query"
+          ],
+          "type": "object"
+        },
+        "positionals": [],
+        "safety": {
+          "destructive": false,
+          "kind": "read-only"
+        },
+        "successSchema": {
+          "additionalProperties": false,
+          "properties": {
+            "items": {
+              "items": {
+                "additionalProperties": false,
+                "properties": {
+                  "categories": {
+                    "items": {
+                      "type": "string"
+                    },
+                    "type": "array"
+                  },
+                  "contentType": {
+                    "type": "string"
+                  },
+                  "height": {
+                    "type": [
+                      "integer",
+                      "null"
+                    ]
+                  },
+                  "name": {
+                    "type": "string"
+                  },
+                  "posterId": {
+                    "type": "string"
+                  },
+                  "tags": {
+                    "items": {
+                      "type": "string"
+                    },
+                    "type": "array"
+                  },
+                  "url": {
+                    "format": "uri",
+                    "type": "string"
+                  },
+                  "width": {
+                    "type": [
+                      "integer",
+                      "null"
+                    ]
+                  }
+                },
+                "required": [
+                  "posterId",
+                  "name",
+                  "url",
+                  "contentType",
+                  "width",
+                  "height",
+                  "tags",
+                  "categories"
+                ],
+                "type": "object"
+              },
+              "type": "array"
+            }
+          },
+          "required": [
+            "items"
+          ],
+          "type": "object"
+        }
+      },
+      "meta": {
+        "cliVersion": "3.0.1",
+        "command": "schema",
+        "productContractRevision": "2026-11-12.3",
+        "remoteContractRevision": "2026-08-12.7",
+        "warnings": []
+      },
+      "ok": true
+    },
+    "rsvp.get": {
+      "data": {
+        "command": "rsvp.get",
+        "failureTypes": [
+          "usage.invalid",
+          "input.invalid",
+          "auth.required",
+          "auth.expired",
+          "remote.unavailable",
+          "contract.protocol_changed",
+          "internal.failure"
+        ],
+        "flags": [
+          {
+            "description": "Indent the JSON result.",
+            "name": "--pretty",
+            "required": false
+          },
+          {
+            "description": "Disable terminal prompts.",
+            "name": "--non-interactive",
+            "required": false
+          },
+          {
+            "description": "Disable terminal prompts; alias of --non-interactive.",
+            "name": "--no-input",
+            "required": false
+          }
+        ],
+        "inputSchema": {
+          "additionalProperties": false,
+          "properties": {
+            "eventId": {
+              "minLength": 1,
+              "type": "string"
+            }
+          },
+          "required": [
+            "eventId"
+          ],
+          "type": "object"
+        },
+        "positionals": [
+          {
+            "description": "Event identifier.",
+            "name": "event-id",
+            "required": true
+          }
+        ],
+        "safety": {
+          "destructive": false,
+          "kind": "read-only"
+        },
+        "successSchema": {
+          "additionalProperties": false,
+          "properties": {
+            "eventId": {
+              "type": "string"
+            },
+            "status": {
+              "oneOf": [
+                {
+                  "enum": [
+                    "ready-to-send",
+                    "sending",
+                    "send-error",
+                    "delivery-error",
+                    "sent",
+                    "interested",
+                    "waitlist",
+                    "maybe",
+                    "declined",
+                    "going",
+                    "pending-approval",
+                    "approved",
+                    "withdrawn",
+                    "waitlisted-for-approval",
+                    "rejected",
+                    "responded-to-find-a-time"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          },
+          "required": [
+            "eventId",
+            "status"
+          ],
+          "type": "object"
+        }
+      },
+      "meta": {
+        "cliVersion": "3.0.1",
+        "command": "schema",
+        "productContractRevision": "2026-11-12.3",
+        "remoteContractRevision": "2026-08-12.7",
+        "warnings": []
+      },
+      "ok": true
+    },
+    "rsvp.set": {
+      "data": {
+        "command": "rsvp.set",
+        "failureTypes": [
+          "usage.invalid",
+          "input.invalid",
+          "auth.required",
+          "auth.expired",
+          "resource.not_found",
+          "state.conflict",
+          "remote.unavailable",
+          "contract.protocol_changed",
+          "internal.failure"
+        ],
+        "flags": [
+          {
+            "description": "Read one structured JSON input object.",
+            "name": "--input",
+            "required": false
+          },
+          {
+            "description": "Writable RSVP intent.",
+            "name": "--status",
+            "required": false
+          },
+          {
+            "description": "Attendee display name.",
+            "name": "--display-name",
+            "required": false
+          },
+          {
+            "description": "Total attendee count.",
+            "name": "--party-size",
+            "required": false
+          },
+          {
+            "description": "Named plus one; this flag can repeat.",
+            "name": "--plus-one",
+            "required": false
+          },
+          {
+            "description": "Optional RSVP message.",
+            "name": "--message",
+            "required": false
+          },
+          {
+            "description": "IANA timezone.",
+            "name": "--timezone",
+            "required": false
+          },
+          {
+            "description": "Questionnaire response JSON.",
+            "name": "--questionnaire-response",
+            "required": false
+          },
+          {
+            "description": "Preview the validated mutation without dispatching it.",
+            "name": "--dry-run",
+            "required": false
+          },
+          {
+            "description": "Skip the confirmation prompt for a destructive command.",
+            "name": "--force",
+            "required": false
+          },
+          {
+            "description": "Never prompt; fail if confirmation is required.",
+            "name": "--no-input",
+            "required": false
+          },
+          {
+            "description": "Indent the JSON result.",
+            "name": "--pretty",
+            "required": false
+          },
+          {
+            "description": "Disable terminal prompts.",
+            "name": "--non-interactive",
+            "required": false
+          }
+        ],
+        "inputSchema": {
+          "oneOf": [
+            {
+              "additionalProperties": false,
+              "properties": {
+                "displayName": {
+                  "maxLength": 50,
+                  "minLength": 1,
+                  "pattern": "\\S",
+                  "type": "string"
+                },
+                "eventId": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "message": {
+                  "maxLength": 400,
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "partySize": {
+                  "minimum": 1,
+                  "type": "integer"
+                },
+                "plusOnes": {
+                  "items": {
+                    "minLength": 1,
+                    "pattern": "\\S",
+                    "type": "string"
+                  },
+                  "type": "array"
+                },
+                "questionnaireResponse": {
+                  "oneOf": [
+                    {
+                      "additionalProperties": false,
+                      "properties": {
+                        "answers": {
+                          "additionalProperties": {
+                            "type": "string"
+                          },
+                          "type": "object"
+                        },
+                        "questionnaireVersion": {
+                          "minimum": 0,
+                          "type": "integer"
+                        }
+                      },
+                      "required": [
+                        "questionnaireVersion",
+                        "answers"
+                      ],
+                      "type": "object"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "status": {
+                  "enum": [
+                    "going"
+                  ],
+                  "type": "string"
+                },
+                "timezone": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "eventId",
+                "status",
+                "displayName",
+                "partySize",
+                "timezone"
+              ],
+              "type": "object"
+            },
+            {
+              "additionalProperties": false,
+              "properties": {
+                "displayName": {
+                  "maxLength": 50,
+                  "minLength": 1,
+                  "pattern": "\\S",
+                  "type": "string"
+                },
+                "eventId": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "message": {
+                  "maxLength": 400,
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "partySize": {
+                  "minimum": 1,
+                  "type": "integer"
+                },
+                "plusOnes": {
+                  "items": {
+                    "minLength": 1,
+                    "pattern": "\\S",
+                    "type": "string"
+                  },
+                  "type": "array"
+                },
+                "questionnaireResponse": {
+                  "type": "null"
+                },
+                "status": {
+                  "enum": [
+                    "not-going"
+                  ],
+                  "type": "string"
+                },
+                "timezone": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "eventId",
+                "status",
+                "displayName",
+                "partySize",
+                "timezone"
+              ],
+              "type": "object"
+            },
+            {
+              "additionalProperties": false,
+              "properties": {
+                "eventId": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "status": {
+                  "enum": [
+                    "interested"
+                  ],
+                  "type": "string"
+                }
+              },
+              "required": [
+                "eventId",
+                "status"
+              ],
+              "type": "object"
+            }
+          ],
+          "type": "object"
+        },
+        "positionals": [
+          {
+            "description": "Event identifier.",
+            "name": "event-id",
+            "required": true
+          }
+        ],
+        "safety": {
+          "destructive": false,
+          "kind": "standard-mutation"
+        },
+        "successSchema": {
+          "oneOf": [
+            {
+              "additionalProperties": false,
+              "properties": {
+                "input": {
+                  "oneOf": [
+                    {
+                      "additionalProperties": false,
+                      "properties": {
+                        "displayName": {
+                          "maxLength": 50,
+                          "minLength": 1,
+                          "pattern": "\\S",
+                          "type": "string"
+                        },
+                        "messageProvided": {
+                          "type": "boolean"
+                        },
+                        "partySize": {
+                          "minimum": 1,
+                          "type": "integer"
+                        },
+                        "plusOnes": {
+                          "items": {
+                            "minLength": 1,
+                            "pattern": "\\S",
+                            "type": "string"
+                          },
+                          "type": "array"
+                        },
+                        "questionnaireResponse": {
+                          "oneOf": [
+                            {
+                              "additionalProperties": false,
+                              "properties": {
+                                "answers": {
+                                  "additionalProperties": {
+                                    "type": "string"
+                                  },
+                                  "type": "object"
+                                },
+                                "questionnaireVersion": {
+                                  "minimum": 0,
+                                  "type": "integer"
+                                }
+                              },
+                              "required": [
+                                "questionnaireVersion",
+                                "answers"
+                              ],
+                              "type": "object"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "status": {
+                          "enum": [
+                            "going"
+                          ],
+                          "type": "string"
+                        },
+                        "timezone": {
+                          "minLength": 1,
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "status",
+                        "displayName",
+                        "partySize",
+                        "plusOnes",
+                        "messageProvided",
+                        "timezone",
+                        "questionnaireResponse"
+                      ],
+                      "type": "object"
+                    },
+                    {
+                      "additionalProperties": false,
+                      "properties": {
+                        "displayName": {
+                          "maxLength": 50,
+                          "minLength": 1,
+                          "pattern": "\\S",
+                          "type": "string"
+                        },
+                        "messageProvided": {
+                          "type": "boolean"
+                        },
+                        "partySize": {
+                          "minimum": 1,
+                          "type": "integer"
+                        },
+                        "plusOnes": {
+                          "items": {
+                            "minLength": 1,
+                            "pattern": "\\S",
+                            "type": "string"
+                          },
+                          "type": "array"
+                        },
+                        "questionnaireResponse": {
+                          "type": "null"
+                        },
+                        "status": {
+                          "enum": [
+                            "not-going"
+                          ],
+                          "type": "string"
+                        },
+                        "timezone": {
+                          "minLength": 1,
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "status",
+                        "displayName",
+                        "partySize",
+                        "plusOnes",
+                        "messageProvided",
+                        "timezone",
+                        "questionnaireResponse"
+                      ],
+                      "type": "object"
+                    },
+                    {
+                      "additionalProperties": false,
+                      "properties": {
+                        "status": {
+                          "enum": [
+                            "interested"
+                          ],
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "status"
+                      ],
+                      "type": "object"
+                    }
+                  ]
+                },
+                "mode": {
+                  "enum": [
+                    "create",
+                    "update"
+                  ],
+                  "type": "string"
+                },
+                "operation": {
+                  "enum": [
+                    "addGuest",
+                    "markEventInterest"
+                  ],
+                  "type": "string"
+                },
+                "preconditions": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "currentGuest": {
+                      "enum": [
+                        "absent",
+                        "present"
+                      ],
+                      "type": "string"
+                    },
+                    "eventSafeguards": {
+                      "enum": [
+                        "bound"
+                      ],
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "currentGuest",
+                    "eventSafeguards"
+                  ],
+                  "type": "object"
+                },
+                "request": {
+                  "oneOf": [
+                    {
+                      "additionalProperties": false,
+                      "properties": {
+                        "eventId": {
+                          "minLength": 1,
+                          "type": "string"
+                        },
+                        "rsvp": {
+                          "additionalProperties": false,
+                          "properties": {
+                            "count": {
+                              "minimum": 1,
+                              "type": "integer"
+                            },
+                            "guestId": {
+                              "enum": [
+                                "\u003credacted\u003e"
+                              ],
+                              "type": "string"
+                            },
+                            "messageProvided": {
+                              "type": "boolean"
+                            },
+                            "name": {
+                              "maxLength": 50,
+                              "minLength": 1,
+                              "type": "string"
+                            },
+                            "plusOnes": {
+                              "items": {
+                                "additionalProperties": false,
+                                "properties": {
+                                  "name": {
+                                    "minLength": 1,
+                                    "pattern": "\\S",
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "name"
+                                ],
+                                "type": "object"
+                              },
+                              "type": "array"
+                            },
+                            "questionnaireResponse": {
+                              "additionalProperties": false,
+                              "properties": {
+                                "answers": {
+                                  "additionalProperties": {
+                                    "type": "string"
+                                  },
+                                  "type": "object"
+                                },
+                                "questionnaireVersion": {
+                                  "minimum": 0,
+                                  "type": "integer"
+                                }
+                              },
+                              "required": [
+                                "questionnaireVersion",
+                                "answers"
+                              ],
+                              "type": "object"
+                            },
+                            "shouldFollowOrgs": {
+                              "const": false,
+                              "type": "boolean"
+                            },
+                            "status": {
+                              "enum": [
+                                "GOING",
+                                "DECLINED"
+                              ],
+                              "type": "string"
+                            },
+                            "ticketPaid": {
+                              "type": "boolean"
+                            },
+                            "timezone": {
+                              "minLength": 1,
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "name",
+                            "count",
+                            "plusOnes",
+                            "messageProvided",
+                            "status",
+                            "timezone",
+                            "shouldFollowOrgs"
+                          ],
+                          "type": "object"
+                        }
+                      },
+                      "required": [
+                        "eventId",
+                        "rsvp"
+                      ],
+                      "type": "object"
+                    },
+                    {
+                      "additionalProperties": false,
+                      "properties": {
+                        "eventId": {
+                          "minLength": 1,
+                          "type": "string"
+                        },
+                        "interested": {
+                          "const": true,
+                          "type": "boolean"
+                        }
+                      },
+                      "required": [
+                        "eventId",
+                        "interested"
+                      ],
+                      "type": "object"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "operation",
+                "mode",
+                "input",
+                "request",
+                "preconditions"
+              ],
+              "type": "object"
+            },
+            {
+              "additionalProperties": false,
+              "properties": {
+                "eventId": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "intent": {
+                  "enum": [
+                    "going",
+                    "not-going",
+                    "interested"
+                  ],
+                  "type": "string"
+                },
+                "submitted": {
+                  "const": true,
+                  "type": "boolean"
+                }
+              },
+              "required": [
+                "eventId",
+                "intent",
+                "submitted"
+              ],
+              "type": "object"
+            }
+          ],
+          "type": "object"
+        }
+      },
+      "meta": {
+        "cliVersion": "3.0.1",
+        "command": "schema",
+        "productContractRevision": "2026-11-12.3",
+        "remoteContractRevision": "2026-08-12.7",
+        "warnings": []
+      },
+      "ok": true
+    },
+    "schema": {
+      "data": {
+        "command": "schema",
+        "failureTypes": [
+          "usage.invalid",
+          "input.invalid"
+        ],
+        "flags": [
+          {
+            "description": "Indent the JSON result.",
+            "name": "--pretty",
+            "required": false
+          },
+          {
+            "description": "Disable terminal prompts.",
+            "name": "--non-interactive",
+            "required": false
+          },
+          {
+            "description": "Disable terminal prompts; alias of --non-interactive.",
+            "name": "--no-input",
+            "required": false
+          }
+        ],
+        "inputSchema": {
+          "additionalProperties": false,
+          "type": "object"
+        },
+        "positionals": [
+          {
+            "description": "Completed public command path.",
+            "name": "command.path",
+            "required": false
+          }
+        ],
+        "safety": {
+          "destructive": false,
+          "kind": "read-only"
+        },
+        "successSchema": {
+          "oneOf": [
+            {
+              "additionalProperties": false,
+              "properties": {
+                "commands": {
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                }
+              },
+              "required": [
+                "commands"
+              ],
+              "type": "object"
+            },
+            {
+              "additionalProperties": false,
+              "properties": {
+                "command": {
+                  "type": "string"
+                },
+                "failureTypes": {
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                },
+                "flags": {
+                  "items": {
+                    "additionalProperties": false,
+                    "properties": {
+                      "description": {
+                        "type": "string"
+                      },
+                      "name": {
+                        "type": "string"
+                      },
+                      "required": {
+                        "type": "boolean"
+                      }
+                    },
+                    "required": [
+                      "name",
+                      "required",
+                      "description"
+                    ],
+                    "type": "object"
+                  },
+                  "type": "array"
+                },
+                "inputSchema": {
+                  "type": "object"
+                },
+                "positionals": {
+                  "items": {
+                    "additionalProperties": false,
+                    "properties": {
+                      "description": {
+                        "type": "string"
+                      },
+                      "name": {
+                        "type": "string"
+                      },
+                      "required": {
+                        "type": "boolean"
+                      }
+                    },
+                    "required": [
+                      "name",
+                      "required",
+                      "description"
+                    ],
+                    "type": "object"
+                  },
+                  "type": "array"
+                },
+                "safety": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "destructive": {
+                      "type": "boolean"
+                    },
+                    "kind": {
+                      "enum": [
+                        "read-only",
+                        "local-mutation",
+                        "standard-mutation",
+                        "consequential-action"
+                      ],
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "kind",
+                    "destructive"
+                  ],
+                  "type": "object"
+                },
+                "successSchema": {
+                  "type": "object"
+                }
+              },
+              "required": [
+                "command",
+                "positionals",
+                "flags",
+                "inputSchema",
+                "successSchema",
+                "failureTypes",
+                "safety"
+              ],
+              "type": "object"
+            }
+          ],
+          "type": "object"
+        }
+      },
+      "meta": {
+        "cliVersion": "3.0.1",
+        "command": "schema",
+        "productContractRevision": "2026-11-12.3",
+        "remoteContractRevision": "2026-08-12.7",
+        "warnings": []
+      },
+      "ok": true
+    },
+    "version": {
+      "data": {
+        "command": "version",
+        "failureTypes": [
+          "usage.invalid",
+          "input.invalid"
+        ],
+        "flags": [
+          {
+            "description": "Indent the JSON result.",
+            "name": "--pretty",
+            "required": false
+          },
+          {
+            "description": "Disable terminal prompts.",
+            "name": "--non-interactive",
+            "required": false
+          },
+          {
+            "description": "Disable terminal prompts; alias of --non-interactive.",
+            "name": "--no-input",
+            "required": false
+          }
+        ],
+        "inputSchema": {
+          "additionalProperties": false,
+          "type": "object"
+        },
+        "positionals": [],
+        "safety": {
+          "destructive": false,
+          "kind": "read-only"
+        },
+        "successSchema": {
+          "additionalProperties": false,
+          "properties": {
+            "productContractRevision": {
+              "type": "string"
+            },
+            "remoteContractRevision": {
+              "type": "string"
+            },
+            "version": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "version",
+            "productContractRevision",
+            "remoteContractRevision"
+          ],
+          "type": "object"
+        }
+      },
+      "meta": {
+        "cliVersion": "3.0.1",
+        "command": "schema",
+        "productContractRevision": "2026-11-12.3",
+        "remoteContractRevision": "2026-08-12.7",
+        "warnings": []
+      },
+      "ok": true
+    }
+  }
+}

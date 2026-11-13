@@ -9,6 +9,7 @@ func TestDestructiveConfirmationPromptNamesAction(t *testing.T) {
 		want    string
 	}{
 		{"events.cancel", "Cancel event \"Current title\"? [y/N] "},
+		{"events.delete", "Delete event \"Current title\"? [y/N] "},
 		{"cohosts.remove", "Remove a cohost from \"Current title\"? [y/N] "},
 		{"cohosts.revoke-invite", "Revoke a cohost invite for \"Current title\"? [y/N] "},
 		{"cohosts.link.revoke", "Revoke the cohost invite link for \"Current title\"? [y/N] "},

@@ -26,8 +26,8 @@ Every mutation also accepts `--dry-run`, `--force`, and `--no-input`.
 resolution and never sends a write. Without it, the command dispatches once
 and never retries automatically.
 
-`events cancel`, `cohosts remove`, `cohosts revoke-invite`, and
-`cohosts link revoke` prompt only on a TTY. `--force` skips only that prompt.
+`events cancel`, `events delete`, `cohosts remove`, `cohosts revoke-invite`,
+and `cohosts link revoke` prompt only on a TTY. `--force` skips only that prompt.
 `--no-input`, `--non-interactive`, or a non-TTY invocation fails with
 `safety.confirmation_required` unless `--force` is present.
 

@@ -2,6 +2,11 @@
 
 Use the Go CLI in `cmd/partiful` and `internal/`.
 
+When adding or correcting remote calls, edit `spec/partiful.openapi.json`
+and add a focused Go test. Read [Architecture](docs/ARCHITECTURE.md) for the
+auth flow, evidence notes, and contract checks. Public behavior changes must pass
+the Go product tests; deliberately review updates to `internal/app/testdata` goldens.
+
 ## Release and validation
 
 The native release path is Go-only.
@@ -47,6 +52,7 @@ check for authentication state.
 - `doctor`
 - `events.cancel`
 - `events.create`
+- `events.delete`
 - `events.get`
 - `events.list`
 - `events.update`
@@ -64,7 +70,7 @@ check for authentication state.
 - Never expose phone numbers, email addresses, access tokens, or Partiful user IDs.
 - Never use live credentials or mutate real events in automated validation.
 - Use `--dry-run` for a redacted mutation preview.
-- `events.cancel`, `cohosts.remove`, `cohosts.revoke-invite`, and
-  `cohosts.link.revoke` require a TTY confirmation unless `--force` is set.
+- `events.cancel`, `events.delete`, `cohosts.remove`, `cohosts.revoke-invite`,
+  and `cohosts.link.revoke` require a TTY confirmation unless `--force` is set.
 - Use `--no-input` or `--non-interactive` when prompting is not allowed.
 - Mutation commands dispatch at most once and never retry automatically.

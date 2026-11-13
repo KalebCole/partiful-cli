@@ -8,13 +8,18 @@ description: Use when the user wants to inspect Partiful events, RSVP, create or
 Operate Partiful through the JSON-first `partiful` CLI. Load only the
 reference needed for the current task.
 
+For CLI implementation changes to remote calls, read
+[Architecture](../../docs/ARCHITECTURE.md); the
+[OpenAPI spec](../../spec/partiful.openapi.json) defines transport and evidence.
+Command definitions, Go tests, and reviewed schema goldens enforce public behavior.
+
 ## Start Here
 
 1. Run `partiful doctor` before assuming authentication works.
 2. Keep default JSON output for agent workflows. Use `partiful schema <command.path>` when exact parameters matter.
 3. Add `--dry-run` to any mutation for a redacted preview with no remote write.
 4. Without `--dry-run`, a mutation validates, performs required read checks, and dispatches once.
-5. `events cancel`, `cohosts remove`, `cohosts revoke-invite`, and `cohosts link revoke` prompt on a TTY. Use `--force` only after approval, or `--no-input` to fail rather than prompt.
+5. `events cancel`, `events delete`, `cohosts remove`, `cohosts revoke-invite`, and `cohosts link revoke` prompt on a TTY. Use `--force` only after approval, or `--no-input` to fail rather than prompt.
 
 ## Route by Task
 
@@ -22,7 +27,7 @@ reference needed for the current task.
 |---|---|
 | Login, auth status, credential resolution, or authentication diagnostics | [Authentication](references/authentication.md) |
 | Output envelopes, global flags, schema discovery, errors, or safety flow | [CLI output and safety](references/cli-output-and-safety.md) |
-| List, inspect, create, update, or cancel events | [Events](references/events.md) |
+| List, inspect, create, update, cancel, or delete events | [Events](references/events.md) |
 | RSVP or express interest as an attendee | [RSVPs and interest](references/rsvps-and-interest.md) |
 | List guests, resolve contacts, invite guests, or manage cohosts as a host | [Guests, invitations, and cohosts](references/guests-invitations-and-cohosts.md) |
 | Browse built-in posters and apply poster IDs to events | [Posters and images](references/posters-and-images.md) |

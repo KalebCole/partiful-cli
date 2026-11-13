@@ -3,7 +3,7 @@
   "info": {
     "title": "Partiful remote API contract",
     "version": "2026-08-12.7",
-    "description": "Owner-reviewed remote-only transport snapshot. Evidence classifications and uncertainty are recorded in spec/partiful.api-evidence.json."
+    "description": "Single source of truth for Partiful remote calls and wire shapes. Partiful has no public API. Each operation records dated provenance in x-evidence; unobserved responses remain unknown. Evidence status observed includes inspected first-party assets and official protocols, not just live traffic; the source note distinguishes them."
   },
   "servers": [
     {
@@ -88,7 +88,7 @@
         },
         "responses": {
           "200": {
-            "description": "Generic callable protocol completion. The current client uses decoded completion data as an event ID; persisted event state is not established.",
+            "description": "Callable completion containing the created event ID, including the observed result.data string. Persisted event state is not established.",
             "content": {
               "application/json": {
                 "schema": {
@@ -105,7 +105,12 @@
           {
             "firebaseBearer": []
           }
-        ]
+        ],
+        "x-evidence": {
+          "status": "observed",
+          "date": "2026-09-29",
+          "source": "Request: current-first-party-public-asset-research (docs/research/2026-08-12-event-write-mapping-public-assets.md#createevent-request). Response: current-first-party-public-asset-research (docs/research/2026-08-12-event-write-mapping-public-assets.md#createevent-completion). Status: official-protocol-specification (docs/research/2026-08-10-contract-evidence-sources.md#official-firebase-callable-protocol). Client completion or protocol evidence does not establish persisted business state, delivery, or unobserved failure mappings. PR #247 reports a sanitized live completion observed 2026-09-29: {\"result\":{\"data\":\"<event-id>\"}}; reproduced offline in TestExecuteEventCreateParsesResultDataCompletionAndReturnsCreatedEventID. No new live request was made during this update."
+        }
       }
     },
     "/cancelEvent": {
@@ -197,7 +202,12 @@
           {
             "firebaseBearer": []
           }
-        ]
+        ],
+        "x-evidence": {
+          "status": "observed",
+          "date": "2026-08-12",
+          "source": "Request: current-first-party-public-asset-research (docs/research/2026-08-12-event-write-mapping-public-assets.md#cancelevent-request-and-completion). Response: current-first-party-public-asset-research (docs/research/2026-08-12-event-write-mapping-public-assets.md#cancelevent-request-and-completion). Status: official-protocol-specification (docs/research/2026-08-10-contract-evidence-sources.md#official-firebase-callable-protocol). Client completion or protocol evidence does not establish persisted business state, delivery, or unobserved failure mappings."
+        }
       }
     },
     "/getEventInfo": {
@@ -283,7 +293,12 @@
           {
             "firebaseBearer": []
           }
-        ]
+        ],
+        "x-evidence": {
+          "status": "observed",
+          "date": "2026-11-12",
+          "source": "Request: typescript-derived-inference (spec/research/historical-27-operation-draft.json#/paths/~1getEventInfo/post). Response: dated-live-observation (docs/research/2026-08-11-event-contacts-read-observation.md#event-detail-observations). Status: dated-live-observation (docs/research/2026-08-11-event-contacts-read-observation.md#event-detail-observations). Safeguards: docs/research/2026-08-12-rsvp-read-observation.md (330 details; no universal presence claim). PR #245 reports inspection of public event payloads and the first-party RSVP flow: optional chip-in (mode optional, type chip_in or absent) uses addGuest, with ticketPaid true for GOING even when external payment is skipped; DECLINED omits ticketPaid, including required chip-in. This provenance note records that report during the 2026-11-12 review, not a new live observation. Offline chip-in fixtures cover these mappings. Live persisted RSVP state, external payment, questionnaire handling on the reported event, and getCurrentGuest returning an invited guest still require real Partiful verification. Standard ticket sales remain unsupported."
+        }
       }
     },
     "/getContacts": {
@@ -387,7 +402,12 @@
           {
             "firebaseBearer": []
           }
-        ]
+        ],
+        "x-evidence": {
+          "status": "observed",
+          "date": "2026-08-11",
+          "source": "Request: reviewed-first-party-repository-research (docs/research/2026-08-11-contacts-pagination-public-assets.md#exact-callable-argument). Response: dated-live-observation (docs/research/2026-08-11-event-contacts-read-observation.md#contact-observations). Status: dated-live-observation (docs/research/2026-08-11-event-contacts-read-observation.md#contact-observations). Invalid cursors, cursor lifetime, ordering, snapshots, useAuthUser, future completeness, and server duplicates remain unknown."
+        }
       }
     },
     "/getGuests": {
@@ -486,13 +506,48 @@
           },
           "default": {
             "description": "Unobserved response status or body."
+          },
+          "400": {
+            "description": "Reported live host rejection in PR #249 (2026-09-29); only this exact first-page error enables the Firestore host fallback.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "error"
+                  ],
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "required": [
+                        "message",
+                        "status"
+                      ],
+                      "properties": {
+                        "message": {
+                          "const": "User is host"
+                        },
+                        "status": {
+                          "const": "FAILED_PRECONDITION"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
           }
         },
         "security": [
           {
             "firebaseBearer": []
           }
-        ]
+        ],
+        "x-evidence": {
+          "status": "observed",
+          "date": "2026-08-12",
+          "source": "Request: current-first-party-public-asset-research (docs/research/2026-08-12-guest-mapping-public-assets.md#getguests-request-and-pagination). Response: current-first-party-public-asset-research (docs/research/2026-08-12-guest-mapping-public-assets.md#getguests-response-and-guest-fields). Status: official-protocol-specification (docs/research/2026-08-10-contract-evidence-sources.md#official-firebase-callable-protocol). PR #249 reports HTTP 400 with error.message User is host and error.status FAILED_PRECONDITION on 2026-09-29; only an empty Firestore host list was live-checked."
+        }
       }
     },
     "/createTextBlast": {
@@ -597,7 +652,12 @@
           {
             "firebaseBearer": []
           }
-        ]
+        ],
+        "x-evidence": {
+          "status": "observed",
+          "date": "2026-08-12",
+          "source": "Request: dated-live-observation (docs/research/2026-08-10-contract-evidence-sources.md#dated-text-blast-observation). Response: current-first-party-public-asset-research (docs/research/2026-08-12-text-blast-mapping-public-assets.md#createtextblast-helper-and-completion). Status: official-protocol-specification (docs/research/2026-08-10-contract-evidence-sources.md#official-firebase-callable-protocol). Request observed 2026-03-24; completion and preconditions researched 2026-08-12. Submission does not establish delivery."
+        }
       }
     },
     "/addInvitedGuestsAsHost": {
@@ -705,7 +765,12 @@
           {
             "firebaseBearer": []
           }
-        ]
+        ],
+        "x-evidence": {
+          "status": "observed",
+          "date": "2026-08-12",
+          "source": "Request: current-first-party-public-asset-research (docs/research/2026-08-12-guest-mapping-public-assets.md#addinvitedguestsashost-request). Response: official-protocol-specification (docs/research/2026-08-10-contract-evidence-sources.md#official-firebase-callable-protocol). Status: official-protocol-specification (docs/research/2026-08-10-contract-evidence-sources.md#official-firebase-callable-protocol). Client completion or protocol evidence does not establish persisted business state, delivery, or unobserved failure mappings."
+        }
       }
     },
     "/createCohostRequest": {
@@ -785,7 +850,12 @@
           {
             "firebaseBearer": []
           }
-        ]
+        ],
+        "x-evidence": {
+          "status": "observed",
+          "date": "2026-08-12",
+          "source": "Request: current-first-party-public-asset-research (docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions). Response: current-first-party-public-asset-research (docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions). Status: official-protocol-specification (docs/research/2026-08-10-contract-evidence-sources.md#official-firebase-callable-protocol). Client completion or protocol evidence does not establish persisted business state, delivery, or unobserved failure mappings."
+        }
       }
     },
     "/deleteCohostRequest": {
@@ -865,7 +935,12 @@
           {
             "firebaseBearer": []
           }
-        ]
+        ],
+        "x-evidence": {
+          "status": "observed",
+          "date": "2026-08-12",
+          "source": "Request: current-first-party-public-asset-research (docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions). Response: current-first-party-public-asset-research (docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions). Status: official-protocol-specification (docs/research/2026-08-10-contract-evidence-sources.md#official-firebase-callable-protocol). Client completion or protocol evidence does not establish persisted business state, delivery, or unobserved failure mappings."
+        }
       }
     },
     "/removeCohost": {
@@ -945,7 +1020,12 @@
           {
             "firebaseBearer": []
           }
-        ]
+        ],
+        "x-evidence": {
+          "status": "observed",
+          "date": "2026-08-12",
+          "source": "Request: current-first-party-public-asset-research (docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions). Response: current-first-party-public-asset-research (docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions). Status: official-protocol-specification (docs/research/2026-08-10-contract-evidence-sources.md#official-firebase-callable-protocol). Client completion or protocol evidence does not establish persisted business state, delivery, or unobserved failure mappings."
+        }
       }
     },
     "/generateEventCohostLink": {
@@ -1021,7 +1101,12 @@
           {
             "firebaseBearer": []
           }
-        ]
+        ],
+        "x-evidence": {
+          "status": "observed",
+          "date": "2026-08-12",
+          "source": "Request: current-first-party-public-asset-research (docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions). Response: current-first-party-public-asset-research (docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions). Status: official-protocol-specification (docs/research/2026-08-10-contract-evidence-sources.md#official-firebase-callable-protocol). Client completion or protocol evidence does not establish persisted business state, delivery, or unobserved failure mappings."
+        }
       }
     },
     "/revokeEventCohostLink": {
@@ -1097,7 +1182,12 @@
           {
             "firebaseBearer": []
           }
-        ]
+        ],
+        "x-evidence": {
+          "status": "observed",
+          "date": "2026-08-12",
+          "source": "Request: current-first-party-public-asset-research (docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions). Response: current-first-party-public-asset-research (docs/research/2026-08-12-cohost-lifecycle-public-assets.md#operation-requests-and-completions). Status: official-protocol-specification (docs/research/2026-08-10-contract-evidence-sources.md#official-firebase-callable-protocol). Client completion or protocol evidence does not establish persisted business state, delivery, or unobserved failure mappings."
+        }
       }
     },
     "/getMyUpcomingEventsForHomePage": {
@@ -1193,7 +1283,12 @@
           {
             "firebaseBearer": []
           }
-        ]
+        ],
+        "x-evidence": {
+          "status": "observed",
+          "date": "2026-08-12",
+          "source": "Request: typescript-derived-inference (spec/research/historical-27-operation-draft.json#/paths/~1getMyUpcomingEventsForHomePage/post). Response: dated-live-observation (docs/research/2026-08-11-event-contacts-read-observation.md#event-list-observations). Status: dated-live-observation (docs/research/2026-08-11-event-contacts-read-observation.md#event-list-observations). State, ownership, guest vocabulary: docs/research/2026-08-12-event-read-mapping-public-assets.md. Remote pagination, ordering, limits, and snapshot behavior unknown."
+        }
       }
     },
     "/getMyPastEventsForHomePage": {
@@ -1289,7 +1384,12 @@
           {
             "firebaseBearer": []
           }
-        ]
+        ],
+        "x-evidence": {
+          "status": "observed",
+          "date": "2026-08-12",
+          "source": "Request: typescript-derived-inference (spec/research/historical-27-operation-draft.json#/paths/~1getMyPastEventsForHomePage/post). Response: dated-live-observation (docs/research/2026-08-11-event-contacts-read-observation.md#event-list-observations). Status: dated-live-observation (docs/research/2026-08-11-event-contacts-read-observation.md#event-list-observations). State, ownership, guest vocabulary: docs/research/2026-08-12-event-read-mapping-public-assets.md. Remote pagination, ordering, limits, and snapshot behavior unknown."
+        }
       }
     },
     "/addGuest": {
@@ -1370,7 +1470,12 @@
           {
             "firebaseBearer": []
           }
-        ]
+        ],
+        "x-evidence": {
+          "status": "observed",
+          "date": "2026-11-12",
+          "source": "Request: current-first-party-public-asset-research (docs/research/2026-08-12-rsvp-mapping-public-assets.md#addguest-request). Response: current-first-party-public-asset-research (docs/research/2026-08-12-rsvp-mapping-public-assets.md#addguest-completion). Status: official-protocol-specification (docs/research/2026-08-10-contract-evidence-sources.md#official-firebase-callable-protocol). Client completion or protocol evidence does not establish persisted business state, delivery, or unobserved failure mappings. PR #245 reports inspection of public event payloads and the first-party RSVP flow: optional chip-in (mode optional, type chip_in or absent) uses addGuest, with ticketPaid true for GOING even when external payment is skipped; DECLINED omits ticketPaid, including required chip-in. This provenance note records that report during the 2026-11-12 review, not a new live observation. Offline chip-in fixtures cover these mappings. Live persisted RSVP state, external payment, questionnaire handling on the reported event, and getCurrentGuest returning an invited guest still require real Partiful verification. Standard ticket sales remain unsupported."
+        }
       }
     },
     "/markEventInterest": {
@@ -1454,7 +1559,12 @@
           {
             "firebaseBearer": []
           }
-        ]
+        ],
+        "x-evidence": {
+          "status": "observed",
+          "date": "2026-08-12",
+          "source": "Request: current-first-party-public-asset-research (docs/research/2026-08-12-rsvp-mapping-public-assets.md#markeventinterest-request-and-completion). Response: current-first-party-public-asset-research (docs/research/2026-08-12-rsvp-mapping-public-assets.md#markeventinterest-request-and-completion). Status: official-protocol-specification (docs/research/2026-08-10-contract-evidence-sources.md#official-firebase-callable-protocol). Client completion or protocol evidence does not establish persisted business state, delivery, or unobserved failure mappings."
+        }
       }
     },
     "/getCurrentGuest": {
@@ -1529,7 +1639,12 @@
           {
             "firebaseBearer": []
           }
-        ]
+        ],
+        "x-evidence": {
+          "status": "observed",
+          "date": "2026-08-12",
+          "source": "Request: current-first-party-public-asset-research (docs/research/2026-08-12-rsvp-mapping-public-assets.md#getcurrentguest). Response: dated-live-observation (docs/research/2026-08-12-rsvp-read-observation.md#current-guest-variants). Status: dated-live-observation (docs/research/2026-08-12-rsvp-read-observation.md#current-guest-variants). One null and one object observed; object fields are optional; plus-one variants and failures unknown."
+        }
       }
     },
     "/v1/projects/getpartiful/databases/(default)/documents/events/{eventId}": {
@@ -1569,6 +1684,14 @@
           {
             "url": "https://firestore.googleapis.com"
           }
+        ],
+        "x-evidence": {
+          "status": "observed",
+          "date": "2026-08-11",
+          "source": "Request: typescript-derived-inference (spec/research/historical-27-operation-draft.json#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1events~1{eventId}/get). Response: dated-live-observation (docs/research/2026-08-11-event-contacts-read-observation.md#guest-and-firestore-observations). Status: dated-live-observation (docs/research/2026-08-11-event-contacts-read-observation.md#guest-and-firestore-observations)."
+        },
+        "tags": [
+          "firestore"
         ]
       },
       "patch": {
@@ -1647,6 +1770,14 @@
           {
             "url": "https://firestore.googleapis.com"
           }
+        ],
+        "x-evidence": {
+          "status": "observed",
+          "date": "2026-08-10",
+          "source": "Request: official-protocol-specification (docs/research/2026-08-10-contract-evidence-sources.md#official-firestore-rest-protocol). Response: official-protocol-specification (docs/research/2026-08-10-contract-evidence-sources.md#official-firestore-rest-protocol). Status: official-protocol-specification (docs/research/2026-08-10-contract-evidence-sources.md#official-firestore-rest-protocol). Client completion or protocol evidence does not establish persisted business state, delivery, or unobserved failure mappings."
+        },
+        "tags": [
+          "firestore"
         ]
       }
     },
@@ -1695,62 +1826,14 @@
           {
             "url": "https://firestore.googleapis.com"
           }
-        ]
-      }
-    },
-    "/v1/projects/getpartiful/databases/(default)/documents/{collectionPath}": {
-      "get": {
-        "operationId": "firestoreListDocuments",
-        "parameters": [
-          {
-            "name": "collectionPath",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "pageSize",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "integer"
-            }
-          },
-          {
-            "name": "pageToken",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          }
         ],
-        "responses": {
-          "200": {
-            "description": "Official Firestore list-documents protocol completion for the selected collection path.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/FirestoreListResponse"
-                }
-              }
-            }
-          },
-          "default": {
-            "description": "Response status and body are unknown."
-          }
+        "x-evidence": {
+          "status": "observed",
+          "date": "2026-08-11",
+          "source": "Request: typescript-derived-inference (spec/research/historical-27-operation-draft.json#/paths/~1v1~1projects~1getpartiful~1databases~1(default)~1documents~1events~1{eventId}~1guests~1{guestId}/get). Response: dated-live-observation (docs/research/2026-08-11-event-contacts-read-observation.md#guest-and-firestore-observations). Status: dated-live-observation (docs/research/2026-08-11-event-contacts-read-observation.md#guest-and-firestore-observations)."
         },
-        "security": [
-          {
-            "firebaseBearer": []
-          }
-        ],
-        "servers": [
-          {
-            "url": "https://firestore.googleapis.com"
-          }
+        "tags": [
+          "firestore"
         ]
       }
     },
@@ -1829,7 +1912,12 @@
             },
             "description": "Observed accepted Referer value for the Firebase API key restriction. Requests without an allowed Referer receive 403 API_KEY_HTTP_REFERRER_BLOCKED; other accepted values remain unknown."
           }
-        ]
+        ],
+        "x-evidence": {
+          "status": "observed",
+          "date": "2026-08-11",
+          "source": "Request: typescript-derived-inference (spec/research/historical-27-operation-draft.json#/paths/~1v1~1token/post). Response: dated-live-observation (docs/research/2026-08-11-auth-observation.md#refreshtoken). Status: dated-live-observation (docs/research/2026-08-11-auth-observation.md#refreshtoken)."
+        }
       }
     },
     "/sendAuthCodeTrusted": {
@@ -1913,6 +2001,11 @@
           "default": {
             "description": "Response status and body are unknown."
           }
+        },
+        "x-evidence": {
+          "status": "observed",
+          "date": "2026-08-11",
+          "source": "Request: typescript-derived-inference (spec/research/historical-27-operation-draft.json#/paths/~1sendAuthCodeTrusted/post). Response: dated-live-observation (docs/research/2026-08-11-auth-observation.md#sendauthcodetrusted). Status: dated-live-observation (docs/research/2026-08-11-auth-observation.md#sendauthcodetrusted)."
         }
       }
     },
@@ -2004,6 +2097,11 @@
           "default": {
             "description": "Response status and body are unknown."
           }
+        },
+        "x-evidence": {
+          "status": "observed",
+          "date": "2026-08-11",
+          "source": "Request: typescript-derived-inference (spec/research/historical-27-operation-draft.json#/paths/~1getLoginToken/post). Response: dated-live-observation (docs/research/2026-08-11-auth-observation.md#getlogintoken). Status: dated-live-observation (docs/research/2026-08-11-auth-observation.md#getlogintoken)."
         }
       }
     },
@@ -2079,7 +2177,12 @@
             },
             "description": "Observed accepted Referer value for the Firebase API key restriction. Requests without an allowed Referer receive 403 API_KEY_HTTP_REFERRER_BLOCKED; other accepted values remain unknown."
           }
-        ]
+        ],
+        "x-evidence": {
+          "status": "observed",
+          "date": "2026-08-11",
+          "source": "Request: typescript-derived-inference (spec/research/historical-27-operation-draft.json#/paths/~1v1~1accounts:signInWithCustomToken/post). Response: dated-live-observation (docs/research/2026-08-11-auth-observation.md#signinwithcustomtoken). Status: dated-live-observation (docs/research/2026-08-11-auth-observation.md#signinwithcustomtoken)."
+        }
       }
     },
     "/v1/accounts:lookup": {
@@ -2150,7 +2253,12 @@
             },
             "description": "Observed accepted Referer value for the Firebase API key restriction. Requests without an allowed Referer receive 403 API_KEY_HTTP_REFERRER_BLOCKED; other accepted values remain unknown."
           }
-        ]
+        ],
+        "x-evidence": {
+          "status": "observed",
+          "date": "2026-08-11",
+          "source": "Request: typescript-derived-inference (spec/research/historical-27-operation-draft.json#/paths/~1v1~1accounts:lookup/post). Response: dated-live-observation (docs/research/2026-08-11-auth-observation.md#lookupfirebaseuser). Status: dated-live-observation (docs/research/2026-08-11-auth-observation.md#lookupfirebaseuser)."
+        }
       }
     },
     "/uploadPhoto": {
@@ -2203,7 +2311,12 @@
           {
             "url": "https://us-central1-getpartiful.cloudfunctions.net"
           }
-        ]
+        ],
+        "x-evidence": {
+          "status": "explicit-unknown",
+          "date": "2026-08-10",
+          "source": "Request: typescript-derived-inference (spec/research/historical-27-operation-draft.json#/paths/~1uploadPhoto/post). Response: explicit-unknown (docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision). Status: explicit-unknown (docs/research/2026-08-10-contract-evidence-sources.md#unknown-status-decision). Historical request inference only; accepted media, limits, response variants, and uploadType stability unknown."
+        }
       }
     },
     "/posters.json": {
@@ -2231,7 +2344,352 @@
           {
             "url": "https://assets.getpartiful.com"
           }
+        ],
+        "x-evidence": {
+          "status": "observed",
+          "date": "2026-08-11",
+          "source": "Request: typescript-derived-inference (docs/research/2026-08-10-contract-evidence-sources.md#poster-catalog-fetch). Response: dated-live-observation (docs/research/2026-08-10-contract-evidence-sources.md#dated-poster-catalog-observation). Status: dated-live-observation (docs/research/2026-08-10-contract-evidence-sources.md#dated-poster-catalog-observation). Catalog: docs/research/2026-08-11-poster-catalog-observation.md (complete observed representation; future membership and order unknown)."
+        }
+      }
+    },
+    "/v1/projects/getpartiful/databases/(default)/documents/events/{eventId}/guests": {
+      "get": {
+        "operationId": "firestoreListEventGuests",
+        "parameters": [
+          {
+            "name": "eventId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "pageToken",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Official Firestore list-documents envelope. The host guest fallback has only an empty-list live observation reported in PR #249; populated guest field mappings are inferred from getGuests and remain unverified. Unknown document shapes fail closed. Blast preconditions read only status and checkIn.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FirestoreEventGuestsListResponse"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Response status and body are unknown."
+          }
+        },
+        "security": [
+          {
+            "firebaseBearer": []
+          }
+        ],
+        "servers": [
+          {
+            "url": "https://firestore.googleapis.com"
+          }
+        ],
+        "x-evidence": {
+          "status": "observed",
+          "date": "2026-09-29",
+          "source": "Official Firestore list protocol: docs/research/2026-08-10-contract-evidence-sources.md#official-firestore-rest-protocol. Collection path and client preconditions: docs/research/2026-08-12-text-blast-mapping-public-assets.md#host-only-precondition-reads. Public-asset research only; no live collection request or mutation. Pagination limits, authorization, and unobserved failures unknown. PR #249 reports a live empty host list on 2026-09-29 after getGuests returned HTTP 400 FAILED_PRECONDITION / User is host. Populated host guest fields name, status, count, userId, and anchorGuestId are inferred from the callable guest projection, not a populated Firestore observation; require real Partiful evidence. Document ID comes from the Firestore document name. The CLI bounds traversal to 10 pages of pageSize=1000 and 10000 documents, rejecting repeated tokens or overflow without partial results. These are local safety caps; Firestore documents no maximum collection size."
+        },
+        "tags": [
+          "firestore"
         ]
+      }
+    },
+    "/v1/projects/getpartiful/databases/(default)/documents/events/{eventId}/hostMessages": {
+      "get": {
+        "operationId": "firestoreListHostMessages",
+        "parameters": [
+          {
+            "name": "eventId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "pageToken",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Official Firestore list-documents protocol; collection fields are supported by the cited first-party client research. Partiful authorization and unobserved errors remain unknown.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FirestoreListResponse"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Response status and body are unknown."
+          }
+        },
+        "security": [
+          {
+            "firebaseBearer": []
+          }
+        ],
+        "servers": [
+          {
+            "url": "https://firestore.googleapis.com"
+          }
+        ],
+        "x-evidence": {
+          "status": "observed",
+          "date": "2026-08-12",
+          "source": "Official Firestore list protocol: docs/research/2026-08-10-contract-evidence-sources.md#official-firestore-rest-protocol. Collection path and client preconditions: docs/research/2026-08-12-text-blast-mapping-public-assets.md#host-only-precondition-reads. Public-asset research only; no live collection request or mutation. Pagination limits, authorization, and unobserved failures unknown."
+        },
+        "tags": [
+          "firestore"
+        ]
+      }
+    },
+    "/v1/projects/getpartiful/databases/(default)/documents/events/{eventId}/cohostRequests": {
+      "get": {
+        "operationId": "firestoreListCohostRequests",
+        "parameters": [
+          {
+            "name": "eventId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "pageToken",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Official Firestore list-documents protocol; collection fields are supported by the cited first-party client research. Partiful authorization and unobserved errors remain unknown.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FirestoreListResponse"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Response status and body are unknown."
+          }
+        },
+        "security": [
+          {
+            "firebaseBearer": []
+          }
+        ],
+        "servers": [
+          {
+            "url": "https://firestore.googleapis.com"
+          }
+        ],
+        "x-evidence": {
+          "status": "observed",
+          "date": "2026-08-12",
+          "source": "Official Firestore list protocol: docs/research/2026-08-10-contract-evidence-sources.md#official-firestore-rest-protocol. Collection path and client preconditions: docs/research/2026-08-12-cohost-lifecycle-public-assets.md#cohost-request-document-shape. Public-asset research only; no live collection request or mutation. Pagination limits, authorization, and unobserved failures unknown."
+        },
+        "tags": [
+          "firestore"
+        ]
+      }
+    },
+    "/v1/projects/getpartiful/databases/(default)/documents/events/{eventId}/private/cohostSecret": {
+      "get": {
+        "operationId": "firestoreGetCohostLink",
+        "tags": [
+          "firestore"
+        ],
+        "servers": [
+          {
+            "url": "https://firestore.googleapis.com"
+          }
+        ],
+        "parameters": [
+          {
+            "name": "eventId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "security": [
+          {
+            "firebaseBearer": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Official Firestore document protocol; the client reads the private link path field.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FirestoreDocument"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Firestore NOT_FOUND document response, handled as absent link; protocol mapping, not a live Partiful observation.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FirestoreNotFoundError"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Unobserved response status or body."
+          }
+        },
+        "x-evidence": {
+          "status": "observed",
+          "date": "2026-08-12",
+          "source": "Document path and link state: docs/research/2026-08-12-cohost-lifecycle-public-assets.md#link-document-shape-and-token-path. Generic document/NOT_FOUND protocol: docs/research/2026-08-10-contract-evidence-sources.md#official-firestore-rest-protocol. Public-asset and protocol research only; no live Partiful read, permission claim, or revocation guarantee."
+        }
+      }
+    },
+    "/deleteEvent": {
+      "post": {
+        "operationId": "deleteEvent",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "data"
+                ],
+                "properties": {
+                  "data": {
+                    "type": "object",
+                    "required": [
+                      "params",
+                      "userId"
+                    ],
+                    "properties": {
+                      "params": {
+                        "type": "object",
+                        "properties": {
+                          "eventId": {
+                            "type": "string",
+                            "minLength": 1
+                          }
+                        },
+                        "additionalProperties": false,
+                        "required": [
+                          "eventId"
+                        ]
+                      },
+                      "userId": {
+                        "type": [
+                          "string",
+                          "null"
+                        ]
+                      },
+                      "deviceInfo": {
+                        "type": "object",
+                        "additionalProperties": true
+                      },
+                      "amplitudeDeviceId": {
+                        "type": "string"
+                      },
+                      "amplitudeSessionId": {
+                        "type": "integer",
+                        "format": "int64"
+                      },
+                      "adminAccessRequested": {
+                        "type": "boolean",
+                        "const": true
+                      }
+                    },
+                    "additionalProperties": false
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Generic callable completion; the first-party client inspects no business field. Persisted deletion is not established.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeleteEventCompletionResponse"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Unobserved response status or body."
+          }
+        },
+        "security": [
+          {
+            "firebaseBearer": []
+          }
+        ],
+        "x-evidence": {
+          "status": "observed",
+          "date": "2026-09-29",
+          "source": "PR #250 reports current first-party web client inspection on 2026-09-29: deleteEvent({params:{eventId}}), offered for an owned event with zero guests; no response field inspected. Shared callable envelope and protocol: docs/research/2026-08-12-event-write-mapping-public-assets.md and docs/research/2026-08-10-contract-evidence-sources.md#official-firebase-callable-protocol. No live deletion during this update. Endpoint-specific errors, server authorization, and persisted deletion remain unknown. Published status, zero guests, and ownership are CLI safety preconditions."
+        }
       }
     }
   },
@@ -2421,6 +2879,11 @@
           "shouldFollowOrgs": {
             "type": "boolean",
             "const": false
+          },
+          "ticketPaid": {
+            "type": "boolean",
+            "const": true,
+            "description": "Honor-system confirmation from the first-party chip-in flow. The CLI sends true only for GOING on optional chip-in / suggested donation events; omitted for ordinary events and DECLINED. This does not make a payment or buy a ticket."
           }
         },
         "additionalProperties": false
@@ -3230,10 +3693,7 @@
             "items": {}
           },
           "ticketing": {
-            "type": [
-              "object",
-              "null"
-            ]
+            "$ref": "#/components/schemas/EventTicketing"
           },
           "guestAction": {
             "type": "string",
@@ -3723,7 +4183,49 @@
               "result"
             ],
             "properties": {
-              "result": {}
+              "result": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  {
+                    "type": "object",
+                    "required": [
+                      "data"
+                    ],
+                    "properties": {
+                      "data": {
+                        "type": "string",
+                        "minLength": 1
+                      }
+                    },
+                    "additionalProperties": true
+                  },
+                  {
+                    "type": "object",
+                    "required": [
+                      "event"
+                    ],
+                    "properties": {
+                      "event": {
+                        "type": "object",
+                        "required": [
+                          "id"
+                        ],
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "minLength": 1
+                          }
+                        },
+                        "additionalProperties": true
+                      }
+                    },
+                    "additionalProperties": true
+                  }
+                ]
+              }
             },
             "additionalProperties": true
           },
@@ -3733,7 +4235,49 @@
               "data"
             ],
             "properties": {
-              "data": {}
+              "data": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  {
+                    "type": "object",
+                    "required": [
+                      "data"
+                    ],
+                    "properties": {
+                      "data": {
+                        "type": "string",
+                        "minLength": 1
+                      }
+                    },
+                    "additionalProperties": true
+                  },
+                  {
+                    "type": "object",
+                    "required": [
+                      "event"
+                    ],
+                    "properties": {
+                      "event": {
+                        "type": "object",
+                        "required": [
+                          "id"
+                        ],
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "minLength": 1
+                          }
+                        },
+                        "additionalProperties": true
+                      }
+                    },
+                    "additionalProperties": true
+                  }
+                ]
+              }
             },
             "additionalProperties": true
           }
@@ -3943,7 +4487,205 @@
             "additionalProperties": false
           }
         ]
+      },
+      "FirestoreNotFoundError": {
+        "type": "object",
+        "required": [
+          "error"
+        ],
+        "properties": {
+          "error": {
+            "type": "object",
+            "required": [
+              "status"
+            ],
+            "properties": {
+              "status": {
+                "type": "string",
+                "const": "NOT_FOUND"
+              }
+            },
+            "additionalProperties": true
+          }
+        },
+        "additionalProperties": true
+      },
+      "FirestoreHostGuestDocument": {
+        "description": "Provisional host guest projection inferred in PR #249, not verified against a populated host response. Additional fields ignored by the CLI.",
+        "type": "object",
+        "required": [
+          "name",
+          "fields"
+        ],
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "fields": {
+            "type": "object",
+            "required": [
+              "name",
+              "status",
+              "count"
+            ],
+            "properties": {
+              "name": {
+                "$ref": "#/components/schemas/FirestoreObservedStringValue"
+              },
+              "status": {
+                "$ref": "#/components/schemas/FirestoreObservedStringValue"
+              },
+              "count": {
+                "type": "object",
+                "required": [
+                  "integerValue"
+                ],
+                "properties": {
+                  "integerValue": {
+                    "type": "string",
+                    "pattern": "^[0-9]+$"
+                  }
+                }
+              },
+              "userId": {
+                "anyOf": [
+                  {
+                    "$ref": "#/components/schemas/FirestoreObservedStringValue"
+                  },
+                  {
+                    "type": "object",
+                    "required": [
+                      "nullValue"
+                    ],
+                    "properties": {
+                      "nullValue": {
+                        "type": "null"
+                      }
+                    }
+                  }
+                ]
+              },
+              "anchorGuestId": {
+                "anyOf": [
+                  {
+                    "$ref": "#/components/schemas/FirestoreObservedStringValue"
+                  },
+                  {
+                    "type": "object",
+                    "required": [
+                      "nullValue"
+                    ],
+                    "properties": {
+                      "nullValue": {
+                        "type": "null"
+                      }
+                    }
+                  }
+                ]
+              }
+            },
+            "additionalProperties": {
+              "$ref": "#/components/schemas/FirestoreValue"
+            }
+          }
+        },
+        "additionalProperties": true
+      },
+      "FirestoreEventGuestsListResponse": {
+        "type": "object",
+        "properties": {
+          "documents": {
+            "type": "array",
+            "items": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/FirestoreHostGuestDocument"
+                },
+                {
+                  "$ref": "#/components/schemas/FirestoreDocument"
+                }
+              ]
+            }
+          },
+          "nextPageToken": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": true,
+        "description": "Shared collection read. Host fallback requires the provisional full guest subset; blast preconditions need only status and checkIn. Empty documents may be omitted."
+      },
+      "DeleteEventCompletionResponse": {
+        "anyOf": [
+          {
+            "type": "object",
+            "required": [
+              "result"
+            ],
+            "properties": {
+              "result": {}
+            },
+            "additionalProperties": true
+          },
+          {
+            "type": "object",
+            "required": [
+              "data"
+            ],
+            "properties": {
+              "data": {}
+            },
+            "additionalProperties": true
+          }
+        ]
+      },
+      "EventTicketing": {
+        "type": [
+          "object",
+          "null"
+        ],
+        "description": "Selected first-party ticketing fields reported in PR #245. Optional chip-in has mode optional and type chip_in or absent/null; mode required blocks going but permits decline. Other shapes remain unsupported; unknown fields do not establish payment support.",
+        "properties": {
+          "type": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "mode": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "price": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "currency": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "payment": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "description": "External payment handle object. Never projected to CLI output or used to execute a payment.",
+            "additionalProperties": true
+          }
+        },
+        "additionalProperties": true
       }
     }
-  }
+  },
+  "tags": [
+    {
+      "name": "firestore",
+      "description": "Firestore REST document reads, collection lists, and event updates."
+    }
+  ]
 }

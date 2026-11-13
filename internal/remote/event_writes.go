@@ -100,6 +100,10 @@ type CancelEventParams struct {
 	ShouldSkipNotifyGuests bool   `json:"shouldSkipNotifyGuests"`
 }
 
+type DeleteEventParams struct {
+	EventID string `json:"eventId"`
+}
+
 type callableMutationRequest[T any] struct {
 	Data callableMutationRequestData[T] `json:"data"`
 }
@@ -184,11 +188,19 @@ func (client Client) CreateEvent(
 		return eventID, nil
 	}
 	var created struct {
+		Data  *string `json:"data"`
 		Event struct {
 			ID string `json:"id"`
 		} `json:"event"`
 	}
-	if json.Unmarshal(completion, &created) != nil || created.Event.ID == "" {
+	if json.Unmarshal(completion, &created) != nil {
+		return "", fmt.Errorf("%w: create event completion", ErrProtocolChanged)
+	}
+	// The live callable currently answers {"result":{"data":"<event-id>"}}.
+	if created.Data != nil && *created.Data != "" {
+		return *created.Data, nil
+	}
+	if created.Event.ID == "" {
 		return "", fmt.Errorf("%w: create event completion", ErrProtocolChanged)
 	}
 	return created.Event.ID, nil
@@ -201,6 +213,16 @@ func (client Client) CancelEvent(
 	params CancelEventParams,
 ) error {
 	_, err := callEventMutation(client, ctx, accessToken, "cancelEvent", userID, params)
+	return err
+}
+
+func (client Client) DeleteEvent(
+	ctx context.Context,
+	accessToken string,
+	userID string,
+	params DeleteEventParams,
+) error {
+	_, err := callEventMutation(client, ctx, accessToken, "deleteEvent", userID, params)
 	return err
 }
 

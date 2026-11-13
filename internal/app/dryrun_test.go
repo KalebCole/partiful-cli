@@ -21,13 +21,14 @@ func TestMutationSchemaUsesDryRunFlagsWithoutPlanLifecycle(t *testing.T) {
 		"cohosts.revoke-invite": true,
 		"events.cancel":         true,
 		"events.create":         false,
+		"events.delete":         true,
 		"events.update":         false,
 		"guests.invite":         false,
 		"rsvp.set":              false,
 	}
 	for command, destructive := range commands {
 		t.Run(command, func(t *testing.T) {
-			result := app.Execute(context.Background(), app.Request{Argv: []string{"schema", command}}, app.Dependencies{})
+			result := executeChecked(t, context.Background(), app.Request{Argv: []string{"schema", command}}, app.Dependencies{})
 			if result.ExitCode != 0 {
 				t.Fatalf("schema result = %#v", result)
 			}
@@ -83,7 +84,7 @@ func TestMutationHelpFindsSafetyFlagsAnywhere(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			argv := append([]string{"--dry-run"}, command...)
 			argv = append(argv, "--force", "--help", "--no-input")
-			result := app.Execute(context.Background(), app.Request{Argv: argv}, app.Dependencies{})
+			result := executeChecked(t, context.Background(), app.Request{Argv: argv}, app.Dependencies{})
 			if result.ExitCode != 0 {
 				t.Fatalf("help result = %#v", result)
 			}
@@ -201,7 +202,7 @@ func TestDestructiveMutationConfirmationSafety(t *testing.T) {
 
 			argv := append([]string{}, test.flags...)
 			argv = append(argv, "events", "cancel", "event-example")
-			result := app.Execute(context.Background(), app.Request{Argv: argv}, dependencies)
+			result := executeChecked(t, context.Background(), app.Request{Argv: argv}, dependencies)
 			if result.ExitCode != test.wantExitCode {
 				t.Fatalf("result = %#v, want exit %d", result, test.wantExitCode)
 			}
@@ -229,6 +230,7 @@ func TestDestructiveCommandsPromptWithCurrentRemoteTitleAndRefuseWithoutMutation
 		action string
 	}{
 		{"cancel", []string{"events", "cancel", "event-example"}, "Cancel event"},
+		{"delete", []string{"events", "delete", "event-example"}, "Delete event"},
 		{"remove cohost", []string{"cohosts", "remove", "event-example", "--contact", "Example Contact"}, "Remove a cohost from"},
 		{"revoke cohost invite", []string{"cohosts", "revoke-invite", "event-example", "--contact", "Example Contact"}, "Revoke a cohost invite for"},
 		{"revoke cohost link", []string{"cohosts", "link", "revoke", "event-example"}, "Revoke the cohost invite link for"},
@@ -241,7 +243,7 @@ func TestDestructiveCommandsPromptWithCurrentRemoteTitleAndRefuseWithoutMutation
 			declining := &recordingConfirmer{terminal: true}
 			dependencies.Confirmer = declining
 
-			result := app.Execute(context.Background(), app.Request{Argv: test.argv}, dependencies)
+			result := executeChecked(t, context.Background(), app.Request{Argv: test.argv}, dependencies)
 			if result.ExitCode != 7 || declining.calls != 1 {
 				t.Fatalf("declined result = %#v, confirmations = %d", result, declining.calls)
 			}
@@ -256,7 +258,7 @@ func TestDestructiveCommandsPromptWithCurrentRemoteTitleAndRefuseWithoutMutation
 			nonTerminalDependencies := destructiveCommandDependencies(t, test.argv, title, &writes)
 			nonTerminal := &recordingConfirmer{}
 			nonTerminalDependencies.Confirmer = nonTerminal
-			result = app.Execute(context.Background(), app.Request{Argv: test.argv}, nonTerminalDependencies)
+			result = executeChecked(t, context.Background(), app.Request{Argv: test.argv}, nonTerminalDependencies)
 			if result.ExitCode != 7 || nonTerminal.calls != 0 || writes != 0 {
 				t.Fatalf("non-terminal result = %#v, confirmations = %d, mutations = %d", result, nonTerminal.calls, writes)
 			}
@@ -279,6 +281,9 @@ func destructiveCommandDependencies(t *testing.T, argv []string, title string, w
 			if strings.Join(argv[:2], " ") == "events cancel" {
 				event["guestCount"] = 1
 			}
+			if strings.Join(argv[:2], " ") == "events delete" {
+				event["guestCount"] = 0
+			}
 			return jsonResponse(http.StatusOK, eventResponse(t, event)), nil
 		case "https://api.partiful.com/getContacts":
 			contactCalls++
@@ -295,7 +300,7 @@ func destructiveCommandDependencies(t *testing.T, argv []string, title string, w
 			return jsonResponse(http.StatusOK, `{"documents":[`+cohostRequestDocument("private-contact-id", status)+`]}`), nil
 		case "https://firestore.googleapis.com/v1/projects/getpartiful/databases/(default)/documents/events/event-example/private/cohostSecret":
 			return jsonResponse(http.StatusOK, cohostLinkDocument("/e/event-example?accept-cohost=existing-token")), nil
-		case "https://api.partiful.com/cancelEvent", "https://api.partiful.com/removeCohost", "https://api.partiful.com/deleteCohostRequest", "https://api.partiful.com/revokeEventCohostLink":
+		case "https://api.partiful.com/cancelEvent", "https://api.partiful.com/deleteEvent", "https://api.partiful.com/removeCohost", "https://api.partiful.com/deleteCohostRequest", "https://api.partiful.com/revokeEventCohostLink":
 			*writes++
 			return jsonResponse(http.StatusOK, `{"result":true}`), nil
 		default:

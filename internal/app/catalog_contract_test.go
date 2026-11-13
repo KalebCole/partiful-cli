@@ -23,6 +23,7 @@ var approvedCommandCatalog = []string{
 	"doctor",
 	"events.cancel",
 	"events.create",
+	"events.delete",
 	"events.get",
 	"events.list",
 	"events.update",
@@ -37,7 +38,7 @@ var approvedCommandCatalog = []string{
 }
 
 func TestExecuteSchemaPublishesEveryApprovedCommandDefinition(t *testing.T) {
-	catalogResult := app.Execute(context.Background(), app.Request{Argv: []string{"schema"}}, app.Dependencies{})
+	catalogResult := executeChecked(t, context.Background(), app.Request{Argv: []string{"schema"}}, app.Dependencies{})
 	if catalogResult.ExitCode != 0 {
 		t.Fatalf("schema exit code = %d, want 0", catalogResult.ExitCode)
 	}
@@ -54,7 +55,7 @@ func TestExecuteSchemaPublishesEveryApprovedCommandDefinition(t *testing.T) {
 	}
 
 	for _, command := range approvedCommandCatalog {
-		result := app.Execute(context.Background(), app.Request{Argv: []string{"schema", command}}, app.Dependencies{})
+		result := executeChecked(t, context.Background(), app.Request{Argv: []string{"schema", command}}, app.Dependencies{})
 		if result.ExitCode != 0 {
 			t.Fatalf("schema %s exit code = %d, want 0", command, result.ExitCode)
 		}
@@ -81,7 +82,7 @@ func TestExecuteSchemaPublishesEveryApprovedCommandDefinition(t *testing.T) {
 }
 
 func TestExecuteVersionReportsBuildInfoContract(t *testing.T) {
-	result := app.Execute(context.Background(), app.Request{Argv: []string{"--version"}}, app.Dependencies{})
+	result := executeChecked(t, context.Background(), app.Request{Argv: []string{"--version"}}, app.Dependencies{})
 	if result.ExitCode != 0 {
 		t.Fatalf("version exit code = %d, want 0", result.ExitCode)
 	}

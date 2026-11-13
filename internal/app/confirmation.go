@@ -45,6 +45,7 @@ func requireDestructiveConfirmation(
 func destructiveConfirmationPrompt(command string, eventTitle *string) string {
 	action := map[string]string{
 		"events.cancel":         "Cancel event",
+		"events.delete":         "Delete event",
 		"cohosts.remove":        "Remove a cohost from",
 		"cohosts.revoke-invite": "Revoke a cohost invite for",
 		"cohosts.link.revoke":   "Revoke the cohost invite link for",
