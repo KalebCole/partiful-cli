@@ -255,6 +255,20 @@ func parseEventCancelOptions(
 	return options, nil
 }
 
+func parseEventDeleteOptions(
+	definition commandDefinition,
+	argv []string,
+) (string, *errorBody) {
+	eventID, inputError := parseEventID(definition, argv[:min(len(argv), len(definition.invocation)+1)])
+	if inputError != nil {
+		return "", inputError
+	}
+	if _, _, parseError := parseEventMutationFlags(definition, argv, len(definition.invocation)+1, false); parseError != nil {
+		return "", parseError
+	}
+	return eventID, nil
+}
+
 func parseEventMutationFlags(
 	definition commandDefinition,
 	argv []string,
@@ -902,6 +916,34 @@ func eventCancelSuccessSchema() jsonSchema {
 			"eventId":      {Type: "string", MinLength: &one},
 			"notifyGuests": {Type: "boolean"},
 			"submitted":    {Type: "boolean", Const: true},
+		},
+	)
+	return jsonSchema{Type: "object", OneOf: []jsonSchema{preview, submitted}}
+}
+
+func eventDeleteSuccessSchema() jsonSchema {
+	one := 1
+	previewRequest := objectSchema(
+		[]string{"eventId"},
+		map[string]jsonSchema{
+			"eventId": {Type: "string", MinLength: &one},
+		},
+	)
+	preview := objectSchema(
+		[]string{"operation", "eventId", "request", "effects", "preconditions"},
+		map[string]jsonSchema{
+			"operation":     {Type: "string", Enum: []string{"deleteEvent"}},
+			"eventId":       {Type: "string", MinLength: &one},
+			"request":       previewRequest,
+			"effects":       {Type: "array", Items: pointerSchema(jsonSchema{Type: "string"})},
+			"preconditions": {Type: "object"},
+		},
+	)
+	submitted := objectSchema(
+		[]string{"eventId", "submitted"},
+		map[string]jsonSchema{
+			"eventId":   {Type: "string", MinLength: &one},
+			"submitted": {Type: "boolean", Const: true},
 		},
 	)
 	return jsonSchema{Type: "object", OneOf: []jsonSchema{preview, submitted}}

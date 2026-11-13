@@ -57,6 +57,7 @@ const (
 	eventsCreateCommand
 	eventsUpdateCommand
 	eventsCancelCommand
+	eventsDeleteCommand
 	blastsSendCommand
 	rsvpGetCommand
 	rsvpSetCommand
@@ -410,6 +411,31 @@ var commandCatalog = []commandDefinition{
 		}, mutationFlagDefinitions()...),
 		inputSchema:   eventCancelInputSchema(),
 		successSchema: eventCancelSuccessSchema(),
+		failureTypes: []string{
+			"auth.required",
+			"auth.expired",
+			"permission.denied",
+			"resource.not_found",
+			"state.conflict",
+			"safety.confirmation_required",
+			"remote.unavailable",
+			"contract.protocol_changed",
+			"internal.failure",
+		},
+		safety: destructiveActionSafety(),
+	},
+	{
+		path:       "events.delete",
+		invocation: []string{"events", "delete"},
+		kind:       eventsDeleteCommand,
+		positionals: []positionalDefinition{{
+			Name:        "event-id",
+			Required:    true,
+			Description: "Event identifier.",
+		}},
+		flags:         mutationFlagDefinitions(),
+		inputSchema:   emptyInputSchema(),
+		successSchema: eventDeleteSuccessSchema(),
 		failureTypes: []string{
 			"auth.required",
 			"auth.expired",
@@ -1145,6 +1171,9 @@ func Execute(ctx context.Context, request Request, dependencies Dependencies) Re
 					if errors.Is(err, auth.ErrHumanRequired) {
 						return privateTerminalRequiredFailure(definition.path, pretty)
 					}
+					if errors.Is(err, auth.ErrPhoneInvalid) {
+						return authenticationPhoneInvalidFailure(definition.path, pretty)
+					}
 					if errors.Is(err, auth.ErrInputInvalid) {
 						return authenticationInputInvalidFailure(definition.path, pretty)
 					}
@@ -1513,6 +1542,8 @@ func Execute(ctx context.Context, request Request, dependencies Dependencies) Re
 				return executeEventUpdate(ctx, request, definition, argv, dependencies, execution, pretty)
 			case eventsCancelCommand:
 				return executeEventCancel(ctx, request, definition, argv, dependencies, execution, pretty)
+			case eventsDeleteCommand:
+				return executeEventDelete(ctx, definition, argv, dependencies, execution, pretty)
 			case blastsSendCommand:
 				return executeBlastSend(ctx, request, definition, argv, dependencies, execution, pretty)
 			case rsvpGetCommand:
@@ -1566,6 +1597,7 @@ func (definition commandDefinition) matches(argv []string) bool {
 		definition.kind == eventsCreateCommand ||
 		definition.kind == eventsUpdateCommand ||
 		definition.kind == eventsCancelCommand ||
+		definition.kind == eventsDeleteCommand ||
 		definition.kind == blastsSendCommand ||
 		definition.kind == rsvpGetCommand ||
 		definition.kind == rsvpSetCommand ||
@@ -1936,6 +1968,18 @@ func privateTerminalRequiredFailure(command string, pretty bool) Result {
 		Details:   map[string]any{},
 	}, pretty)
 	result.Stderr = "partiful: private terminal required\n"
+	return result
+}
+
+func authenticationPhoneInvalidFailure(command string, pretty bool) Result {
+	result := failure(command, 2, errorBody{
+		Type:      "input.invalid",
+		Code:      "AUTH_INPUT_INVALID",
+		Message:   "Enter a phone number with its country code, such as +1 followed by 10 digits.",
+		Retryable: false,
+		Details:   map[string]any{},
+	}, pretty)
+	result.Stderr = "partiful: authentication input invalid\n"
 	return result
 }
 

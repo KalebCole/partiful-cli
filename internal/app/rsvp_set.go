@@ -37,6 +37,7 @@ type rsvpPreviewGuestDraft struct {
 	Timezone              string                        `json:"timezone"`
 	QuestionnaireResponse *remote.QuestionnaireResponse `json:"questionnaireResponse,omitempty"`
 	ShouldFollowOrgs      bool                          `json:"shouldFollowOrgs"`
+	TicketPaid            bool                          `json:"ticketPaid,omitempty"`
 }
 
 type rsvpSubmitted struct {
@@ -67,6 +68,12 @@ const (
 	rsvpStateError
 	rsvpQuestionnaireInputError
 )
+
+type rsvpRejection struct {
+	kind     rsvpCompatibilityError
+	message  string
+	property string
+}
 
 func executeRSVPSet(
 	ctx context.Context,
@@ -129,26 +136,18 @@ func executeRSVPSet(
 		}
 		return rsvpProtocolChangedFailure(definition.path, pretty)
 	}
-	privateCurrentGuest, currentGuestError := normalizeRSVPCurrentGuest(currentGuest)
-	if currentGuestError != 0 {
-		return rsvpCompatibilityFailure(
-			definition.path,
-			currentGuestError,
-			pretty,
-		)
+	privateCurrentGuest, rejection := normalizeRSVPCurrentGuest(currentGuest)
+	if rejection.kind != 0 {
+		return rsvpCompatibilityFailure(definition.path, rejection, pretty)
 	}
-	prepared, compatibilityError := prepareRSVPRequest(
+	prepared, rejection := prepareRSVPRequest(
 		options.EventID,
 		options.Input,
 		event.Safeguards,
 		privateCurrentGuest,
 	)
-	if compatibilityError != 0 {
-		return rsvpCompatibilityFailure(
-			definition.path,
-			compatibilityError,
-			pretty,
-		)
+	if rejection.kind != 0 {
+		return rsvpCompatibilityFailure(definition.path, rejection, pretty)
 	}
 	if execution.DryRun {
 		return success(definition.path, rsvpPreview{
@@ -210,6 +209,7 @@ func publicRSVPPreviewRequest(request any) any {
 			Timezone:              params.RSVP.Timezone,
 			QuestionnaireResponse: params.RSVP.QuestionnaireResponse,
 			ShouldFollowOrgs:      params.RSVP.ShouldFollowOrgs,
+			TicketPaid:            params.RSVP.TicketPaid,
 		},
 	}
 }
@@ -219,9 +219,9 @@ func prepareRSVPRequest(
 	input normalizedRSVPInput,
 	event remote.EventSafeguards,
 	currentGuest rsvpPrivateCurrentGuest,
-) (rsvpPreparedRequest, rsvpCompatibilityError) {
-	if errKind := validateRSVPEvent(event, input, currentGuest); errKind != 0 {
-		return rsvpPreparedRequest{}, errKind
+) (rsvpPreparedRequest, rsvpRejection) {
+	if rejection := validateRSVPEvent(event, input, currentGuest); rejection.kind != 0 {
+		return rsvpPreparedRequest{}, rejection
 	}
 	mode := "create"
 	if currentGuest.Marker == "present" {
@@ -238,7 +238,7 @@ func prepareRSVPRequest(
 			Private:      params,
 			Public:       params,
 			CurrentGuest: currentGuest.Marker,
-		}, 0
+		}, rsvpRejection{}
 	}
 	product := input.AddGuest
 	plusOnes := make([]remote.NamedPlusOne, len(product.PlusOnes))
@@ -272,6 +272,7 @@ func prepareRSVPRequest(
 			Timezone:              product.Timezone,
 			QuestionnaireResponse: questionnaire,
 			ShouldFollowOrgs:      false,
+			TicketPaid:            honorSystemSuggestion(event.Ticketing) && status == "GOING",
 		},
 	}
 	publicParams := privateParams
@@ -285,14 +286,14 @@ func prepareRSVPRequest(
 		Private:      privateParams,
 		Public:       publicParams,
 		CurrentGuest: currentGuest.Marker,
-	}, 0
+	}, rsvpRejection{}
 }
 
 func normalizeRSVPCurrentGuest(
 	current remote.CurrentGuest,
-) (rsvpPrivateCurrentGuest, rsvpCompatibilityError) {
+) (rsvpPrivateCurrentGuest, rsvpRejection) {
 	if !current.Present {
-		return rsvpPrivateCurrentGuest{Marker: "absent"}, 0
+		return rsvpPrivateCurrentGuest{Marker: "absent"}, rsvpRejection{}
 	}
 	snapshot := rsvpPrivateCurrentGuest{
 		Marker:  "present",
@@ -305,11 +306,11 @@ func normalizeRSVPCurrentGuest(
 		*current.Count < 0 ||
 		math.Trunc(*current.Count) != *current.Count ||
 		*current.Count > float64(maxInt()) {
-		return snapshot, rsvpProtocolError
+		return snapshot, rsvpRejection{kind: rsvpProtocolError}
 	}
 	count := int(*current.Count)
 	snapshot.Count = &count
-	return snapshot, 0
+	return snapshot, rsvpRejection{}
 }
 
 func maxInt() int {
@@ -320,53 +321,61 @@ func validateRSVPEvent(
 	event remote.EventSafeguards,
 	input normalizedRSVPInput,
 	current rsvpPrivateCurrentGuest,
-) rsvpCompatibilityError {
+) rsvpRejection {
 	if event.RSVPsEnabled.State != remote.FieldValue ||
 		event.AtCapacity.State != remote.FieldValue ||
 		event.PlusOneNamesRequired.State != remote.FieldValue ||
 		event.QuestionnaireVersions.State == remote.FieldAbsent ||
 		event.MaxCountPerGuest.State == remote.FieldNull ||
 		event.RemainingCapacity.State == remote.FieldNull {
-		return rsvpProtocolError
+		return rsvpRejection{kind: rsvpProtocolError}
 	}
 	if event.MaxCountPerGuest.State == remote.FieldValue &&
 		event.MaxCountPerGuest.Value < 1 {
-		return rsvpProtocolError
+		return rsvpRejection{kind: rsvpProtocolError}
 	}
 	if event.GuestAction.State != remote.FieldAbsent &&
 		(event.GuestAction.State != remote.FieldValue ||
 			event.GuestAction.Value != "RSVP" &&
 				event.GuestAction.Value != "APPLY") {
-		return rsvpProtocolError
+		return rsvpRejection{kind: rsvpProtocolError}
 	}
 	if event.Password.State == remote.FieldNull ||
 		event.PasswordProtected.State == remote.FieldNull ||
 		event.QuestionnaireEnabled.State == remote.FieldNull {
-		return rsvpProtocolError
+		return rsvpRejection{kind: rsvpProtocolError}
 	}
-	if !event.RSVPsEnabled.Value ||
-		event.GuestAction.State == remote.FieldValue &&
-			event.GuestAction.Value == "APPLY" ||
-		event.Ticketing.State == remote.FieldValue ||
-		event.Password.State == remote.FieldValue ||
-		event.PasswordProtected.State == remote.FieldValue {
-		return rsvpStateError
+	if !event.RSVPsEnabled.Value {
+		return rsvpStateRejection("rsvpsEnabled", "The event has rsvpsEnabled turned off.")
+	}
+	if event.GuestAction.State == remote.FieldValue &&
+		event.GuestAction.Value == "APPLY" {
+		return rsvpStateRejection("guestAction", "The event guestAction does not support a direct RSVP.")
+	}
+	if rejection := rsvpTicketingRejection(event.Ticketing, input.Intent); rejection.kind != 0 {
+		return rejection
+	}
+	if event.Password.State == remote.FieldValue {
+		return rsvpStateRejection("password", "The event is password protected.")
+	}
+	if event.PasswordProtected.State == remote.FieldValue {
+		return rsvpStateRejection("passwordProtected", "The event is password protected.")
 	}
 	if input.Intent == "interested" {
-		return 0
+		return rsvpRejection{}
 	}
 	product := input.AddGuest
 	if event.MaxCountPerGuest.State == remote.FieldValue &&
 		product.PartySize > event.MaxCountPerGuest.Value {
-		return rsvpStateError
+		return rsvpStateRejection("maxCountPerGuest", "The party is larger than maxCountPerGuest.")
 	}
 	if event.MaxCapacity.State == remote.FieldValue &&
 		event.RemainingCapacity.State != remote.FieldValue {
-		return rsvpStateError
+		return rsvpStateRejection("remainingCapacity", "The event has maxCapacity without remainingCapacity.")
 	}
 	if input.Intent == "going" {
 		if event.AtCapacity.Value {
-			return rsvpStateError
+			return rsvpStateRejection("atCapacity", "The event is at capacity.")
 		}
 		currentCapacityCount := 0
 		if current.Marker == "present" &&
@@ -376,24 +385,54 @@ func validateRSVPEvent(
 		additionalCount := max(0, product.PartySize-currentCapacityCount)
 		if event.RemainingCapacity.State == remote.FieldValue &&
 			additionalCount > event.RemainingCapacity.Value {
-			return rsvpStateError
+			return rsvpStateRejection("remainingCapacity", "The event does not have enough remainingCapacity.")
 		}
 		if event.QuestionnaireEnabled.State == remote.FieldValue &&
 			event.QuestionnaireEnabled.Value {
 			if event.QuestionnaireVersions.State != remote.FieldValue ||
 				event.QuestionnaireVersions.Length == 0 {
-				return rsvpStateError
+				return rsvpStateRejection("questionnaireVersions", "The event questionnaireVersions are unavailable.")
 			}
 			if product.QuestionnaireResponse == nil ||
 				product.QuestionnaireResponse.QuestionnaireVersion !=
 					event.QuestionnaireVersions.Length-1 {
-				return rsvpQuestionnaireInputError
+				return rsvpRejection{kind: rsvpQuestionnaireInputError}
 			}
 		} else if product.QuestionnaireResponse != nil {
-			return rsvpQuestionnaireInputError
+			return rsvpRejection{kind: rsvpQuestionnaireInputError}
 		}
 	}
-	return 0
+	return rsvpRejection{}
+}
+
+func honorSystemSuggestion(ticketing remote.TicketingField) bool {
+	return ticketing.State == remote.FieldValue &&
+		ticketing.Class == remote.TicketingOptionalChipIn
+}
+
+func rsvpTicketingRejection(
+	ticketing remote.TicketingField,
+	intent string,
+) rsvpRejection {
+	switch ticketing.Class {
+	case "", remote.TicketingOptionalChipIn:
+		return rsvpRejection{}
+	case remote.TicketingRequiredChipIn:
+		if intent == "going" {
+			return rsvpStateRejection("ticketing", "The event requires a chip-in payment.")
+		}
+		return rsvpRejection{}
+	default:
+		return rsvpStateRejection("ticketing", "The event uses ticketing.")
+	}
+}
+
+func rsvpStateRejection(property, message string) rsvpRejection {
+	return rsvpRejection{
+		kind:     rsvpStateError,
+		message:  message,
+		property: property,
+	}
 }
 
 func cloneRSVPAnswers(source map[string]string) map[string]string {
@@ -406,19 +445,23 @@ func cloneRSVPAnswers(source map[string]string) map[string]string {
 
 func rsvpCompatibilityFailure(
 	command string,
-	kind rsvpCompatibilityError,
+	rejection rsvpRejection,
 	pretty bool,
 ) Result {
-	switch kind {
+	switch rejection.kind {
 	case rsvpStateError:
+		details := map[string]any{}
+		if rejection.property != "" {
+			details["property"] = rejection.property
+		}
 		result := failure(command, 6, errorBody{
 			Type:      "state.conflict",
 			Code:      "RSVP_EVENT_UNSUPPORTED",
-			Message:   "The event does not support this RSVP safely.",
+			Message:   rejection.message,
 			Retryable: false,
-			Details:   map[string]any{},
+			Details:   details,
 		}, pretty)
-		result.Stderr = "partiful: RSVP event unsupported\n"
+		result.Stderr = "partiful: " + rejection.message + "\n"
 		return result
 	case rsvpQuestionnaireInputError:
 		return failure(command, 2, errorBody{

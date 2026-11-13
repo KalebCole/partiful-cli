@@ -15,6 +15,7 @@
         "doctor",
         "events.cancel",
         "events.create",
+        "events.delete",
         "events.get",
         "events.list",
         "events.update",
@@ -31,7 +32,7 @@
     "meta": {
       "cliVersion": "3.0.1",
       "command": "schema",
-      "productContractRevision": "2026-08-12.7",
+      "productContractRevision": "2026-11-12.3",
       "remoteContractRevision": "2026-08-12.7",
       "warnings": []
     },
@@ -110,7 +111,7 @@
       "meta": {
         "cliVersion": "3.0.1",
         "command": "schema",
-        "productContractRevision": "2026-08-12.7",
+        "productContractRevision": "2026-11-12.3",
         "remoteContractRevision": "2026-08-12.7",
         "warnings": []
       },
@@ -184,7 +185,7 @@
       "meta": {
         "cliVersion": "3.0.1",
         "command": "schema",
-        "productContractRevision": "2026-08-12.7",
+        "productContractRevision": "2026-11-12.3",
         "remoteContractRevision": "2026-08-12.7",
         "warnings": []
       },
@@ -261,7 +262,7 @@
       "meta": {
         "cliVersion": "3.0.1",
         "command": "schema",
-        "productContractRevision": "2026-08-12.7",
+        "productContractRevision": "2026-11-12.3",
         "remoteContractRevision": "2026-08-12.7",
         "warnings": []
       },
@@ -515,7 +516,7 @@
       "meta": {
         "cliVersion": "3.0.1",
         "command": "schema",
-        "productContractRevision": "2026-08-12.7",
+        "productContractRevision": "2026-11-12.3",
         "remoteContractRevision": "2026-08-12.7",
         "warnings": []
       },
@@ -685,7 +686,7 @@
       "meta": {
         "cliVersion": "3.0.1",
         "command": "schema",
-        "productContractRevision": "2026-08-12.7",
+        "productContractRevision": "2026-11-12.3",
         "remoteContractRevision": "2026-08-12.7",
         "warnings": []
       },
@@ -828,7 +829,7 @@
       "meta": {
         "cliVersion": "3.0.1",
         "command": "schema",
-        "productContractRevision": "2026-08-12.7",
+        "productContractRevision": "2026-11-12.3",
         "remoteContractRevision": "2026-08-12.7",
         "warnings": []
       },
@@ -972,7 +973,7 @@
       "meta": {
         "cliVersion": "3.0.1",
         "command": "schema",
-        "productContractRevision": "2026-08-12.7",
+        "productContractRevision": "2026-11-12.3",
         "remoteContractRevision": "2026-08-12.7",
         "warnings": []
       },
@@ -1143,7 +1144,7 @@
       "meta": {
         "cliVersion": "3.0.1",
         "command": "schema",
-        "productContractRevision": "2026-08-12.7",
+        "productContractRevision": "2026-11-12.3",
         "remoteContractRevision": "2026-08-12.7",
         "warnings": []
       },
@@ -1314,7 +1315,7 @@
       "meta": {
         "cliVersion": "3.0.1",
         "command": "schema",
-        "productContractRevision": "2026-08-12.7",
+        "productContractRevision": "2026-11-12.3",
         "remoteContractRevision": "2026-08-12.7",
         "warnings": []
       },
@@ -1459,7 +1460,7 @@
       "meta": {
         "cliVersion": "3.0.1",
         "command": "schema",
-        "productContractRevision": "2026-08-12.7",
+        "productContractRevision": "2026-11-12.3",
         "remoteContractRevision": "2026-08-12.7",
         "warnings": []
       },
@@ -1550,7 +1551,7 @@
       "meta": {
         "cliVersion": "3.0.1",
         "command": "schema",
-        "productContractRevision": "2026-08-12.7",
+        "productContractRevision": "2026-11-12.3",
         "remoteContractRevision": "2026-08-12.7",
         "warnings": []
       },
@@ -1738,7 +1739,7 @@
       "meta": {
         "cliVersion": "3.0.1",
         "command": "schema",
-        "productContractRevision": "2026-08-12.7",
+        "productContractRevision": "2026-11-12.3",
         "remoteContractRevision": "2026-08-12.7",
         "warnings": []
       },
@@ -2088,7 +2089,143 @@
       "meta": {
         "cliVersion": "3.0.1",
         "command": "schema",
-        "productContractRevision": "2026-08-12.7",
+        "productContractRevision": "2026-11-12.3",
+        "remoteContractRevision": "2026-08-12.7",
+        "warnings": []
+      },
+      "ok": true
+    },
+    "events.delete": {
+      "data": {
+        "command": "events.delete",
+        "failureTypes": [
+          "usage.invalid",
+          "input.invalid",
+          "auth.required",
+          "auth.expired",
+          "permission.denied",
+          "resource.not_found",
+          "state.conflict",
+          "safety.confirmation_required",
+          "remote.unavailable",
+          "contract.protocol_changed",
+          "internal.failure"
+        ],
+        "flags": [
+          {
+            "description": "Preview the validated mutation without dispatching it.",
+            "name": "--dry-run",
+            "required": false
+          },
+          {
+            "description": "Skip the confirmation prompt for a destructive command.",
+            "name": "--force",
+            "required": false
+          },
+          {
+            "description": "Never prompt; fail if confirmation is required.",
+            "name": "--no-input",
+            "required": false
+          },
+          {
+            "description": "Indent the JSON result.",
+            "name": "--pretty",
+            "required": false
+          },
+          {
+            "description": "Disable terminal prompts.",
+            "name": "--non-interactive",
+            "required": false
+          }
+        ],
+        "inputSchema": {
+          "additionalProperties": false,
+          "type": "object"
+        },
+        "positionals": [
+          {
+            "description": "Event identifier.",
+            "name": "event-id",
+            "required": true
+          }
+        ],
+        "safety": {
+          "destructive": true,
+          "kind": "consequential-action"
+        },
+        "successSchema": {
+          "oneOf": [
+            {
+              "additionalProperties": false,
+              "properties": {
+                "effects": {
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                },
+                "eventId": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "operation": {
+                  "enum": [
+                    "deleteEvent"
+                  ],
+                  "type": "string"
+                },
+                "preconditions": {
+                  "type": "object"
+                },
+                "request": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "eventId": {
+                      "minLength": 1,
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "eventId"
+                  ],
+                  "type": "object"
+                }
+              },
+              "required": [
+                "operation",
+                "eventId",
+                "request",
+                "effects",
+                "preconditions"
+              ],
+              "type": "object"
+            },
+            {
+              "additionalProperties": false,
+              "properties": {
+                "eventId": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "submitted": {
+                  "const": true,
+                  "type": "boolean"
+                }
+              },
+              "required": [
+                "eventId",
+                "submitted"
+              ],
+              "type": "object"
+            }
+          ],
+          "type": "object"
+        }
+      },
+      "meta": {
+        "cliVersion": "3.0.1",
+        "command": "schema",
+        "productContractRevision": "2026-11-12.3",
         "remoteContractRevision": "2026-08-12.7",
         "warnings": []
       },
@@ -2264,7 +2401,7 @@
       "meta": {
         "cliVersion": "3.0.1",
         "command": "schema",
-        "productContractRevision": "2026-08-12.7",
+        "productContractRevision": "2026-11-12.3",
         "remoteContractRevision": "2026-08-12.7",
         "warnings": []
       },
@@ -2498,7 +2635,7 @@
       "meta": {
         "cliVersion": "3.0.1",
         "command": "schema",
-        "productContractRevision": "2026-08-12.7",
+        "productContractRevision": "2026-11-12.3",
         "remoteContractRevision": "2026-08-12.7",
         "warnings": []
       },
@@ -2802,7 +2939,7 @@
       "meta": {
         "cliVersion": "3.0.1",
         "command": "schema",
-        "productContractRevision": "2026-08-12.7",
+        "productContractRevision": "2026-11-12.3",
         "remoteContractRevision": "2026-08-12.7",
         "warnings": []
       },
@@ -2981,7 +3118,7 @@
       "meta": {
         "cliVersion": "3.0.1",
         "command": "schema",
-        "productContractRevision": "2026-08-12.7",
+        "productContractRevision": "2026-11-12.3",
         "remoteContractRevision": "2026-08-12.7",
         "warnings": []
       },
@@ -3158,7 +3295,7 @@
       "meta": {
         "cliVersion": "3.0.1",
         "command": "schema",
-        "productContractRevision": "2026-08-12.7",
+        "productContractRevision": "2026-11-12.3",
         "remoteContractRevision": "2026-08-12.7",
         "warnings": []
       },
@@ -3327,7 +3464,7 @@
       "meta": {
         "cliVersion": "3.0.1",
         "command": "schema",
-        "productContractRevision": "2026-08-12.7",
+        "productContractRevision": "2026-11-12.3",
         "remoteContractRevision": "2026-08-12.7",
         "warnings": []
       },
@@ -3509,7 +3646,7 @@
       "meta": {
         "cliVersion": "3.0.1",
         "command": "schema",
-        "productContractRevision": "2026-08-12.7",
+        "productContractRevision": "2026-11-12.3",
         "remoteContractRevision": "2026-08-12.7",
         "warnings": []
       },
@@ -3613,7 +3750,7 @@
       "meta": {
         "cliVersion": "3.0.1",
         "command": "schema",
-        "productContractRevision": "2026-08-12.7",
+        "productContractRevision": "2026-11-12.3",
         "remoteContractRevision": "2026-08-12.7",
         "warnings": []
       },
@@ -4131,6 +4268,9 @@
                               ],
                               "type": "string"
                             },
+                            "ticketPaid": {
+                              "type": "boolean"
+                            },
                             "timezone": {
                               "minLength": 1,
                               "type": "string"
@@ -4218,7 +4358,7 @@
       "meta": {
         "cliVersion": "3.0.1",
         "command": "schema",
-        "productContractRevision": "2026-08-12.7",
+        "productContractRevision": "2026-11-12.3",
         "remoteContractRevision": "2026-08-12.7",
         "warnings": []
       },
@@ -4385,7 +4525,7 @@
       "meta": {
         "cliVersion": "3.0.1",
         "command": "schema",
-        "productContractRevision": "2026-08-12.7",
+        "productContractRevision": "2026-11-12.3",
         "remoteContractRevision": "2026-08-12.7",
         "warnings": []
       },
@@ -4448,7 +4588,7 @@
       "meta": {
         "cliVersion": "3.0.1",
         "command": "schema",
-        "productContractRevision": "2026-08-12.7",
+        "productContractRevision": "2026-11-12.3",
         "remoteContractRevision": "2026-08-12.7",
         "warnings": []
       },

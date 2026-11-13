@@ -88,7 +88,7 @@
         },
         "responses": {
           "200": {
-            "description": "Generic callable protocol completion. The current client uses decoded completion data as an event ID; persisted event state is not established.",
+            "description": "Callable completion containing the created event ID, including the observed result.data string. Persisted event state is not established.",
             "content": {
               "application/json": {
                 "schema": {
@@ -108,8 +108,8 @@
         ],
         "x-evidence": {
           "status": "observed",
-          "date": "2026-08-12",
-          "source": "Request: current-first-party-public-asset-research (docs/research/2026-08-12-event-write-mapping-public-assets.md#createevent-request). Response: current-first-party-public-asset-research (docs/research/2026-08-12-event-write-mapping-public-assets.md#createevent-completion). Status: official-protocol-specification (docs/research/2026-08-10-contract-evidence-sources.md#official-firebase-callable-protocol). Client completion or protocol evidence does not establish persisted business state, delivery, or unobserved failure mappings."
+          "date": "2026-09-29",
+          "source": "Request: current-first-party-public-asset-research (docs/research/2026-08-12-event-write-mapping-public-assets.md#createevent-request). Response: current-first-party-public-asset-research (docs/research/2026-08-12-event-write-mapping-public-assets.md#createevent-completion). Status: official-protocol-specification (docs/research/2026-08-10-contract-evidence-sources.md#official-firebase-callable-protocol). Client completion or protocol evidence does not establish persisted business state, delivery, or unobserved failure mappings. PR #247 reports a sanitized live completion observed 2026-09-29: {\"result\":{\"data\":\"<event-id>\"}}; reproduced offline in TestExecuteEventCreateParsesResultDataCompletionAndReturnsCreatedEventID. No new live request was made during this update."
         }
       }
     },
@@ -296,8 +296,8 @@
         ],
         "x-evidence": {
           "status": "observed",
-          "date": "2026-08-12",
-          "source": "Request: typescript-derived-inference (spec/research/historical-27-operation-draft.json#/paths/~1getEventInfo/post). Response: dated-live-observation (docs/research/2026-08-11-event-contacts-read-observation.md#event-detail-observations). Status: dated-live-observation (docs/research/2026-08-11-event-contacts-read-observation.md#event-detail-observations). Safeguards: docs/research/2026-08-12-rsvp-read-observation.md (330 details; no universal presence claim)."
+          "date": "2026-11-12",
+          "source": "Request: typescript-derived-inference (spec/research/historical-27-operation-draft.json#/paths/~1getEventInfo/post). Response: dated-live-observation (docs/research/2026-08-11-event-contacts-read-observation.md#event-detail-observations). Status: dated-live-observation (docs/research/2026-08-11-event-contacts-read-observation.md#event-detail-observations). Safeguards: docs/research/2026-08-12-rsvp-read-observation.md (330 details; no universal presence claim). PR #245 reports inspection of public event payloads and the first-party RSVP flow: optional chip-in (mode optional, type chip_in or absent) uses addGuest, with ticketPaid true for GOING even when external payment is skipped; DECLINED omits ticketPaid, including required chip-in. This provenance note records that report during the 2026-11-12 review, not a new live observation. Offline chip-in fixtures cover these mappings. Live persisted RSVP state, external payment, questionnaire handling on the reported event, and getCurrentGuest returning an invited guest still require real Partiful verification. Standard ticket sales remain unsupported."
         }
       }
     },
@@ -1473,8 +1473,8 @@
         ],
         "x-evidence": {
           "status": "observed",
-          "date": "2026-08-12",
-          "source": "Request: current-first-party-public-asset-research (docs/research/2026-08-12-rsvp-mapping-public-assets.md#addguest-request). Response: current-first-party-public-asset-research (docs/research/2026-08-12-rsvp-mapping-public-assets.md#addguest-completion). Status: official-protocol-specification (docs/research/2026-08-10-contract-evidence-sources.md#official-firebase-callable-protocol). Client completion or protocol evidence does not establish persisted business state, delivery, or unobserved failure mappings."
+          "date": "2026-11-12",
+          "source": "Request: current-first-party-public-asset-research (docs/research/2026-08-12-rsvp-mapping-public-assets.md#addguest-request). Response: current-first-party-public-asset-research (docs/research/2026-08-12-rsvp-mapping-public-assets.md#addguest-completion). Status: official-protocol-specification (docs/research/2026-08-10-contract-evidence-sources.md#official-firebase-callable-protocol). Client completion or protocol evidence does not establish persisted business state, delivery, or unobserved failure mappings. PR #245 reports inspection of public event payloads and the first-party RSVP flow: optional chip-in (mode optional, type chip_in or absent) uses addGuest, with ticketPaid true for GOING even when external payment is skipped; DECLINED omits ticketPaid, including required chip-in. This provenance note records that report during the 2026-11-12 review, not a new live observation. Offline chip-in fixtures cover these mappings. Live persisted RSVP state, external payment, questionnaire handling on the reported event, and getCurrentGuest returning an invited guest still require real Partiful verification. Standard ticket sales remain unsupported."
         }
       }
     },
@@ -2601,6 +2601,96 @@
           "source": "Document path and link state: docs/research/2026-08-12-cohost-lifecycle-public-assets.md#link-document-shape-and-token-path. Generic document/NOT_FOUND protocol: docs/research/2026-08-10-contract-evidence-sources.md#official-firestore-rest-protocol. Public-asset and protocol research only; no live Partiful read, permission claim, or revocation guarantee."
         }
       }
+    },
+    "/deleteEvent": {
+      "post": {
+        "operationId": "deleteEvent",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "data"
+                ],
+                "properties": {
+                  "data": {
+                    "type": "object",
+                    "required": [
+                      "params",
+                      "userId"
+                    ],
+                    "properties": {
+                      "params": {
+                        "type": "object",
+                        "properties": {
+                          "eventId": {
+                            "type": "string",
+                            "minLength": 1
+                          }
+                        },
+                        "additionalProperties": false,
+                        "required": [
+                          "eventId"
+                        ]
+                      },
+                      "userId": {
+                        "type": [
+                          "string",
+                          "null"
+                        ]
+                      },
+                      "deviceInfo": {
+                        "type": "object",
+                        "additionalProperties": true
+                      },
+                      "amplitudeDeviceId": {
+                        "type": "string"
+                      },
+                      "amplitudeSessionId": {
+                        "type": "integer",
+                        "format": "int64"
+                      },
+                      "adminAccessRequested": {
+                        "type": "boolean",
+                        "const": true
+                      }
+                    },
+                    "additionalProperties": false
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Generic callable completion; the first-party client inspects no business field. Persisted deletion is not established.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeleteEventCompletionResponse"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Unobserved response status or body."
+          }
+        },
+        "security": [
+          {
+            "firebaseBearer": []
+          }
+        ],
+        "x-evidence": {
+          "status": "observed",
+          "date": "2026-09-29",
+          "source": "PR #250 reports current first-party web client inspection on 2026-09-29: deleteEvent({params:{eventId}}), offered for an owned event with zero guests; no response field inspected. Shared callable envelope and protocol: docs/research/2026-08-12-event-write-mapping-public-assets.md and docs/research/2026-08-10-contract-evidence-sources.md#official-firebase-callable-protocol. No live deletion during this update. Endpoint-specific errors, server authorization, and persisted deletion remain unknown. Published status, zero guests, and ownership are CLI safety preconditions."
+        }
+      }
     }
   },
   "components": {
@@ -2789,6 +2879,11 @@
           "shouldFollowOrgs": {
             "type": "boolean",
             "const": false
+          },
+          "ticketPaid": {
+            "type": "boolean",
+            "const": true,
+            "description": "Honor-system confirmation from the first-party chip-in flow. The CLI sends true only for GOING on optional chip-in / suggested donation events; omitted for ordinary events and DECLINED. This does not make a payment or buy a ticket."
           }
         },
         "additionalProperties": false
@@ -3598,10 +3693,7 @@
             "items": {}
           },
           "ticketing": {
-            "type": [
-              "object",
-              "null"
-            ]
+            "$ref": "#/components/schemas/EventTicketing"
           },
           "guestAction": {
             "type": "string",
@@ -4091,7 +4183,49 @@
               "result"
             ],
             "properties": {
-              "result": {}
+              "result": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  {
+                    "type": "object",
+                    "required": [
+                      "data"
+                    ],
+                    "properties": {
+                      "data": {
+                        "type": "string",
+                        "minLength": 1
+                      }
+                    },
+                    "additionalProperties": true
+                  },
+                  {
+                    "type": "object",
+                    "required": [
+                      "event"
+                    ],
+                    "properties": {
+                      "event": {
+                        "type": "object",
+                        "required": [
+                          "id"
+                        ],
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "minLength": 1
+                          }
+                        },
+                        "additionalProperties": true
+                      }
+                    },
+                    "additionalProperties": true
+                  }
+                ]
+              }
             },
             "additionalProperties": true
           },
@@ -4101,7 +4235,49 @@
               "data"
             ],
             "properties": {
-              "data": {}
+              "data": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  {
+                    "type": "object",
+                    "required": [
+                      "data"
+                    ],
+                    "properties": {
+                      "data": {
+                        "type": "string",
+                        "minLength": 1
+                      }
+                    },
+                    "additionalProperties": true
+                  },
+                  {
+                    "type": "object",
+                    "required": [
+                      "event"
+                    ],
+                    "properties": {
+                      "event": {
+                        "type": "object",
+                        "required": [
+                          "id"
+                        ],
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "minLength": 1
+                          }
+                        },
+                        "additionalProperties": true
+                      }
+                    },
+                    "additionalProperties": true
+                  }
+                ]
+              }
             },
             "additionalProperties": true
           }
@@ -4437,6 +4613,72 @@
         },
         "additionalProperties": true,
         "description": "Shared collection read. Host fallback requires the provisional full guest subset; blast preconditions need only status and checkIn. Empty documents may be omitted."
+      },
+      "DeleteEventCompletionResponse": {
+        "anyOf": [
+          {
+            "type": "object",
+            "required": [
+              "result"
+            ],
+            "properties": {
+              "result": {}
+            },
+            "additionalProperties": true
+          },
+          {
+            "type": "object",
+            "required": [
+              "data"
+            ],
+            "properties": {
+              "data": {}
+            },
+            "additionalProperties": true
+          }
+        ]
+      },
+      "EventTicketing": {
+        "type": [
+          "object",
+          "null"
+        ],
+        "description": "Selected first-party ticketing fields reported in PR #245. Optional chip-in has mode optional and type chip_in or absent/null; mode required blocks going but permits decline. Other shapes remain unsupported; unknown fields do not establish payment support.",
+        "properties": {
+          "type": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "mode": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "price": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "currency": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "payment": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "description": "External payment handle object. Never projected to CLI output or used to execute a payment.",
+            "additionalProperties": true
+          }
+        },
+        "additionalProperties": true
       }
     }
   },

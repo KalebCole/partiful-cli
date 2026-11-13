@@ -49,6 +49,23 @@ type eventCancelPreviewRequest struct {
 	ShouldSkipNotifyGuests      bool   `json:"shouldSkipNotifyGuests"`
 }
 
+type eventDeletePreview struct {
+	Operation     string                    `json:"operation"`
+	EventID       string                    `json:"eventId"`
+	Request       eventDeletePreviewRequest `json:"request"`
+	Effects       []string                  `json:"effects"`
+	Preconditions map[string]string         `json:"preconditions"`
+}
+
+type eventDeletePreviewRequest struct {
+	EventID string `json:"eventId"`
+}
+
+type eventDeleteSubmitted struct {
+	EventID   string `json:"eventId"`
+	Submitted bool   `json:"submitted"`
+}
+
 type eventCreateSubmitted struct {
 	EventID   string `json:"eventId"`
 	Submitted bool   `json:"submitted"`
@@ -323,6 +340,74 @@ func executeEventCancel(
 		return eventWriteProtocolChangedFailure(definition.path, "EVENT_CANCEL_PROTOCOL_CHANGED", "The event cancel response no longer matches the reviewed remote contract.", "partiful: event cancel protocol changed\n", pretty)
 	}
 	return success(definition.path, eventCancelSubmitted{EventID: options.EventID, NotifyGuests: options.Input.NotifyGuests, Submitted: true}, pretty)
+}
+
+// executeEventDelete removes an owned, published event that has no guests.
+// Events with guests must use events cancel, mirroring the Partiful web client,
+// which offers deletion only when guestCount is zero.
+func executeEventDelete(
+	ctx context.Context,
+	definition commandDefinition,
+	argv []string,
+	dependencies Dependencies,
+	execution mutationExecution,
+	pretty bool,
+) Result {
+	eventID, inputError := parseEventDeleteOptions(definition, argv)
+	if inputError != nil {
+		return failure(definition.path, exitCodeForType(inputError.Type), *inputError, pretty)
+	}
+	session, sessionFailure := acquireProtectedMutationSession(ctx, definition.path, dependencies, execution, pretty)
+	if sessionFailure != nil {
+		return *sessionFailure
+	}
+	if session.UserID == "" {
+		return internalFailure(definition.path, pretty)
+	}
+	deviceID, err := randomDeviceID(dependencies.AuthRandom)
+	if err != nil {
+		return internalFailure(definition.path, pretty)
+	}
+	client := remote.Client{HTTP: dependencies.HTTP}
+	event, err := client.GetEventInfo(ctx, session.AccessToken, deviceID, eventID)
+	if err != nil {
+		switch {
+		case errors.Is(err, remote.ErrEventNotFound):
+			return eventNotFoundFailure(definition.path, pretty)
+		case errors.Is(err, remote.ErrUnavailable):
+			return eventRemoteUnavailableFailure(definition.path, "The event deletion could not read current event data.", "partiful: event delete unavailable\n", pretty)
+		default:
+			return eventDeleteProtocolChangedFailure(definition.path, "The event delete flow no longer matches the reviewed remote contract.", pretty)
+		}
+	}
+	if conditionFailure := validateEventDeletePreconditions(definition.path, event, session.UserID, pretty); conditionFailure != nil {
+		return *conditionFailure
+	}
+	if execution.DryRun {
+		return success(definition.path, eventDeletePreview{
+			Operation:     "deleteEvent",
+			EventID:       eventID,
+			Request:       eventDeletePreviewRequest{EventID: eventID},
+			Effects:       []string{"Deletes the event for everyone"},
+			Preconditions: map[string]string{"ownership": "bound", "status": "bound", "guestCount": "bound"},
+		}, pretty)
+	}
+	if confirmationFailure := requireDestructiveConfirmation(
+		definition,
+		event.Title,
+		execution,
+		dependencies,
+		pretty,
+	); confirmationFailure != nil {
+		return *confirmationFailure
+	}
+	if err := client.DeleteEvent(ctx, session.AccessToken, session.UserID, remote.DeleteEventParams{EventID: eventID}); err != nil {
+		if errors.Is(err, remote.ErrUnavailable) {
+			return eventSubmissionUnavailableFailure(definition.path, "Delete submission could not be confirmed. Inspect remote state before another attempt.", pretty)
+		}
+		return eventDeleteProtocolChangedFailure(definition.path, "The event delete response no longer matches the reviewed remote contract.", pretty)
+	}
+	return success(definition.path, eventDeleteSubmitted{EventID: eventID, Submitted: true}, pretty)
 }
 
 func buildCreateEventDraft(input normalizedEventCreateInput, poster remote.PartifulPosterImage) remote.CreateEventDraft {
@@ -638,6 +723,41 @@ func validateEventCancelPreconditions(
 	return nil
 }
 
+// validateEventDeletePreconditions mirrors the cancel checks with the guest
+// gate inverted (guestCount must be exactly zero) and no future-start check.
+func validateEventDeletePreconditions(
+	command string,
+	event remote.Event,
+	currentUserID string,
+	pretty bool,
+) *Result {
+	if rawEventField(event, "ownerIds").State != "value" {
+		result := eventTimeProtocolChangedFailure(command, pretty)
+		return &result
+	}
+	if !event.OwnerIDsPresent || !slices.Contains(event.OwnerIDs, currentUserID) {
+		result := hostPermissionFailure(command, pretty)
+		return &result
+	}
+	if rawEventField(event, "status").State != "value" || event.Status == nil {
+		result := eventTimeProtocolChangedFailure(command, pretty)
+		return &result
+	}
+	if *event.Status != "PUBLISHED" {
+		result := eventPreconditionFailure(command, pretty)
+		return &result
+	}
+	if rawEventField(event, "guestCount").State != "value" || event.GuestCount.State != remote.FieldValue {
+		result := eventTimeProtocolChangedFailure(command, pretty)
+		return &result
+	}
+	if event.GuestCount.Value != 0 {
+		result := eventHasGuestsFailure(command, pretty)
+		return &result
+	}
+	return nil
+}
+
 func validateMergedUpdateRange(command string, event remote.Event, input normalizedEventUpdateInput, pretty bool) *Result {
 	if !input.HasStart && !input.HasEnd {
 		return nil
@@ -720,6 +840,9 @@ func optionalCurrentEventTime(
 }
 
 func eventTimeProtocolChangedFailure(command string, pretty bool) Result {
+	if command == "events.delete" {
+		return eventDeleteProtocolChangedFailure(command, "The event delete flow no longer matches the reviewed remote contract.", pretty)
+	}
 	if command == "events.cancel" {
 		return eventWriteProtocolChangedFailure(
 			command,
@@ -760,6 +883,16 @@ func eventPreconditionFailure(command string, pretty bool) Result {
 	result := failure(command, 6, errorBody{Type: "state.conflict", Code: "EVENT_PRECONDITION_FAILED", Message: "The event no longer satisfies this command's reviewed preconditions.", Retryable: false, Details: map[string]any{}}, pretty)
 	result.Stderr = "partiful: event precondition failed\n"
 	return result
+}
+
+func eventHasGuestsFailure(command string, pretty bool) Result {
+	result := failure(command, 6, errorBody{Type: "state.conflict", Code: "EVENT_PRECONDITION_FAILED", Message: "The event has guests; use events cancel instead of events delete.", Retryable: false, Details: map[string]any{"alternative": "events.cancel"}}, pretty)
+	result.Stderr = "partiful: event precondition failed\n"
+	return result
+}
+
+func eventDeleteProtocolChangedFailure(command, message string, pretty bool) Result {
+	return eventWriteProtocolChangedFailure(command, "EVENT_DELETE_PROTOCOL_CHANGED", message, "partiful: event delete protocol changed\n", pretty)
 }
 
 func eventRemoteUnavailableFailure(command, message, stderr string, pretty bool) Result {

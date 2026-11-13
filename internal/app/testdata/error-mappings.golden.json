@@ -103,6 +103,10 @@
     "type": "contract.protocol_changed",
     "exit": 9
   },
+  "EVENT_DELETE_PROTOCOL_CHANGED": {
+    "type": "contract.protocol_changed",
+    "exit": 9
+  },
   "EVENT_ID_REQUIRED": {
     "type": "input.invalid",
     "exit": 2

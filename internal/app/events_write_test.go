@@ -72,6 +72,12 @@ func compatibleCancelEvent() map[string]any {
 	return event
 }
 
+func compatibleDeleteEvent() map[string]any {
+	event := compatibleUpdateEvent()
+	event["guestCount"] = 0
+	return event
+}
+
 func assertEventCallableRequest(t *testing.T, request *http.Request, operation, body string) {
 	t.Helper()
 	if request.Method != http.MethodPost || request.URL.String() != "https://api.partiful.com/"+operation {
@@ -224,6 +230,59 @@ func TestExecuteEventCreateParsesCurrentCompletionAndReturnsCreatedEventID(t *te
 		"--poster-id", "birthdaycake.png",
 	}
 	applied := executeChecked(t, context.Background(), app.Request{Argv: argv}, dependencies)
+	if applied.ExitCode != 0 ||
+		!strings.Contains(applied.Stdout, `"data":{"eventId":"event-created-fixture","submitted":true}`) ||
+		applied.Stderr != "" {
+		t.Fatalf("applied = %#v, want submitted create result with event ID", applied)
+	}
+	if call != 2 {
+		t.Fatalf("request count = %d, want one catalog read and one submission attempt", call)
+	}
+}
+
+func TestExecuteEventCreateParsesResultDataCompletionAndReturnsCreatedEventID(t *testing.T) {
+	files := &memoryFilesystem{files: map[string][]byte{
+		eventWriteCredentialsPath: []byte(eventWriteCredentials),
+	}}
+	dependencies := eventWriteDependencies(files)
+	call := 0
+	catalogBody := `[{
+		"id":"birthdaycake.png",
+		"url":"https://assets.getpartiful.com/posters/birthdaycake.png",
+		"name":"Birthday Cake",
+		"tags":["birthday"],
+		"categories":["birthday"],
+		"blurHash":"LKO2?U%2Tw=w]~RBVZRi};RPxuwH",
+		"contentType":"image/png",
+		"height":1200,
+		"width":800
+	}]`
+	dependencies.HTTP = scriptedHTTP{do: func(request *http.Request) (*http.Response, error) {
+		call++
+		switch call {
+		case 1:
+			if request.Method != http.MethodGet || request.URL.String() != "https://assets.getpartiful.com/posters.json" {
+				t.Fatalf("request = %s %s, want poster catalog", request.Method, request.URL)
+			}
+			return jsonResponse(http.StatusOK, catalogBody), nil
+		case 2:
+			assertEventCallableRequest(t, request, "createEvent", `{"data":{"params":{"event":{"title":"Example event","startDate":"2026-09-13T02:00:00Z","timezone":"America/Los_Angeles","guestStatusCounts":{"APPROVED":0,"DECLINED":0,"DELIVERY_ERROR":0,"GOING":0,"INTERESTED":0,"MAYBE":0,"PENDING_APPROVAL":0,"READY_TO_SEND":0,"REJECTED":0,"RESPONDED_TO_FIND_A_TIME":0,"SENDING":0,"SEND_ERROR":0,"SENT":0,"WAITLIST":0,"WAITLISTED_FOR_APPROVAL":0,"WITHDRAWN":0},"displaySettings":{"theme":"cloudflow","effect":"fireflies","titleFont":"display"},"status":"UNSAVED","rsvpButtonGlyphType":"emojis","image":{"source":"partiful_posters","poster":{"id":"birthdaycake.png","name":"Birthday Cake","url":"https://assets.getpartiful.com/posters/birthdaycake.png","blurHash":"LKO2?U%2Tw=w]~RBVZRi};RPxuwH","contentType":"image/png","height":1200,"width":800,"tags":["birthday"],"categories":["birthday"]},"url":"https://assets.getpartiful.com/posters/birthdaycake.png","blurHash":"LKO2?U%2Tw=w]~RBVZRi};RPxuwH","contentType":"image/png","name":"Birthday Cake","height":1200,"width":800},"showHostList":true,"showGuestCount":true,"showGuestList":true,"showActivityTimestamps":true,"displayInviteButton":true,"visibility":"public","allowGuestPhotoUpload":true,"enableGuestReminders":true,"rsvpsEnabled":true,"allowGuestsToInviteMutuals":true},"cohostIds":[]},"userId":"private-account"}}`)
+			// Sanitized fixture of the create completion observed live on 2026-09-29:
+			// the callable wraps the created event ID as result.data.
+			return jsonResponse(http.StatusOK, `{"result":{"data":"event-created-fixture"}}`), nil
+		default:
+			t.Fatalf("unexpected request %d: %s", call, request.URL)
+			return nil, nil
+		}
+	}}
+	argv := []string{
+		"events", "create",
+		"--title", "Example event",
+		"--start", "2026-09-12T19:00:00-07:00",
+		"--timezone", "America/Los_Angeles",
+		"--poster-id", "birthdaycake.png",
+	}
+	applied := app.Execute(context.Background(), app.Request{Argv: argv}, dependencies)
 	if applied.ExitCode != 0 ||
 		!strings.Contains(applied.Stdout, `"data":{"eventId":"event-created-fixture","submitted":true}`) ||
 		applied.Stderr != "" {
@@ -590,6 +649,128 @@ func TestExecuteEventCancelPreservesPrettyFailureMetadata(t *testing.T) {
 	}
 }
 
+func TestExecuteEventDeleteDryRunsAndForceDispatches(t *testing.T) {
+	files := &memoryFilesystem{files: map[string][]byte{
+		eventWriteCredentialsPath: []byte(eventWriteCredentials),
+	}}
+	dependencies := eventWriteDependencies(files)
+	call := 0
+	dependencies.HTTP = scriptedHTTP{do: func(request *http.Request) (*http.Response, error) {
+		call++
+		switch call {
+		case 1, 2, 3:
+			assertEventCallableRequest(t, request, "getEventInfo", `{"data":{"params":{"eventId":"event-example"},"amplitudeDeviceId":"MDEyMzQ1Njc4OWFiY2RlZg"}}`)
+			return jsonResponse(http.StatusOK, eventResponse(t, compatibleDeleteEvent())), nil
+		case 4:
+			assertEventCallableRequest(t, request, "deleteEvent", `{"data":{"params":{"eventId":"event-example"},"userId":"private-account"}}`)
+			return jsonResponse(http.StatusOK, `{"result":null}`), nil
+		default:
+			t.Fatalf("unexpected request %d: %s", call, request.URL)
+			return nil, nil
+		}
+	}}
+	argv := []string{"events", "delete", "event-example"}
+	preview := executeChecked(t, context.Background(), app.Request{Argv: append(append([]string{}, argv...), "--dry-run")}, dependencies)
+	if preview.ExitCode != 0 ||
+		!strings.Contains(preview.Stdout, `"operation":"deleteEvent"`) ||
+		!strings.Contains(preview.Stdout, `"request":{"eventId":"event-example"}`) ||
+		!strings.Contains(preview.Stdout, `"effects"`) ||
+		strings.Contains(preview.Stdout, "private-account") {
+		t.Fatalf("preview = %#v, want redacted delete preview", preview)
+	}
+	if call != 1 {
+		t.Fatalf("request count after dry-run = %d, want one read and no dispatch", call)
+	}
+	missingConfirm := executeChecked(t, context.Background(), app.Request{Argv: argv}, dependencies)
+	if missingConfirm.ExitCode != 7 || !strings.Contains(missingConfirm.Stdout, `"type":"safety.confirmation_required"`) {
+		t.Fatalf("missing confirm = %#v, want confirmation-required failure", missingConfirm)
+	}
+	applied := executeChecked(t, context.Background(), app.Request{Argv: append(append([]string{}, argv...), "--force")}, dependencies)
+	if applied.ExitCode != 0 ||
+		!strings.Contains(applied.Stdout, `"data":{"eventId":"event-example","submitted":true}`) ||
+		applied.Stderr != "" {
+		t.Fatalf("applied = %#v, want submitted-only delete result", applied)
+	}
+	if call != 4 {
+		t.Fatalf("request count = %d, want three reads and one single-attempt deleteEvent", call)
+	}
+}
+
+func TestExecuteEventDeleteEnforcesPreconditionsAndFailsClosed(t *testing.T) {
+	files := &memoryFilesystem{files: map[string][]byte{
+		eventWriteCredentialsPath: []byte(eventWriteCredentials),
+	}}
+	dependencies := eventWriteDependencies(files)
+	withField := func(field string, value any) map[string]any {
+		event := compatibleDeleteEvent()
+		event[field] = value
+		return event
+	}
+	withoutField := func(field string) map[string]any {
+		event := compatibleDeleteEvent()
+		delete(event, field)
+		return event
+	}
+
+	cases := []struct {
+		name     string
+		event    map[string]any
+		httpErr  error
+		exitCode int
+		contains []string
+		writes   int
+	}{
+		{name: "non-owner", event: withField("ownerIds", []string{"someone-else"}), exitCode: 4, contains: []string{`"type":"permission.denied"`, `"code":"HOST_PERMISSION_REQUIRED"`}},
+		{name: "has guests", event: withField("guestCount", 3), exitCode: 6, contains: []string{`"type":"state.conflict"`, `"code":"EVENT_PRECONDITION_FAILED"`, "events cancel"}},
+		{name: "not published", event: withField("status", "CANCELED"), exitCode: 6, contains: []string{`"code":"EVENT_PRECONDITION_FAILED"`}},
+		{name: "missing guest count", event: withoutField("guestCount"), exitCode: 9, contains: []string{`"code":"EVENT_DELETE_PROTOCOL_CHANGED"`}},
+		{name: "missing owner ids", event: withoutField("ownerIds"), exitCode: 9, contains: []string{`"code":"EVENT_DELETE_PROTOCOL_CHANGED"`}},
+		{name: "past start allowed", event: withField("startDate", "2026-08-11T19:00:00Z"), exitCode: 0, contains: []string{`"data":{"eventId":"event-example","submitted":true}`}, writes: 1},
+		{name: "uncertain submission", httpErr: errors.New("private network"), exitCode: 8, contains: []string{`"code":"EVENT_SUBMISSION_UNCERTAIN"`}, writes: 1},
+		{name: "protocol changed response", event: nil, exitCode: 9, contains: []string{`"code":"EVENT_DELETE_PROTOCOL_CHANGED"`}, writes: 1},
+	}
+	for _, testCase := range cases {
+		t.Run(testCase.name, func(t *testing.T) {
+			reads := 0
+			writes := 0
+			dependencies.HTTP = scriptedHTTP{do: func(request *http.Request) (*http.Response, error) {
+				switch request.URL.String() {
+				case "https://api.partiful.com/getEventInfo":
+					reads++
+					if testCase.event == nil {
+						return jsonResponse(http.StatusOK, eventResponse(t, compatibleDeleteEvent())), nil
+					}
+					return jsonResponse(http.StatusOK, eventResponse(t, testCase.event)), nil
+				case "https://api.partiful.com/deleteEvent":
+					writes++
+					if testCase.httpErr != nil {
+						return nil, testCase.httpErr
+					}
+					if testCase.name == "protocol changed response" {
+						return jsonResponse(http.StatusInternalServerError, `{"error":{"status":"INTERNAL"}}`), nil
+					}
+					return jsonResponse(http.StatusOK, `{"result":null}`), nil
+				default:
+					t.Fatalf("unexpected request: %s", request.URL)
+					return nil, nil
+				}
+			}}
+			result := executeChecked(t, context.Background(), app.Request{Argv: []string{"events", "delete", "event-example", "--force"}}, dependencies)
+			if result.ExitCode != testCase.exitCode {
+				t.Fatalf("result = %#v, want exit %d", result, testCase.exitCode)
+			}
+			for _, want := range testCase.contains {
+				if !strings.Contains(result.Stdout, want) {
+					t.Fatalf("stdout = %s, want %q", result.Stdout, want)
+				}
+			}
+			if reads != 1 || writes != testCase.writes {
+				t.Fatalf("reads = %d, writes = %d; want 1 read and %d writes", reads, writes, testCase.writes)
+			}
+		})
+	}
+}
+
 func TestExecuteSchemaIncludesEventWriteCommands(t *testing.T) {
 	result := executeChecked(t, context.Background(), app.Request{Argv: []string{"schema"}}, app.Dependencies{})
 	var envelope struct {
@@ -600,7 +781,7 @@ func TestExecuteSchemaIncludesEventWriteCommands(t *testing.T) {
 	if json.Unmarshal([]byte(result.Stdout), &envelope) != nil || result.ExitCode != 0 {
 		t.Fatalf("schema = %#v", result)
 	}
-	for _, command := range []string{"events.create", "events.update", "events.cancel"} {
+	for _, command := range []string{"events.create", "events.update", "events.cancel", "events.delete"} {
 		if !slices.Contains(envelope.Data.Commands, command) {
 			t.Fatalf("commands = %v, want %s", envelope.Data.Commands, command)
 		}

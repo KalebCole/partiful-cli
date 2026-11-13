@@ -65,6 +65,7 @@ partiful rsvp get <event-id>
 partiful events create [flags]
 partiful events update <event-id> [flags]
 partiful events cancel <event-id> [flags]
+partiful events delete <event-id> [flags]
 partiful guests invite <event-id> --contact <name>
 partiful blasts send <event-id> --audience all-guests --message-file <path-or->
 partiful rsvp set <event-id> [flags]
@@ -86,10 +87,18 @@ Mutation commands execute once after validation and required read-before-write
 checks. Add `--dry-run` to return a redacted request preview without sending a
 write.
 
-`events cancel`, `cohosts remove`, `cohosts revoke-invite`, and
-`cohosts link revoke` require an interactive terminal confirmation.
+`events cancel`, `events delete`, `cohosts remove`, `cohosts revoke-invite`,
+and `cohosts link revoke` require an interactive terminal confirmation.
 `--force` skips only that prompt. `--no-input` or `--non-interactive` disables
 prompting and fails safely unless `--force` is also present.
+
+## Payments are out of scope
+
+The CLI never pays. Chip-ins and suggested donations are external handles
+(for example Venmo) that Partiful only displays. Pay those in the payment app.
+Stripe ticket purchases (`ticketing.type` `standard`) are not supported, and
+RSVP going on them returns `RSVP_EVENT_UNSUPPORTED`. RSVP going on an optional
+chip-in sends `ticketPaid: true` as an honor-system flag, not a charge.
 
 ## Release notes
 
