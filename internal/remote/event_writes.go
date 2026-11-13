@@ -188,11 +188,19 @@ func (client Client) CreateEvent(
 		return eventID, nil
 	}
 	var created struct {
+		Data  *string `json:"data"`
 		Event struct {
 			ID string `json:"id"`
 		} `json:"event"`
 	}
-	if json.Unmarshal(completion, &created) != nil || created.Event.ID == "" {
+	if json.Unmarshal(completion, &created) != nil {
+		return "", fmt.Errorf("%w: create event completion", ErrProtocolChanged)
+	}
+	// The live callable currently answers {"result":{"data":"<event-id>"}}.
+	if created.Data != nil && *created.Data != "" {
+		return *created.Data, nil
+	}
+	if created.Event.ID == "" {
 		return "", fmt.Errorf("%w: create event completion", ErrProtocolChanged)
 	}
 	return created.Event.ID, nil
