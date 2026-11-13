@@ -10,6 +10,7 @@ import (
 	"io"
 	"math"
 	"net/http"
+	"path"
 	"strconv"
 	"strings"
 	"unicode/utf8"
@@ -105,6 +106,9 @@ func (client Client) GetGuests(
 			eventID,
 			cursor,
 		)
+		if errors.Is(err, errGuestsHostView) && cursor == nil {
+			return client.getHostGuests(ctx, accessToken, eventID)
+		}
 		if err != nil {
 			return GuestCatalog{}, err
 		}
@@ -184,6 +188,9 @@ func (client Client) getGuestsPage(
 		return getGuestsResponse{}, fmt.Errorf("%w: guests response", ErrProtocolChanged)
 	}
 	defer func() { _ = response.Body.Close() }()
+	if response.StatusCode == http.StatusBadRequest && isHostGuestListRejection(response) {
+		return getGuestsResponse{}, errGuestsHostView
+	}
 	if response.StatusCode != http.StatusOK {
 		return getGuestsResponse{}, fmt.Errorf("%w: guests status", ErrProtocolChanged)
 	}
@@ -396,4 +403,107 @@ func decodeSingleGuestJSON(body []byte, destination any) error {
 		return errors.New("guest response has trailing JSON")
 	}
 	return nil
+}
+
+// errGuestsHostView marks the getGuests rejection Partiful returns when the
+// caller hosts the event (observed 2026-09-29: HTTP 400,
+// {"error":{"message":"User is host","status":"FAILED_PRECONDITION"}}).
+// Hosts read the event's guests subcollection instead.
+var errGuestsHostView = errors.New("guests callable rejects host")
+
+func isHostGuestListRejection(response *http.Response) bool {
+	body, err := io.ReadAll(io.LimitReader(response.Body, maximumGuestPageBytes+1))
+	if err != nil || len(body) > maximumGuestPageBytes {
+		return false
+	}
+	var rejection struct {
+		Error struct {
+			Message string `json:"message"`
+			Status  string `json:"status"`
+		} `json:"error"`
+	}
+	return json.Unmarshal(body, &rejection) == nil &&
+		rejection.Error.Status == "FAILED_PRECONDITION" &&
+		rejection.Error.Message == "User is host"
+}
+
+func (client Client) getHostGuests(
+	ctx context.Context,
+	accessToken string,
+	eventID string,
+) (GuestCatalog, error) {
+	documents, err := client.listFirestoreDocuments(
+		ctx,
+		accessToken,
+		firestoreCollectionPath("events", eventID, "guests"),
+		maximumGuestFirestorePages,
+	)
+	if err != nil {
+		return GuestCatalog{}, err
+	}
+	guests := make([]Guest, 0, len(documents))
+	for _, document := range documents {
+		guest, err := decodeGuestDocument(document)
+		if err != nil {
+			return GuestCatalog{}, fmt.Errorf("%w: guest document", ErrProtocolChanged)
+		}
+		guests = append(guests, guest)
+	}
+	encoded, _ := json.Marshal(guests)
+	return GuestCatalog{Guests: guests, PayloadSHA256: sha256.Sum256(encoded)}, nil
+}
+
+// decodeGuestDocument reads the same reviewed guest subset as decodeGuest from
+// a Firestore events/{eventId}/guests document.
+func decodeGuestDocument(document firestoreDocumentRecord) (Guest, error) {
+	id := path.Base(document.Name)
+	if strings.TrimSpace(id) == "" || id == "." || id == "/" {
+		return Guest{}, errors.New("guest id is invalid")
+	}
+	name, err := firestoreRequiredString(document.Fields, "name")
+	if err != nil || strings.TrimSpace(name) == "" {
+		return Guest{}, errors.New("guest name is invalid")
+	}
+	status, err := firestoreRequiredString(document.Fields, "status")
+	if err != nil || !validGuestStatus(status) {
+		return Guest{}, errors.New("guest status is invalid")
+	}
+	count, err := firestoreGuestCount(document.Fields, "count")
+	if err != nil {
+		return Guest{}, err
+	}
+	userID, _, err := firestoreOptionalNullableString(document.Fields, "userId")
+	if err != nil {
+		return Guest{}, errors.New("guest user is invalid")
+	}
+	anchorGuestID, _, err := firestoreOptionalNullableString(document.Fields, "anchorGuestId")
+	if err != nil {
+		return Guest{}, errors.New("guest anchor is invalid")
+	}
+	return Guest{
+		ID:            id,
+		UserID:        userID,
+		Name:          name,
+		Status:        status,
+		Count:         count,
+		AnchorGuestID: anchorGuestID,
+	}, nil
+}
+
+func firestoreGuestCount(fields map[string]json.RawMessage, name string) (int, error) {
+	raw, ok := fields[name]
+	if !ok {
+		return 0, errors.New("guest count is missing")
+	}
+	var value struct {
+		IntegerValue *string `json:"integerValue"`
+	}
+	if json.Unmarshal(raw, &value) != nil || value.IntegerValue == nil {
+		return 0, errors.New("guest count is invalid")
+	}
+	count, err := strconv.Atoi(*value.IntegerValue)
+	if err != nil || count < 0 {
+		return 0, errors.New("guest count is invalid")
+	}
+	return count, nil
 }
