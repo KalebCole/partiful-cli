@@ -72,6 +72,12 @@ func compatibleCancelEvent() map[string]any {
 	return event
 }
 
+func compatibleDeleteEvent() map[string]any {
+	event := compatibleUpdateEvent()
+	event["guestCount"] = 0
+	return event
+}
+
 func assertEventCallableRequest(t *testing.T, request *http.Request, operation, body string) {
 	t.Helper()
 	if request.Method != http.MethodPost || request.URL.String() != "https://api.partiful.com/"+operation {
@@ -590,6 +596,128 @@ func TestExecuteEventCancelPreservesPrettyFailureMetadata(t *testing.T) {
 	}
 }
 
+func TestExecuteEventDeleteDryRunsAndForceDispatches(t *testing.T) {
+	files := &memoryFilesystem{files: map[string][]byte{
+		eventWriteCredentialsPath: []byte(eventWriteCredentials),
+	}}
+	dependencies := eventWriteDependencies(files)
+	call := 0
+	dependencies.HTTP = scriptedHTTP{do: func(request *http.Request) (*http.Response, error) {
+		call++
+		switch call {
+		case 1, 2, 3:
+			assertEventCallableRequest(t, request, "getEventInfo", `{"data":{"params":{"eventId":"event-example"},"amplitudeDeviceId":"MDEyMzQ1Njc4OWFiY2RlZg"}}`)
+			return jsonResponse(http.StatusOK, eventResponse(t, compatibleDeleteEvent())), nil
+		case 4:
+			assertEventCallableRequest(t, request, "deleteEvent", `{"data":{"params":{"eventId":"event-example"},"userId":"private-account"}}`)
+			return jsonResponse(http.StatusOK, `{"result":null}`), nil
+		default:
+			t.Fatalf("unexpected request %d: %s", call, request.URL)
+			return nil, nil
+		}
+	}}
+	argv := []string{"events", "delete", "event-example"}
+	preview := executeChecked(t, context.Background(), app.Request{Argv: append(append([]string{}, argv...), "--dry-run")}, dependencies)
+	if preview.ExitCode != 0 ||
+		!strings.Contains(preview.Stdout, `"operation":"deleteEvent"`) ||
+		!strings.Contains(preview.Stdout, `"request":{"eventId":"event-example"}`) ||
+		!strings.Contains(preview.Stdout, `"effects"`) ||
+		strings.Contains(preview.Stdout, "private-account") {
+		t.Fatalf("preview = %#v, want redacted delete preview", preview)
+	}
+	if call != 1 {
+		t.Fatalf("request count after dry-run = %d, want one read and no dispatch", call)
+	}
+	missingConfirm := executeChecked(t, context.Background(), app.Request{Argv: argv}, dependencies)
+	if missingConfirm.ExitCode != 7 || !strings.Contains(missingConfirm.Stdout, `"type":"safety.confirmation_required"`) {
+		t.Fatalf("missing confirm = %#v, want confirmation-required failure", missingConfirm)
+	}
+	applied := executeChecked(t, context.Background(), app.Request{Argv: append(append([]string{}, argv...), "--force")}, dependencies)
+	if applied.ExitCode != 0 ||
+		!strings.Contains(applied.Stdout, `"data":{"eventId":"event-example","submitted":true}`) ||
+		applied.Stderr != "" {
+		t.Fatalf("applied = %#v, want submitted-only delete result", applied)
+	}
+	if call != 4 {
+		t.Fatalf("request count = %d, want three reads and one single-attempt deleteEvent", call)
+	}
+}
+
+func TestExecuteEventDeleteEnforcesPreconditionsAndFailsClosed(t *testing.T) {
+	files := &memoryFilesystem{files: map[string][]byte{
+		eventWriteCredentialsPath: []byte(eventWriteCredentials),
+	}}
+	dependencies := eventWriteDependencies(files)
+	withField := func(field string, value any) map[string]any {
+		event := compatibleDeleteEvent()
+		event[field] = value
+		return event
+	}
+	withoutField := func(field string) map[string]any {
+		event := compatibleDeleteEvent()
+		delete(event, field)
+		return event
+	}
+
+	cases := []struct {
+		name     string
+		event    map[string]any
+		httpErr  error
+		exitCode int
+		contains []string
+		writes   int
+	}{
+		{name: "non-owner", event: withField("ownerIds", []string{"someone-else"}), exitCode: 4, contains: []string{`"type":"permission.denied"`, `"code":"HOST_PERMISSION_REQUIRED"`}},
+		{name: "has guests", event: withField("guestCount", 3), exitCode: 6, contains: []string{`"type":"state.conflict"`, `"code":"EVENT_PRECONDITION_FAILED"`, "events cancel"}},
+		{name: "not published", event: withField("status", "CANCELED"), exitCode: 6, contains: []string{`"code":"EVENT_PRECONDITION_FAILED"`}},
+		{name: "missing guest count", event: withoutField("guestCount"), exitCode: 9, contains: []string{`"code":"EVENT_DELETE_PROTOCOL_CHANGED"`}},
+		{name: "missing owner ids", event: withoutField("ownerIds"), exitCode: 9, contains: []string{`"code":"EVENT_DELETE_PROTOCOL_CHANGED"`}},
+		{name: "past start allowed", event: withField("startDate", "2026-08-11T19:00:00Z"), exitCode: 0, contains: []string{`"data":{"eventId":"event-example","submitted":true}`}, writes: 1},
+		{name: "uncertain submission", httpErr: errors.New("private network"), exitCode: 8, contains: []string{`"code":"EVENT_SUBMISSION_UNCERTAIN"`}, writes: 1},
+		{name: "protocol changed response", event: nil, exitCode: 9, contains: []string{`"code":"EVENT_DELETE_PROTOCOL_CHANGED"`}, writes: 1},
+	}
+	for _, testCase := range cases {
+		t.Run(testCase.name, func(t *testing.T) {
+			reads := 0
+			writes := 0
+			dependencies.HTTP = scriptedHTTP{do: func(request *http.Request) (*http.Response, error) {
+				switch request.URL.String() {
+				case "https://api.partiful.com/getEventInfo":
+					reads++
+					if testCase.event == nil {
+						return jsonResponse(http.StatusOK, eventResponse(t, compatibleDeleteEvent())), nil
+					}
+					return jsonResponse(http.StatusOK, eventResponse(t, testCase.event)), nil
+				case "https://api.partiful.com/deleteEvent":
+					writes++
+					if testCase.httpErr != nil {
+						return nil, testCase.httpErr
+					}
+					if testCase.name == "protocol changed response" {
+						return jsonResponse(http.StatusInternalServerError, `{"error":{"status":"INTERNAL"}}`), nil
+					}
+					return jsonResponse(http.StatusOK, `{"result":null}`), nil
+				default:
+					t.Fatalf("unexpected request: %s", request.URL)
+					return nil, nil
+				}
+			}}
+			result := executeChecked(t, context.Background(), app.Request{Argv: []string{"events", "delete", "event-example", "--force"}}, dependencies)
+			if result.ExitCode != testCase.exitCode {
+				t.Fatalf("result = %#v, want exit %d", result, testCase.exitCode)
+			}
+			for _, want := range testCase.contains {
+				if !strings.Contains(result.Stdout, want) {
+					t.Fatalf("stdout = %s, want %q", result.Stdout, want)
+				}
+			}
+			if reads != 1 || writes != testCase.writes {
+				t.Fatalf("reads = %d, writes = %d; want 1 read and %d writes", reads, writes, testCase.writes)
+			}
+		})
+	}
+}
+
 func TestExecuteSchemaIncludesEventWriteCommands(t *testing.T) {
 	result := executeChecked(t, context.Background(), app.Request{Argv: []string{"schema"}}, app.Dependencies{})
 	var envelope struct {
@@ -600,7 +728,7 @@ func TestExecuteSchemaIncludesEventWriteCommands(t *testing.T) {
 	if json.Unmarshal([]byte(result.Stdout), &envelope) != nil || result.ExitCode != 0 {
 		t.Fatalf("schema = %#v", result)
 	}
-	for _, command := range []string{"events.create", "events.update", "events.cancel"} {
+	for _, command := range []string{"events.create", "events.update", "events.cancel", "events.delete"} {
 		if !slices.Contains(envelope.Data.Commands, command) {
 			t.Fatalf("commands = %v, want %s", envelope.Data.Commands, command)
 		}

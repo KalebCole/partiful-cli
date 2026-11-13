@@ -46,6 +46,18 @@ Cancellation is destructive. Add `--dry-run` to preview it. Normal execution
 prompts only on a TTY after validation and current event checks. Use `--force`
 only after approval, or `--no-input` to fail rather than prompt.
 
+## Delete
+
+```bash
+partiful events delete <event-id>
+```
+
+Deletion is destructive and applies only to an owned, published event with
+zero guests. An event with guests returns `EVENT_PRECONDITION_FAILED`; use
+`events cancel` for it instead. Add `--dry-run` to preview. Normal execution
+prompts only on a TTY. Use `--force` only after approval, or `--no-input` to
+fail rather than prompt.
+
 ## Verify
 
 After any write, inspect returned JSON and, when useful, run:

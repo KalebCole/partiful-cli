@@ -21,6 +21,7 @@ func TestMutationSchemaUsesDryRunFlagsWithoutPlanLifecycle(t *testing.T) {
 		"cohosts.revoke-invite": true,
 		"events.cancel":         true,
 		"events.create":         false,
+		"events.delete":         true,
 		"events.update":         false,
 		"guests.invite":         false,
 		"rsvp.set":              false,
@@ -229,6 +230,7 @@ func TestDestructiveCommandsPromptWithCurrentRemoteTitleAndRefuseWithoutMutation
 		action string
 	}{
 		{"cancel", []string{"events", "cancel", "event-example"}, "Cancel event"},
+		{"delete", []string{"events", "delete", "event-example"}, "Delete event"},
 		{"remove cohost", []string{"cohosts", "remove", "event-example", "--contact", "Example Contact"}, "Remove a cohost from"},
 		{"revoke cohost invite", []string{"cohosts", "revoke-invite", "event-example", "--contact", "Example Contact"}, "Revoke a cohost invite for"},
 		{"revoke cohost link", []string{"cohosts", "link", "revoke", "event-example"}, "Revoke the cohost invite link for"},
@@ -279,6 +281,9 @@ func destructiveCommandDependencies(t *testing.T, argv []string, title string, w
 			if strings.Join(argv[:2], " ") == "events cancel" {
 				event["guestCount"] = 1
 			}
+			if strings.Join(argv[:2], " ") == "events delete" {
+				event["guestCount"] = 0
+			}
 			return jsonResponse(http.StatusOK, eventResponse(t, event)), nil
 		case "https://api.partiful.com/getContacts":
 			contactCalls++
@@ -295,7 +300,7 @@ func destructiveCommandDependencies(t *testing.T, argv []string, title string, w
 			return jsonResponse(http.StatusOK, `{"documents":[`+cohostRequestDocument("private-contact-id", status)+`]}`), nil
 		case "https://firestore.googleapis.com/v1/projects/getpartiful/databases/(default)/documents/events/event-example/private/cohostSecret":
 			return jsonResponse(http.StatusOK, cohostLinkDocument("/e/event-example?accept-cohost=existing-token")), nil
-		case "https://api.partiful.com/cancelEvent", "https://api.partiful.com/removeCohost", "https://api.partiful.com/deleteCohostRequest", "https://api.partiful.com/revokeEventCohostLink":
+		case "https://api.partiful.com/cancelEvent", "https://api.partiful.com/deleteEvent", "https://api.partiful.com/removeCohost", "https://api.partiful.com/deleteCohostRequest", "https://api.partiful.com/revokeEventCohostLink":
 			*writes++
 			return jsonResponse(http.StatusOK, `{"result":true}`), nil
 		default:

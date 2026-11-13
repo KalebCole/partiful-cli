@@ -176,7 +176,7 @@ func TestEveryPublicCommandRejectsUnknownFlagsWithCompleteEnvelope(t *testing.T)
 			if command == "version" {
 				argv = []string{"--version"}
 			}
-			if strings.HasPrefix(command, "cohosts.") || strings.HasPrefix(command, "guests.") || strings.HasPrefix(command, "rsvp.") || command == "events.get" || command == "events.update" || command == "events.cancel" || command == "blasts.send" {
+			if strings.HasPrefix(command, "cohosts.") || strings.HasPrefix(command, "guests.") || strings.HasPrefix(command, "rsvp.") || command == "events.get" || command == "events.update" || command == "events.cancel" || command == "events.delete" || command == "blasts.send" {
 				argv = append(argv, "event-example")
 			}
 			argv = append(argv, "--unknown-private-value")
@@ -289,7 +289,7 @@ func TestScalarFlagsCannotRepeatOrMixWithStructuredInput(t *testing.T) {
 }
 
 func TestEveryDestructiveCommandRequiresAllowedConfirmationPath(t *testing.T) {
-	for _, argv := range [][]string{{"events", "cancel", "event-example"}, {"cohosts", "remove", "event-example", "--contact", "Example Contact"}, {"cohosts", "revoke-invite", "event-example", "--contact", "Example Contact"}, {"cohosts", "link", "revoke", "event-example"}} {
+	for _, argv := range [][]string{{"events", "cancel", "event-example"}, {"events", "delete", "event-example"}, {"cohosts", "remove", "event-example", "--contact", "Example Contact"}, {"cohosts", "revoke-invite", "event-example", "--contact", "Example Contact"}, {"cohosts", "link", "revoke", "event-example"}} {
 		for _, mode := range []string{"non-tty", "--no-input", "--non-interactive", "decline", "input-error", "confirm", "--force", "--dry-run"} {
 			t.Run(strings.Join(argv[:2], ".")+mode, func(t *testing.T) {
 				writes := 0
@@ -716,6 +716,7 @@ func TestEveryRemoteMutationDryRunsAndNeverRetries(t *testing.T) {
 		{"events", "create", "--title", "Example", "--start", "2026-09-12T19:00:00Z", "--timezone", "America/Los_Angeles"},
 		{"events", "update", "event-example", "--title", "Example"},
 		{"events", "cancel", "event-example"},
+		{"events", "delete", "event-example"},
 		{"guests", "invite", "event-example", "--contact", "Example Contact"},
 		{"rsvp", "set", "event-example", "--status", "going", "--display-name", "Example", "--party-size", "1", "--timezone", "America/Los_Angeles"},
 		{"blasts", "send", "event-example", "--audience", "all-guests", "--message-file", "message.txt"},
@@ -744,7 +745,11 @@ func TestEveryRemoteMutationDryRunsAndNeverRetries(t *testing.T) {
 						return jsonResponse(200, "["+productPoster+"]"), nil
 					case "/getEventInfo":
 						reads[path]++
-						return jsonResponse(200, eventResponse(t, compatibleBlastEvent())), nil
+						event := compatibleBlastEvent()
+						if command == "events.delete" {
+							event["guestCount"] = 0
+						}
+						return jsonResponse(200, eventResponse(t, event)), nil
 					case "/getCurrentGuest":
 						reads[path]++
 						return jsonResponse(200, `{"result":{"data":{"currentGuest":null}}}`), nil

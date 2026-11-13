@@ -2571,6 +2571,96 @@
           "source": "Document path and link state: docs/research/2026-08-12-cohost-lifecycle-public-assets.md#link-document-shape-and-token-path. Generic document/NOT_FOUND protocol: docs/research/2026-08-10-contract-evidence-sources.md#official-firestore-rest-protocol. Public-asset and protocol research only; no live Partiful read, permission claim, or revocation guarantee."
         }
       }
+    },
+    "/deleteEvent": {
+      "post": {
+        "operationId": "deleteEvent",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "data"
+                ],
+                "properties": {
+                  "data": {
+                    "type": "object",
+                    "required": [
+                      "params",
+                      "userId"
+                    ],
+                    "properties": {
+                      "params": {
+                        "type": "object",
+                        "properties": {
+                          "eventId": {
+                            "type": "string",
+                            "minLength": 1
+                          }
+                        },
+                        "additionalProperties": false,
+                        "required": [
+                          "eventId"
+                        ]
+                      },
+                      "userId": {
+                        "type": [
+                          "string",
+                          "null"
+                        ]
+                      },
+                      "deviceInfo": {
+                        "type": "object",
+                        "additionalProperties": true
+                      },
+                      "amplitudeDeviceId": {
+                        "type": "string"
+                      },
+                      "amplitudeSessionId": {
+                        "type": "integer",
+                        "format": "int64"
+                      },
+                      "adminAccessRequested": {
+                        "type": "boolean",
+                        "const": true
+                      }
+                    },
+                    "additionalProperties": false
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Generic callable completion; the first-party client inspects no business field. Persisted deletion is not established.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeleteEventCompletionResponse"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Unobserved response status or body."
+          }
+        },
+        "security": [
+          {
+            "firebaseBearer": []
+          }
+        ],
+        "x-evidence": {
+          "status": "observed",
+          "date": "2026-09-29",
+          "source": "PR #250 reports current first-party web client inspection on 2026-09-29: deleteEvent({params:{eventId}}), offered for an owned event with zero guests; no response field inspected. Shared callable envelope and protocol: docs/research/2026-08-12-event-write-mapping-public-assets.md and docs/research/2026-08-10-contract-evidence-sources.md#official-firebase-callable-protocol. No live deletion during this update. Endpoint-specific errors, server authorization, and persisted deletion remain unknown. Published status, zero guests, and ownership are CLI safety preconditions."
+        }
+      }
     }
   },
   "components": {
@@ -4305,6 +4395,30 @@
           }
         },
         "additionalProperties": true
+      },
+      "DeleteEventCompletionResponse": {
+        "anyOf": [
+          {
+            "type": "object",
+            "required": [
+              "result"
+            ],
+            "properties": {
+              "result": {}
+            },
+            "additionalProperties": true
+          },
+          {
+            "type": "object",
+            "required": [
+              "data"
+            ],
+            "properties": {
+              "data": {}
+            },
+            "additionalProperties": true
+          }
+        ]
       },
       "EventTicketing": {
         "type": [

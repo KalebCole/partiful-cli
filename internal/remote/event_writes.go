@@ -100,6 +100,10 @@ type CancelEventParams struct {
 	ShouldSkipNotifyGuests bool   `json:"shouldSkipNotifyGuests"`
 }
 
+type DeleteEventParams struct {
+	EventID string `json:"eventId"`
+}
+
 type callableMutationRequest[T any] struct {
 	Data callableMutationRequestData[T] `json:"data"`
 }
@@ -201,6 +205,16 @@ func (client Client) CancelEvent(
 	params CancelEventParams,
 ) error {
 	_, err := callEventMutation(client, ctx, accessToken, "cancelEvent", userID, params)
+	return err
+}
+
+func (client Client) DeleteEvent(
+	ctx context.Context,
+	accessToken string,
+	userID string,
+	params DeleteEventParams,
+) error {
+	_, err := callEventMutation(client, ctx, accessToken, "deleteEvent", userID, params)
 	return err
 }
 
