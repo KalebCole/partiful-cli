@@ -18,9 +18,12 @@ For going RSVPs, use `--plus-one` repeatedly for named plus-ones. For larger or
 structured input, pass `--input <path-or->` and inspect
 `partiful schema rsvp.set` for the exact JSON shape.
 
-Paid ticketing (`ticketing.type` `standard`), a required chip-in on a going
-RSVP, application, protected, at-capacity going, and unsupported questionnaire
-flows fail closed. The error names the event property. An optional chip-in or
-suggested donation (`ticketing.mode` `optional`, type absent or `chip_in`)
-uses the normal RSVP. Going sends `ticketPaid: true` without taking payment;
-not-going omits `ticketPaid`. Stripe ticket sales never receive `ticketPaid`.
+Paid ticketing, a required chip-in on a going RSVP, application, protected,
+at-capacity going, and unsupported questionnaire flows fail closed. The error
+names the event property. Optional chip-in or suggested-donation events use
+the normal RSVP commands without payment. Required chip-in events still
+allow not-going and interested. The CLI does not collect payments.
+
+Use `--questionnaire-response <json>` or structured `--input` for supported
+questionnaires; consult `partiful schema rsvp.set` for required fields.
+Declines use `--status not-going`; there is no maybe write status.

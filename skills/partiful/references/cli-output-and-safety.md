@@ -21,7 +21,7 @@ CLI differ.
 | `--no-input` | Disable terminal prompts; alias of `--non-interactive` |
 | `--version` | Return the version envelope |
 
-Every mutation also accepts `--dry-run`, `--force`, and `--no-input`.
+Every remote mutation also accepts `--dry-run`, `--force`, and `--no-input`.
 `--dry-run` returns a redacted normalized preview after required read-only
 resolution and never sends a write. Without it, the command dispatches once
 and never retries automatically.
@@ -41,9 +41,22 @@ Success and failure use stable JSON envelopes:
 {"ok":false,"error":{"type":"auth.required","code":"AUTH_REQUIRED","message":"Authentication is required.","retryable":false,"details":{}},"meta":{"command":"events.list"}}
 ```
 
-## Safety
+## Collections
+
+Collection commands return `data.items` and `meta.page` with `limit`,
+`nextCursor`, and `hasMore`. The default limit is 25; `--limit` accepts 1–100.
+To collect more, pass `--all --max-items <1-1000>` instead of `--limit`.
+`--all` alone fails with `MAX_ITEMS_REQUIRED`. A capped result can still have
+`hasMore: true`; continue with `--cursor <nextCursor>` using the same command
+and filters. If the collection changes and the cursor is rejected, restart
+the read instead of treating the old page as complete.
+
+## Errors and safety
 
 - Review `--dry-run` output when the user requests a preview.
 - Get explicit approval before using `--force` for a destructive command.
+- If a write returns `contract.protocol_changed` or reports an uncertain
+  submission, it may already have succeeded. Inspect remote state before
+  considering another attempt; never retry the write automatically.
 - Keep JSON on stdout and diagnostics on stderr.
 - Do not include phone numbers, email addresses, access tokens, or Partiful user IDs in user-facing summaries.
