@@ -61,6 +61,7 @@ const (
 	blastsSendCommand
 	rsvpGetCommand
 	rsvpSetCommand
+	rsvpRemoveCommand
 	cohostsInviteCommand
 	cohostsRevokeInviteCommand
 	cohostsRemoveCommand
@@ -499,6 +500,17 @@ var commandCatalog = []commandDefinition{
 		safety: readOnlySafety(),
 	},
 	{
+		path:          "rsvp.remove",
+		invocation:    []string{"rsvp", "remove"},
+		kind:          rsvpRemoveCommand,
+		positionals:   []positionalDefinition{{Name: "event-id", Required: true, Description: "Event identifier."}},
+		flags:         mutationFlagDefinitions(),
+		inputSchema:   eventGetInputSchema(),
+		successSchema: rsvpRemoveSuccessSchema(),
+		failureTypes:  []string{"auth.required", "auth.expired", "resource.not_found", "state.conflict", "safety.confirmation_required", "remote.unavailable", "contract.protocol_changed", "internal.failure"},
+		safety:        destructiveActionSafety(),
+	},
+	{
 		path:       "rsvp.set",
 		invocation: []string{"rsvp", "set"},
 		kind:       rsvpSetCommand,
@@ -509,7 +521,7 @@ var commandCatalog = []commandDefinition{
 		}},
 		flags: append([]flagDefinition{
 			{Name: "--input", Description: "Read one structured JSON input object.", TakesValue: true},
-			{Name: "--status", Description: "Writable RSVP intent.", TakesValue: true},
+			{Name: "--status", Description: "going, interested, or not-going (Can't Go; still listed as a guest). Use rsvp remove to leave entirely.", TakesValue: true},
 			{Name: "--display-name", Description: "Attendee display name.", TakesValue: true},
 			{Name: "--party-size", Description: "Total attendee count.", TakesValue: true},
 			{Name: "--plus-one", Description: "Named plus one; this flag can repeat.", TakesValue: true},
@@ -1548,6 +1560,8 @@ func Execute(ctx context.Context, request Request, dependencies Dependencies) Re
 				return executeBlastSend(ctx, request, definition, argv, dependencies, execution, pretty)
 			case rsvpGetCommand:
 				return executeRSVPGet(ctx, definition, argv, dependencies, pretty)
+			case rsvpRemoveCommand:
+				return executeRSVPRemove(ctx, definition, argv, dependencies, execution, pretty)
 			case rsvpSetCommand:
 				return executeRSVPSet(ctx, request, definition, argv, dependencies, execution, pretty)
 			case cohostsInviteCommand:
@@ -1601,6 +1615,7 @@ func (definition commandDefinition) matches(argv []string) bool {
 		definition.kind == blastsSendCommand ||
 		definition.kind == rsvpGetCommand ||
 		definition.kind == rsvpSetCommand ||
+		definition.kind == rsvpRemoveCommand ||
 		definition.kind == cohostsInviteCommand ||
 		definition.kind == cohostsRevokeInviteCommand ||
 		definition.kind == cohostsRemoveCommand ||
@@ -1747,6 +1762,9 @@ func leafHelp(definition commandDefinition) string {
 }
 
 func commandPurpose(definition commandDefinition) string {
+	if definition.kind == rsvpRemoveCommand {
+		return "Remove yourself from the event entirely. This event will no longer appear on your homepage."
+	}
 	return "Shows the reviewed interface for " + strings.ReplaceAll(definition.path, ".", " ") + "."
 }
 

@@ -289,7 +289,7 @@ func TestScalarFlagsCannotRepeatOrMixWithStructuredInput(t *testing.T) {
 }
 
 func TestEveryDestructiveCommandRequiresAllowedConfirmationPath(t *testing.T) {
-	for _, argv := range [][]string{{"events", "cancel", "event-example"}, {"events", "delete", "event-example"}, {"cohosts", "remove", "event-example", "--contact", "Example Contact"}, {"cohosts", "revoke-invite", "event-example", "--contact", "Example Contact"}, {"cohosts", "link", "revoke", "event-example"}} {
+	for _, argv := range [][]string{{"rsvp", "remove", "event-example"}, {"events", "cancel", "event-example"}, {"events", "delete", "event-example"}, {"cohosts", "remove", "event-example", "--contact", "Example Contact"}, {"cohosts", "revoke-invite", "event-example", "--contact", "Example Contact"}, {"cohosts", "link", "revoke", "event-example"}} {
 		for _, mode := range []string{"non-tty", "--no-input", "--non-interactive", "decline", "input-error", "confirm", "--force", "--dry-run"} {
 			t.Run(strings.Join(argv[:2], ".")+mode, func(t *testing.T) {
 				writes := 0
@@ -718,6 +718,7 @@ func TestEveryRemoteMutationDryRunsAndNeverRetries(t *testing.T) {
 		{"events", "cancel", "event-example"},
 		{"events", "delete", "event-example"},
 		{"guests", "invite", "event-example", "--contact", "Example Contact"},
+		{"rsvp", "remove", "event-example"},
 		{"rsvp", "set", "event-example", "--status", "going", "--display-name", "Example", "--party-size", "1", "--timezone", "America/Los_Angeles"},
 		{"blasts", "send", "event-example", "--audience", "all-guests", "--message-file", "message.txt"},
 		{"cohosts", "invite", "event-example", "--contact", "Example Contact"},
@@ -752,6 +753,9 @@ func TestEveryRemoteMutationDryRunsAndNeverRetries(t *testing.T) {
 						return jsonResponse(200, eventResponse(t, event)), nil
 					case "/getCurrentGuest":
 						reads[path]++
+						if command == "rsvp.remove" {
+							return jsonResponse(200, `{"result":{"data":{"currentGuest":{"id":"private-guest-id","status":"GOING","count":1}}}}`), nil
+						}
 						return jsonResponse(200, `{"result":{"data":{"currentGuest":null}}}`), nil
 					case "/getContacts":
 						reads[path]++

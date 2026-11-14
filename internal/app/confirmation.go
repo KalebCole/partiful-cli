@@ -44,6 +44,7 @@ func requireDestructiveConfirmation(
 
 func destructiveConfirmationPrompt(command string, eventTitle *string) string {
 	action := map[string]string{
+		"rsvp.remove":           "Remove yourself from event",
 		"events.cancel":         "Cancel event",
 		"events.delete":         "Delete event",
 		"cohosts.remove":        "Remove a cohost from",

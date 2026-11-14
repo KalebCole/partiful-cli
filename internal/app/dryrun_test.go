@@ -24,6 +24,7 @@ func TestMutationSchemaUsesDryRunFlagsWithoutPlanLifecycle(t *testing.T) {
 		"events.delete":         true,
 		"events.update":         false,
 		"guests.invite":         false,
+		"rsvp.remove":           true,
 		"rsvp.set":              false,
 	}
 	for command, destructive := range commands {
@@ -77,7 +78,7 @@ func TestMutationHelpFindsSafetyFlagsAnywhere(t *testing.T) {
 		{"blasts", "send"}, {"cohosts", "invite"}, {"cohosts", "link", "create"},
 		{"cohosts", "link", "revoke"}, {"cohosts", "remove"}, {"cohosts", "revoke-invite"},
 		{"events", "cancel"}, {"events", "create"}, {"events", "update"},
-		{"guests", "invite"}, {"rsvp", "set"},
+		{"guests", "invite"}, {"rsvp", "set"}, {"rsvp", "remove"},
 	}
 	for _, command := range commands {
 		name := strings.Join(command, ".")
@@ -285,6 +286,11 @@ func destructiveCommandDependencies(t *testing.T, argv []string, title string, w
 				event["guestCount"] = 0
 			}
 			return jsonResponse(http.StatusOK, eventResponse(t, event)), nil
+		case "https://api.partiful.com/getCurrentGuest":
+			return jsonResponse(200, `{"result":{"data":{"currentGuest":{"id":"private-guest-id","status":"GOING","count":1}}}}`), nil
+		case "https://api.partiful.com/removeGuest":
+			*writes++
+			return jsonResponse(200, `{"result":{"data":{}}}`), nil
 		case "https://api.partiful.com/getContacts":
 			contactCalls++
 			if contactCalls%2 == 1 {

@@ -8,6 +8,7 @@ func TestDestructiveConfirmationPromptNamesAction(t *testing.T) {
 		command string
 		want    string
 	}{
+		{"rsvp.remove", "Remove yourself from event \"Current title\"? [y/N] "},
 		{"events.cancel", "Cancel event \"Current title\"? [y/N] "},
 		{"events.delete", "Delete event \"Current title\"? [y/N] "},
 		{"cohosts.remove", "Remove a cohost from \"Current title\"? [y/N] "},

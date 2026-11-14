@@ -64,6 +64,24 @@ type AddGuestParams struct {
 	RSVP    RSVPDraft `json:"rsvp"`
 }
 
+type RemoveGuestParams struct {
+	EventID string `json:"eventId"`
+	GuestID string `json:"guestId"`
+}
+
+// RemoveGuest uses the same callable envelope as AddGuest.
+func (client Client) RemoveGuest(ctx context.Context, accessToken, deviceID string, params RemoveGuestParams) error {
+	data, err := callRSVPMutation(client, ctx, accessToken, deviceID, "removeGuest", params)
+	if err != nil {
+		return err
+	}
+	object, err := decodeEventObject(data)
+	if err != nil || len(object) != 0 {
+		return fmt.Errorf("%w: remove guest data", ErrProtocolChanged)
+	}
+	return nil
+}
+
 type MarkEventInterestParams struct {
 	EventID    string `json:"eventId"`
 	Interested bool   `json:"interested"`

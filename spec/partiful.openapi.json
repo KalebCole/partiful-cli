@@ -2,7 +2,7 @@
   "openapi": "3.1.0",
   "info": {
     "title": "Partiful remote API contract",
-    "version": "2026-08-12.7",
+    "version": "2026-11-14.1",
     "description": "Single source of truth for Partiful remote calls and wire shapes. Partiful has no public API. Each operation records dated provenance in x-evidence; unobserved responses remain unknown. Evidence status observed includes inspected first-party assets and official protocols, not just live traffic; the source note distinguishes them."
   },
   "servers": [
@@ -2689,6 +2689,121 @@
           "status": "observed",
           "date": "2026-09-29",
           "source": "PR #250 reports current first-party web client inspection on 2026-09-29: deleteEvent({params:{eventId}}), offered for an owned event with zero guests; no response field inspected. Shared callable envelope and protocol: docs/research/2026-08-12-event-write-mapping-public-assets.md and docs/research/2026-08-10-contract-evidence-sources.md#official-firebase-callable-protocol. No live deletion during this update. Endpoint-specific errors, server authorization, and persisted deletion remain unknown. Published status, zero guests, and ownership are CLI safety preconditions."
+        }
+      }
+    },
+    "/removeGuest": {
+      "post": {
+        "operationId": "removeGuest",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "data"
+                ],
+                "properties": {
+                  "data": {
+                    "type": "object",
+                    "required": [
+                      "params"
+                    ],
+                    "properties": {
+                      "params": {
+                        "type": "object",
+                        "required": [
+                          "eventId",
+                          "guestId"
+                        ],
+                        "properties": {
+                          "eventId": {
+                            "type": "string"
+                          },
+                          "guestId": {
+                            "type": "string",
+                            "description": "The caller's own guest ID on this event, resolved via getCurrentGuest; not a user ID."
+                          }
+                        },
+                        "additionalProperties": false
+                      },
+                      "deviceInfo": {},
+                      "adminAccessRequested": {},
+                      "amplitudeDeviceId": {
+                        "type": "string"
+                      },
+                      "amplitudeSessionId": {
+                        "type": "integer",
+                        "format": "int64"
+                      },
+                      "userId": {
+                        "type": [
+                          "string",
+                          "null"
+                        ]
+                      },
+                      "client": {
+                        "type": "string",
+                        "enum": [
+                          "web"
+                        ]
+                      }
+                    },
+                    "additionalProperties": false
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Observed HTTP 200 empty-object callable completion. Does not independently establish persisted removal.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "result"
+                  ],
+                  "properties": {
+                    "result": {
+                      "type": "object",
+                      "required": [
+                        "data"
+                      ],
+                      "properties": {
+                        "data": {
+                          "type": "object",
+                          "maxProperties": 0
+                        }
+                      }
+                    }
+                  }
+                },
+                "example": {
+                  "result": {
+                    "data": {}
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Unobserved response status or body."
+          }
+        },
+        "security": [
+          {
+            "firebaseBearer": []
+          }
+        ],
+        "x-evidence": {
+          "status": "observed",
+          "date": "2026-11-14",
+          "source": "Owner-provided web capture on 2026-11-14: Remove me from event; dialog: Remove yourself from event? This event will no longer appear on your homepage. POST https://api.partiful.com/removeGuest returned HTTP 200 with result.data {}. Params are eventId and the caller's guestId; bearer auth and content-type application/json; web also sent Origin https://partiful.com, client web, userId, amplitudeDeviceId, and amplitudeSessionId. CLI follows its existing addGuest envelope (params and amplitudeDeviceId with bearer auth), omitting the other web metadata. The web followed completion with getEventInfo and getGuests; CLI reports submission without follow-up reads. Endpoint-specific errors and persisted removal remain unverified. Distinct from Can't Go, which continues to use addGuest with rsvp.status DECLINED."
         }
       }
     }
