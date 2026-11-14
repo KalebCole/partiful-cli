@@ -10,10 +10,9 @@ See [VISION.md](VISION.md) for product scope and principles.
 Download and extract a native archive for your platform from [GitHub Releases](https://github.com/KalebCole/partiful-cli/releases), then put the `partiful` executable on your `PATH`. Or install with Go:
 
 ```bash
-go install github.com/KalebCole/partiful-cli/cmd/partiful@v3.0.0
+go install github.com/KalebCole/partiful-cli/cmd/partiful@latest
 ```
 
-The first native-only release line starts at `v3.0.0`. The install command above becomes available after the coordinated cutover release is published.
 
 Verify your installation and check authentication state:
 
