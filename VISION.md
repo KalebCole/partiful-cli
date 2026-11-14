@@ -12,7 +12,7 @@ Three ideas decide every change:
 
 The public product is the command catalog returned by `partiful schema`.
 A command ships only when its input, success, failure, and safety behavior are enforced by Go tests and reviewed schema snapshots.
-The existence of a remote endpoint, an old TypeScript command, or a note in research files is not enough to add a command.
+The existence of a remote endpoint or a note in research files is not enough to add a command.
 Public behavior changes update goldens deliberately; accidental golden drift is not a merge.
 JSON is the default and promised output for people and agents; a second output dialect is a product change, not a formatting tweak.
 
@@ -22,7 +22,6 @@ JSON is the default and promised output for people and agents; a second output d
 Every shipped call carries dated evidence; material under `docs/research` and `spec/research` stays research until it is reviewed into that spec.
 When live Partiful behavior disagrees with the contract a released command was built against, the CLI fails closed as a protocol change.
 It does not guess, retry, or paper over an unreviewed response.
-The retired TypeScript CLI is historical evidence, not a compatibility target.
 
 ## Mutations are reviewable and happen once
 
@@ -50,7 +49,6 @@ Generic escape hatches, including raw HTTP, callable, Firebase, or Firestore acc
 
 ## Agent-native by design
 
-Borrowed from Trevin Chow's agent-native CLI principles (https://trevinsays.com/p/10-principles-for-agent-native-clis; earlier 7-principle version at http://trevinsays.com/p/7-principles-for-agent-friendly-clis).
 Every command runs without prompts when there is no terminal, with one consistent flag for confirmation bypass.
 Output is structured JSON by default.
 Errors say what went wrong and list the valid values when an input is invalid.
@@ -64,10 +62,8 @@ A change that breaks one of these is resisted; a change that improves one aligns
 partiful-cli talks only to Partiful. It never calls Stripe or any other third-party system, even when Partiful itself uses one behind the scenes.
 partiful-cli is not a Partiful app, not a payments product, and not a general Firebase or Firestore client.
 It is not a template, clone, export, watch, or bulk-mutation orchestrator.
-One exception is welcome: a local read-only SQLite copy of events for offline queries. It is wanted, but it always needs Kaleb's review and never auto-merges.
 It is not an image generator, and it does not upload custom event images.
 The repo ships its agent skills as a plugin that teaches agents to use the CLI; the skills are not the contributor guide.
-Landing-page presentation may explain the CLI, but it must not imply that a dry-run or an accepted invite proves a completed outcome.
 
 A change aligns when it makes a reviewed workflow safer, more accurate, or more complete without widening the catalog past evidenced remote behavior, tightens fail-closed or privacy behavior, keeps mutations one-shot and previewable, or strengthens the Go-only release path.
-A change should be resisted when it ships a command without reviewed product tests and remote evidence, reopens a generic transport hatch, processes a payment, exposes identity or contact PII, retries an uncertain write, treats the old TypeScript surface as a promise, adds persistence (other than the reviewed offline SQLite copy) or multi-event orchestration beyond a single reviewed remote call, or trades the JSON contract for an untested convenience format.
+A change should be resisted when it ships a command without reviewed product tests and remote evidence, reopens a generic transport hatch, processes a payment, exposes identity or contact PII, retries an uncertain write, adds persistence or multi-event orchestration beyond a single reviewed remote call, or trades the JSON contract for an untested convenience format.
