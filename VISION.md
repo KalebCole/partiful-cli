@@ -19,7 +19,7 @@ JSON is the default and promised output for people and agents; a second output d
 ## Evidence before shipping, fail closed
 
 `spec/partiful.openapi.json` is the only authority for remote transport.
-Every shipped call carries dated evidence; material under `docs/research` and `spec/research` stays research until it is reviewed into that spec.
+Material under `docs/research` and `spec/research` stays research until it is reviewed into that spec.
 When live Partiful behavior disagrees with the contract a released command was built against, the CLI fails closed as a protocol change.
 It does not guess, retry, or paper over an unreviewed response.
 
