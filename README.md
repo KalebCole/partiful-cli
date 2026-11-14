@@ -54,7 +54,7 @@ See [Contributing](docs/CONTRIBUTING.md) for setup, tests, and release checks, [
 
 ## Release notes
 
-GoReleaser injects the tagged release version with ldflags. Source builds default to `3.1.0` until a release tag overrides it. Each native archive bundles `README.md` and `LICENSE`.
+See [GitHub Releases](https://github.com/KalebCole/partiful-cli/releases) for versions and changelogs.
 
 ## License
 
