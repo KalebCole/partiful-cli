@@ -103,6 +103,7 @@ func TestExecuteRSVPGetReturnsExplicitNoRSVPAndFailsClosedOnOtherVariants(t *tes
 
 func TestExecuteRSVPCommandsRequireAuthenticationBeforeRemoteAccess(t *testing.T) {
 	for _, argv := range [][]string{
+		{"rsvp", "remove", "event-example", "--force"},
 		{"rsvp", "get", "event-example"},
 		{"rsvp", "set", "event-example", "--status", "interested"},
 	} {

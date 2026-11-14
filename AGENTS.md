@@ -61,6 +61,7 @@ check for authentication state.
 - `posters.list`
 - `posters.search`
 - `rsvp.get`
+- `rsvp.remove`
 - `rsvp.set`
 - `schema`
 - `version`
@@ -70,7 +71,7 @@ check for authentication state.
 - Never expose phone numbers, email addresses, access tokens, or Partiful user IDs.
 - Never use live credentials or mutate real events in automated validation.
 - Use `--dry-run` for a redacted mutation preview.
-- `events.cancel`, `events.delete`, `cohosts.remove`, `cohosts.revoke-invite`,
+- `events.cancel`, `events.delete`, `rsvp.remove`, `cohosts.remove`, `cohosts.revoke-invite`,
   and `cohosts.link.revoke` require a TTY confirmation unless `--force` is set.
 - Use `--no-input` or `--non-interactive` when prompting is not allowed.
 - Mutation commands dispatch at most once and never retry automatically.

@@ -1,6 +1,6 @@
 ---
 name: partiful
-description: Use when the user wants to inspect Partiful events, RSVP, create or manage an event, invite or review guests, choose built-in posters, manage cohosts, or send a text blast.
+description: Use when the user wants to inspect Partiful events, RSVP, leave an event, create or manage an event, invite or review guests, choose built-in posters, manage cohosts, or send a text blast.
 ---
 
 # Partiful CLI
@@ -19,7 +19,7 @@ Command definitions, Go tests, and reviewed schema goldens enforce public behavi
 2. Keep default JSON output for agent workflows. Use `partiful schema <command.path>` when exact parameters matter.
 3. Add `--dry-run` to any mutation for a redacted preview with no remote write.
 4. Without `--dry-run`, a mutation validates, performs required read checks, and dispatches once.
-5. `events cancel`, `events delete`, `cohosts remove`, `cohosts revoke-invite`, and `cohosts link revoke` prompt on a TTY. Use `--force` only after approval, or `--no-input` to fail rather than prompt.
+5. `events cancel`, `events delete`, `rsvp remove`, `cohosts remove`, `cohosts revoke-invite`, and `cohosts link revoke` prompt on a TTY. Use `--force` only after approval, or `--no-input` to fail rather than prompt.
 
 ## Route by Task
 
@@ -28,7 +28,7 @@ Command definitions, Go tests, and reviewed schema goldens enforce public behavi
 | Login, auth status, credential resolution, or authentication diagnostics | [Authentication](references/authentication.md) |
 | Output envelopes, global flags, schema discovery, errors, or safety flow | [CLI output and safety](references/cli-output-and-safety.md) |
 | List, inspect, create, update, cancel, or delete events | [Events](references/events.md) |
-| RSVP or express interest as an attendee | [RSVPs and interest](references/rsvps-and-interest.md) |
+| RSVP, express interest, or remove yourself from an event as an attendee | [RSVPs and interest](references/rsvps-and-interest.md) |
 | List guests, resolve contacts, invite guests, or manage cohosts as a host | [Guests, invitations, and cohosts](references/guests-invitations-and-cohosts.md) |
 | Browse built-in posters and apply poster IDs to events | [Posters and images](references/posters-and-images.md) |
 | Draft, approve, or send a text blast | [Text blasts](references/text-blasts.md) |

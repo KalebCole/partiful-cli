@@ -32,6 +32,7 @@ var approvedCommandCatalog = []string{
 	"posters.list",
 	"posters.search",
 	"rsvp.get",
+	"rsvp.remove",
 	"rsvp.set",
 	"schema",
 	"version",

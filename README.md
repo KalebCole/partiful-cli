@@ -69,6 +69,7 @@ partiful events delete <event-id> [flags]
 partiful guests invite <event-id> --contact <name>
 partiful blasts send <event-id> --audience all-guests --message-file <path-or->
 partiful rsvp set <event-id> [flags]
+partiful rsvp remove <event-id> [--dry-run] [--force] [--no-input]
 partiful cohosts invite <event-id> --contact <name>
 partiful cohosts revoke-invite <event-id> --contact <name>
 partiful cohosts remove <event-id> --contact <name>
@@ -81,13 +82,24 @@ exact input, success, failure, and safety contract for any approved command.
 Go tests and a reviewed [schema snapshot](internal/app/testdata/schema.golden.json)
 enforce this surface; [Architecture](docs/ARCHITECTURE.md#why-these-product-rules-exist) explains the rationale.
 
+## Decline or leave an event
+
+`partiful rsvp set <event-id> --status not-going` means **Can't Go**: you stay
+listed as a guest. Supply the usual RSVP profile flags (see `partiful help rsvp set`).
+
+`partiful rsvp remove <event-id>` removes you from the event entirely, so it no
+longer appears on your homepage. It resolves your own guest record automatically;
+if you are not a guest, it fails with `state.conflict` / `RSVP_GUEST_REQUIRED`
+(exit 6). Use `--dry-run` to preview the request with the guest ID redacted.
+Execution requires terminal confirmation or `--force`.
+
 ## Mutation safety
 
 Mutation commands execute once after validation and required read-before-write
 checks. Add `--dry-run` to return a redacted request preview without sending a
 write.
 
-`events cancel`, `events delete`, `cohosts remove`, `cohosts revoke-invite`,
+`events cancel`, `events delete`, `rsvp remove`, `cohosts remove`, `cohosts revoke-invite`,
 and `cohosts link revoke` require an interactive terminal confirmation.
 `--force` skips only that prompt. `--no-input` or `--non-interactive` disables
 prompting and fails safely unless `--force` is also present.

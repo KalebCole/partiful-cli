@@ -65,6 +65,7 @@ expected_commands = [
     "posters.list",
     "posters.search",
     "rsvp.get",
+    "rsvp.remove",
     "rsvp.set",
     "schema",
     "version",
