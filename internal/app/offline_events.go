@@ -46,7 +46,7 @@ func offlineInputError(message string, valid any) *errorBody {
 	return &errorBody{Type: "input.invalid", Code: "OFFLINE_OPTIONS_INVALID", Message: message, Details: map[string]any{"validValues": valid}}
 }
 
-func executeOfflineEvents(ctx context.Context, d commandDefinition, argv []string, deps Dependencies, pretty bool) Result {
+func executeOfflineEvents(ctx context.Context, d commandDefinition, argv []string, deps Dependencies, execution mutationExecution, pretty bool) Result {
 	flags, inputErr := parseCommandFlags(d, argv)
 	if inputErr != nil {
 		return failure(d.path, 2, *inputErr, pretty)
@@ -156,6 +156,21 @@ func executeOfflineEvents(ctx context.Context, d commandDefinition, argv []strin
 	}
 	available := len(items)
 	items = items[:min(limit, available)]
+	if execution.DryRun {
+		return success(d.path, struct {
+			Operation string         `json:"operation"`
+			Input     map[string]any `json:"input"`
+			Effects   []string       `json:"effects"`
+			Synced    int            `json:"synced"`
+			Available int            `json:"available"`
+			HasMore   bool           `json:"hasMore"`
+		}{
+			Operation: d.path,
+			Input:     map[string]any{"when": flags["--when"], "limit": limit, "db": "[REDACTED]"},
+			Effects:   []string{"Upserts the selected events into the local SQLite database"},
+			Synced:    len(items), Available: available, HasMore: len(items) < available,
+		}, pretty)
+	}
 	store, err := eventstore.Open(path, false)
 	if err != nil {
 		return offlineStoreFailure(d.path, pretty)

@@ -70,6 +70,61 @@ func TestOfflineSyncAndRead(t *testing.T) {
 		})
 	}
 }
+func TestOfflineSyncDryRunDoesNotCreateDatabase(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "events.sqlite")
+	calls := 0
+	deps := app.Dependencies{Files: fakeFilesystem{readFile: func(string) ([]byte, error) {
+		return []byte(`{"accessToken":"private-access-token","userId":"private-current-account","expiresAt":"2026-08-12T02:00:00Z"}`), nil
+	}}, CredentialsPath: "/config/partiful/credentials.json", Now: func() time.Time { return time.Date(2026, 8, 12, 0, 0, 0, 0, time.UTC) }, HTTP: scriptedHTTP{do: func(r *http.Request) (*http.Response, error) {
+		calls++
+		if r.URL.Path != "/getMyPastEventsForHomePage" {
+			t.Fatalf("unexpected call %s", r.URL.Path)
+		}
+		return jsonResponse(200, `{"result":{"data":{"pastEvents":[{"id":"a","title":"private-title","guest":{"status":"GOING"},"ownerIds":["private-owner"]},{"id":"b","guest":{"status":"DECLINED"}}]}}}`), nil
+	}}}
+	args := []string{"events", "sync", "--when", "past", "--limit", "1", "--db", path}
+	deps.AuthRandom = strings.NewReader("0123456789abcdef")
+	r := executeChecked(t, context.Background(), app.Request{Argv: append(append([]string{}, args...), "--dry-run")}, deps)
+	if r.ExitCode != 0 || calls != 1 {
+		t.Fatalf("dry run: exit=%d calls=%d", r.ExitCode, calls)
+	}
+	for _, suffix := range []string{"", "-wal", "-shm", "-journal"} {
+		if _, err := os.Stat(path + suffix); !os.IsNotExist(err) {
+			t.Fatalf("dry run created database or sidecar %q: %v", suffix, err)
+		}
+	}
+	var preview struct {
+		Data struct {
+			Operation string `json:"operation"`
+			Input     struct {
+				When  string `json:"when"`
+				Limit int    `json:"limit"`
+			} `json:"input"`
+			Effects   []string `json:"effects"`
+			Synced    int      `json:"synced"`
+			Available int      `json:"available"`
+			HasMore   bool     `json:"hasMore"`
+		} `json:"data"`
+	}
+	if err := json.Unmarshal([]byte(r.Stdout), &preview); err != nil {
+		t.Fatal(err)
+	}
+	if preview.Data.Operation != "events.sync" || preview.Data.Input.When != "past" || preview.Data.Input.Limit != 1 || len(preview.Data.Effects) == 0 || preview.Data.Synced != 1 || preview.Data.Available != 2 || !preview.Data.HasMore {
+		t.Fatalf("unexpected preview: %+v", preview)
+	}
+	if strings.Contains(r.Stdout, "private-") || strings.Contains(r.Stdout, path) {
+		t.Fatal("preview exposed private data")
+	}
+	deps.AuthRandom = strings.NewReader("0123456789abcdef")
+	r = executeChecked(t, context.Background(), app.Request{Argv: args}, deps)
+	if r.ExitCode != 0 || calls != 2 {
+		t.Fatalf("sync: exit=%d calls=%d", r.ExitCode, calls)
+	}
+	if _, err := os.Stat(path); err != nil {
+		t.Fatalf("sync did not create database: %v", err)
+	}
+}
+
 func TestOfflineErrors(t *testing.T) {
 	for _, args := range [][]string{{"events", "sync"}, {"events", "offline", "--status", "attended"}, {"events", "offline", "--limit", "0"}, {"events", "offline", "--since", "yesterday"}, {"events", "offline", "--since", "2026-02-01T00:00:00Z", "--until", "2026-01-01T00:00:00Z"}, {"events", "offline", "--db", ""}} {
 		r := executeChecked(t, context.Background(), app.Request{Argv: args}, app.Dependencies{})

@@ -1537,7 +1537,7 @@ func Execute(ctx context.Context, request Request, dependencies Dependencies) Re
 			case guestsInviteCommand:
 				return executeGuestsInvite(ctx, definition, argv, dependencies, execution, pretty)
 			case eventsSyncCommand, eventsOfflineCommand:
-				return executeOfflineEvents(ctx, definition, argv, dependencies, pretty)
+				return executeOfflineEvents(ctx, definition, argv, dependencies, execution, pretty)
 			case eventsListCommand:
 				return executeEventsList(ctx, definition, argv, dependencies, pretty)
 			case eventsGetCommand:
