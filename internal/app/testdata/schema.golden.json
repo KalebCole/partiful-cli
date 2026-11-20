@@ -18,6 +18,8 @@
         "events.delete",
         "events.get",
         "events.list",
+        "events.offline",
+        "events.sync",
         "events.update",
         "guests.invite",
         "guests.list",
@@ -32,7 +34,7 @@
     "meta": {
       "cliVersion": "3.1.0",
       "command": "schema",
-      "productContractRevision": "2026-11-12.3",
+      "productContractRevision": "2026-11-20.1",
       "remoteContractRevision": "2026-08-12.7",
       "warnings": []
     },
@@ -111,7 +113,7 @@
       "meta": {
         "cliVersion": "3.1.0",
         "command": "schema",
-        "productContractRevision": "2026-11-12.3",
+        "productContractRevision": "2026-11-20.1",
         "remoteContractRevision": "2026-08-12.7",
         "warnings": []
       },
@@ -185,7 +187,7 @@
       "meta": {
         "cliVersion": "3.1.0",
         "command": "schema",
-        "productContractRevision": "2026-11-12.3",
+        "productContractRevision": "2026-11-20.1",
         "remoteContractRevision": "2026-08-12.7",
         "warnings": []
       },
@@ -262,7 +264,7 @@
       "meta": {
         "cliVersion": "3.1.0",
         "command": "schema",
-        "productContractRevision": "2026-11-12.3",
+        "productContractRevision": "2026-11-20.1",
         "remoteContractRevision": "2026-08-12.7",
         "warnings": []
       },
@@ -516,7 +518,7 @@
       "meta": {
         "cliVersion": "3.1.0",
         "command": "schema",
-        "productContractRevision": "2026-11-12.3",
+        "productContractRevision": "2026-11-20.1",
         "remoteContractRevision": "2026-08-12.7",
         "warnings": []
       },
@@ -686,7 +688,7 @@
       "meta": {
         "cliVersion": "3.1.0",
         "command": "schema",
-        "productContractRevision": "2026-11-12.3",
+        "productContractRevision": "2026-11-20.1",
         "remoteContractRevision": "2026-08-12.7",
         "warnings": []
       },
@@ -829,7 +831,7 @@
       "meta": {
         "cliVersion": "3.1.0",
         "command": "schema",
-        "productContractRevision": "2026-11-12.3",
+        "productContractRevision": "2026-11-20.1",
         "remoteContractRevision": "2026-08-12.7",
         "warnings": []
       },
@@ -973,7 +975,7 @@
       "meta": {
         "cliVersion": "3.1.0",
         "command": "schema",
-        "productContractRevision": "2026-11-12.3",
+        "productContractRevision": "2026-11-20.1",
         "remoteContractRevision": "2026-08-12.7",
         "warnings": []
       },
@@ -1144,7 +1146,7 @@
       "meta": {
         "cliVersion": "3.1.0",
         "command": "schema",
-        "productContractRevision": "2026-11-12.3",
+        "productContractRevision": "2026-11-20.1",
         "remoteContractRevision": "2026-08-12.7",
         "warnings": []
       },
@@ -1315,7 +1317,7 @@
       "meta": {
         "cliVersion": "3.1.0",
         "command": "schema",
-        "productContractRevision": "2026-11-12.3",
+        "productContractRevision": "2026-11-20.1",
         "remoteContractRevision": "2026-08-12.7",
         "warnings": []
       },
@@ -1460,7 +1462,7 @@
       "meta": {
         "cliVersion": "3.1.0",
         "command": "schema",
-        "productContractRevision": "2026-11-12.3",
+        "productContractRevision": "2026-11-20.1",
         "remoteContractRevision": "2026-08-12.7",
         "warnings": []
       },
@@ -1551,7 +1553,7 @@
       "meta": {
         "cliVersion": "3.1.0",
         "command": "schema",
-        "productContractRevision": "2026-11-12.3",
+        "productContractRevision": "2026-11-20.1",
         "remoteContractRevision": "2026-08-12.7",
         "warnings": []
       },
@@ -1739,7 +1741,7 @@
       "meta": {
         "cliVersion": "3.1.0",
         "command": "schema",
-        "productContractRevision": "2026-11-12.3",
+        "productContractRevision": "2026-11-20.1",
         "remoteContractRevision": "2026-08-12.7",
         "warnings": []
       },
@@ -2089,7 +2091,7 @@
       "meta": {
         "cliVersion": "3.1.0",
         "command": "schema",
-        "productContractRevision": "2026-11-12.3",
+        "productContractRevision": "2026-11-20.1",
         "remoteContractRevision": "2026-08-12.7",
         "warnings": []
       },
@@ -2225,7 +2227,7 @@
       "meta": {
         "cliVersion": "3.1.0",
         "command": "schema",
-        "productContractRevision": "2026-11-12.3",
+        "productContractRevision": "2026-11-20.1",
         "remoteContractRevision": "2026-08-12.7",
         "warnings": []
       },
@@ -2401,7 +2403,7 @@
       "meta": {
         "cliVersion": "3.1.0",
         "command": "schema",
-        "productContractRevision": "2026-11-12.3",
+        "productContractRevision": "2026-11-20.1",
         "remoteContractRevision": "2026-08-12.7",
         "warnings": []
       },
@@ -2635,7 +2637,333 @@
       "meta": {
         "cliVersion": "3.1.0",
         "command": "schema",
-        "productContractRevision": "2026-11-12.3",
+        "productContractRevision": "2026-11-20.1",
+        "remoteContractRevision": "2026-08-12.7",
+        "warnings": []
+      },
+      "ok": true
+    },
+    "events.offline": {
+      "data": {
+        "command": "events.offline",
+        "failureTypes": [
+          "usage.invalid",
+          "input.invalid",
+          "internal.failure"
+        ],
+        "flags": [
+          {
+            "description": "Local SQLite path; defaults to the user config directory under partiful/events.sqlite.",
+            "name": "--db",
+            "required": false
+          },
+          {
+            "description": "Maximum items, 1 through 1000; default 50 for offline, 1000 for sync.",
+            "name": "--limit",
+            "required": false
+          },
+          {
+            "description": "RSVP filter; defaults to going. Use all for every cached status.",
+            "name": "--status",
+            "required": false
+          },
+          {
+            "description": "Inclusive RFC 3339 start lower bound.",
+            "name": "--since",
+            "required": false
+          },
+          {
+            "description": "Inclusive RFC 3339 start upper bound.",
+            "name": "--until",
+            "required": false
+          },
+          {
+            "description": "Indent the JSON result.",
+            "name": "--pretty",
+            "required": false
+          },
+          {
+            "description": "Disable terminal prompts.",
+            "name": "--non-interactive",
+            "required": false
+          },
+          {
+            "description": "Disable terminal prompts; alias of --non-interactive.",
+            "name": "--no-input",
+            "required": false
+          }
+        ],
+        "inputSchema": {
+          "additionalProperties": false,
+          "properties": {
+            "db": {
+              "type": "string"
+            },
+            "limit": {
+              "maximum": 1000,
+              "minimum": 1,
+              "type": "integer"
+            },
+            "since": {
+              "format": "date-time",
+              "type": "string"
+            },
+            "status": {
+              "enum": [
+                "ready-to-send",
+                "sending",
+                "send-error",
+                "delivery-error",
+                "sent",
+                "interested",
+                "waitlist",
+                "maybe",
+                "declined",
+                "going",
+                "pending-approval",
+                "approved",
+                "withdrawn",
+                "waitlisted-for-approval",
+                "rejected",
+                "responded-to-find-a-time",
+                "all"
+              ],
+              "type": "string"
+            },
+            "until": {
+              "format": "date-time",
+              "type": "string"
+            }
+          },
+          "type": "object"
+        },
+        "positionals": [],
+        "safety": {
+          "destructive": false,
+          "kind": "read-only"
+        },
+        "successSchema": {
+          "additionalProperties": false,
+          "properties": {
+            "items": {
+              "items": {
+                "additionalProperties": false,
+                "properties": {
+                  "end": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "eventId": {
+                    "type": "string"
+                  },
+                  "myRsvp": {
+                    "oneOf": [
+                      {
+                        "enum": [
+                          "ready-to-send",
+                          "sending",
+                          "send-error",
+                          "delivery-error",
+                          "sent",
+                          "interested",
+                          "waitlist",
+                          "maybe",
+                          "declined",
+                          "going",
+                          "pending-approval",
+                          "approved",
+                          "withdrawn",
+                          "waitlisted-for-approval",
+                          "rejected",
+                          "responded-to-find-a-time"
+                        ],
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "start": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "state": {
+                    "oneOf": [
+                      {
+                        "enum": [
+                          "active",
+                          "cancelled"
+                        ],
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "timezone": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "title": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "userRole": {
+                    "oneOf": [
+                      {
+                        "enum": [
+                          "host",
+                          "cohost",
+                          "attendee",
+                          "none"
+                        ],
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                },
+                "required": [
+                  "eventId",
+                  "title",
+                  "start",
+                  "end",
+                  "timezone",
+                  "state",
+                  "userRole",
+                  "myRsvp"
+                ],
+                "type": "object"
+              },
+              "type": "array"
+            }
+          },
+          "required": [
+            "items"
+          ],
+          "type": "object"
+        }
+      },
+      "meta": {
+        "cliVersion": "3.1.0",
+        "command": "schema",
+        "productContractRevision": "2026-11-20.1",
+        "remoteContractRevision": "2026-08-12.7",
+        "warnings": []
+      },
+      "ok": true
+    },
+    "events.sync": {
+      "data": {
+        "command": "events.sync",
+        "failureTypes": [
+          "usage.invalid",
+          "input.invalid",
+          "internal.failure",
+          "auth.required",
+          "auth.expired",
+          "remote.unavailable",
+          "contract.protocol_changed",
+          "state.conflict"
+        ],
+        "flags": [
+          {
+            "description": "Local SQLite path; defaults to the user config directory under partiful/events.sqlite.",
+            "name": "--db",
+            "required": false
+          },
+          {
+            "description": "Maximum items, 1 through 1000; default 50 for offline, 1000 for sync.",
+            "name": "--limit",
+            "required": false
+          },
+          {
+            "description": "Select past or upcoming; makes exactly one homepage list call.",
+            "name": "--when",
+            "required": true
+          },
+          {
+            "description": "Indent the JSON result.",
+            "name": "--pretty",
+            "required": false
+          },
+          {
+            "description": "Disable terminal prompts.",
+            "name": "--non-interactive",
+            "required": false
+          },
+          {
+            "description": "Disable terminal prompts; alias of --non-interactive.",
+            "name": "--no-input",
+            "required": false
+          }
+        ],
+        "inputSchema": {
+          "additionalProperties": false,
+          "properties": {
+            "db": {
+              "type": "string"
+            },
+            "limit": {
+              "maximum": 1000,
+              "minimum": 1,
+              "type": "integer"
+            },
+            "when": {
+              "enum": [
+                "past",
+                "upcoming"
+              ],
+              "type": "string"
+            }
+          },
+          "required": [
+            "when"
+          ],
+          "type": "object"
+        },
+        "positionals": [],
+        "safety": {
+          "destructive": false,
+          "kind": "local-mutation"
+        },
+        "successSchema": {
+          "additionalProperties": false,
+          "properties": {
+            "available": {
+              "type": "integer"
+            },
+            "hasMore": {
+              "type": "boolean"
+            },
+            "synced": {
+              "type": "integer"
+            }
+          },
+          "required": [
+            "synced",
+            "available",
+            "hasMore"
+          ],
+          "type": "object"
+        }
+      },
+      "meta": {
+        "cliVersion": "3.1.0",
+        "command": "schema",
+        "productContractRevision": "2026-11-20.1",
         "remoteContractRevision": "2026-08-12.7",
         "warnings": []
       },
@@ -2939,7 +3267,7 @@
       "meta": {
         "cliVersion": "3.1.0",
         "command": "schema",
-        "productContractRevision": "2026-11-12.3",
+        "productContractRevision": "2026-11-20.1",
         "remoteContractRevision": "2026-08-12.7",
         "warnings": []
       },
@@ -3118,7 +3446,7 @@
       "meta": {
         "cliVersion": "3.1.0",
         "command": "schema",
-        "productContractRevision": "2026-11-12.3",
+        "productContractRevision": "2026-11-20.1",
         "remoteContractRevision": "2026-08-12.7",
         "warnings": []
       },
@@ -3295,7 +3623,7 @@
       "meta": {
         "cliVersion": "3.1.0",
         "command": "schema",
-        "productContractRevision": "2026-11-12.3",
+        "productContractRevision": "2026-11-20.1",
         "remoteContractRevision": "2026-08-12.7",
         "warnings": []
       },
@@ -3464,7 +3792,7 @@
       "meta": {
         "cliVersion": "3.1.0",
         "command": "schema",
-        "productContractRevision": "2026-11-12.3",
+        "productContractRevision": "2026-11-20.1",
         "remoteContractRevision": "2026-08-12.7",
         "warnings": []
       },
@@ -3646,7 +3974,7 @@
       "meta": {
         "cliVersion": "3.1.0",
         "command": "schema",
-        "productContractRevision": "2026-11-12.3",
+        "productContractRevision": "2026-11-20.1",
         "remoteContractRevision": "2026-08-12.7",
         "warnings": []
       },
@@ -3750,7 +4078,7 @@
       "meta": {
         "cliVersion": "3.1.0",
         "command": "schema",
-        "productContractRevision": "2026-11-12.3",
+        "productContractRevision": "2026-11-20.1",
         "remoteContractRevision": "2026-08-12.7",
         "warnings": []
       },
@@ -4358,7 +4686,7 @@
       "meta": {
         "cliVersion": "3.1.0",
         "command": "schema",
-        "productContractRevision": "2026-11-12.3",
+        "productContractRevision": "2026-11-20.1",
         "remoteContractRevision": "2026-08-12.7",
         "warnings": []
       },
@@ -4525,7 +4853,7 @@
       "meta": {
         "cliVersion": "3.1.0",
         "command": "schema",
-        "productContractRevision": "2026-11-12.3",
+        "productContractRevision": "2026-11-20.1",
         "remoteContractRevision": "2026-08-12.7",
         "warnings": []
       },
@@ -4588,7 +4916,7 @@
       "meta": {
         "cliVersion": "3.1.0",
         "command": "schema",
-        "productContractRevision": "2026-11-12.3",
+        "productContractRevision": "2026-11-20.1",
         "remoteContractRevision": "2026-08-12.7",
         "warnings": []
       },
