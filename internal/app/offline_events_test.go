@@ -3,14 +3,17 @@ package app_test
 import (
 	"bytes"
 	"context"
+	"database/sql"
 	"encoding/json"
-	"github.com/KalebCole/partiful-cli/internal/app"
 	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/KalebCole/partiful-cli/internal/app"
+	"github.com/KalebCole/partiful-cli/internal/eventstore"
 )
 
 func TestOfflineSyncAndRead(t *testing.T) {
@@ -151,5 +154,59 @@ func TestSyncRejectsProtocolChangeBeforeWriting(t *testing.T) {
 	}
 	if _, err := os.Stat(path); !os.IsNotExist(err) {
 		t.Fatalf("failed sync created store: %v", err)
+	}
+}
+
+func TestOfflineSyncUnknownDates(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "events.sqlite")
+	calls := 0
+	deps := app.Dependencies{Files: fakeFilesystem{readFile: func(string) ([]byte, error) {
+		return []byte(`{"accessToken":"private-access-token","userId":"private-current-account","expiresAt":"2026-08-12T02:00:00Z"}`), nil
+	}}, CredentialsPath: "/config/partiful/credentials.json", Now: func() time.Time { return time.Date(2026, 8, 12, 0, 0, 0, 0, time.UTC) }, AuthRandom: strings.NewReader("0123456789abcdef"), HTTP: scriptedHTTP{do: func(r *http.Request) (*http.Response, error) {
+		calls++
+		if r.URL.Path != "/getMyUpcomingEventsForHomePage" {
+			t.Fatalf("unexpected call %s", r.URL.Path)
+		}
+		return jsonResponse(200, `{"result":{"data":{"upcomingEvents":[{"id":"tbd","startDate":"TBD","endDate":"TBD","guest":{"status":"GOING"}},{"id":"unknown-start","startDate":"not a timestamp","endDate":"2026-08-13T01:00:00Z","guest":{"status":"GOING"}},{"id":"known-start","startDate":"2026-08-13T00:00:00Z","endDate":"not a timestamp","guest":{"status":"GOING"}}]}}}`), nil
+	}}}
+	r := executeChecked(t, context.Background(), app.Request{Argv: []string{"events", "sync", "--when", "upcoming", "--db", path}}, deps)
+	if r.ExitCode != 0 || calls != 1 {
+		t.Fatalf("sync: exit=%d calls=%d", r.ExitCode, calls)
+	}
+	db, err := sql.Open("sqlite", path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+	for _, want := range []struct {
+		id                 string
+		startNull, endNull bool
+	}{{"tbd", true, true}, {"unknown-start", true, false}, {"known-start", false, true}} {
+		var startNull, endNull bool
+		if err := db.QueryRow("SELECT start IS NULL, end IS NULL FROM events WHERE event_id=?", want.id).Scan(&startNull, &endNull); err != nil {
+			t.Fatal(err)
+		}
+		if startNull != want.startNull || endNull != want.endNull {
+			t.Fatalf("%s: start null=%t end null=%t", want.id, startNull, endNull)
+		}
+	}
+	offline := app.Dependencies{HTTP: scriptedHTTP{do: func(*http.Request) (*http.Response, error) { t.Fatal("offline accessed network"); return nil, nil }}}
+	for _, bounds := range [][]string{nil, {"--since", "2026-08-13T00:00:00Z"}, {"--until", "2026-08-13T00:00:00Z"}, {"--since", "2026-08-13T00:00:00Z", "--until", "2026-08-13T00:00:00Z"}} {
+		r := executeChecked(t, context.Background(), app.Request{Argv: append([]string{"events", "offline", "--db", path}, bounds...)}, offline)
+		var envelope struct {
+			Data struct {
+				Items []eventstore.Event `json:"items"`
+			} `json:"data"`
+		}
+		if err := json.Unmarshal([]byte(r.Stdout), &envelope); err != nil {
+			t.Fatal(err)
+		}
+		want := 1
+		if len(bounds) == 0 {
+			want = 3
+		}
+		if r.ExitCode != 0 || len(envelope.Data.Items) != want || envelope.Data.Items[0].EventID != "known-start" {
+			t.Fatalf("offline bounds=%v: exit=%d items=%v", bounds, r.ExitCode, envelope.Data.Items)
+		}
 	}
 }
