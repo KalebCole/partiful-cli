@@ -227,6 +227,14 @@
     "type": "input.invalid",
     "exit": 2
   },
+  "OFFLINE_OPTIONS_INVALID": {
+    "type": "input.invalid",
+    "exit": 2
+  },
+  "OFFLINE_STORE_UNAVAILABLE": {
+    "type": "internal.failure",
+    "exit": 10
+  },
   "PARTY_SIZE_INVALID": {
     "type": "input.invalid",
     "exit": 2

@@ -52,6 +52,8 @@ const (
 	contactsListCommand
 	guestsListCommand
 	guestsInviteCommand
+	eventsSyncCommand
+	eventsOfflineCommand
 	eventsListCommand
 	eventsGetCommand
 	eventsCreateCommand
@@ -81,6 +83,8 @@ type commandDefinition struct {
 }
 
 var commandCatalog = []commandDefinition{
+	offlineDefinition(true),
+	offlineDefinition(false),
 	{
 		path:          "version",
 		invocation:    []string{"--version"},
@@ -1532,6 +1536,8 @@ func Execute(ctx context.Context, request Request, dependencies Dependencies) Re
 				return executeGuestsList(ctx, definition, argv, dependencies, pretty)
 			case guestsInviteCommand:
 				return executeGuestsInvite(ctx, definition, argv, dependencies, execution, pretty)
+			case eventsSyncCommand, eventsOfflineCommand:
+				return executeOfflineEvents(ctx, definition, argv, dependencies, execution, pretty)
 			case eventsListCommand:
 				return executeEventsList(ctx, definition, argv, dependencies, pretty)
 			case eventsGetCommand:
@@ -1592,6 +1598,8 @@ func (definition commandDefinition) matches(argv []string) bool {
 		definition.kind == contactsListCommand ||
 		definition.kind == guestsListCommand ||
 		definition.kind == guestsInviteCommand ||
+		definition.kind == eventsSyncCommand ||
+		definition.kind == eventsOfflineCommand ||
 		definition.kind == eventsListCommand ||
 		definition.kind == eventsGetCommand ||
 		definition.kind == eventsCreateCommand ||

@@ -8,3 +8,6 @@
 actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00
 0123456789abcdefFEDCBA9876543210
 support@partiful.com
+# Verified public Go module pseudo-versions, not phone or card numbers.
+github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec
+github.com/google/pprof v0.0.0-20240409012703-83162a5b38cd

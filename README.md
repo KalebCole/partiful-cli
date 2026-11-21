@@ -59,3 +59,5 @@ See [GitHub Releases](https://github.com/KalebCole/partiful-cli/releases) for ve
 ## License
 
 MIT
+
+Offline events: `partiful events sync --when past` (or `upcoming`) upserts one homepage list into `partiful/events.sqlite` under the user config directory. `partiful events offline --status going --since 2026-01-01T00:00:00Z --until 2026-12-31T23:59:59Z` queries it without authentication or network access. Both accept `--db` and `--limit` (1 to 1000; defaults: sync 1000, offline 50). Offline defaults to going; `--status all` includes every cached RSVP status. Past GOING is an RSVP, not proof of attendance. Sync retains cached events absent from later lists; filters use inclusive start times, with unknown starts excluded from date filters. Use a separate DB per account.

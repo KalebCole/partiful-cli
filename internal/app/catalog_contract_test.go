@@ -26,6 +26,8 @@ var approvedCommandCatalog = []string{
 	"events.delete",
 	"events.get",
 	"events.list",
+	"events.offline",
+	"events.sync",
 	"events.update",
 	"guests.invite",
 	"guests.list",

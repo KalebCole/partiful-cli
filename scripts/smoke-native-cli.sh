@@ -59,6 +59,8 @@ expected_commands = [
     "events.delete",
     "events.get",
     "events.list",
+    "events.offline",
+    "events.sync",
     "events.update",
     "guests.invite",
     "guests.list",

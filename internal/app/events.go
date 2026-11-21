@@ -7,6 +7,7 @@ import (
 	"slices"
 	"strings"
 
+	"github.com/KalebCole/partiful-cli/internal/eventstore"
 	"github.com/KalebCole/partiful-cli/internal/remote"
 )
 
@@ -14,16 +15,7 @@ type eventData struct {
 	Items []eventSummary `json:"items"`
 }
 
-type eventSummary struct {
-	EventID  string  `json:"eventId"`
-	Title    *string `json:"title"`
-	Start    *string `json:"start"`
-	End      *string `json:"end"`
-	Timezone *string `json:"timezone"`
-	State    *string `json:"state"`
-	UserRole *string `json:"userRole"`
-	MyRSVP   *string `json:"myRsvp"`
-}
+type eventSummary = eventstore.Event
 
 type eventDetail struct {
 	EventID     string  `json:"eventId"`

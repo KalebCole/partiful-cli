@@ -2,3 +2,10 @@
 .worktrees/
 .build/
 dist/
+
+# Local offline event stores
+*.sqlite*
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
