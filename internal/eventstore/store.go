@@ -95,25 +95,20 @@ func (s *Store) Upsert(ctx context.Context, account string, events []Event) erro
 	}
 	for _, e := range events {
 		// Canonical UTC strings sort chronologically regardless of source offsets.
-		canonical := func(v *string) (*string, error) {
+		// Non-timestamp dates such as TBD are stored as NULL (unknown).
+		canonical := func(v *string) *string {
 			if v == nil {
-				return nil, nil
+				return nil
 			}
 			t, err := time.Parse(time.RFC3339, *v)
 			if err != nil {
-				return nil, err
+				return nil
 			}
 			value := t.UTC().Format("2006-01-02T15:04:05.000000000Z")
-			return &value, nil
+			return &value
 		}
-		e.Start, err = canonical(e.Start)
-		if err != nil {
-			return err
-		}
-		e.End, err = canonical(e.End)
-		if err != nil {
-			return err
-		}
+		e.Start = canonical(e.Start)
+		e.End = canonical(e.End)
 
 		_, err = tx.ExecContext(ctx, `INSERT INTO events VALUES(?,?,?,?,?,?,?,?,?) ON CONFLICT(event_id) DO UPDATE SET title=excluded.title,start=excluded.start,end=excluded.end,timezone=excluded.timezone,state=excluded.state,user_role=excluded.user_role,my_rsvp=excluded.my_rsvp,synced_at=excluded.synced_at`, e.EventID, e.Title, e.Start, e.End, e.Timezone, e.State, e.UserRole, e.MyRSVP, time.Now().UTC().Format(time.RFC3339))
 		if err != nil {

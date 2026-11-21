@@ -145,13 +145,6 @@ func executeOfflineEvents(ctx context.Context, d commandDefinition, argv []strin
 		if err != nil {
 			return eventListProtocolChangedFailure(d.path, pretty)
 		}
-		for _, v := range []*string{item.Start, item.End} {
-			if v != nil {
-				if _, err := time.Parse(time.RFC3339, *v); err != nil {
-					return eventListProtocolChangedFailure(d.path, pretty)
-				}
-			}
-		}
 		items = append(items, item)
 	}
 	available := len(items)
