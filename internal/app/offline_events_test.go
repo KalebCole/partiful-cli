@@ -48,7 +48,7 @@ func TestOfflineSyncAndRead(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			if bytes.Contains(document, []byte("private-")) {
+			if bytes.Contains(document, []byte("private-access-token")) || bytes.Contains(document, []byte("private-current-account")) {
 				t.Fatal("raw private field persisted")
 			}
 			offline := app.Dependencies{HTTP: scriptedHTTP{do: func(*http.Request) (*http.Response, error) { t.Fatal("offline accessed network"); return nil, nil }}}
@@ -56,13 +56,14 @@ func TestOfflineSyncAndRead(t *testing.T) {
 			var envelope struct {
 				Data struct {
 					Items []struct {
-						EventID string `json:"eventId"`
-						MyRSVP  string `json:"myRsvp"`
+						EventID string   `json:"eventId"`
+						HostIDs []string `json:"hostIds"`
+						MyRSVP  string   `json:"myRsvp"`
 					} `json:"items"`
 				} `json:"data"`
 			}
 			json.Unmarshal([]byte(r.Stdout), &envelope)
-			if r.ExitCode != 0 || len(envelope.Data.Items) != 1 || envelope.Data.Items[0].MyRSVP != "going" {
+			if r.ExitCode != 0 || len(envelope.Data.Items) != 1 || envelope.Data.Items[0].MyRSVP != "going" || len(envelope.Data.Items[0].HostIDs) != 1 || envelope.Data.Items[0].HostIDs[0] != "private-owner" {
 				t.Fatal(r)
 			}
 			r = executeChecked(t, context.Background(), app.Request{Argv: []string{"events", "offline", "--db", path, "--status", "all"}}, offline)

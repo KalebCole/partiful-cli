@@ -1,9 +1,10 @@
-// Package eventstore persists only the privacy-safe event summary, never raw API data.
+// Package eventstore persists the approved event summary, including host IDs, never raw API data.
 package eventstore
 
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"errors"
 	"net/url"
 	"os"
@@ -14,14 +15,15 @@ import (
 )
 
 type Event struct {
-	EventID  string  `json:"eventId"`
-	Title    *string `json:"title"`
-	Start    *string `json:"start"`
-	End      *string `json:"end"`
-	Timezone *string `json:"timezone"`
-	State    *string `json:"state"`
-	UserRole *string `json:"userRole"`
-	MyRSVP   *string `json:"myRsvp"`
+	EventID  string   `json:"eventId"`
+	Title    *string  `json:"title"`
+	Start    *string  `json:"start"`
+	End      *string  `json:"end"`
+	Timezone *string  `json:"timezone"`
+	State    *string  `json:"state"`
+	HostIDs  []string `json:"hostIds"`
+	UserRole *string  `json:"userRole"`
+	MyRSVP   *string  `json:"myRsvp"`
 }
 type Filter struct {
 	Status, Since, Until string
@@ -82,6 +84,15 @@ func (s *Store) Upsert(ctx context.Context, account string, events []Event) erro
 	if err != nil {
 		return err
 	}
+	hasHostIDs, err := hostIDsColumn(ctx, tx)
+	if err != nil {
+		return err
+	}
+	if !hasHostIDs {
+		if _, err = tx.ExecContext(ctx, "ALTER TABLE events ADD COLUMN host_ids TEXT"); err != nil {
+			return err
+		}
+	}
 	var owner string
 	err = tx.QueryRowContext(ctx, "SELECT value FROM metadata WHERE key='account'").Scan(&owner)
 	if err != nil && !errors.Is(err, sql.ErrNoRows) {
@@ -110,7 +121,16 @@ func (s *Store) Upsert(ctx context.Context, account string, events []Event) erro
 		e.Start = canonical(e.Start)
 		e.End = canonical(e.End)
 
-		_, err = tx.ExecContext(ctx, `INSERT INTO events VALUES(?,?,?,?,?,?,?,?,?) ON CONFLICT(event_id) DO UPDATE SET title=excluded.title,start=excluded.start,end=excluded.end,timezone=excluded.timezone,state=excluded.state,user_role=excluded.user_role,my_rsvp=excluded.my_rsvp,synced_at=excluded.synced_at`, e.EventID, e.Title, e.Start, e.End, e.Timezone, e.State, e.UserRole, e.MyRSVP, time.Now().UTC().Format(time.RFC3339))
+		// host_ids stores compact JSON arrays in source order; unknown IDs remain SQL NULL.
+		var hostIDs any
+		if e.HostIDs != nil {
+			encoded, err := json.Marshal(e.HostIDs)
+			if err != nil {
+				return err
+			}
+			hostIDs = string(encoded)
+		}
+		_, err = tx.ExecContext(ctx, `INSERT INTO events(event_id,title,start,end,timezone,state,user_role,my_rsvp,synced_at,host_ids) VALUES(?,?,?,?,?,?,?,?,?,?) ON CONFLICT(event_id) DO UPDATE SET title=excluded.title,start=excluded.start,end=excluded.end,timezone=excluded.timezone,state=excluded.state,user_role=excluded.user_role,my_rsvp=excluded.my_rsvp,synced_at=excluded.synced_at,host_ids=excluded.host_ids`, e.EventID, e.Title, e.Start, e.End, e.Timezone, e.State, e.UserRole, e.MyRSVP, time.Now().UTC().Format(time.RFC3339), hostIDs)
 		if err != nil {
 			return err
 		}
@@ -121,7 +141,15 @@ func (s *Store) List(ctx context.Context, f Filter) ([]Event, error) {
 	if f.Limit < 1 || f.Limit > 1000 {
 		return nil, errors.New("limit must be 1 through 1000")
 	}
-	query := "SELECT event_id,title,start,end,timezone,state,user_role,my_rsvp FROM events WHERE 1=1"
+	hasHostIDs, err := hostIDsColumn(ctx, s.db)
+	if err != nil {
+		return nil, err
+	}
+	column := "NULL"
+	if hasHostIDs {
+		column = "host_ids"
+	}
+	query := "SELECT event_id,title,start,end,timezone,state,user_role,my_rsvp," + column + " FROM events WHERE 1=1"
 	args := []any{}
 	if f.Status != "" {
 		query += " AND my_rsvp=?"
@@ -147,10 +175,40 @@ func (s *Store) List(ctx context.Context, f Filter) ([]Event, error) {
 	items := []Event{}
 	for rows.Next() {
 		var e Event
-		if err = rows.Scan(&e.EventID, &e.Title, &e.Start, &e.End, &e.Timezone, &e.State, &e.UserRole, &e.MyRSVP); err != nil {
+		var hostIDs *string
+		if err = rows.Scan(&e.EventID, &e.Title, &e.Start, &e.End, &e.Timezone, &e.State, &e.UserRole, &e.MyRSVP, &hostIDs); err != nil {
 			return nil, err
+		}
+		if hostIDs != nil {
+			if err = json.Unmarshal([]byte(*hostIDs), &e.HostIDs); err != nil {
+				return nil, err
+			}
 		}
 		items = append(items, e)
 	}
 	return items, rows.Err()
+}
+
+// hostIDsColumn also allows read-only access to snapshots created before host IDs.
+func hostIDsColumn(ctx context.Context, db interface {
+	QueryContext(context.Context, string, ...any) (*sql.Rows, error)
+}) (bool, error) {
+	rows, err := db.QueryContext(ctx, "PRAGMA table_info(events)")
+	if err != nil {
+		return false, err
+	}
+	defer rows.Close()
+	found := false
+	for rows.Next() {
+		var cid, notnull, pk int
+		var name, kind string
+		var defaultValue any
+		if err := rows.Scan(&cid, &name, &kind, &notnull, &defaultValue, &pk); err != nil {
+			return false, err
+		}
+		if name == "host_ids" {
+			found = true
+		}
+	}
+	return found, rows.Err()
 }

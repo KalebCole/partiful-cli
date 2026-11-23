@@ -97,3 +97,68 @@ func TestUpsertUnknownDates(t *testing.T) {
 		}
 	}
 }
+
+func TestHostIDsMigrationAndRoundTrip(t *testing.T) {
+	ctx := context.Background()
+	path := filepath.Join(t.TempDir(), "events.sqlite")
+	s, err := Open(path, false)
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, err = s.db.Exec(`CREATE TABLE events (event_id TEXT PRIMARY KEY, title TEXT, start TEXT, end TEXT, timezone TEXT, state TEXT, user_role TEXT, my_rsvp TEXT, synced_at TEXT NOT NULL); INSERT INTO events(event_id,synced_at) VALUES('legacy','now')`)
+	if err != nil {
+		t.Fatal(err)
+	}
+	s.Close()
+	s, err = Open(path, true)
+	if err != nil {
+		t.Fatal(err)
+	}
+	items, err := s.List(ctx, Filter{Limit: 50})
+	if err != nil || len(items) != 1 || items[0].HostIDs != nil {
+		t.Fatalf("legacy read: %v %v", items, err)
+	}
+	s.Close()
+	s, err = Open(path, false)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer s.Close()
+	events := []Event{{EventID: "populated", HostIDs: []string{"fixture-owner-b", "fixture-owner-a"}}, {EventID: "empty", HostIDs: []string{}}, {EventID: "absent"}}
+	for range 2 {
+		if err := s.Upsert(ctx, "account", events); err != nil {
+			t.Fatal(err)
+		}
+	}
+	items, err = s.List(ctx, Filter{Limit: 50})
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, item := range items {
+		var text *string
+		if err := s.db.QueryRow("SELECT host_ids FROM events WHERE event_id=?", item.EventID).Scan(&text); err != nil {
+			t.Fatal(err)
+		}
+		switch item.EventID {
+		case "populated":
+			if text == nil || *text != `["fixture-owner-b","fixture-owner-a"]` || len(item.HostIDs) != 2 || item.HostIDs[0] != "fixture-owner-b" {
+				t.Fatal("populated IDs did not round trip")
+			}
+		case "empty":
+			if text == nil || *text != "[]" || item.HostIDs == nil || len(item.HostIDs) != 0 {
+				t.Fatal("empty IDs did not round trip")
+			}
+		default:
+			if text != nil || item.HostIDs != nil {
+				t.Fatal("unknown IDs were not NULL")
+			}
+		}
+	}
+	if err := s.Upsert(ctx, "account", []Event{{EventID: "populated"}}); err != nil {
+		t.Fatal(err)
+	}
+	var isNull bool
+	if err := s.db.QueryRow("SELECT host_ids IS NULL FROM events WHERE event_id='populated'").Scan(&isNull); err != nil || !isNull {
+		t.Fatalf("update to unknown: %v", err)
+	}
+}

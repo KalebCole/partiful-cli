@@ -86,9 +86,31 @@ func executeChecked(t *testing.T, ctx context.Context, request app.Request, deps
 		}
 		checkErrorGolden(t, body.Code, errorMapping{body.Type, result.ExitCode})
 	}
-	// Fake secrets shared by remote/auth fixtures must never escape in either stream.
+	// Host IDs are approved only in the hostIds field of event read results.
+	checkedOutput := result.Stdout
+	if *ok && (command == "events.get" || command == "events.list" || command == "events.offline") {
+		var data map[string]json.RawMessage
+		if err := json.Unmarshal(envelope["data"], &data); err != nil {
+			t.Fatal(err)
+		}
+		delete(data, "hostIds")
+		if raw, exists := data["items"]; exists {
+			var items []map[string]json.RawMessage
+			if err := json.Unmarshal(raw, &items); err != nil {
+				t.Fatal(err)
+			}
+			for _, item := range items {
+				delete(item, "hostIds")
+			}
+			data["items"], _ = json.Marshal(items)
+		}
+		envelope["data"], _ = json.Marshal(data)
+		document, _ := json.Marshal(envelope)
+		checkedOutput = string(document)
+	}
+	// Fake secrets shared by remote/auth fixtures must never escape elsewhere.
 	for _, secret := range []string{"private-access-token", "private-refresh-token", "private-account", "private-contact-id", "private-current-account", "private-other-owner", "private-host", "fake-person@example.invalid", "+12025550173", "fake-secret-token", "fake-partiful-user-id"} {
-		if strings.Contains(result.Stdout+result.Stderr, secret) {
+		if strings.Contains(checkedOutput+result.Stderr, secret) {
 			t.Fatal("output leaked a fake private fixture value")
 		}
 	}
