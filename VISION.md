@@ -33,7 +33,7 @@ Uncertain or malformed completion never triggers an automatic retry.
 
 ## Privacy and money stay outside the line the CLI will not cross
 
-The CLI never prints phone numbers, email addresses, access tokens, or Partiful user IDs.
+The CLI never prints phone numbers, email addresses, or access tokens. It may print event host IDs (Partiful user IDs of event owners) as `hostIds`, and it never prints other Partiful user IDs.
 Tests and release checks never use live credentials or mutate real events.
 Contacts may show display names and shared-event counts, nothing more.
 The CLI never pays.

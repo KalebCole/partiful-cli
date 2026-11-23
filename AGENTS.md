@@ -69,7 +69,7 @@ check for authentication state.
 
 ## Privacy and safety
 
-- Never expose phone numbers, email addresses, access tokens, or Partiful user IDs.
+- Never expose phone numbers, email addresses, or access tokens. The CLI may print event host IDs (Partiful user IDs of event owners) as `hostIds`, but never other Partiful user IDs.
 - Never use live credentials or mutate real events in automated validation.
 - Use `--dry-run` for a redacted mutation preview.
 - `events.cancel`, `events.delete`, `cohosts.remove`, `cohosts.revoke-invite`,
