@@ -37,6 +37,8 @@ Use an event ID from the list to see its details:
 partiful events get <event-id>
 ```
 
+Event list and get JSON include `hostIds` copied from the same response’s `ownerIds`, including empty arrays; absent IDs are `null`. Names are not included. Get reports `userRole: "host"` only for an owner matching the session user; otherwise the role is `null`. Get always leaves `myRsvp` as `null` because its response has no guest status. Offline snapshots retain `hostIds` too.
+
 Commands that change data accept `--dry-run` to preview the request.
 
 ## Commands

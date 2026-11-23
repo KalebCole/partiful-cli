@@ -18,21 +18,22 @@ type eventData struct {
 type eventSummary = eventstore.Event
 
 type eventDetail struct {
-	EventID     string  `json:"eventId"`
-	Title       *string `json:"title"`
-	Start       *string `json:"start"`
-	End         *string `json:"end"`
-	Timezone    *string `json:"timezone"`
-	State       *string `json:"state"`
-	UserRole    any     `json:"userRole"`
-	MyRSVP      any     `json:"myRsvp"`
-	Description any     `json:"description"`
-	Location    any     `json:"location"`
-	Address     any     `json:"address"`
-	Visibility  any     `json:"visibility"`
-	GuestLimit  any     `json:"guestLimit"`
-	Poster      any     `json:"poster"`
-	Links       any     `json:"links"`
+	EventID     string   `json:"eventId"`
+	Title       *string  `json:"title"`
+	Start       *string  `json:"start"`
+	End         *string  `json:"end"`
+	Timezone    *string  `json:"timezone"`
+	State       *string  `json:"state"`
+	HostIDs     []string `json:"hostIds"`
+	UserRole    any      `json:"userRole"`
+	MyRSVP      any      `json:"myRsvp"`
+	Description any      `json:"description"`
+	Location    any      `json:"location"`
+	Address     any      `json:"address"`
+	Visibility  any      `json:"visibility"`
+	GuestLimit  any      `json:"guestLimit"`
+	Poster      any      `json:"poster"`
+	Links       any      `json:"links"`
 }
 
 func executeEventsList(
@@ -177,6 +178,7 @@ func projectEventSummary(event remote.Event, currentUserID string) (eventSummary
 		End:      event.End,
 		Timezone: event.Timezone,
 		State:    state,
+		HostIDs:  projectHostIDs(event),
 		UserRole: role,
 		MyRSVP:   rsvp,
 	}, nil
@@ -226,6 +228,11 @@ func executeEventGet(
 	if err != nil {
 		return eventProtocolChangedFailure(definition.path, pretty)
 	}
+	var role *string
+	if event.OwnerIDsPresent && session.UserID != "" && slices.Contains(event.OwnerIDs, session.UserID) {
+		value := "host"
+		role = &value
+	}
 	return success(definition.path, eventDetail{
 		EventID:     eventID,
 		Title:       event.Title,
@@ -233,6 +240,8 @@ func executeEventGet(
 		End:         event.End,
 		Timezone:    event.Timezone,
 		State:       state,
+		HostIDs:     projectHostIDs(event),
+		UserRole:    role,
 		Description: event.RawFields["description"],
 		Location:    event.RawFields["location"],
 		Address:     event.RawFields["locationInfo"],
@@ -426,4 +435,12 @@ func eventProtocolChangedFailure(command string, pretty bool) Result {
 	}, pretty)
 	result.Stderr = "partiful: event protocol changed\n"
 	return result
+}
+
+// projectHostIDs preserves the distinction between absent and present empty ownerIds.
+func projectHostIDs(event remote.Event) []string {
+	if !event.OwnerIDsPresent {
+		return nil
+	}
+	return append([]string{}, event.OwnerIDs...)
 }
