@@ -33,9 +33,9 @@ Uncertain or malformed completion never triggers an automatic retry.
 
 ## Privacy and money stay outside the line the CLI will not cross
 
-The CLI never prints phone numbers, email addresses, or access tokens. It may print event host IDs (Partiful user IDs of event owners) as `hostIds`, and it never prints other Partiful user IDs.
+The CLI may print phone numbers, email addresses, and Partiful user IDs, including `hostIds`, when Partiful returns them. It never prints access tokens or credentials.
 Tests and release checks never use live credentials or mutate real events.
-Contacts may show display names and shared-event counts, nothing more.
+Contacts may show display names, shared-event counts, and any phone numbers, email addresses, or user IDs Partiful returns.
 The CLI never pays.
 Chip-ins and suggested donations are handles Partiful displays; paying them belongs in the payment app.
 Stripe ticket checkout is unsupported, and honor-system `ticketPaid` flags are not charges.
