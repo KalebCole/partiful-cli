@@ -55,7 +55,7 @@ They do not require live Partiful credentials or remote mutations.
 ## Privacy and safety
 
 - Do not use live Partiful credentials in tests or release verification.
-- Do not expose phone numbers, email addresses, or access tokens. The CLI may print event host IDs (Partiful user IDs of event owners) as `hostIds`, but never other Partiful user IDs.
+- The CLI may print phone numbers, email addresses, and Partiful user IDs, including `hostIds`, when Partiful returns them. It never prints access tokens or credentials.
 - Keep black-box command tests at the `app.Execute` seam.
 
 ## Reviewing public behavior changes
