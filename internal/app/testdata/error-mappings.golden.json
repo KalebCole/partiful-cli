@@ -223,6 +223,14 @@
     "type": "input.invalid",
     "exit": 2
   },
+  "MAYBE_INVITE_REQUIRED": {
+    "type": "state.conflict",
+    "exit": 6
+  },
+  "MAYBE_NOT_ALLOWED": {
+    "type": "state.conflict",
+    "exit": 6
+  },
   "MESSAGE_INVALID": {
     "type": "input.invalid",
     "exit": 2

@@ -8,8 +8,9 @@ import (
 )
 
 type rsvpRead struct {
-	EventID string  `json:"eventId"`
-	Status  *string `json:"status"`
+	EventID      string  `json:"eventId"`
+	Status       *string `json:"status"`
+	MaybeAllowed *bool   `json:"maybeAllowed,omitempty"`
 }
 
 func executeRSVPGet(
@@ -36,7 +37,8 @@ func executeRSVPGet(
 	if err != nil {
 		return internalFailure(definition.path, pretty)
 	}
-	guest, err := (remote.Client{HTTP: dependencies.HTTP}).GetCurrentGuest(
+	client := remote.Client{HTTP: dependencies.HTTP}
+	guest, err := client.GetCurrentGuest(
 		ctx,
 		session.AccessToken,
 		deviceID,
@@ -55,7 +57,12 @@ func executeRSVPGet(
 			return rsvpProtocolChangedFailure(definition.path, pretty)
 		}
 	}
-	return success(definition.path, rsvpRead{EventID: eventID, Status: status}, pretty)
+	result := rsvpRead{EventID: eventID, Status: status}
+	// The guest read establishes the RSVP. Event details supply an optional setting.
+	if event, err := client.GetEventInfo(ctx, session.AccessToken, deviceID, eventID); err == nil {
+		result.MaybeAllowed = projectMaybeAllowed(event.Safeguards)
+	}
+	return success(definition.path, result, pretty)
 }
 
 func rsvpUnavailableFailure(command string, pretty bool) Result {

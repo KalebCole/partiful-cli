@@ -34,8 +34,8 @@
     "meta": {
       "cliVersion": "3.1.0",
       "command": "schema",
-      "productContractRevision": "2026-11-20.1",
-      "remoteContractRevision": "2026-08-12.7",
+      "productContractRevision": "2026-11-25.1",
+      "remoteContractRevision": "2026-11-25.1",
       "warnings": []
     },
     "ok": true
@@ -113,8 +113,8 @@
       "meta": {
         "cliVersion": "3.1.0",
         "command": "schema",
-        "productContractRevision": "2026-11-20.1",
-        "remoteContractRevision": "2026-08-12.7",
+        "productContractRevision": "2026-11-25.1",
+        "remoteContractRevision": "2026-11-25.1",
         "warnings": []
       },
       "ok": true
@@ -187,8 +187,8 @@
       "meta": {
         "cliVersion": "3.1.0",
         "command": "schema",
-        "productContractRevision": "2026-11-20.1",
-        "remoteContractRevision": "2026-08-12.7",
+        "productContractRevision": "2026-11-25.1",
+        "remoteContractRevision": "2026-11-25.1",
         "warnings": []
       },
       "ok": true
@@ -264,8 +264,8 @@
       "meta": {
         "cliVersion": "3.1.0",
         "command": "schema",
-        "productContractRevision": "2026-11-20.1",
-        "remoteContractRevision": "2026-08-12.7",
+        "productContractRevision": "2026-11-25.1",
+        "remoteContractRevision": "2026-11-25.1",
         "warnings": []
       },
       "ok": true
@@ -518,8 +518,8 @@
       "meta": {
         "cliVersion": "3.1.0",
         "command": "schema",
-        "productContractRevision": "2026-11-20.1",
-        "remoteContractRevision": "2026-08-12.7",
+        "productContractRevision": "2026-11-25.1",
+        "remoteContractRevision": "2026-11-25.1",
         "warnings": []
       },
       "ok": true
@@ -688,8 +688,8 @@
       "meta": {
         "cliVersion": "3.1.0",
         "command": "schema",
-        "productContractRevision": "2026-11-20.1",
-        "remoteContractRevision": "2026-08-12.7",
+        "productContractRevision": "2026-11-25.1",
+        "remoteContractRevision": "2026-11-25.1",
         "warnings": []
       },
       "ok": true
@@ -831,8 +831,8 @@
       "meta": {
         "cliVersion": "3.1.0",
         "command": "schema",
-        "productContractRevision": "2026-11-20.1",
-        "remoteContractRevision": "2026-08-12.7",
+        "productContractRevision": "2026-11-25.1",
+        "remoteContractRevision": "2026-11-25.1",
         "warnings": []
       },
       "ok": true
@@ -975,8 +975,8 @@
       "meta": {
         "cliVersion": "3.1.0",
         "command": "schema",
-        "productContractRevision": "2026-11-20.1",
-        "remoteContractRevision": "2026-08-12.7",
+        "productContractRevision": "2026-11-25.1",
+        "remoteContractRevision": "2026-11-25.1",
         "warnings": []
       },
       "ok": true
@@ -1146,8 +1146,8 @@
       "meta": {
         "cliVersion": "3.1.0",
         "command": "schema",
-        "productContractRevision": "2026-11-20.1",
-        "remoteContractRevision": "2026-08-12.7",
+        "productContractRevision": "2026-11-25.1",
+        "remoteContractRevision": "2026-11-25.1",
         "warnings": []
       },
       "ok": true
@@ -1317,8 +1317,8 @@
       "meta": {
         "cliVersion": "3.1.0",
         "command": "schema",
-        "productContractRevision": "2026-11-20.1",
-        "remoteContractRevision": "2026-08-12.7",
+        "productContractRevision": "2026-11-25.1",
+        "remoteContractRevision": "2026-11-25.1",
         "warnings": []
       },
       "ok": true
@@ -1462,8 +1462,8 @@
       "meta": {
         "cliVersion": "3.1.0",
         "command": "schema",
-        "productContractRevision": "2026-11-20.1",
-        "remoteContractRevision": "2026-08-12.7",
+        "productContractRevision": "2026-11-25.1",
+        "remoteContractRevision": "2026-11-25.1",
         "warnings": []
       },
       "ok": true
@@ -1553,8 +1553,8 @@
       "meta": {
         "cliVersion": "3.1.0",
         "command": "schema",
-        "productContractRevision": "2026-11-20.1",
-        "remoteContractRevision": "2026-08-12.7",
+        "productContractRevision": "2026-11-25.1",
+        "remoteContractRevision": "2026-11-25.1",
         "warnings": []
       },
       "ok": true
@@ -1741,8 +1741,8 @@
       "meta": {
         "cliVersion": "3.1.0",
         "command": "schema",
-        "productContractRevision": "2026-11-20.1",
-        "remoteContractRevision": "2026-08-12.7",
+        "productContractRevision": "2026-11-25.1",
+        "remoteContractRevision": "2026-11-25.1",
         "warnings": []
       },
       "ok": true
@@ -2091,8 +2091,8 @@
       "meta": {
         "cliVersion": "3.1.0",
         "command": "schema",
-        "productContractRevision": "2026-11-20.1",
-        "remoteContractRevision": "2026-08-12.7",
+        "productContractRevision": "2026-11-25.1",
+        "remoteContractRevision": "2026-11-25.1",
         "warnings": []
       },
       "ok": true
@@ -2227,8 +2227,8 @@
       "meta": {
         "cliVersion": "3.1.0",
         "command": "schema",
-        "productContractRevision": "2026-11-20.1",
-        "remoteContractRevision": "2026-08-12.7",
+        "productContractRevision": "2026-11-25.1",
+        "remoteContractRevision": "2026-11-25.1",
         "warnings": []
       },
       "ok": true
@@ -2329,6 +2329,9 @@
                 "null"
               ]
             },
+            "maybeAllowed": {
+              "type": "boolean"
+            },
             "myRsvp": {
               "type": "null"
             },
@@ -2403,8 +2406,8 @@
       "meta": {
         "cliVersion": "3.1.0",
         "command": "schema",
-        "productContractRevision": "2026-11-20.1",
-        "remoteContractRevision": "2026-08-12.7",
+        "productContractRevision": "2026-11-25.1",
+        "remoteContractRevision": "2026-11-25.1",
         "warnings": []
       },
       "ok": true
@@ -2637,8 +2640,8 @@
       "meta": {
         "cliVersion": "3.1.0",
         "command": "schema",
-        "productContractRevision": "2026-11-20.1",
-        "remoteContractRevision": "2026-08-12.7",
+        "productContractRevision": "2026-11-25.1",
+        "remoteContractRevision": "2026-11-25.1",
         "warnings": []
       },
       "ok": true
@@ -2859,8 +2862,8 @@
       "meta": {
         "cliVersion": "3.1.0",
         "command": "schema",
-        "productContractRevision": "2026-11-20.1",
-        "remoteContractRevision": "2026-08-12.7",
+        "productContractRevision": "2026-11-25.1",
+        "remoteContractRevision": "2026-11-25.1",
         "warnings": []
       },
       "ok": true
@@ -2963,8 +2966,8 @@
       "meta": {
         "cliVersion": "3.1.0",
         "command": "schema",
-        "productContractRevision": "2026-11-20.1",
-        "remoteContractRevision": "2026-08-12.7",
+        "productContractRevision": "2026-11-25.1",
+        "remoteContractRevision": "2026-11-25.1",
         "warnings": []
       },
       "ok": true
@@ -3267,8 +3270,8 @@
       "meta": {
         "cliVersion": "3.1.0",
         "command": "schema",
-        "productContractRevision": "2026-11-20.1",
-        "remoteContractRevision": "2026-08-12.7",
+        "productContractRevision": "2026-11-25.1",
+        "remoteContractRevision": "2026-11-25.1",
         "warnings": []
       },
       "ok": true
@@ -3446,8 +3449,8 @@
       "meta": {
         "cliVersion": "3.1.0",
         "command": "schema",
-        "productContractRevision": "2026-11-20.1",
-        "remoteContractRevision": "2026-08-12.7",
+        "productContractRevision": "2026-11-25.1",
+        "remoteContractRevision": "2026-11-25.1",
         "warnings": []
       },
       "ok": true
@@ -3623,8 +3626,8 @@
       "meta": {
         "cliVersion": "3.1.0",
         "command": "schema",
-        "productContractRevision": "2026-11-20.1",
-        "remoteContractRevision": "2026-08-12.7",
+        "productContractRevision": "2026-11-25.1",
+        "remoteContractRevision": "2026-11-25.1",
         "warnings": []
       },
       "ok": true
@@ -3792,8 +3795,8 @@
       "meta": {
         "cliVersion": "3.1.0",
         "command": "schema",
-        "productContractRevision": "2026-11-20.1",
-        "remoteContractRevision": "2026-08-12.7",
+        "productContractRevision": "2026-11-25.1",
+        "remoteContractRevision": "2026-11-25.1",
         "warnings": []
       },
       "ok": true
@@ -3974,8 +3977,8 @@
       "meta": {
         "cliVersion": "3.1.0",
         "command": "schema",
-        "productContractRevision": "2026-11-20.1",
-        "remoteContractRevision": "2026-08-12.7",
+        "productContractRevision": "2026-11-25.1",
+        "remoteContractRevision": "2026-11-25.1",
         "warnings": []
       },
       "ok": true
@@ -4039,6 +4042,9 @@
             "eventId": {
               "type": "string"
             },
+            "maybeAllowed": {
+              "type": "boolean"
+            },
             "status": {
               "oneOf": [
                 {
@@ -4078,8 +4084,8 @@
       "meta": {
         "cliVersion": "3.1.0",
         "command": "schema",
-        "productContractRevision": "2026-11-20.1",
-        "remoteContractRevision": "2026-08-12.7",
+        "productContractRevision": "2026-11-25.1",
+        "remoteContractRevision": "2026-11-25.1",
         "warnings": []
       },
       "ok": true
@@ -4489,10 +4495,7 @@
                   "type": "string"
                 },
                 "operation": {
-                  "enum": [
-                    "addGuest",
-                    "markEventInterest"
-                  ],
+                  "const": "addGuest",
                   "type": "string"
                 },
                 "preconditions": {
@@ -4519,128 +4522,106 @@
                   "type": "object"
                 },
                 "request": {
-                  "oneOf": [
-                    {
+                  "additionalProperties": false,
+                  "properties": {
+                    "eventId": {
+                      "minLength": 1,
+                      "type": "string"
+                    },
+                    "rsvp": {
                       "additionalProperties": false,
                       "properties": {
-                        "eventId": {
+                        "count": {
+                          "minimum": 1,
+                          "type": "integer"
+                        },
+                        "guestId": {
+                          "enum": [
+                            "\u003credacted\u003e"
+                          ],
+                          "type": "string"
+                        },
+                        "messageProvided": {
+                          "type": "boolean"
+                        },
+                        "name": {
+                          "maxLength": 50,
                           "minLength": 1,
                           "type": "string"
                         },
-                        "rsvp": {
+                        "plusOnes": {
+                          "items": {
+                            "additionalProperties": false,
+                            "properties": {
+                              "name": {
+                                "minLength": 1,
+                                "pattern": "\\S",
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "name"
+                            ],
+                            "type": "object"
+                          },
+                          "type": "array"
+                        },
+                        "questionnaireResponse": {
                           "additionalProperties": false,
                           "properties": {
-                            "count": {
-                              "minimum": 1,
-                              "type": "integer"
-                            },
-                            "guestId": {
-                              "enum": [
-                                "\u003credacted\u003e"
-                              ],
-                              "type": "string"
-                            },
-                            "messageProvided": {
-                              "type": "boolean"
-                            },
-                            "name": {
-                              "maxLength": 50,
-                              "minLength": 1,
-                              "type": "string"
-                            },
-                            "plusOnes": {
-                              "items": {
-                                "additionalProperties": false,
-                                "properties": {
-                                  "name": {
-                                    "minLength": 1,
-                                    "pattern": "\\S",
-                                    "type": "string"
-                                  }
-                                },
-                                "required": [
-                                  "name"
-                                ],
-                                "type": "object"
+                            "answers": {
+                              "additionalProperties": {
+                                "type": "string"
                               },
-                              "type": "array"
-                            },
-                            "questionnaireResponse": {
-                              "additionalProperties": false,
-                              "properties": {
-                                "answers": {
-                                  "additionalProperties": {
-                                    "type": "string"
-                                  },
-                                  "type": "object"
-                                },
-                                "questionnaireVersion": {
-                                  "minimum": 0,
-                                  "type": "integer"
-                                }
-                              },
-                              "required": [
-                                "questionnaireVersion",
-                                "answers"
-                              ],
                               "type": "object"
                             },
-                            "shouldFollowOrgs": {
-                              "const": false,
-                              "type": "boolean"
-                            },
-                            "status": {
-                              "enum": [
-                                "GOING",
-                                "DECLINED"
-                              ],
-                              "type": "string"
-                            },
-                            "ticketPaid": {
-                              "type": "boolean"
-                            },
-                            "timezone": {
-                              "minLength": 1,
-                              "type": "string"
+                            "questionnaireVersion": {
+                              "minimum": 0,
+                              "type": "integer"
                             }
                           },
                           "required": [
-                            "name",
-                            "count",
-                            "plusOnes",
-                            "messageProvided",
-                            "status",
-                            "timezone",
-                            "shouldFollowOrgs"
+                            "questionnaireVersion",
+                            "answers"
                           ],
                           "type": "object"
-                        }
-                      },
-                      "required": [
-                        "eventId",
-                        "rsvp"
-                      ],
-                      "type": "object"
-                    },
-                    {
-                      "additionalProperties": false,
-                      "properties": {
-                        "eventId": {
-                          "minLength": 1,
+                        },
+                        "shouldFollowOrgs": {
+                          "const": false,
+                          "type": "boolean"
+                        },
+                        "status": {
+                          "enum": [
+                            "GOING",
+                            "DECLINED",
+                            "MAYBE"
+                          ],
                           "type": "string"
                         },
-                        "interested": {
-                          "const": true,
+                        "ticketPaid": {
                           "type": "boolean"
+                        },
+                        "timezone": {
+                          "minLength": 1,
+                          "type": "string"
                         }
                       },
                       "required": [
-                        "eventId",
-                        "interested"
+                        "count",
+                        "plusOnes",
+                        "messageProvided",
+                        "status",
+                        "timezone",
+                        "shouldFollowOrgs"
                       ],
                       "type": "object"
                     }
-                  ]
+                  },
+                  "required": [
+                    "eventId",
+                    "rsvp"
+                  ],
+                  "type": "object"
                 }
               },
               "required": [
@@ -4686,8 +4667,8 @@
       "meta": {
         "cliVersion": "3.1.0",
         "command": "schema",
-        "productContractRevision": "2026-11-20.1",
-        "remoteContractRevision": "2026-08-12.7",
+        "productContractRevision": "2026-11-25.1",
+        "remoteContractRevision": "2026-11-25.1",
         "warnings": []
       },
       "ok": true
@@ -4853,8 +4834,8 @@
       "meta": {
         "cliVersion": "3.1.0",
         "command": "schema",
-        "productContractRevision": "2026-11-20.1",
-        "remoteContractRevision": "2026-08-12.7",
+        "productContractRevision": "2026-11-25.1",
+        "remoteContractRevision": "2026-11-25.1",
         "warnings": []
       },
       "ok": true
@@ -4916,8 +4897,8 @@
       "meta": {
         "cliVersion": "3.1.0",
         "command": "schema",
-        "productContractRevision": "2026-11-20.1",
-        "remoteContractRevision": "2026-08-12.7",
+        "productContractRevision": "2026-11-25.1",
+        "remoteContractRevision": "2026-11-25.1",
         "warnings": []
       },
       "ok": true

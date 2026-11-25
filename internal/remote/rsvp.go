@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"strconv"
 	"strings"
 	"unicode/utf8"
 )
@@ -17,6 +16,7 @@ const maximumRSVPResponseBytes = 1 << 20
 type CurrentGuest struct {
 	Present bool
 	ID      string
+	Name    *string
 	Status  string
 	Count   *float64
 }
@@ -64,9 +64,22 @@ type AddGuestParams struct {
 	RSVP    RSVPDraft `json:"rsvp"`
 }
 
-type MarkEventInterestParams struct {
-	EventID    string `json:"eventId"`
-	Interested bool   `json:"interested"`
+type maybeGuestParams struct {
+	EventID string         `json:"eventId"`
+	RSVP    maybeRSVPDraft `json:"rsvp"`
+}
+
+type maybeRSVPDraft struct {
+	Name              string         `json:"name"`
+	Count             int            `json:"count"`
+	PlusOnes          []NamedPlusOne `json:"plusOnes"`
+	Message           *string        `json:"message"`
+	EmailInvitationID *string        `json:"emailInvitationId"`
+	ShouldFollowOrgs  bool           `json:"shouldFollowOrgs"`
+	Status            string         `json:"status"`
+	GuestID           string         `json:"guestId"`
+	Timezone          string         `json:"timezone"`
+	Password          *string        `json:"password"`
 }
 
 type rsvpMutationRequest[T any] struct {
@@ -74,8 +87,11 @@ type rsvpMutationRequest[T any] struct {
 }
 
 type rsvpMutationRequestData[T any] struct {
-	Params            T      `json:"params"`
-	AmplitudeDeviceID string `json:"amplitudeDeviceId"`
+	Params             T      `json:"params"`
+	Client             string `json:"client,omitempty"`
+	AmplitudeDeviceID  string `json:"amplitudeDeviceId"`
+	AmplitudeSessionID *int64 `json:"amplitudeSessionId,omitempty"`
+	UserID             string `json:"userId,omitempty"`
 }
 
 func (client Client) GetCurrentGuest(
@@ -156,7 +172,8 @@ func (client Client) GetCurrentGuest(
 		!validGuestStatus(*status) {
 		return CurrentGuest{}, fmt.Errorf("%w: current guest identity", ErrProtocolChanged)
 	}
-	if _, _, err := eventStringField(guest, "name", false); err != nil {
+	name, _, err := eventStringField(guest, "name", false)
+	if err != nil {
 		return CurrentGuest{}, fmt.Errorf("%w: current guest name", ErrProtocolChanged)
 	}
 	count, err := optionalNumber(guest, "count")
@@ -166,6 +183,7 @@ func (client Client) GetCurrentGuest(
 	return CurrentGuest{
 		Present: true,
 		ID:      *id,
+		Name:    name,
 		Status:  *status,
 		Count:   count,
 	}, nil
@@ -181,9 +199,10 @@ func (client Client) AddGuest(
 		client,
 		ctx,
 		accessToken,
-		amplitudeDeviceID,
-		"addGuest",
-		params,
+		rsvpMutationRequestData[AddGuestParams]{
+			Params:            params,
+			AmplitudeDeviceID: amplitudeDeviceID,
+		},
 	)
 	if err != nil {
 		return err
@@ -194,36 +213,51 @@ func (client Client) AddGuest(
 	return nil
 }
 
-func (client Client) MarkEventInterest(
+func (client Client) AddGuestMaybe(
 	ctx context.Context,
 	accessToken string,
 	amplitudeDeviceID string,
-	params MarkEventInterestParams,
+	userID string,
+	amplitudeSessionID int64,
+	params AddGuestParams,
 ) error {
+	if params.RSVP.GuestID == nil {
+		return fmt.Errorf("%w: Maybe guest identity", ErrProtocolChanged)
+	}
 	rawData, err := callRSVPMutation(
 		client,
 		ctx,
 		accessToken,
-		amplitudeDeviceID,
-		"markEventInterest",
-		params,
+		rsvpMutationRequestData[maybeGuestParams]{
+			Params: maybeGuestParams{
+				EventID: params.EventID,
+				RSVP: maybeRSVPDraft{
+					Name:     params.RSVP.Name,
+					Count:    params.RSVP.Count,
+					PlusOnes: params.RSVP.PlusOnes,
+					Status:   params.RSVP.Status,
+					GuestID:  *params.RSVP.GuestID,
+					Timezone: params.RSVP.Timezone,
+				},
+			},
+			Client:             "web",
+			AmplitudeDeviceID:  amplitudeDeviceID,
+			AmplitudeSessionID: &amplitudeSessionID,
+			UserID:             userID,
+		},
 	)
 	if err != nil {
 		return err
 	}
 	data, err := decodeEventObject(rawData)
 	if err != nil {
-		return fmt.Errorf("%w: event interest data", ErrProtocolChanged)
+		return fmt.Errorf("%w: Maybe response data", ErrProtocolChanged)
 	}
-	success, successPresent := data["success"]
-	interested, interestedPresent := data["interested"]
-	var returnedInterested bool
-	if !successPresent ||
-		!jsonTruthy(success) ||
-		!interestedPresent ||
-		json.Unmarshal(interested, &returnedInterested) != nil ||
-		returnedInterested != params.Interested {
-		return fmt.Errorf("%w: event interest completion", ErrProtocolChanged)
+	id, hasID, idErr := eventStringField(data, "id", false)
+	status, hasStatus, statusErr := eventStringField(data, "status", false)
+	if idErr != nil || !hasID || *id != *params.RSVP.GuestID ||
+		statusErr != nil || !hasStatus || *status != "MAYBE" {
+		return fmt.Errorf("%w: Maybe response completion", ErrProtocolChanged)
 	}
 	return nil
 }
@@ -232,23 +266,16 @@ func callRSVPMutation[T any](
 	client Client,
 	ctx context.Context,
 	accessToken string,
-	amplitudeDeviceID string,
-	operation string,
-	params T,
+	data rsvpMutationRequestData[T],
 ) (json.RawMessage, error) {
 	if client.HTTP == nil {
 		return nil, fmt.Errorf("%w: RSVP transport", ErrUnavailable)
 	}
-	payload, _ := json.Marshal(rsvpMutationRequest[T]{
-		Data: rsvpMutationRequestData[T]{
-			Params:            params,
-			AmplitudeDeviceID: amplitudeDeviceID,
-		},
-	})
+	payload, _ := json.Marshal(rsvpMutationRequest[T]{Data: data})
 	request, err := http.NewRequestWithContext(
 		ctx,
 		http.MethodPost,
-		partifulCallableHost+"/"+operation,
+		partifulCallableHost+"/addGuest",
 		bytes.NewReader(payload),
 	)
 	if err != nil {
@@ -285,30 +312,11 @@ func callRSVPMutation[T any](
 	if err != nil {
 		return nil, fmt.Errorf("%w: RSVP mutation result", ErrProtocolChanged)
 	}
-	data, ok := result["data"]
+	rawData, ok := result["data"]
 	if !ok {
 		return nil, fmt.Errorf("%w: RSVP mutation data", ErrProtocolChanged)
 	}
-	return bytes.Clone(data), nil
-}
-
-func jsonTruthy(raw json.RawMessage) bool {
-	trimmed := bytes.TrimSpace(raw)
-	if len(trimmed) == 0 ||
-		bytes.Equal(trimmed, []byte("null")) ||
-		bytes.Equal(trimmed, []byte("false")) ||
-		bytes.Equal(trimmed, []byte(`""`)) {
-		return false
-	}
-	if trimmed[0] == '"' {
-		var value string
-		return json.Unmarshal(trimmed, &value) == nil && value != ""
-	}
-	if trimmed[0] == '-' || trimmed[0] >= '0' && trimmed[0] <= '9' {
-		value, _ := strconv.ParseFloat(string(trimmed), 64)
-		return value != 0
-	}
-	return trimmed[0] == '{' || trimmed[0] == '[' || bytes.Equal(trimmed, []byte("true"))
+	return bytes.Clone(rawData), nil
 }
 
 func optionalNumber(

@@ -2,7 +2,7 @@
   "openapi": "3.1.0",
   "info": {
     "title": "Partiful remote API contract",
-    "version": "2026-08-12.7",
+    "version": "2026-11-25.1",
     "description": "Single source of truth for Partiful remote calls and wire shapes. Partiful has no public API. Each operation records dated provenance in x-evidence; unobserved responses remain unknown. Evidence status observed includes inspected first-party assets and official protocols, not just live traffic; the source note distinguishes them."
   },
   "servers": [
@@ -297,7 +297,7 @@
         "x-evidence": {
           "status": "observed",
           "date": "2026-11-12",
-          "source": "Request: typescript-derived-inference (spec/research/historical-27-operation-draft.json#/paths/~1getEventInfo/post). Response: dated-live-observation (docs/research/2026-08-11-event-contacts-read-observation.md#event-detail-observations). Status: dated-live-observation (docs/research/2026-08-11-event-contacts-read-observation.md#event-detail-observations). Safeguards: docs/research/2026-08-12-rsvp-read-observation.md (330 details; no universal presence claim). PR #245 reports inspection of public event payloads and the first-party RSVP flow: optional chip-in (mode optional, type chip_in or absent) uses addGuest, with ticketPaid true for GOING even when external payment is skipped; DECLINED omits ticketPaid, including required chip-in. This provenance note records that report during the 2026-11-12 review, not a new live observation. Offline chip-in fixtures cover these mappings. Live persisted RSVP state, external payment, questionnaire handling on the reported event, and getCurrentGuest returning an invited guest still require real Partiful verification. Standard ticket sales remain unsupported."
+          "source": "Request: typescript-derived-inference (spec/research/historical-27-operation-draft.json#/paths/~1getEventInfo/post). Response: dated-live-observation (docs/research/2026-08-11-event-contacts-read-observation.md#event-detail-observations). Status: dated-live-observation (docs/research/2026-08-11-event-contacts-read-observation.md#event-detail-observations). Safeguards: docs/research/2026-08-12-rsvp-read-observation.md (330 details; no universal presence claim). PR #245 reports inspection of public event payloads and the first-party RSVP flow: optional chip-in (mode optional, type chip_in or absent) uses addGuest, with ticketPaid true for GOING even when external payment is skipped; DECLINED omits ticketPaid, including required chip-in. This provenance note records that report during the 2026-11-12 review, not a new live observation. Offline chip-in fixtures cover these mappings. Live persisted RSVP state, external payment, questionnaire handling on the reported event, and getCurrentGuest returning an invited guest still require real Partiful verification. Standard ticket sales remain unsupported. The optional disableMaybe setting is listed in spec/research/rsvp-read-evidence-redacted-20260812.json."
         }
       }
     },
@@ -1427,6 +1427,9 @@
                           "rsvp"
                         ]
                       },
+                      "client": {
+                        "type": "string"
+                      },
                       "deviceInfo": {},
                       "adminAccessRequested": {},
                       "amplitudeDeviceId": {
@@ -1453,7 +1456,7 @@
         },
         "responses": {
           "200": {
-            "description": "Firebase callable completion accepted by the current first-party client; it does not prove stored business state.",
+            "description": "Firebase callable completion, including an observed MAYBE update for an existing guest. The response alone does not establish persisted business state.",
             "content": {
               "application/json": {
                 "schema": {
@@ -1473,14 +1476,15 @@
         ],
         "x-evidence": {
           "status": "observed",
-          "date": "2026-11-12",
-          "source": "Request: current-first-party-public-asset-research (docs/research/2026-08-12-rsvp-mapping-public-assets.md#addguest-request). Response: current-first-party-public-asset-research (docs/research/2026-08-12-rsvp-mapping-public-assets.md#addguest-completion). Status: official-protocol-specification (docs/research/2026-08-10-contract-evidence-sources.md#official-firebase-callable-protocol). Client completion or protocol evidence does not establish persisted business state, delivery, or unobserved failure mappings. PR #245 reports inspection of public event payloads and the first-party RSVP flow: optional chip-in (mode optional, type chip_in or absent) uses addGuest, with ticketPaid true for GOING even when external payment is skipped; DECLINED omits ticketPaid, including required chip-in. This provenance note records that report during the 2026-11-12 review, not a new live observation. Offline chip-in fixtures cover these mappings. Live persisted RSVP state, external payment, questionnaire handling on the reported event, and getCurrentGuest returning an invited guest still require real Partiful verification. Standard ticket sales remain unsupported."
+          "date": "2026-11-25",
+          "source": "Request: current-first-party-public-asset-research (docs/research/2026-08-12-rsvp-mapping-public-assets.md#addguest-request). Response: current-first-party-public-asset-research (docs/research/2026-08-12-rsvp-mapping-public-assets.md#addguest-completion). Status: official-protocol-specification (docs/research/2026-08-10-contract-evidence-sources.md#official-firebase-callable-protocol). Client completion or protocol evidence does not establish persisted business state, delivery, or unobserved failure mappings. PR #245 reports inspection of public event payloads and the first-party RSVP flow: optional chip-in (mode optional, type chip_in or absent) uses addGuest, with ticketPaid true for GOING even when external payment is skipped; DECLINED omits ticketPaid, including required chip-in. This provenance note records that report during the 2026-11-12 review, not a new live observation. Offline chip-in fixtures cover these mappings. Live persisted RSVP state, external payment, questionnaire handling on the reported event, and getCurrentGuest returning an invited guest still require real Partiful verification. Standard ticket sales remain unsupported. A redacted first-party browser capture supplied on 2026-11-25 shows an existing invite changing from SENT to MAYBE using addGuest, with guestId, client web, analytics IDs, authenticated userId, and explicit null message, emailInvitationId, and password. The HTTP 200 result.data contains the same guest ID and status MAYBE. Create-mode Maybe and server error bodies were not observed."
         }
       }
     },
     "/markEventInterest": {
       "post": {
         "operationId": "markEventInterest",
+        "description": "Historical interest flow. The CLI uses addGuest for Maybe.",
         "requestBody": {
           "required": true,
           "content": {
@@ -2850,11 +2854,11 @@
             "items": {}
           },
           "message": {
-            "type": "string",
+            "type": ["string", "null"],
             "maxLength": 400
           },
           "emailInvitationId": {
-            "type": "string"
+            "type": ["string", "null"]
           },
           "status": {
             "type": "string",
@@ -2871,7 +2875,7 @@
             "type": "string"
           },
           "password": {
-            "type": "string"
+            "type": ["string", "null"]
           },
           "questionnaireResponse": {
             "$ref": "#/components/schemas/RsvpQuestionnaireResponse"
@@ -2921,7 +2925,7 @@
             ],
             "properties": {
               "data": {
-                "description": "Completion data is not constrained by the current client."
+                "description": "For an observed MAYBE update, data is an object containing id and status. Going and Declined completion data have no operation-wide type constraint."
               }
             },
             "additionalProperties": true
@@ -3675,6 +3679,10 @@
           },
           "rsvpsEnabled": {
             "type": "boolean"
+          },
+          "disableMaybe": {
+            "type": ["boolean", "null"],
+            "description": "Event setting that disables the Maybe RSVP when true. The field may be absent."
           },
           "atCapacity": {
             "type": "boolean"

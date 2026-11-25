@@ -7,8 +7,11 @@ partiful rsvp set <event-id> --status going   --display-name "Example"   --party
 partiful rsvp set <event-id> --status not-going   --display-name "Example"   --party-size 1   --timezone America/Los_Angeles
 ```
 
-`rsvp get` returns the reviewed RSVP state or `null`. It does not expose guest
-or account IDs.
+`rsvp get` returns the RSVP state or `null`. It and `events get` include
+`maybeAllowed` when the event supplies the setting.
+
+`--status interested` submits Maybe for an existing guest record. If the host
+has disabled Maybe, the command returns `MAYBE_NOT_ALLOWED` before submitting.
 
 Add `--dry-run` to `rsvp set` for a redacted normalized request preview.
 Without `--dry-run`, the command performs current event and guest checks, then

@@ -175,8 +175,7 @@ func TestRemoteCallsMatchOpenAPI(t *testing.T) {
 		"firestorePatchEvent": func() {
 			_ = client.FirestorePatchEvent(ctx, "test-token", "event-example", []string{"title"}, FirestoreWriteDocument{})
 		},
-		"addGuest":          func() { _ = client.AddGuest(ctx, "test-token", "test-device", AddGuestParams{}) },
-		"markEventInterest": func() { _ = client.MarkEventInterest(ctx, "test-token", "test-device", MarkEventInterestParams{}) },
+		"addGuest": func() { _ = client.AddGuest(ctx, "test-token", "test-device", AddGuestParams{}) },
 		"addInvitedGuestsAsHost": func() {
 			_ = client.InviteGuestsAsHost(ctx, "test-token", "test-user", "test-device", InviteGuestsAsHostParams{})
 		},

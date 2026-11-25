@@ -86,6 +86,7 @@ type ArrayField struct {
 
 type EventSafeguards struct {
 	RSVPsEnabled          BooleanField   `json:"rsvpsEnabled"`
+	DisableMaybe          BooleanField   `json:"disableMaybe"`
 	AtCapacity            BooleanField   `json:"atCapacity"`
 	PlusOneNamesRequired  BooleanField   `json:"plusOneNamesRequired"`
 	GuestAction           StringField    `json:"guestAction"`
@@ -484,6 +485,10 @@ func decodeEventSafeguards(
 	if err != nil {
 		return EventSafeguards{}, err
 	}
+	disableMaybe, err := eventBooleanField(object, "disableMaybe", true)
+	if err != nil {
+		return EventSafeguards{}, err
+	}
 	atCapacity, err := eventBooleanField(object, "atCapacity", false)
 	if err != nil {
 		return EventSafeguards{}, err
@@ -547,6 +552,7 @@ func decodeEventSafeguards(
 	passwordProtected := eventUntypedPresence(object, "passwordProtected")
 	return EventSafeguards{
 		RSVPsEnabled:          rsvpsEnabled,
+		DisableMaybe:          disableMaybe,
 		AtCapacity:            atCapacity,
 		PlusOneNamesRequired:  plusOneNamesRequired,
 		GuestAction:           guestAction,
