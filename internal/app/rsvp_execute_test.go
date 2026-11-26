@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"reflect"
 	"slices"
+	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -101,6 +102,61 @@ func TestExecuteRSVPGetReturnsExplicitNoRSVPAndFailsClosedOnOtherVariants(t *tes
 	}
 }
 
+func TestExecuteEventAndRSVPGetReportMaybeWhenKnown(t *testing.T) {
+	for _, testCase := range []struct {
+		name        string
+		eventFields string
+		eventStatus int
+		allowed     string
+	}{
+		{name: "allowed", eventFields: `"disableMaybe":false`, allowed: "true"},
+		{name: "disabled", eventFields: `"disableMaybe":true`, allowed: "false"},
+		{name: "missing flag"},
+		{name: "null flag", eventFields: `"disableMaybe":null`},
+		{name: "event read unavailable", eventStatus: http.StatusServiceUnavailable},
+	} {
+		t.Run(testCase.name, func(t *testing.T) {
+			commands := []string{"rsvp"}
+			if testCase.eventStatus == 0 {
+				commands = append(commands, "events")
+			}
+			for _, command := range commands {
+				dependencies := rsvpTestDependencies(&memoryFilesystem{files: map[string][]byte{
+					rsvpCredentialsPath: []byte(rsvpCredentials),
+				}})
+				dependencies.HTTP = scriptedHTTP{do: func(request *http.Request) (*http.Response, error) {
+					switch request.URL.Path {
+					case "/getCurrentGuest":
+						return jsonResponse(http.StatusOK, `{"result":{"data":{"currentGuest":{
+							"id":"fixture-guest","status":"MAYBE"
+						}}}}`), nil
+					case "/getEventInfo":
+						if testCase.eventStatus != 0 {
+							return jsonResponse(testCase.eventStatus, `{}`), nil
+						}
+						return jsonResponse(http.StatusOK,
+							`{"result":{"data":{"event":{`+testCase.eventFields+`}}}}`), nil
+					default:
+						t.Fatalf("unexpected request %s", request.URL)
+						return nil, nil
+					}
+				}}
+				result := executeChecked(t, context.Background(), app.Request{
+					Argv: []string{command, "get", "event-example"},
+				}, dependencies)
+				var output struct {
+					Data map[string]json.RawMessage `json:"data"`
+				}
+				if result.ExitCode != 0 || json.Unmarshal([]byte(result.Stdout), &output) != nil ||
+					string(output.Data["maybeAllowed"]) != testCase.allowed ||
+					command == "rsvp" && string(output.Data["status"]) != `"maybe"` {
+					t.Fatalf("%s get: result = %#v, want Maybe availability %q", command, result, testCase.allowed)
+				}
+			}
+		})
+	}
+}
+
 func TestExecuteRSVPCommandsRequireAuthenticationBeforeRemoteAccess(t *testing.T) {
 	for _, argv := range [][]string{
 		{"rsvp", "get", "event-example"},
@@ -150,6 +206,7 @@ func TestExecuteRSVPSetDryRunsNormalizedGoingCreateWithoutMutation(t *testing.T)
 			)
 			return jsonResponse(http.StatusOK, `{"result":{"data":{"event":{
 				"rsvpsEnabled":true,
+				"disableMaybe":true,
 				"atCapacity":false,
 				"plusOneNamesRequired":true,
 				"questionnaireEnabled":false,
@@ -292,7 +349,7 @@ func TestExecuteRSVPSetDryRunRefreshesInMemoryWithoutPersistingCredentials(t *te
 		case 2:
 			return jsonResponse(http.StatusOK, compatibleRSVPEventResponse), nil
 		case 3:
-			return jsonResponse(http.StatusOK, `{"result":{"data":{"currentGuest":null}}}`), nil
+			return jsonResponse(http.StatusOK, maybeInviteResponse), nil
 		default:
 			t.Fatalf("unexpected request %d: %s", call, request.URL)
 			return nil, nil
@@ -431,61 +488,117 @@ func TestExecuteRSVPSetUpdatesReviewedGuestOnceAndReturnsOnlySubmittedIntent(t *
 	}
 }
 
-func TestExecuteRSVPSetSubmitsInterestWithoutDisplayNameOrSource(t *testing.T) {
-	files := &memoryFilesystem{files: map[string][]byte{
+func TestExecuteRSVPSetSubmitsMaybeForExistingInvite(t *testing.T) {
+	dependencies := rsvpTestDependencies(&memoryFilesystem{files: map[string][]byte{
 		rsvpCredentialsPath: []byte(rsvpCredentials),
-	}}
-	dependencies := rsvpTestDependencies(files)
+	}})
+	event := compatibleRSVPEvent()
+	event["disableMaybe"] = false
+	event["timezone"] = "America/Los_Angeles"
 	call := 0
 	dependencies.HTTP = scriptedHTTP{do: func(request *http.Request) (*http.Response, error) {
 		call++
 		switch call {
-		case 1, 3:
-			return jsonResponse(http.StatusOK, compatibleRSVPEventResponse), nil
-		case 2, 4:
-			return jsonResponse(
-				http.StatusOK,
-				`{"result":{"data":{"currentGuest":null}}}`,
-			), nil
-		case 5:
-			assertRSVPRequest(
-				t,
-				request,
-				"markEventInterest",
-				`{"data":{"params":{"eventId":"event-example","interested":true},"amplitudeDeviceId":"MDEyMzQ1Njc4OWFiY2RlZg"}}`,
-			)
-			return jsonResponse(
-				http.StatusOK,
-				`{"result":{"data":{"success":1e999999999,"interested":true,"privateValue":"ignored"}}}`,
-			), nil
+		case 1, 4:
+			return jsonResponse(http.StatusOK, rsvpEventResponse(t, event)), nil
+		case 2, 5:
+			return jsonResponse(http.StatusOK, maybeInviteResponse), nil
+		case 3:
+			if request.URL.Path == "/markEventInterest" {
+				return jsonResponse(http.StatusNotFound, `{"error":{"status":"NOT_FOUND"}}`), nil
+			}
+			assertRSVPRequest(t, request, "addGuest",
+				`{"data":{"params":{"eventId":"event-example","rsvp":{"name":"Fixture Attendee","count":1,"plusOnes":[],"message":null,"emailInvitationId":null,"shouldFollowOrgs":false,"status":"MAYBE","guestId":"fixture-guest","timezone":"America/Los_Angeles","password":null}},"client":"web","amplitudeDeviceId":"MDEyMzQ1Njc4OWFiY2RlZg","amplitudeSessionId":`+
+					strconv.FormatInt(1_786_492_800_000, 10)+`,"userId":"private-account"}}`)
+			return jsonResponse(http.StatusOK, `{"result":{"data":{
+				"isNew":false,"previousStatus":"SENT","invitedCommunityCount":0,
+				"id":"fixture-guest","name":"Fixture Attendee","status":"MAYBE","count":1,
+				"plusOnes":[],"linkedPlusOneFailures":[]
+			}}}`), nil
 		default:
 			t.Fatalf("unexpected request %d: %s", call, request.URL)
 			return nil, nil
 		}
 	}}
-	argv := []string{
-		"rsvp", "set", "event-example",
-		"--status", "interested",
+	argv := []string{"rsvp", "set", "event-example", "--status", "interested"}
+	applied := executeChecked(t, context.Background(), app.Request{Argv: argv}, dependencies)
+	if applied.ExitCode != 0 ||
+		!strings.Contains(applied.Stdout, `"data":{"eventId":"event-example","intent":"interested","submitted":true}`) ||
+		call != 3 {
+		t.Fatalf("applied = %#v, calls = %d, want one accepted Maybe submission", applied, call)
 	}
 
-	preview := executeChecked(t, context.Background(), app.Request{Argv: append(append([]string{}, argv...), "--dry-run")}, dependencies)
-	if preview.ExitCode != 0 ||
-		!strings.Contains(preview.Stdout, `"operation":"markEventInterest"`) ||
-		!strings.Contains(preview.Stdout, `"input":{"status":"interested"}`) ||
-		strings.Contains(preview.Stdout, "displayName") ||
-		strings.Contains(preview.Stdout, "source") {
-		t.Fatalf("preview = %#v, want narrow direct-interest request", preview)
+	preview := executeChecked(t, context.Background(), app.Request{Argv: append(argv, "--dry-run")}, dependencies)
+	if preview.ExitCode != 0 || call != 5 ||
+		!strings.Contains(preview.Stdout, `"operation":"addGuest","mode":"update","input":{"status":"interested"}`) ||
+		!strings.Contains(preview.Stdout, `"status":"MAYBE"`) ||
+		!strings.Contains(preview.Stdout, `"guestId":"\u003credacted\u003e"`) {
+		t.Fatalf("preview = %#v, calls = %d, want redacted Maybe update with no write", preview, call)
 	}
-	applied := executeChecked(t, context.Background(), app.Request{
-		Argv: argv,
+	for _, result := range []app.Result{applied, preview} {
+		for _, private := range []string{"Fixture Attendee", "fixture-guest", "private-account", "private-access-token"} {
+			if strings.Contains(result.Stdout+result.Stderr, private) {
+				t.Fatalf("Maybe output exposed fixture data %q", private)
+			}
+		}
+	}
+}
+
+func TestExecuteRSVPSetRejectsMaybeDisabledByHost(t *testing.T) {
+	for _, dryRun := range []bool{false, true} {
+		argv := []string{"rsvp", "set", "event-example", "--status", "interested"}
+		if dryRun {
+			argv = append(argv, "--dry-run")
+		}
+		dependencies := rsvpTestDependencies(&memoryFilesystem{files: map[string][]byte{
+			rsvpCredentialsPath: []byte(rsvpCredentials),
+		}})
+		calls := 0
+		dependencies.HTTP = scriptedHTTP{do: func(request *http.Request) (*http.Response, error) {
+			calls++
+			switch request.URL.Path {
+			case "/getEventInfo":
+				return jsonResponse(http.StatusOK, rsvpEventResponse(t, rsvpEventWith("disableMaybe", true))), nil
+			case "/getCurrentGuest":
+				return jsonResponse(http.StatusOK, maybeInviteResponse), nil
+			default:
+				return jsonResponse(http.StatusBadRequest, `{"error":{"status":"FAILED_PRECONDITION"}}`), nil
+			}
+		}}
+		result := executeChecked(t, context.Background(), app.Request{Argv: argv}, dependencies)
+		if result.ExitCode != 6 || calls != 1 ||
+			!strings.Contains(result.Stdout, `"code":"MAYBE_NOT_ALLOWED"`) ||
+			!strings.Contains(result.Stdout, `"retryable":false`) ||
+			!strings.Contains(result.Stdout, "host has disabled Maybe") {
+			t.Fatalf("dry run %t: result = %#v, calls = %d, want disabled Maybe failure before guest read or mutation", dryRun, result, calls)
+		}
+	}
+}
+
+const maybeInviteResponse = `{"result":{"data":{"currentGuest":{
+	"id":"fixture-guest","name":"Fixture Attendee","status":"SENT","count":1
+}}}}`
+
+func TestExecuteRSVPSetRequiresExistingGuestForMaybe(t *testing.T) {
+	dependencies := rsvpTestDependencies(&memoryFilesystem{files: map[string][]byte{
+		rsvpCredentialsPath: []byte(rsvpCredentials),
+	}})
+	dependencies.HTTP = scriptedHTTP{do: func(request *http.Request) (*http.Response, error) {
+		switch request.URL.Path {
+		case "/getEventInfo":
+			return jsonResponse(http.StatusOK, compatibleRSVPEventResponse), nil
+		case "/getCurrentGuest":
+			return jsonResponse(http.StatusOK, `{"result":{"data":{"currentGuest":null}}}`), nil
+		default:
+			t.Fatalf("unexpected mutation: %s", request.URL)
+			return nil, nil
+		}
+	}}
+	result := executeChecked(t, context.Background(), app.Request{
+		Argv: []string{"rsvp", "set", "event-example", "--status", "interested"},
 	}, dependencies)
-	if applied.ExitCode != 0 ||
-		!strings.Contains(
-			applied.Stdout,
-			`"data":{"eventId":"event-example","intent":"interested","submitted":true}`,
-		) ||
-		call != 5 {
-		t.Fatalf("applied = %#v, calls = %d, want one accepted interest submission", applied, call)
+	if result.ExitCode != 6 || !strings.Contains(result.Stdout, `"code":"MAYBE_INVITE_REQUIRED"`) {
+		t.Fatalf("result = %#v, want existing guest requirement", result)
 	}
 }
 
@@ -1205,14 +1318,14 @@ func TestExecuteRSVPSetMakesOneAttemptOnUncertainOrMalformedCompletion(t *testin
 			code:        "RSVP_SUBMISSION_UNCERTAIN",
 		},
 		{
-			name:        "interest completion predicate",
-			response:    `{"result":{"data":{"success":true,"interested":false}}}`,
+			name:        "unexpected Maybe completion status",
+			response:    `{"result":{"data":{"id":"fixture-guest","status":"DECLINED"}}}`,
 			failureType: "contract.protocol_changed",
 			code:        "RSVP_PROTOCOL_CHANGED",
 		},
 		{
-			name:        "JavaScript-falsy underflowed success",
-			response:    `{"result":{"data":{"success":1e-999,"interested":true}}}`,
+			name:        "unexpected Maybe guest identity",
+			response:    `{"result":{"data":{"id":"different-fixture-guest","status":"MAYBE"}}}`,
 			failureType: "contract.protocol_changed",
 			code:        "RSVP_PROTOCOL_CHANGED",
 		},
@@ -1235,10 +1348,7 @@ func TestExecuteRSVPSetMakesOneAttemptOnUncertainOrMalformedCompletion(t *testin
 				case 1:
 					return jsonResponse(http.StatusOK, compatibleRSVPEventResponse), nil
 				case 2:
-					return jsonResponse(
-						http.StatusOK,
-						`{"result":{"data":{"currentGuest":null}}}`,
-					), nil
+					return jsonResponse(http.StatusOK, maybeInviteResponse), nil
 				case 3:
 					mutationAttempts++
 					if testCase.remoteError != nil {
@@ -1311,6 +1421,7 @@ func TestExecuteSchemaPublishesCompleteRSVPSurfaceAndSafety(t *testing.T) {
 	if getResult.ExitCode != 0 ||
 		!strings.Contains(getResult.Stdout, `"command":"rsvp.get"`) ||
 		!strings.Contains(getResult.Stdout, `"enum":["ready-to-send"`) ||
+		!strings.Contains(getResult.Stdout, `"maybeAllowed":{"type":"boolean"}`) ||
 		strings.Contains(getResult.Stdout, "guestId") ||
 		strings.Contains(getResult.Stdout, "userId") {
 		t.Fatalf("get schema = %#v, want private-ID-free reviewed RSVP read", getResult)
@@ -1369,6 +1480,8 @@ func TestExecuteSchemaPublishesCompleteRSVPSurfaceAndSafety(t *testing.T) {
 		t.Fatalf("set input schema = %#v, want exact three-intent input", set.Data.InputSchema)
 	}
 	if len(set.Data.SuccessSchema.OneOf) != 2 ||
+		!strings.Contains(string(set.Data.SuccessSchema.OneOf[0]), `"MAYBE"`) ||
+		strings.Contains(string(set.Data.SuccessSchema.OneOf[0]), `"markEventInterest"`) ||
 		set.Data.Safety.Kind != "standard-mutation" ||
 		set.Data.Safety.Destructive {
 		t.Fatalf("set success/safety = %#v, want preview-or-submitted standard mutation", set.Data)

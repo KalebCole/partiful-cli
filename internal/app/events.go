@@ -18,21 +18,22 @@ type eventData struct {
 type eventSummary = eventstore.Event
 
 type eventDetail struct {
-	EventID     string  `json:"eventId"`
-	Title       *string `json:"title"`
-	Start       *string `json:"start"`
-	End         *string `json:"end"`
-	Timezone    *string `json:"timezone"`
-	State       *string `json:"state"`
-	UserRole    any     `json:"userRole"`
-	MyRSVP      any     `json:"myRsvp"`
-	Description any     `json:"description"`
-	Location    any     `json:"location"`
-	Address     any     `json:"address"`
-	Visibility  any     `json:"visibility"`
-	GuestLimit  any     `json:"guestLimit"`
-	Poster      any     `json:"poster"`
-	Links       any     `json:"links"`
+	EventID      string  `json:"eventId"`
+	Title        *string `json:"title"`
+	Start        *string `json:"start"`
+	End          *string `json:"end"`
+	Timezone     *string `json:"timezone"`
+	State        *string `json:"state"`
+	UserRole     any     `json:"userRole"`
+	MyRSVP       any     `json:"myRsvp"`
+	Description  any     `json:"description"`
+	Location     any     `json:"location"`
+	Address      any     `json:"address"`
+	Visibility   any     `json:"visibility"`
+	GuestLimit   any     `json:"guestLimit"`
+	Poster       any     `json:"poster"`
+	Links        any     `json:"links"`
+	MaybeAllowed *bool   `json:"maybeAllowed,omitempty"`
 }
 
 func executeEventsList(
@@ -227,19 +228,20 @@ func executeEventGet(
 		return eventProtocolChangedFailure(definition.path, pretty)
 	}
 	return success(definition.path, eventDetail{
-		EventID:     eventID,
-		Title:       event.Title,
-		Start:       event.Start,
-		End:         event.End,
-		Timezone:    event.Timezone,
-		State:       state,
-		Description: event.RawFields["description"],
-		Location:    event.RawFields["location"],
-		Address:     event.RawFields["locationInfo"],
-		Visibility:  projectEventVisibility(event.RawFields),
-		GuestLimit:  projectEventGuestLimit(event.RawFields),
-		Poster:      event.RawFields["image"],
-		Links:       event.RawFields["customFields"],
+		EventID:      eventID,
+		Title:        event.Title,
+		Start:        event.Start,
+		End:          event.End,
+		Timezone:     event.Timezone,
+		State:        state,
+		Description:  event.RawFields["description"],
+		Location:     event.RawFields["location"],
+		Address:      event.RawFields["locationInfo"],
+		Visibility:   projectEventVisibility(event.RawFields),
+		GuestLimit:   projectEventGuestLimit(event.RawFields),
+		Poster:       event.RawFields["image"],
+		Links:        event.RawFields["customFields"],
+		MaybeAllowed: projectMaybeAllowed(event.Safeguards),
 	}, pretty)
 }
 
@@ -262,6 +264,14 @@ func projectEventGuestLimit(raw map[string]json.RawMessage) any {
 		return document
 	}
 	return raw["maxCapacity"]
+}
+
+func projectMaybeAllowed(event remote.EventSafeguards) *bool {
+	if event.DisableMaybe.State != remote.FieldValue {
+		return nil
+	}
+	allowed := !event.DisableMaybe.Value
+	return &allowed
 }
 
 func parseEventID(

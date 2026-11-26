@@ -988,21 +988,22 @@ func eventGetSuccessSchema() jsonSchema {
 			"links",
 		},
 		map[string]jsonSchema{
-			"eventId":     {Type: "string"},
-			"title":       nullableString,
-			"start":       nullableString,
-			"end":         nullableString,
-			"timezone":    nullableString,
-			"state":       nullableEnum([]string{"active", "cancelled"}),
-			"userRole":    {Type: "null"},
-			"myRsvp":      {Type: "null"},
-			"description": {Type: []string{"string", "null"}},
-			"location":    {Type: []string{"string", "null"}},
-			"address":     {Type: []string{"object", "null"}},
-			"visibility":  {Type: []string{"string", "null"}},
-			"guestLimit":  {Type: []string{"integer", "null"}},
-			"poster":      {Type: []string{"object", "null"}},
-			"links":       {Type: []string{"array", "null"}},
+			"eventId":      {Type: "string"},
+			"title":        nullableString,
+			"start":        nullableString,
+			"end":          nullableString,
+			"timezone":     nullableString,
+			"state":        nullableEnum([]string{"active", "cancelled"}),
+			"userRole":     {Type: "null"},
+			"myRsvp":       {Type: "null"},
+			"description":  {Type: []string{"string", "null"}},
+			"location":     {Type: []string{"string", "null"}},
+			"address":      {Type: []string{"object", "null"}},
+			"visibility":   {Type: []string{"string", "null"}},
+			"guestLimit":   {Type: []string{"integer", "null"}},
+			"poster":       {Type: []string{"object", "null"}},
+			"links":        {Type: []string{"array", "null"}},
+			"maybeAllowed": {Type: "boolean"},
 		},
 	)
 }
@@ -1011,7 +1012,8 @@ func rsvpReadSuccessSchema() jsonSchema {
 	return objectSchema(
 		[]string{"eventId", "status"},
 		map[string]jsonSchema{
-			"eventId": {Type: "string"},
+			"eventId":      {Type: "string"},
+			"maybeAllowed": {Type: "boolean"},
 			"status": {
 				OneOf: []jsonSchema{
 					{Type: "string", Enum: eventReadRsvpValues()},

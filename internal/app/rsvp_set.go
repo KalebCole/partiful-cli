@@ -5,16 +5,17 @@ import (
 	"errors"
 	"math"
 	"strings"
+	"time"
 
 	"github.com/KalebCole/partiful-cli/internal/remote"
 )
 
 type rsvpPreview struct {
-	Operation     string                  `json:"operation"`
-	Mode          string                  `json:"mode"`
-	Input         any                     `json:"input"`
-	Request       any                     `json:"request"`
-	Preconditions rsvpPublicPreconditions `json:"preconditions"`
+	Operation     string                     `json:"operation"`
+	Mode          string                     `json:"mode"`
+	Input         any                        `json:"input"`
+	Request       rsvpPreviewAddGuestRequest `json:"request"`
+	Preconditions rsvpPublicPreconditions    `json:"preconditions"`
 }
 
 type rsvpPublicPreconditions struct {
@@ -28,7 +29,7 @@ type rsvpPreviewAddGuestRequest struct {
 }
 
 type rsvpPreviewGuestDraft struct {
-	Name                  string                        `json:"name"`
+	Name                  string                        `json:"name,omitempty"`
 	Count                 int                           `json:"count"`
 	PlusOnes              []remote.NamedPlusOne         `json:"plusOnes"`
 	MessageProvided       bool                          `json:"messageProvided"`
@@ -47,17 +48,16 @@ type rsvpSubmitted struct {
 }
 
 type rsvpPrivateCurrentGuest struct {
-	Marker  string `json:"marker"`
-	GuestID string `json:"guestId,omitempty"`
-	Status  string `json:"status,omitempty"`
-	Count   *int   `json:"count,omitempty"`
+	Marker  string
+	GuestID string
+	Name    *string
+	Status  string
+	Count   *int
 }
 
 type rsvpPreparedRequest struct {
-	Operation    string
 	Mode         string
-	Private      any
-	Public       any
+	Params       remote.AddGuestParams
 	CurrentGuest string
 }
 
@@ -67,6 +67,8 @@ const (
 	rsvpProtocolError rsvpCompatibilityError = iota + 1
 	rsvpStateError
 	rsvpQuestionnaireInputError
+	rsvpMaybeNotAllowed
+	rsvpMaybeInviteRequired
 )
 
 type rsvpRejection struct {
@@ -124,6 +126,10 @@ func executeRSVPSet(
 			return rsvpProtocolChangedFailure(definition.path, pretty)
 		}
 	}
+	isMaybe := options.Input.Intent == "interested"
+	if isMaybe && event.Safeguards.DisableMaybe.Value {
+		return rsvpCompatibilityFailure(definition.path, rsvpRejection{kind: rsvpMaybeNotAllowed}, pretty)
+	}
 	currentGuest, err := client.GetCurrentGuest(
 		ctx,
 		session.AccessToken,
@@ -136,14 +142,14 @@ func executeRSVPSet(
 		}
 		return rsvpProtocolChangedFailure(definition.path, pretty)
 	}
-	privateCurrentGuest, rejection := normalizeRSVPCurrentGuest(currentGuest)
+	privateCurrentGuest, rejection := normalizeRSVPCurrentGuest(currentGuest, isMaybe)
 	if rejection.kind != 0 {
 		return rsvpCompatibilityFailure(definition.path, rejection, pretty)
 	}
 	prepared, rejection := prepareRSVPRequest(
 		options.EventID,
 		options.Input,
-		event.Safeguards,
+		event,
 		privateCurrentGuest,
 	)
 	if rejection.kind != 0 {
@@ -151,33 +157,28 @@ func executeRSVPSet(
 	}
 	if execution.DryRun {
 		return success(definition.path, rsvpPreview{
-			Operation: prepared.Operation,
+			Operation: "addGuest",
 			Mode:      prepared.Mode,
 			Input:     options.Input.public(),
-			Request:   publicRSVPPreviewRequest(prepared.Public),
+			Request:   publicRSVPPreviewRequest(prepared.Params),
 			Preconditions: rsvpPublicPreconditions{
 				CurrentGuest:    prepared.CurrentGuest,
 				EventSafeguards: "bound",
 			},
 		}, pretty)
 	}
-	switch params := prepared.Private.(type) {
-	case remote.AddGuestParams:
-		err = client.AddGuest(
-			ctx,
-			session.AccessToken,
-			deviceID,
-			params,
-		)
-	case remote.MarkEventInterestParams:
-		err = client.MarkEventInterest(
-			ctx,
-			session.AccessToken,
-			deviceID,
-			params,
-		)
-	default:
-		return internalFailure(definition.path, pretty)
+	if isMaybe {
+		if session.UserID == "" {
+			return internalFailure(definition.path, pretty)
+		}
+		clock := time.Now
+		if dependencies.Now != nil {
+			clock = dependencies.Now
+		}
+		err = client.AddGuestMaybe(ctx, session.AccessToken, deviceID, session.UserID,
+			clock().UnixMilli(), prepared.Params)
+	} else {
+		err = client.AddGuest(ctx, session.AccessToken, deviceID, prepared.Params)
 	}
 	if err != nil {
 		if errors.Is(err, remote.ErrUnavailable) {
@@ -192,20 +193,26 @@ func executeRSVPSet(
 	}, pretty)
 }
 
-func publicRSVPPreviewRequest(request any) any {
-	params, ok := request.(remote.AddGuestParams)
-	if !ok {
-		return request
+func publicRSVPPreviewRequest(params remote.AddGuestParams) rsvpPreviewAddGuestRequest {
+	name := params.RSVP.Name
+	if params.RSVP.Status == "MAYBE" {
+		// The name came from the private guest read, rather than user input.
+		name = ""
+	}
+	var guestID *string
+	if params.RSVP.GuestID != nil {
+		redacted := "<redacted>"
+		guestID = &redacted
 	}
 	return rsvpPreviewAddGuestRequest{
 		EventID: params.EventID,
 		RSVP: rsvpPreviewGuestDraft{
-			Name:                  params.RSVP.Name,
+			Name:                  name,
 			Count:                 params.RSVP.Count,
 			PlusOnes:              params.RSVP.PlusOnes,
 			MessageProvided:       params.RSVP.Message != nil,
 			Status:                params.RSVP.Status,
-			GuestID:               params.RSVP.GuestID,
+			GuestID:               guestID,
 			Timezone:              params.RSVP.Timezone,
 			QuestionnaireResponse: params.RSVP.QuestionnaireResponse,
 			ShouldFollowOrgs:      params.RSVP.ShouldFollowOrgs,
@@ -217,27 +224,43 @@ func publicRSVPPreviewRequest(request any) any {
 func prepareRSVPRequest(
 	eventID string,
 	input normalizedRSVPInput,
-	event remote.EventSafeguards,
+	event remote.Event,
 	currentGuest rsvpPrivateCurrentGuest,
 ) (rsvpPreparedRequest, rsvpRejection) {
-	if rejection := validateRSVPEvent(event, input, currentGuest); rejection.kind != 0 {
+	if rejection := validateRSVPEvent(event.Safeguards, input, currentGuest); rejection.kind != 0 {
 		return rsvpPreparedRequest{}, rejection
 	}
 	mode := "create"
+	var guestID *string
 	if currentGuest.Marker == "present" {
 		mode = "update"
+		guestID = &currentGuest.GuestID
 	}
 	if input.Intent == "interested" {
-		params := remote.MarkEventInterestParams{
-			EventID:    eventID,
-			Interested: true,
+		if guestID == nil {
+			return rsvpPreparedRequest{}, rsvpRejection{kind: rsvpMaybeInviteRequired}
+		}
+		if currentGuest.Name == nil || strings.TrimSpace(*currentGuest.Name) == "" {
+			return rsvpPreparedRequest{}, rsvpRejection{kind: rsvpProtocolError}
+		}
+		timezone := "UTC"
+		if event.Timezone != nil && *event.Timezone != "" && validRSVPTimezone(*event.Timezone) {
+			timezone = *event.Timezone
 		}
 		return rsvpPreparedRequest{
-			Operation:    "markEventInterest",
 			Mode:         mode,
-			Private:      params,
-			Public:       params,
 			CurrentGuest: currentGuest.Marker,
+			Params: remote.AddGuestParams{
+				EventID: eventID,
+				RSVP: remote.RSVPDraft{
+					Name:     *currentGuest.Name,
+					Count:    1,
+					PlusOnes: []remote.NamedPlusOne{},
+					Status:   "MAYBE",
+					GuestID:  guestID,
+					Timezone: timezone,
+				},
+			},
 		}, rsvpRejection{}
 	}
 	product := input.AddGuest
@@ -256,11 +279,7 @@ func prepareRSVPRequest(
 	if input.Intent == "not-going" {
 		status = "DECLINED"
 	}
-	var guestID *string
-	if currentGuest.Marker == "present" {
-		guestID = &currentGuest.GuestID
-	}
-	privateParams := remote.AddGuestParams{
+	params := remote.AddGuestParams{
 		EventID: eventID,
 		RSVP: remote.RSVPDraft{
 			Name:                  product.DisplayName,
@@ -272,25 +291,19 @@ func prepareRSVPRequest(
 			Timezone:              product.Timezone,
 			QuestionnaireResponse: questionnaire,
 			ShouldFollowOrgs:      false,
-			TicketPaid:            honorSystemSuggestion(event.Ticketing) && status == "GOING",
+			TicketPaid:            honorSystemSuggestion(event.Safeguards.Ticketing) && status == "GOING",
 		},
 	}
-	publicParams := privateParams
-	if publicParams.RSVP.GuestID != nil {
-		redacted := "<redacted>"
-		publicParams.RSVP.GuestID = &redacted
-	}
 	return rsvpPreparedRequest{
-		Operation:    "addGuest",
 		Mode:         mode,
-		Private:      privateParams,
-		Public:       publicParams,
+		Params:       params,
 		CurrentGuest: currentGuest.Marker,
 	}, rsvpRejection{}
 }
 
 func normalizeRSVPCurrentGuest(
 	current remote.CurrentGuest,
+	isMaybe bool,
 ) (rsvpPrivateCurrentGuest, rsvpRejection) {
 	if !current.Present {
 		return rsvpPrivateCurrentGuest{Marker: "absent"}, rsvpRejection{}
@@ -298,11 +311,17 @@ func normalizeRSVPCurrentGuest(
 	snapshot := rsvpPrivateCurrentGuest{
 		Marker:  "present",
 		GuestID: current.ID,
+		Name:    current.Name,
 		Status:  current.Status,
 	}
-	if strings.TrimSpace(current.ID) == "" ||
-		current.Status == "" ||
-		current.Count == nil ||
+	if strings.TrimSpace(current.ID) == "" || current.Status == "" {
+		return snapshot, rsvpRejection{kind: rsvpProtocolError}
+	}
+	if isMaybe {
+		// Maybe always sends count 1 and never uses the prior attendance count.
+		return snapshot, rsvpRejection{}
+	}
+	if current.Count == nil ||
 		*current.Count < 0 ||
 		math.Trunc(*current.Count) != *current.Count ||
 		*current.Count > float64(maxInt()) {
@@ -449,6 +468,10 @@ func rsvpCompatibilityFailure(
 	pretty bool,
 ) Result {
 	switch rejection.kind {
+	case rsvpMaybeNotAllowed:
+		return rsvpMaybeConflict(command, "MAYBE_NOT_ALLOWED", "The host has disabled Maybe for this event.", pretty)
+	case rsvpMaybeInviteRequired:
+		return rsvpMaybeConflict(command, "MAYBE_INVITE_REQUIRED", "Maybe requires an existing guest record for this event.", pretty)
 	case rsvpStateError:
 		details := map[string]any{}
 		if rejection.property != "" {
@@ -474,6 +497,18 @@ func rsvpCompatibilityFailure(
 	default:
 		return rsvpProtocolChangedFailure(command, pretty)
 	}
+}
+
+func rsvpMaybeConflict(command, code, message string, pretty bool) Result {
+	result := failure(command, 6, errorBody{
+		Type:      "state.conflict",
+		Code:      code,
+		Message:   message,
+		Retryable: false,
+		Details:   map[string]any{},
+	}, pretty)
+	result.Stderr = "partiful: " + message + "\n"
+	return result
 }
 
 func rsvpSubmitUnavailableFailure(command string, pretty bool) Result {

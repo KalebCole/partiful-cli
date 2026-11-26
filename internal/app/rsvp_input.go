@@ -615,13 +615,13 @@ func rsvpSetSuccessSchema() jsonSchema {
 		},
 	)
 	draft := objectSchema(
-		[]string{"name", "count", "plusOnes", "messageProvided", "status", "timezone", "shouldFollowOrgs"},
+		[]string{"count", "plusOnes", "messageProvided", "status", "timezone", "shouldFollowOrgs"},
 		map[string]jsonSchema{
 			"name":                  {Type: "string", MinLength: &one, MaxLength: &fifty},
 			"count":                 {Type: "integer", Minimum: &one},
 			"plusOnes":              {Type: "array", Items: &plusOne},
 			"messageProvided":       {Type: "boolean"},
-			"status":                {Type: "string", Enum: []string{"GOING", "DECLINED"}},
+			"status":                {Type: "string", Enum: []string{"GOING", "DECLINED", "MAYBE"}},
 			"guestId":               {Type: "string", Enum: []string{"<redacted>"}},
 			"timezone":              {Type: "string", MinLength: &one},
 			"questionnaireResponse": questionnaire,
@@ -634,13 +634,6 @@ func rsvpSetSuccessSchema() jsonSchema {
 		map[string]jsonSchema{
 			"eventId": {Type: "string", MinLength: &one},
 			"rsvp":    draft,
-		},
-	)
-	interestRequest := objectSchema(
-		[]string{"eventId", "interested"},
-		map[string]jsonSchema{
-			"eventId":    {Type: "string", MinLength: &one},
-			"interested": {Type: "boolean", Const: true},
 		},
 	)
 	preconditions := objectSchema(
@@ -659,7 +652,7 @@ func rsvpSetSuccessSchema() jsonSchema {
 			"preconditions",
 		},
 		map[string]jsonSchema{
-			"operation": {Type: "string", Enum: []string{"addGuest", "markEventInterest"}},
+			"operation": {Type: "string", Const: "addGuest"},
 			"mode":      {Type: "string", Enum: []string{"create", "update"}},
 			"input": {
 				OneOf: []jsonSchema{
@@ -668,9 +661,7 @@ func rsvpSetSuccessSchema() jsonSchema {
 					productInput("interested"),
 				},
 			},
-			"request": {
-				OneOf: []jsonSchema{addGuestRequest, interestRequest},
-			},
+			"request":       addGuestRequest,
 			"preconditions": preconditions,
 		},
 	)
