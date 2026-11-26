@@ -32,7 +32,7 @@
       ]
     },
     "meta": {
-      "cliVersion": "3.1.0",
+      "cliVersion": "3.1.1",
       "command": "schema",
       "productContractRevision": "2026-11-25.1",
       "remoteContractRevision": "2026-11-25.1",
@@ -111,7 +111,7 @@
         }
       },
       "meta": {
-        "cliVersion": "3.1.0",
+        "cliVersion": "3.1.1",
         "command": "schema",
         "productContractRevision": "2026-11-25.1",
         "remoteContractRevision": "2026-11-25.1",
@@ -185,7 +185,7 @@
         }
       },
       "meta": {
-        "cliVersion": "3.1.0",
+        "cliVersion": "3.1.1",
         "command": "schema",
         "productContractRevision": "2026-11-25.1",
         "remoteContractRevision": "2026-11-25.1",
@@ -262,7 +262,7 @@
         }
       },
       "meta": {
-        "cliVersion": "3.1.0",
+        "cliVersion": "3.1.1",
         "command": "schema",
         "productContractRevision": "2026-11-25.1",
         "remoteContractRevision": "2026-11-25.1",
@@ -516,7 +516,7 @@
         }
       },
       "meta": {
-        "cliVersion": "3.1.0",
+        "cliVersion": "3.1.1",
         "command": "schema",
         "productContractRevision": "2026-11-25.1",
         "remoteContractRevision": "2026-11-25.1",
@@ -686,7 +686,7 @@
         }
       },
       "meta": {
-        "cliVersion": "3.1.0",
+        "cliVersion": "3.1.1",
         "command": "schema",
         "productContractRevision": "2026-11-25.1",
         "remoteContractRevision": "2026-11-25.1",
@@ -829,7 +829,7 @@
         }
       },
       "meta": {
-        "cliVersion": "3.1.0",
+        "cliVersion": "3.1.1",
         "command": "schema",
         "productContractRevision": "2026-11-25.1",
         "remoteContractRevision": "2026-11-25.1",
@@ -973,7 +973,7 @@
         }
       },
       "meta": {
-        "cliVersion": "3.1.0",
+        "cliVersion": "3.1.1",
         "command": "schema",
         "productContractRevision": "2026-11-25.1",
         "remoteContractRevision": "2026-11-25.1",
@@ -1144,7 +1144,7 @@
         }
       },
       "meta": {
-        "cliVersion": "3.1.0",
+        "cliVersion": "3.1.1",
         "command": "schema",
         "productContractRevision": "2026-11-25.1",
         "remoteContractRevision": "2026-11-25.1",
@@ -1315,7 +1315,7 @@
         }
       },
       "meta": {
-        "cliVersion": "3.1.0",
+        "cliVersion": "3.1.1",
         "command": "schema",
         "productContractRevision": "2026-11-25.1",
         "remoteContractRevision": "2026-11-25.1",
@@ -1460,7 +1460,7 @@
         }
       },
       "meta": {
-        "cliVersion": "3.1.0",
+        "cliVersion": "3.1.1",
         "command": "schema",
         "productContractRevision": "2026-11-25.1",
         "remoteContractRevision": "2026-11-25.1",
@@ -1551,7 +1551,7 @@
         }
       },
       "meta": {
-        "cliVersion": "3.1.0",
+        "cliVersion": "3.1.1",
         "command": "schema",
         "productContractRevision": "2026-11-25.1",
         "remoteContractRevision": "2026-11-25.1",
@@ -1739,7 +1739,7 @@
         }
       },
       "meta": {
-        "cliVersion": "3.1.0",
+        "cliVersion": "3.1.1",
         "command": "schema",
         "productContractRevision": "2026-11-25.1",
         "remoteContractRevision": "2026-11-25.1",
@@ -2089,7 +2089,7 @@
         }
       },
       "meta": {
-        "cliVersion": "3.1.0",
+        "cliVersion": "3.1.1",
         "command": "schema",
         "productContractRevision": "2026-11-25.1",
         "remoteContractRevision": "2026-11-25.1",
@@ -2225,7 +2225,7 @@
         }
       },
       "meta": {
-        "cliVersion": "3.1.0",
+        "cliVersion": "3.1.1",
         "command": "schema",
         "productContractRevision": "2026-11-25.1",
         "remoteContractRevision": "2026-11-25.1",
@@ -2404,7 +2404,7 @@
         }
       },
       "meta": {
-        "cliVersion": "3.1.0",
+        "cliVersion": "3.1.1",
         "command": "schema",
         "productContractRevision": "2026-11-25.1",
         "remoteContractRevision": "2026-11-25.1",
@@ -2638,7 +2638,7 @@
         }
       },
       "meta": {
-        "cliVersion": "3.1.0",
+        "cliVersion": "3.1.1",
         "command": "schema",
         "productContractRevision": "2026-11-25.1",
         "remoteContractRevision": "2026-11-25.1",
@@ -2860,7 +2860,7 @@
         }
       },
       "meta": {
-        "cliVersion": "3.1.0",
+        "cliVersion": "3.1.1",
         "command": "schema",
         "productContractRevision": "2026-11-25.1",
         "remoteContractRevision": "2026-11-25.1",
@@ -2964,7 +2964,7 @@
         }
       },
       "meta": {
-        "cliVersion": "3.1.0",
+        "cliVersion": "3.1.1",
         "command": "schema",
         "productContractRevision": "2026-11-25.1",
         "remoteContractRevision": "2026-11-25.1",
@@ -3268,7 +3268,7 @@
         }
       },
       "meta": {
-        "cliVersion": "3.1.0",
+        "cliVersion": "3.1.1",
         "command": "schema",
         "productContractRevision": "2026-11-25.1",
         "remoteContractRevision": "2026-11-25.1",
@@ -3447,7 +3447,7 @@
         }
       },
       "meta": {
-        "cliVersion": "3.1.0",
+        "cliVersion": "3.1.1",
         "command": "schema",
         "productContractRevision": "2026-11-25.1",
         "remoteContractRevision": "2026-11-25.1",
@@ -3624,7 +3624,7 @@
         }
       },
       "meta": {
-        "cliVersion": "3.1.0",
+        "cliVersion": "3.1.1",
         "command": "schema",
         "productContractRevision": "2026-11-25.1",
         "remoteContractRevision": "2026-11-25.1",
@@ -3793,7 +3793,7 @@
         }
       },
       "meta": {
-        "cliVersion": "3.1.0",
+        "cliVersion": "3.1.1",
         "command": "schema",
         "productContractRevision": "2026-11-25.1",
         "remoteContractRevision": "2026-11-25.1",
@@ -3975,7 +3975,7 @@
         }
       },
       "meta": {
-        "cliVersion": "3.1.0",
+        "cliVersion": "3.1.1",
         "command": "schema",
         "productContractRevision": "2026-11-25.1",
         "remoteContractRevision": "2026-11-25.1",
@@ -4082,7 +4082,7 @@
         }
       },
       "meta": {
-        "cliVersion": "3.1.0",
+        "cliVersion": "3.1.1",
         "command": "schema",
         "productContractRevision": "2026-11-25.1",
         "remoteContractRevision": "2026-11-25.1",
@@ -4665,7 +4665,7 @@
         }
       },
       "meta": {
-        "cliVersion": "3.1.0",
+        "cliVersion": "3.1.1",
         "command": "schema",
         "productContractRevision": "2026-11-25.1",
         "remoteContractRevision": "2026-11-25.1",
@@ -4832,7 +4832,7 @@
         }
       },
       "meta": {
-        "cliVersion": "3.1.0",
+        "cliVersion": "3.1.1",
         "command": "schema",
         "productContractRevision": "2026-11-25.1",
         "remoteContractRevision": "2026-11-25.1",
@@ -4895,7 +4895,7 @@
         }
       },
       "meta": {
-        "cliVersion": "3.1.0",
+        "cliVersion": "3.1.1",
         "command": "schema",
         "productContractRevision": "2026-11-25.1",
         "remoteContractRevision": "2026-11-25.1",
